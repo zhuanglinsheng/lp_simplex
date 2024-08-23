@@ -4,8 +4,7 @@
  */
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
-#include <assert.h>
-#include <stddef.h>
+
 
 /* Check simplex optimality: all zero row coefficients are non-positive
  * Return:
@@ -130,7 +129,7 @@ BLAND_BEGIN:
  *	rule 2. row_i -= row_p * y_i_q
  *	rule 3. row_0 -= row_p * beta_q
  */
-void simplex_pivot_core(double *table, const int ldtable,
+void lp_simplex_pivot_core(double *table, const int ldtable,
 			const int m, const int n, const int p, const int q,
 			const int rule1, const int rule2, const int rule3)
 {
@@ -227,7 +226,7 @@ static int simplex_pivot_on(double *table, const int ldtable, int *basis,
 	if (bounded == 0)
 		return 2;
 	basis[p] = q;
-	simplex_pivot_core(table, ldtable, m, n, p, q, 1, 1, 1);
+	lp_simplex_pivot_core(table, ldtable, m, n, p, q, 1, 1, 1);
 	return 0;
 }
 

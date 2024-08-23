@@ -223,7 +223,7 @@ static void transf_artif_basis(double *table, int ldtable, int *basis, const int
 			lp_simplex_memset(table + (i + 1) * ldtable, 0, nreal * sizeof(double));
 			continue;
 		}
-		simplex_pivot_core(table, ldtable, m, nvar, i, q, 1, 1, 0);
+		lp_simplex_pivot_core(table, ldtable, m, nvar, i, q, 1, 1, 0);
 		basis[i] = q;
 		q = nvar;
 	}

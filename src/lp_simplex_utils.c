@@ -296,7 +296,7 @@ static struct lp_simplex_Model *create_model(const int m, const int n)
 	return model;
 }
 
-void lp_simplex_free(struct lp_simplex_Model *model)
+void lp_simplex_model_free(struct lp_simplex_Model *model)
 {
 	if (model == NULL)
 		return;

@@ -5,6 +5,9 @@
 #ifndef __lp_simplex_BASIC_H__
 #define __lp_simplex_BASIC_H__
 
+#include <assert.h>
+#include <stddef.h>
+
 #ifdef __cpluscplus
 extern "C" {
 #endif /* __cplusplus */

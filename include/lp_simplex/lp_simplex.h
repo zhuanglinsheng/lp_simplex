@@ -85,7 +85,7 @@ struct lp_simplex_Model {
 struct lp_simplex_Model* lp_simplex_readmps(const char *file);
 
 /* Release the LP model */
-void lp_simplex_free(struct lp_simplex_Model *model);
+void lp_simplex_model_free(struct lp_simplex_Model *model);
 
 /* Simplex algorithm for solving LP of general form
  *
@@ -175,6 +175,21 @@ int lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstr
 int lp_simplex_bsc(int *epoch, double *table, const int ldtable, int *basis,
 			const int m, const int n, const int nreal,
 			const char *criteria, const int niter);
+
+/* Key subroutine of pivoting
+ *
+ * Parameter:
+ *	p	idx of variable to leave basis
+ *	q	idx of variable to enter basis
+ *
+ * Work:
+ *	rule 1. row_p normalized by dividing y_p_q
+ *	rule 2. row_i -= row_p * y_i_q
+ *	rule 3. row_0 -= row_p * beta_q
+ */
+void lp_simplex_pivot_core(double *table, const int ldtable,
+			const int m, const int n, const int p, const int q,
+			const int rule1, const int rule2, const int rule3);
 
 #ifdef __cpluscplus
 }

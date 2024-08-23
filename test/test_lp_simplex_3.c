@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <assert.h>
 
+/* LP Example: Degeneracy
+ *
+ *         max    -3/4 * x1 + 20 * x2 - 0.5 * x3 + 6 * x4
+ *         s.t.   0.25 * x1 -  8 * x2 -       x3 + 9 * x4 <= 0
+ *                0.5  * x1 - 12 * x2 - 0.5 * x3 + 3 * x4 <= 0
+ *                                            x3          <= 0
+ *                x, y >= 0
+ */
 #define m 3        /* number of constraints */
 #define n 4        /* number of variables   */
 
@@ -25,7 +33,7 @@ int main(void)
 	/* call simplex subroutine that should be degenerated */
 	double x[n], value;
 	int code;
-	int state = lp_simplex(obj, constraints, NULL, m, n, "", 1000, x, &value, &code);
+	int state = lp_simplex(obj, constraints, NULL, m, n, "bland", 1000, x, &value, &code);
 
 	printf("Error code = %u\n", code);
 	assert(state == lp_simplex_EXIT_SUCCESS);
