@@ -4,8 +4,6 @@
  */
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
-#include <assert.h>
-#include <stddef.h>
 
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder

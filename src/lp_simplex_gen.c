@@ -4,8 +4,6 @@
  */
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
-#include <assert.h>
-#include <stddef.h>
 
 static int stdlpf_alloc(const int M, const int N, double **obj2, double **x2, double **coef2,
 			struct lp_simplex_LinearConstraint **constraints2)

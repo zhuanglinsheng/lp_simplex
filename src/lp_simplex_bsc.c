@@ -5,7 +5,6 @@
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
 
-
 /* Check simplex optimality: all zero row coefficients are non-positive
  * Return:
  * 	1 if is optimal

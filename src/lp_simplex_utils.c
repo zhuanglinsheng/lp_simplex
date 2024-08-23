@@ -4,8 +4,6 @@
  */
 #include <lp_simplex/lp_simplex.h>
 #include <lp_simplex/lp_simplex_utils.h>
-#include <assert.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -538,4 +536,15 @@ struct lp_simplex_Model *lp_simplex_readmps(const char *file)
 		return NULL;
 	fill_model(file, model);
 	return model;
+}
+
+int lp_simplex_wrp(const struct lp_simplex_Model *model, const char *criteria, const int niter,
+			double *x, double *value, int *code)
+{
+	int m = model->m;
+	int n = model->n;
+	double *obj = model->objective;
+	struct impf_LinearConstraint *cons = model->constraints;
+	struct impf_VariableBound *bounds = model->bounds;
+	return lp_simplex(obj, cons, bounds, m, n, criteria, niter, x, value, code);
 }
