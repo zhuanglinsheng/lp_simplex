@@ -236,16 +236,16 @@ double lp_simplex_atof(const char* str)
 }
 
 
-static struct lp_simplex_Model_LP *create_model(const int m, const int n)
+static struct lp_simplex_Model *create_model(const int m, const int n)
 {
 	double *obj = NULL;
 	double *coefficients = NULL;
 	struct lp_simplex_LinearConstraint *constraints = NULL;
 	struct lp_simplex_VariableBound *bounds = NULL;
-	struct lp_simplex_Model_LP *model = NULL;
+	struct lp_simplex_Model *model = NULL;
 	int i;
 
-	model = lp_simplex_malloc(sizeof(struct lp_simplex_Model_LP));
+	model = lp_simplex_malloc(sizeof(struct lp_simplex_Model));
 	if (model == NULL)
 		return NULL;
 	obj = lp_simplex_malloc(n * sizeof(double));
@@ -296,7 +296,7 @@ static struct lp_simplex_Model_LP *create_model(const int m, const int n)
 	return model;
 }
 
-void lp_simplex_lp_free(struct lp_simplex_Model_LP *model)
+void lp_simplex_free(struct lp_simplex_Model *model)
 {
 	if (model == NULL)
 		return;
@@ -403,7 +403,7 @@ static double get_field_2_value(const char *line)
 	return value;
 }
 
-static void fill_model_coef(struct lp_simplex_Model_LP *model, const double value, const char *field_name, const int nvars)
+static void fill_model_coef(struct lp_simplex_Model *model, const double value, const char *field_name, const int nvars)
 {
 	int i, m = model->m;
 
@@ -417,7 +417,7 @@ static void fill_model_coef(struct lp_simplex_Model_LP *model, const double valu
 	}
 }
 
-static void fill_columns_to_model(struct lp_simplex_Model_LP *model, const char *obj_name, const char *field_name,
+static void fill_columns_to_model(struct lp_simplex_Model *model, const char *obj_name, const char *field_name,
 				  const double value, const int nvars)
 {
 	if (lp_simplex_memcmp(field_name, obj_name, lp_simplex_strlen(obj_name)) == 0)
@@ -426,7 +426,7 @@ static void fill_columns_to_model(struct lp_simplex_Model_LP *model, const char 
 		fill_model_coef(model, value, field_name, nvars);
 }
 
-static void fill_model_rhs(struct lp_simplex_Model_LP *model, const char *field_name, const double value)
+static void fill_model_rhs(struct lp_simplex_Model *model, const char *field_name, const double value)
 {
 	int i, m = model->m;
 
@@ -440,7 +440,7 @@ static void fill_model_rhs(struct lp_simplex_Model_LP *model, const char *field_
 	}
 }
 
-static int fill_model(const char *file, struct lp_simplex_Model_LP *model)
+static int fill_model(const char *file, struct lp_simplex_Model *model)
 {
 	char line[128];
 	char obj_name[9];
@@ -522,9 +522,9 @@ END:
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-struct lp_simplex_Model_LP *lp_simplex_lp_readmps(const char *file)
+struct lp_simplex_Model *lp_simplex_readmps(const char *file)
 {
-	struct lp_simplex_Model_LP *model;
+	struct lp_simplex_Model *model;
 	int m, n;  /* number of constraints and variables */
 	int n_sect_row = 0, n_sect_columns = 0;
 

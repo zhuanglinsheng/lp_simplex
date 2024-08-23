@@ -231,7 +231,7 @@ static int simplex_pivot_on(double *table, const int ldtable, int *basis,
 	return 0;
 }
 
-int simplex_pivot_bsc(int *epoch, double *table, const int ldtable, int *basis,
+int lp_simplex_bsc(int *epoch, double *table, const int ldtable, int *basis,
 			const int m, const int n, const int nreal,
 			const char *criteria, const int niter)
 {

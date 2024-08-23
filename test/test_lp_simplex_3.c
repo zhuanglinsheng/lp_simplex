@@ -25,7 +25,7 @@ int main(void)
 	/* call simplex subroutine that should be degenerated */
 	double x[n], value;
 	int code;
-	int state = lp_simplex_lp_simplex(obj, constraints, NULL, m, n, "", 1000, x, &value, &code);
+	int state = lp_simplex(obj, constraints, NULL, m, n, "", 1000, x, &value, &code);
 
 	printf("Error code = %u\n", code);
 	assert(state == lp_simplex_EXIT_SUCCESS);

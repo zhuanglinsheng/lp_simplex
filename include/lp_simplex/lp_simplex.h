@@ -64,7 +64,7 @@ struct lp_simplex_LinearConstraint {
 };
 
 /* Linear programming model */
-struct lp_simplex_Model_LP {
+struct lp_simplex_Model {
 	int m;			/* number of constraints */
 	int n;			/* number of variables */
 	double *objective;
@@ -79,13 +79,13 @@ struct lp_simplex_Model_LP {
  * 	1. only "strict" MPS format is recognized by this function, which is an
  *		old format with a line of at most 61 columns. See:
  *		https://lpsolve.sourceforge.net/5.5/mps-format.htm
- *	2. the return of this function should be released by `lp_simplex_lp_free`
+ *	2. the return of this function should be released by `lp_simplex_free`
  *	3. return `NULL` on failure
  */
-struct lp_simplex_Model_LP* lp_simplex_lp_readmps(const char *file);
+struct lp_simplex_Model* lp_simplex_readmps(const char *file);
 
 /* Release the LP model */
-void lp_simplex_lp_free(struct lp_simplex_Model_LP *model);
+void lp_simplex_free(struct lp_simplex_Model *model);
 
 /* Simplex algorithm for solving LP of general form
  *
@@ -115,10 +115,10 @@ void lp_simplex_lp_free(struct lp_simplex_Model_LP *model);
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
-			const struct lp_simplex_VariableBound *bounds,
-			const int m, const int n, const char *criteria, const int niter,
-			double *x, double *value, int *code);
+int lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+		const struct lp_simplex_VariableBound *bounds,
+		const int m, const int n, const char *criteria, const int niter,
+		double *x, double *value, int *code);
 
 /* Simplex algorithm for solving LP of general form
  * (Wrapper of `lp_simplex_fmin_lp_simplex_full` by taking `lp_simplex_Model_LP` as input)
@@ -131,7 +131,7 @@ int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_Linea
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex_lp_simplex_wrp(const struct lp_simplex_Model_LP *model, const char *criteria, const int niter,
+int lp_simplex_wrp(const struct lp_simplex_Model *model, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 
 /* Simplex algorithm for solving LP of standard form
@@ -159,7 +159,7 @@ int lp_simplex_lp_simplex_wrp(const struct lp_simplex_Model_LP *model, const cha
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+int lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
 			const int m, const int n, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 
@@ -172,7 +172,7 @@ int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_L
  *	3: LP is circled more than accepted times (indicating for degeneracy)
  *	9: numerical precision error
  */
-int simplex_pivot_bsc(int *epoch, double *table, const int ldtable, int *basis,
+int lp_simplex_bsc(int *epoch, double *table, const int ldtable, int *basis,
 			const int m, const int n, const int nreal,
 			const char *criteria, const int niter);
 

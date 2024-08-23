@@ -37,7 +37,7 @@ int main(void)
 	/* call simplex subroutine */
 	double x[n], value;
 	int code;
-	int state = lp_simplex_lp_simplex(obj, constraints, bounds, m, n, "bland", 1000, x, &value, &code);
+	int state = lp_simplex(obj, constraints, bounds, m, n, "bland", 1000, x, &value, &code);
 
 	printf("Error code = %u\n", code);
 	assert(state == lp_simplex_EXIT_SUCCESS);

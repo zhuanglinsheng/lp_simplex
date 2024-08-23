@@ -191,7 +191,7 @@ static void retreive_ori_lp_sol(const struct lp_simplex_VariableBound *bounds, c
 	*value = value2 + obj_diff;
 }
 
-int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+int lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
 		    const struct lp_simplex_VariableBound *bounds,
 		    const int m, const int n, const char *criteria, const int niter,
 		    double *x, double *value, int *code)
@@ -208,7 +208,7 @@ int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_Linea
 	assert(code != NULL);
 
 	if (bounds == NULL)
-		return lp_simplex_lp_simplex_std(objective, constraints, m, n, criteria, niter, x, value, code);
+		return lp_simplex_std(objective, constraints, m, n, criteria, niter, x, value, code);
 	stdlpf_size(bounds, m, n, &_M, &_N);
 
 	if (stdlpf_alloc(_M, _N, &obj2, &x2, &coef2, &constraints2) == lp_simplex_EXIT_FAILURE) {
@@ -217,7 +217,7 @@ int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_Linea
 	}
 	lp_simplex_memset(coef2, 0., _M * _N);
 	lp_transstd(objective, constraints, bounds, m, n, _M, _N, obj2, &obj_diff, coef2, constraints2);
-	if (lp_simplex_lp_simplex_std(obj2, constraints2, _M, _N, criteria, niter, x2, &value2, code) == lp_simplex_EXIT_SUCCESS) {
+	if (lp_simplex_std(obj2, constraints2, _M, _N, criteria, niter, x2, &value2, code) == lp_simplex_EXIT_SUCCESS) {
 		retreive_ori_lp_sol(bounds, n, x2, value2, obj_diff, x, value);
 		stdlpf_free(obj2, x2, coef2, constraints2);
 		*code = lp_simplex_Success;

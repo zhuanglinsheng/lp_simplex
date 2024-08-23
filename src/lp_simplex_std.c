@@ -10,7 +10,7 @@
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder
  */
-static int simplex_create_buffer(double **table, int **basis, int **constypes,
+static int create_buffer(double **table, int **basis, int **constypes,
 				 const int m, const int nrow, const int ncol)
 {
 	*table = NULL;
@@ -34,7 +34,7 @@ static int simplex_create_buffer(double **table, int **basis, int **constypes,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-static void simplex_free_buffer(double *table, int *basis, int *constypes)
+static void free_buffer(double *table, int *basis, int *constypes)
 {
 	if (table)
 		lp_simplex_free(table);
@@ -49,7 +49,7 @@ static void simplex_free_buffer(double *table, int *basis, int *constypes)
  * Constraints rhs are transformed to be nonnegative,
  * "LE" and "GE" types are transformed respectively
  */
-static void simplex_fill_constypes(const struct lp_simplex_LinearConstraint *constraints, int *constypes, const int m)
+static void fill_constypes(const struct lp_simplex_LinearConstraint *constraints, int *constypes, const int m)
 {
 	int i;
 
@@ -78,7 +78,7 @@ static void simplex_fill_constypes(const struct lp_simplex_LinearConstraint *con
  *
  * Constraints rhs are transformed to be nonnegative
  */
-static void simplex_fill_conscoefs(double *table, const int ldtable, const struct lp_simplex_LinearConstraint *constraints,
+static void fill_conscoefs(double *table, const int ldtable, const struct lp_simplex_LinearConstraint *constraints,
 				   const int nrow, const int ncol, const int m, const int n)
 {
 	int i, j;
@@ -105,8 +105,8 @@ static void simplex_fill_conscoefs(double *table, const int ldtable, const struc
  * "GE" constraint has a slack var and an artificial var, hence will generate
  * an additional variable than usual
  */
-static void simplex_table_size_usul(const struct lp_simplex_LinearConstraint *constraints,
-				    const int m, const int n, int *nrow, int *ncol)
+static void table_size_usul(const struct lp_simplex_LinearConstraint *constraints,
+				const int m, const int n, int *nrow, int *ncol)
 {
 	int i;
 	*nrow = m + 1;
@@ -125,7 +125,7 @@ static void simplex_table_size_usul(const struct lp_simplex_LinearConstraint *co
 /* Add slack variables (GE, LE) to simplex table
  * Return the number of slack variables
  */
-static int simplex_add_slack(double *table, const int ldtable, const int *constypes, const int m, const int n)
+static int add_slack(double *table, const int ldtable, const int *constypes, const int m, const int n)
 {
 	int i, nslack = 0;
 
@@ -145,7 +145,7 @@ static int simplex_add_slack(double *table, const int ldtable, const int *consty
 /* Add artificial variables (GE, EQ) to simplex table
  * Return the number of artificial variables
  */
-static int simplex_add_artif(double *table, const int ldtable, const int *constypes,
+static int add_artif(double *table, const int ldtable, const int *constypes,
 			     const int m, const int n, const int nslack)
 {
 	int i, nartif = 0;
@@ -162,8 +162,8 @@ static int simplex_add_artif(double *table, const int ldtable, const int *consty
 
 /* Fill in the basis index set of artificial LP
  */
-static void simplex_fill_artiflp_basis(int *basis, const int *constypes,
-				       const int m, const int n, const int nslack)
+static void fill_artiflp_basis(int *basis, const int *constypes,
+				const int m, const int n, const int nslack)
 {
 	int i, tmp_nbasis = 0, tmp_nslack = 0, tmp_nartif = 0;
 
@@ -187,8 +187,8 @@ static void simplex_fill_artiflp_basis(int *basis, const int *constypes,
 	}
 }
 
-static void simplex_fill_artiflp_nrcost(double *table, const int ldtable, const int *constypes,
-					const int m, const int ncol)
+static void fill_artiflp_nrcost(double *table, const int ldtable, const int *constypes,
+				const int m, const int ncol)
 {
 	int i, rowi;
 
@@ -256,26 +256,26 @@ static int simplex_phase_1_usul(double **table, int *ldtable, int **basis, int *
 	int nrow, ncol;
 	int nslack, nartif;
 
-	simplex_table_size_usul(constraints, m, n, &nrow, &ncol);
+	table_size_usul(constraints, m, n, &nrow, &ncol);
 	*ldtable = ncol;  /* leading dimension of table in memory */
-	if (simplex_create_buffer(table, basis, constypes, m, nrow, *ldtable) == lp_simplex_EXIT_FAILURE) {
+	if (create_buffer(table, basis, constypes, m, nrow, *ldtable) == lp_simplex_EXIT_FAILURE) {
 		*code = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
 	}
 
-	simplex_fill_constypes(constraints, *constypes, m);
-	simplex_fill_conscoefs(*table, *ldtable, constraints, nrow, ncol, m, n);
-	nslack = simplex_add_slack(*table, *ldtable, *constypes, m, n);
-	nartif = simplex_add_artif(*table, *ldtable, *constypes, m, n, nslack);
+	fill_constypes(constraints, *constypes, m);
+	fill_conscoefs(*table, *ldtable, constraints, nrow, ncol, m, n);
+	nslack = add_slack(*table, *ldtable, *constypes, m, n);
+	nartif = add_artif(*table, *ldtable, *constypes, m, n, nslack);
 	*nvar = n + nslack + nartif;  /* will be recovered to `n + nslack` upon success */
 	if (m > (*nvar)) {
 		*code = lp_simplex_OverDetermination;
 		goto END;
 	}
-	simplex_fill_artiflp_basis(*basis, *constypes, m, n, nslack);
-	simplex_fill_artiflp_nrcost(*table, *ldtable, *constypes, m, ncol);
+	fill_artiflp_basis(*basis, *constypes, m, n, nslack);
+	fill_artiflp_nrcost(*table, *ldtable, *constypes, m, ncol);
 
-	switch (simplex_pivot_bsc(epoch, *table, *ldtable, *basis, m, *nvar, n + nslack, criteria, niter)) {
+	switch (lp_simplex_bsc(epoch, *table, *ldtable, *basis, m, *nvar, n + nslack, criteria, niter)) {
 	case 0:
 		*code = lp_simplex_ExceedIterLimit;
 		goto END;
@@ -299,7 +299,7 @@ static int simplex_phase_1_usul(double **table, int *ldtable, int **basis, int *
 		goto END;
 	}
 END:
-	simplex_free_buffer(*table, *basis, *constypes);
+	free_buffer(*table, *basis, *constypes);
 	return lp_simplex_EXIT_FAILURE;
 }
 
@@ -309,7 +309,7 @@ static int simplex_phase_2_usul(double *table, int ldtable, int *basis, int *con
 				int *epoch, int *code, const int m, const int n,
 				const int nvar, const char *criteria, const int niter)
 {
-	switch (simplex_pivot_bsc(epoch, table, ldtable, basis, m, nvar, nvar, criteria, niter)) {
+	switch (lp_simplex_bsc(epoch, table, ldtable, basis, m, nvar, nvar, criteria, niter)) {
 	case 0:
 		*code = lp_simplex_ExceedIterLimit;
 		goto END;
@@ -327,11 +327,11 @@ static int simplex_phase_2_usul(double *table, int ldtable, int *basis, int *con
 		goto END;
 	}
 END:
-	simplex_free_buffer(table, basis, constypes);
+	free_buffer(table, basis, constypes);
 	return lp_simplex_EXIT_FAILURE;  /* error code already updated */
 }
 
-int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+int lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
 			const int m, const int n, const char *criteria, const int niter,
 			double *x, double *value, int *code)
 {
@@ -371,6 +371,6 @@ int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_L
 		if (basis[i] < n)
 			x[basis[i]] = table[nvar + (i + 1) * ldtable];
 	}
-	simplex_free_buffer(table, basis, constypes);
+	free_buffer(table, basis, constypes);
 	return lp_simplex_EXIT_SUCCESS;
 }
