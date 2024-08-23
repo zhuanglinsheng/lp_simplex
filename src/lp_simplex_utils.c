@@ -299,8 +299,8 @@ static struct lp_Model *create_model(const int m, const int n)
 		lp_simplex_memset(bounds[i].name, '\0', 16);
 		bounds[i].lb = 0;
 		bounds[i].ub = __lp_simplex_INF__;
-		bounds[i].b_type = lp_BOUND_T_LO;
-		bounds[i].v_type = lp_VAR_T_REAL;
+		bounds[i].b_type = optm_BOUND_T_LO;
+		bounds[i].v_type = optm_VAR_T_REAL;
 	}
 	return model;
 }
@@ -481,17 +481,17 @@ LOOP:
 			break;
 		case 'L':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_CONS_T_LE;
+			model->constraints[ncons].type = optm_CONS_T_LE;
 			ncons++;
 			break;
 		case 'G':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_CONS_T_GE;
+			model->constraints[ncons].type = optm_CONS_T_GE;
 			ncons++;
 			break;
 		case 'E':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_CONS_T_EQ;
+			model->constraints[ncons].type = optm_CONS_T_EQ;
 			ncons++;
 			break;
 		default:

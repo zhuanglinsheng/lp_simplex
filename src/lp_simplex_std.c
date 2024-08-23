@@ -61,14 +61,14 @@ static void fill_constypes(const struct optm_LinearConstraint *constraints, int 
 			constypes[i] = cons->type;
 		else {
 			switch (cons->type) {
-			case lp_CONS_T_EQ:
-				constypes[i] = lp_CONS_T_EQ;
+			case optm_CONS_T_EQ:
+				constypes[i] = optm_CONS_T_EQ;
 				break;
-			case lp_CONS_T_GE:
-				constypes[i] = lp_CONS_T_LE;
+			case optm_CONS_T_GE:
+				constypes[i] = optm_CONS_T_LE;
 				break;
-			case lp_CONS_T_LE:
-				constypes[i] = lp_CONS_T_GE;
+			case optm_CONS_T_LE:
+				constypes[i] = optm_CONS_T_GE;
 				break;
 			}
 		}
@@ -116,9 +116,9 @@ static void table_size_usul(const struct optm_LinearConstraint *constraints,
 	for (i = 0; i < m; i++) {
 		const struct optm_LinearConstraint *cons = constraints + i;
 
-		if (lp_CONS_T_GE == cons->type && cons->rhs >= 0)
+		if (optm_CONS_T_GE == cons->type && cons->rhs >= 0)
 			(*ncol)++;
-		if (lp_CONS_T_LE == cons->type && cons->rhs < 0)
+		if (optm_CONS_T_LE == cons->type && cons->rhs < 0)
 			(*ncol)++;
 	}
 }
@@ -131,11 +131,11 @@ static int add_slack(double *table, const int ldtable, const int *constypes, con
 	int i, nslack = 0;
 
 	for (i = 0; i < m; i++) {
-		if (lp_CONS_T_GE == constypes[i]) {
+		if (optm_CONS_T_GE == constypes[i]) {
 			table[n + nslack + (i + 1) * ldtable] = -1.;
 			nslack++;
 		}
-		if (lp_CONS_T_LE == constypes[i]) {
+		if (optm_CONS_T_LE == constypes[i]) {
 			table[n + nslack + (i + 1) * ldtable] = 1.;
 			nslack++;
 		}
@@ -152,7 +152,7 @@ static int add_artif(double *table, const int ldtable, const int *constypes,
 	int i, nartif = 0;
 
 	for (i = 0; i < m; i++) {
-		if (lp_CONS_T_LE != constypes[i]) {
+		if (optm_CONS_T_LE != constypes[i]) {
 			table[n + nslack + nartif + (i + 1) * ldtable] =  1.;
 			table[n + nslack + nartif] = -1.;
 			nartif++;
@@ -170,16 +170,16 @@ static void fill_artiflp_basis(int *basis, const int *constypes,
 
 	for (i = 0; i < m; i++) {
 		switch (constypes[i]) {
-		case lp_CONS_T_EQ:
+		case optm_CONS_T_EQ:
 			*(basis + tmp_nbasis) = n + nslack + tmp_nartif;
 			tmp_nartif++;
 			break;
-		case lp_CONS_T_GE:
+		case optm_CONS_T_GE:
 			*(basis + tmp_nbasis) = n + nslack + tmp_nartif;
 			tmp_nartif++;
 			tmp_nslack++;
 			break;
-		case lp_CONS_T_LE:
+		case optm_CONS_T_LE:
 			*(basis + tmp_nbasis) = n + tmp_nslack;
 			tmp_nslack++;
 			break;
@@ -194,7 +194,7 @@ static void fill_artiflp_nrcost(double *table, const int ldtable, const int *con
 	int i, rowi;
 
 	for (i = 0; i < m; i++) {
-		if (lp_CONS_T_LE == constypes[i])
+		if (optm_CONS_T_LE == constypes[i])
 			continue;
 		rowi = (i + 1) * ldtable;
 		lp_simplex_linalg_daxpy(ncol, 1, table + rowi, 1, table, 1);

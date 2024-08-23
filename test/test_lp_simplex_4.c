@@ -24,12 +24,12 @@ double constraint_1_coef[] = {-3., 1.};
 double constraint_2_coef[] = {-1., -2.};
 
 struct optm_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef,  6., lp_CONS_T_LE },
-	{ "", constraint_2_coef, -4., lp_CONS_T_GE },
+	{ "", constraint_1_coef,  6., optm_CONS_T_LE },
+	{ "", constraint_2_coef, -4., optm_CONS_T_GE },
 };
 struct optm_VariableBound bounds[] = {
-	{ "x0", __lp_simplex_NINF__, __lp_simplex_INF__, lp_BOUND_T_FR, lp_VAR_T_REAL },
-	{ "x1",            -3, __lp_simplex_INF__, lp_BOUND_T_LO, lp_VAR_T_REAL },
+	{ "x0", __lp_simplex_NINF__, __lp_simplex_INF__, optm_BOUND_T_FR, optm_VAR_T_REAL },
+	{ "x1",            -3, __lp_simplex_INF__, optm_BOUND_T_LO, optm_VAR_T_REAL },
 };
 
 int main(void)

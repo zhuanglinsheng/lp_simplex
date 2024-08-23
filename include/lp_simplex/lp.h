@@ -9,19 +9,18 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define lp_VAR_T_REAL	0
-#define lp_VAR_T_INT	1
-#define lp_VAR_T_BIN	2
+#define optm_VAR_T_REAL	0	/* variable type: real */
+#define optm_VAR_T_INT	1	/* variable type: integer */
+#define optm_VAR_T_BIN	2	/* variable type: binary */
 
-#define lp_BOUND_T_FR	0	/* free */
-#define lp_BOUND_T_UP	1	/* upper bounded */
-#define lp_BOUND_T_LO	2	/* lower bounded */
-#define lp_BOUND_T_BS	3	/* bounded from both sides */
+#define optm_BOUND_T_FR	0	/* bound type: free */
+#define optm_BOUND_T_UP	1	/* bound type: upper bounded */
+#define optm_BOUND_T_LO	2	/* bound type: lower bounded */
+#define optm_BOUND_T_BS	3	/* bound type: bounded from both sides */
 
-#define lp_CONS_T_EQ	0	/* equal to */
-#define lp_CONS_T_GE	1	/* greater or equal to */
-#define lp_CONS_T_LE	2	/* less or equal to */
-
+#define optm_CONS_T_EQ	0	/* constraint type: equal to */
+#define optm_CONS_T_GE	1	/* constraint type: greater or equal to */
+#define optm_CONS_T_LE	2	/* constraint type: less or equal to */
 
 struct optm_VariableBound {
 	char name[8];

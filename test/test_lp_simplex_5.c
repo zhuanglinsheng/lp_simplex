@@ -31,16 +31,16 @@ double constraint_5_coef[] = { -1., -1.   };
 double constraint_6_coef[] = { -1.,  1.   };
 
 struct optm_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef,  2., lp_CONS_T_LE },
-	{ "", constraint_2_coef,  1., lp_CONS_T_LE },
-	{ "", constraint_3_coef,  2., lp_CONS_T_LE },
-	{ "", constraint_4_coef,  1., lp_CONS_T_LE },
-	{ "", constraint_5_coef, -1., lp_CONS_T_LE },
-	{ "", constraint_6_coef,  2., lp_CONS_T_LE }
+	{ "", constraint_1_coef,  2., optm_CONS_T_LE },
+	{ "", constraint_2_coef,  1., optm_CONS_T_LE },
+	{ "", constraint_3_coef,  2., optm_CONS_T_LE },
+	{ "", constraint_4_coef,  1., optm_CONS_T_LE },
+	{ "", constraint_5_coef, -1., optm_CONS_T_LE },
+	{ "", constraint_6_coef,  2., optm_CONS_T_LE }
 };
 struct optm_VariableBound bounds[] = {
-	{ "x", __lp_simplex_NINF__, __lp_simplex_INF__, lp_BOUND_T_FR, lp_VAR_T_REAL },
-	{ "y", __lp_simplex_NINF__, __lp_simplex_INF__, lp_BOUND_T_FR, lp_VAR_T_REAL }
+	{ "x", __lp_simplex_NINF__, __lp_simplex_INF__, optm_BOUND_T_FR, optm_VAR_T_REAL },
+	{ "y", __lp_simplex_NINF__, __lp_simplex_INF__, optm_BOUND_T_FR, optm_VAR_T_REAL }
 };
 
 int main(void)

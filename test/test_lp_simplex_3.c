@@ -23,9 +23,9 @@ double constraint_2_coef[] = {0.5, -12., -0.5, 3.};
 double constraint_3_coef[] = {0., 0., 1., 0.};
 
 struct optm_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef,  0., lp_CONS_T_LE },
-	{ "", constraint_2_coef,  0., lp_CONS_T_LE },
-	{ "", constraint_3_coef,  1., lp_CONS_T_LE }
+	{ "", constraint_1_coef,  0., optm_CONS_T_LE },
+	{ "", constraint_2_coef,  0., optm_CONS_T_LE },
+	{ "", constraint_3_coef,  1., optm_CONS_T_LE }
 };
 
 int main(void)

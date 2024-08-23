@@ -66,20 +66,20 @@ double cons26_coef[] = { 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
 double cons27_coef[] = { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
 			 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.};
 struct optm_LinearConstraint constraints[] = {
-	{ "", cons01_coef,   0., lp_CONS_T_EQ }, { "", cons02_coef,   0., lp_CONS_T_EQ },
-	{ "", cons03_coef,  80., lp_CONS_T_LE }, { "", cons04_coef,   0., lp_CONS_T_LE },
-	{ "", cons05_coef,   0., lp_CONS_T_EQ }, { "", cons06_coef,   0., lp_CONS_T_EQ },
-	{ "", cons07_coef,  80., lp_CONS_T_LE }, { "", cons08_coef,   0., lp_CONS_T_LE },
-	{ "", cons09_coef,   0., lp_CONS_T_LE }, { "", cons10_coef,   0., lp_CONS_T_LE },
-	{ "", cons11_coef,   0., lp_CONS_T_EQ }, { "", cons12_coef,   0., lp_CONS_T_EQ },
-	{ "", cons13_coef, 500., lp_CONS_T_LE }, { "", cons14_coef,   0., lp_CONS_T_LE },
-	{ "", cons15_coef,   0., lp_CONS_T_EQ }, { "", cons16_coef,   0., lp_CONS_T_EQ },
-	{ "", cons17_coef,  44., lp_CONS_T_LE }, { "", cons18_coef, 500., lp_CONS_T_LE },
-	{ "", cons19_coef,   0., lp_CONS_T_LE }, { "", cons20_coef,   0., lp_CONS_T_LE },
-	{ "", cons21_coef,   0., lp_CONS_T_LE }, { "", cons22_coef,   0., lp_CONS_T_LE },
-	{ "", cons23_coef,   0., lp_CONS_T_LE }, { "", cons24_coef,   0., lp_CONS_T_LE },
-	{ "", cons25_coef,   0., lp_CONS_T_LE }, { "", cons26_coef, 310., lp_CONS_T_LE },
-	{ "", cons27_coef, 300., lp_CONS_T_LE }
+	{ "", cons01_coef,   0., optm_CONS_T_EQ }, { "", cons02_coef,   0., optm_CONS_T_EQ },
+	{ "", cons03_coef,  80., optm_CONS_T_LE }, { "", cons04_coef,   0., optm_CONS_T_LE },
+	{ "", cons05_coef,   0., optm_CONS_T_EQ }, { "", cons06_coef,   0., optm_CONS_T_EQ },
+	{ "", cons07_coef,  80., optm_CONS_T_LE }, { "", cons08_coef,   0., optm_CONS_T_LE },
+	{ "", cons09_coef,   0., optm_CONS_T_LE }, { "", cons10_coef,   0., optm_CONS_T_LE },
+	{ "", cons11_coef,   0., optm_CONS_T_EQ }, { "", cons12_coef,   0., optm_CONS_T_EQ },
+	{ "", cons13_coef, 500., optm_CONS_T_LE }, { "", cons14_coef,   0., optm_CONS_T_LE },
+	{ "", cons15_coef,   0., optm_CONS_T_EQ }, { "", cons16_coef,   0., optm_CONS_T_EQ },
+	{ "", cons17_coef,  44., optm_CONS_T_LE }, { "", cons18_coef, 500., optm_CONS_T_LE },
+	{ "", cons19_coef,   0., optm_CONS_T_LE }, { "", cons20_coef,   0., optm_CONS_T_LE },
+	{ "", cons21_coef,   0., optm_CONS_T_LE }, { "", cons22_coef,   0., optm_CONS_T_LE },
+	{ "", cons23_coef,   0., optm_CONS_T_LE }, { "", cons24_coef,   0., optm_CONS_T_LE },
+	{ "", cons25_coef,   0., optm_CONS_T_LE }, { "", cons26_coef, 310., optm_CONS_T_LE },
+	{ "", cons27_coef, 300., optm_CONS_T_LE }
 };
 
 int main(void)

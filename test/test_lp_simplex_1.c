@@ -28,10 +28,10 @@ double constraint_3_coef[] = {1., 0.};
 double constraint_4_coef[] = {0., 1.};
 
 struct optm_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef,  9., lp_CONS_T_LE },
-	{ "", constraint_2_coef, 18., lp_CONS_T_LE },
-	{ "", constraint_3_coef,  7., lp_CONS_T_LE },
-	{ "", constraint_4_coef,  6., lp_CONS_T_LE }
+	{ "", constraint_1_coef,  9., optm_CONS_T_LE },
+	{ "", constraint_2_coef, 18., optm_CONS_T_LE },
+	{ "", constraint_3_coef,  7., optm_CONS_T_LE },
+	{ "", constraint_4_coef,  6., optm_CONS_T_LE }
 };
 
 int main(void)

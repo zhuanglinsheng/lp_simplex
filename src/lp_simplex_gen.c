@@ -64,9 +64,9 @@ static void stdlpf_size(const struct optm_VariableBound *bounds, const int m, co
 	for (j = 0; j < n; j++) {
 		const struct optm_VariableBound *bd = bounds + j;
 
-		if (lp_BOUND_T_FR == bd->b_type)
+		if (optm_BOUND_T_FR == bd->b_type)
 			(*_N)++;
-		if (lp_BOUND_T_UP == bd->b_type || lp_BOUND_T_BS == bd->b_type)
+		if (optm_BOUND_T_UP == bd->b_type || optm_BOUND_T_BS == bd->b_type)
 			(*_M)++;
 	}
 }
@@ -84,11 +84,11 @@ static void lp_transf_0(const double *objective, const struct optm_LinearConstra
 	bd = bounds + j;
 	obj2[*ctr_var] = objective[j];
 
-	if (lp_BOUND_T_UP == bd->b_type || lp_BOUND_T_BS == bd->b_type) {
+	if (optm_BOUND_T_UP == bd->b_type || optm_BOUND_T_BS == bd->b_type) {
 		idx = m + (*ctr_ubcons);
 		constraints2[idx].coef = coef2 + idx * _N;
 		constraints2[idx].rhs = bd->ub;
-		constraints2[idx].type = lp_CONS_T_LE;
+		constraints2[idx].type = optm_CONS_T_LE;
 		constraints2[idx].coef[*ctr_var] = 1.;
 		(*ctr_ubcons)++;
 	}
@@ -105,7 +105,7 @@ static void lp_transf_1(const double *objective, const struct optm_LinearConstra
 {
 	int i;
 
-	if (lp_BOUND_T_FR != (bounds + j)->b_type)
+	if (optm_BOUND_T_FR != (bounds + j)->b_type)
 		return;
 	obj2[*ctr_var] = -objective[j];
 
@@ -123,7 +123,7 @@ static void lp_transf_2(const double *objective, const struct optm_LinearConstra
 	int i;
 	const struct optm_VariableBound *bd = bounds + j;
 
-	if (lp_BOUND_T_LO != bd->b_type && lp_BOUND_T_BS != bd->b_type)
+	if (optm_BOUND_T_LO != bd->b_type && optm_BOUND_T_BS != bd->b_type)
 		return;
 	*obj_diff += objective[j] * bd->lb;
 
@@ -176,10 +176,10 @@ static void retreive_ori_lp_sol(const struct optm_VariableBound *bounds, const i
 	for (j = 0; j < n; j++) {
 		const struct optm_VariableBound *bd = bounds + j;
 
-		if (lp_BOUND_T_FR == bd->b_type) {
+		if (optm_BOUND_T_FR == bd->b_type) {
 			x[j] = x2[ctr_var] - x2[ctr_var + 1];
 			ctr_var++;
-		} else if (lp_BOUND_T_LO == bd->b_type || lp_BOUND_T_BS == bd->b_type) {
+		} else if (optm_BOUND_T_LO == bd->b_type || optm_BOUND_T_BS == bd->b_type) {
 			x[j] = x2[ctr_var] + bd->lb;
 		} else {
 			x[j] = x2[ctr_var];
