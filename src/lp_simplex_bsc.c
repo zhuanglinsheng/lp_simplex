@@ -31,7 +31,7 @@ static int is_simplex_optimal(const double *table, const int n)
  */
 static int check_simplex_degenerated(const double *table, const int n, const double old_value)
 {
-	if (old_value <= table[n] + __lp_simplex_CHC_SPLX_DEGENERATED__) {
+	if (old_value <= table[n] + __lp_simplex_DEGENERATED__) {
 		if (is_simplex_optimal(table, n))
 			return 1;
 		return 2;
@@ -53,7 +53,7 @@ static int simplex_pivot_leave_rule(const double *table, const int ldtable,
 		y_i_0 = table[n + (i + 1) * ldtable];
 		y_i_q = table[q + (i + 1) * ldtable];
 
-		if (y_i_q <= __lp_simplex_CTR_SPLX_PIV_LEV__)
+		if (y_i_q <= __lp_simplex_PIV_LEV__)
 			continue;
 		else {
 			x_iq = y_i_0 / y_i_q;
@@ -103,7 +103,7 @@ static int simplex_pivot_enter_rule_datzig(const double *table, const int *basis
 static int simplex_pivot_enter_rule_bland(const double *table, const int *basis, const int m, const int n)
 {
 	int j;
-	double epsilon = __lp_simplex_CTR_SPLX_BLAND_EPS__;
+	double epsilon = __lp_simplex_BLAND_EPS__;
 BLAND_BEGIN:
 	for (j = 0; j < n; j++) {
 		if (!is_in_arri(j, basis, m)) {
@@ -111,7 +111,7 @@ BLAND_BEGIN:
 				return j;
 		}
 	}
-	if (epsilon >= __lp_simplex_CTR_SPLX_BLAND_EPS_MIN__) {
+	if (epsilon >= __lp_simplex_BLAND_EPS_MIN__) {
 		epsilon /= 10.;
 		goto BLAND_BEGIN;
 	} else

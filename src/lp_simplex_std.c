@@ -280,7 +280,7 @@ static int simplex_phase_1_usul(double **table, int *ldtable, int **basis, int *
 		*code = lp_simplex_ExceedIterLimit;
 		goto END;
 	case 1:
-		if ((*table)[ncol - 1] > __lp_simplex_CHC_SPLX_FEASIBLE__) {
+		if ((*table)[ncol - 1] > __lp_simplex_FEASIBLE__) {
 			*code = lp_simplex_Infeasibility;
 			goto END;
 		}
