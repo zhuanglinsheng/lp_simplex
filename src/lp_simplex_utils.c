@@ -40,6 +40,17 @@ void lp_simplex_linalg_dscal(const int n, const double x, double *arr, const int
 #endif
 }
 
+void lp_simplex_linalg_dlarfg(const int n, double *alpha, double *x, const int incx, double *tau)
+{
+	/*
+#if USE_LAPACK
+	dlarfg_(&n, alpha, x, &incx, tau);
+#else
+#endif
+	*/
+}
+
+
 int is_in_arri(const int idx, const int *idxset, const int len)
 {
 	int i;
@@ -234,16 +245,16 @@ double lp_simplex_atof(const char* str)
 }
 
 
-static struct lp_simplex_Model *create_model(const int m, const int n)
+static struct lp_Model *create_model(const int m, const int n)
 {
 	double *obj = NULL;
 	double *coefficients = NULL;
-	struct lp_simplex_LinearConstraint *constraints = NULL;
-	struct lp_simplex_VariableBound *bounds = NULL;
-	struct lp_simplex_Model *model = NULL;
+	struct optm_LinearConstraint *constraints = NULL;
+	struct optm_VariableBound *bounds = NULL;
+	struct lp_Model *model = NULL;
 	int i;
 
-	model = lp_simplex_malloc(sizeof(struct lp_simplex_Model));
+	model = lp_simplex_malloc(sizeof(struct lp_Model));
 	if (model == NULL)
 		return NULL;
 	obj = lp_simplex_malloc(n * sizeof(double));
@@ -257,14 +268,14 @@ static struct lp_simplex_Model *create_model(const int m, const int n)
 		lp_simplex_free(obj);
 		return NULL;
 	}
-	constraints = lp_simplex_malloc(m * sizeof(struct lp_simplex_LinearConstraint));
+	constraints = lp_simplex_malloc(m * sizeof(struct optm_LinearConstraint));
 	if (constraints == NULL) {
 		lp_simplex_free(model);
 		lp_simplex_free(obj);
 		lp_simplex_free(coefficients);
 		return NULL;
 	}
-	bounds = lp_simplex_malloc(n * sizeof(struct lp_simplex_VariableBound));
+	bounds = lp_simplex_malloc(n * sizeof(struct optm_VariableBound));
 	if (bounds == NULL) {
 		lp_simplex_free(model);
 		lp_simplex_free(obj);
@@ -288,13 +299,13 @@ static struct lp_simplex_Model *create_model(const int m, const int n)
 		lp_simplex_memset(bounds[i].name, '\0', 16);
 		bounds[i].lb = 0;
 		bounds[i].ub = __lp_simplex_INF__;
-		bounds[i].b_type = lp_simplex_BOUND_T_LO;
-		bounds[i].v_type = lp_simplex_VAR_T_REAL;
+		bounds[i].b_type = lp_BOUND_T_LO;
+		bounds[i].v_type = lp_VAR_T_REAL;
 	}
 	return model;
 }
 
-void lp_simplex_model_free(struct lp_simplex_Model *model)
+void lp_simplex_model_free(struct lp_Model *model)
 {
 	if (model == NULL)
 		return;
@@ -401,7 +412,7 @@ static double get_field_2_value(const char *line)
 	return value;
 }
 
-static void fill_model_coef(struct lp_simplex_Model *model, const double value, const char *field_name, const int nvars)
+static void fill_model_coef(struct lp_Model *model, const double value, const char *field_name, const int nvars)
 {
 	int i, m = model->m;
 
@@ -415,7 +426,7 @@ static void fill_model_coef(struct lp_simplex_Model *model, const double value, 
 	}
 }
 
-static void fill_columns_to_model(struct lp_simplex_Model *model, const char *obj_name, const char *field_name,
+static void fill_columns_to_model(struct lp_Model *model, const char *obj_name, const char *field_name,
 				  const double value, const int nvars)
 {
 	if (lp_simplex_memcmp(field_name, obj_name, lp_simplex_strlen(obj_name)) == 0)
@@ -424,7 +435,7 @@ static void fill_columns_to_model(struct lp_simplex_Model *model, const char *ob
 		fill_model_coef(model, value, field_name, nvars);
 }
 
-static void fill_model_rhs(struct lp_simplex_Model *model, const char *field_name, const double value)
+static void fill_model_rhs(struct lp_Model *model, const char *field_name, const double value)
 {
 	int i, m = model->m;
 
@@ -438,7 +449,7 @@ static void fill_model_rhs(struct lp_simplex_Model *model, const char *field_nam
 	}
 }
 
-static int fill_model(const char *file, struct lp_simplex_Model *model)
+static int fill_model(const char *file, struct lp_Model *model)
 {
 	char line[128];
 	char obj_name[9];
@@ -470,17 +481,17 @@ LOOP:
 			break;
 		case 'L':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_simplex_CONS_T_LE;
+			model->constraints[ncons].type = lp_CONS_T_LE;
 			ncons++;
 			break;
 		case 'G':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_simplex_CONS_T_GE;
+			model->constraints[ncons].type = lp_CONS_T_GE;
 			ncons++;
 			break;
 		case 'E':
 			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = lp_simplex_CONS_T_EQ;
+			model->constraints[ncons].type = lp_CONS_T_EQ;
 			ncons++;
 			break;
 		default:
@@ -520,9 +531,9 @@ END:
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-struct lp_simplex_Model *lp_simplex_readmps(const char *file)
+struct lp_Model *lp_simplex_read_mps(const char *file)
 {
-	struct lp_simplex_Model *model;
+	struct lp_Model *model;
 	int m, n;  /* number of constraints and variables */
 	int n_sect_row = 0, n_sect_columns = 0;
 
@@ -538,7 +549,7 @@ struct lp_simplex_Model *lp_simplex_readmps(const char *file)
 	return model;
 }
 
-int lp_simplex_wrp(const struct lp_simplex_Model *model, const char *criteria, const int niter,
+int lp_simplex_wrp(const struct lp_Model *model, const char *criteria, const int niter,
 			double *x, double *value, int *code)
 {
 	int m = model->m;

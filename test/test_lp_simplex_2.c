@@ -25,10 +25,10 @@ double constraint_1_coef[] = {1., 2.};
 double constraint_2_coef[] = {3., -1.};
 double constraint_3_coef[] = {1., -1.};
 
-struct lp_simplex_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef, 14., lp_simplex_CONS_T_LE },
-	{ "", constraint_2_coef,  0., lp_simplex_CONS_T_GE },
-	{ "", constraint_3_coef,  2., lp_simplex_CONS_T_LE }
+struct optm_LinearConstraint constraints[] = {
+	{ "", constraint_1_coef, 14., lp_CONS_T_LE },
+	{ "", constraint_2_coef,  0., lp_CONS_T_GE },
+	{ "", constraint_3_coef,  2., lp_CONS_T_LE }
 };
 
 int main(void)

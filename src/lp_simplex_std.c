@@ -5,6 +5,9 @@
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
 
+/* Checker of the checking "LP is feasible" */
+#define __lp_simplex_FEASIBLE__			1e-5
+
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder
  */
@@ -47,25 +50,25 @@ static void free_buffer(double *table, int *basis, int *constypes)
  * Constraints rhs are transformed to be nonnegative,
  * "LE" and "GE" types are transformed respectively
  */
-static void fill_constypes(const struct lp_simplex_LinearConstraint *constraints, int *constypes, const int m)
+static void fill_constypes(const struct optm_LinearConstraint *constraints, int *constypes, const int m)
 {
 	int i;
 
 	for (i = 0; i < m; i++) {
-		const struct lp_simplex_LinearConstraint *cons = constraints + i;
+		const struct optm_LinearConstraint *cons = constraints + i;
 
 		if (cons->rhs >= 0)
 			constypes[i] = cons->type;
 		else {
 			switch (cons->type) {
-			case lp_simplex_CONS_T_EQ:
-				constypes[i] = lp_simplex_CONS_T_EQ;
+			case lp_CONS_T_EQ:
+				constypes[i] = lp_CONS_T_EQ;
 				break;
-			case lp_simplex_CONS_T_GE:
-				constypes[i] = lp_simplex_CONS_T_LE;
+			case lp_CONS_T_GE:
+				constypes[i] = lp_CONS_T_LE;
 				break;
-			case lp_simplex_CONS_T_LE:
-				constypes[i] = lp_simplex_CONS_T_GE;
+			case lp_CONS_T_LE:
+				constypes[i] = lp_CONS_T_GE;
 				break;
 			}
 		}
@@ -76,7 +79,7 @@ static void fill_constypes(const struct lp_simplex_LinearConstraint *constraints
  *
  * Constraints rhs are transformed to be nonnegative
  */
-static void fill_conscoefs(double *table, const int ldtable, const struct lp_simplex_LinearConstraint *constraints,
+static void fill_conscoefs(double *table, const int ldtable, const struct optm_LinearConstraint *constraints,
 				   const int nrow, const int ncol, const int m, const int n)
 {
 	int i, j;
@@ -84,7 +87,7 @@ static void fill_conscoefs(double *table, const int ldtable, const struct lp_sim
 	lp_simplex_memset(table, 0., nrow * ldtable * sizeof(double));
 
 	for (i = 0; i < m; i++) {
-		const struct lp_simplex_LinearConstraint *cons = constraints + i;
+		const struct optm_LinearConstraint *cons = constraints + i;
 		int row = (i + 1) * ldtable;
 
 		if (cons->rhs >= 0) {
@@ -103,7 +106,7 @@ static void fill_conscoefs(double *table, const int ldtable, const struct lp_sim
  * "GE" constraint has a slack var and an artificial var, hence will generate
  * an additional variable than usual
  */
-static void table_size_usul(const struct lp_simplex_LinearConstraint *constraints,
+static void table_size_usul(const struct optm_LinearConstraint *constraints,
 				const int m, const int n, int *nrow, int *ncol)
 {
 	int i;
@@ -111,11 +114,11 @@ static void table_size_usul(const struct lp_simplex_LinearConstraint *constraint
 	*ncol = m + n + 1;
 
 	for (i = 0; i < m; i++) {
-		const struct lp_simplex_LinearConstraint *cons = constraints + i;
+		const struct optm_LinearConstraint *cons = constraints + i;
 
-		if (lp_simplex_CONS_T_GE == cons->type && cons->rhs >= 0)
+		if (lp_CONS_T_GE == cons->type && cons->rhs >= 0)
 			(*ncol)++;
-		if (lp_simplex_CONS_T_LE == cons->type && cons->rhs < 0)
+		if (lp_CONS_T_LE == cons->type && cons->rhs < 0)
 			(*ncol)++;
 	}
 }
@@ -128,11 +131,11 @@ static int add_slack(double *table, const int ldtable, const int *constypes, con
 	int i, nslack = 0;
 
 	for (i = 0; i < m; i++) {
-		if (lp_simplex_CONS_T_GE == constypes[i]) {
+		if (lp_CONS_T_GE == constypes[i]) {
 			table[n + nslack + (i + 1) * ldtable] = -1.;
 			nslack++;
 		}
-		if (lp_simplex_CONS_T_LE == constypes[i]) {
+		if (lp_CONS_T_LE == constypes[i]) {
 			table[n + nslack + (i + 1) * ldtable] = 1.;
 			nslack++;
 		}
@@ -149,7 +152,7 @@ static int add_artif(double *table, const int ldtable, const int *constypes,
 	int i, nartif = 0;
 
 	for (i = 0; i < m; i++) {
-		if (lp_simplex_CONS_T_LE != constypes[i]) {
+		if (lp_CONS_T_LE != constypes[i]) {
 			table[n + nslack + nartif + (i + 1) * ldtable] =  1.;
 			table[n + nslack + nartif] = -1.;
 			nartif++;
@@ -167,16 +170,16 @@ static void fill_artiflp_basis(int *basis, const int *constypes,
 
 	for (i = 0; i < m; i++) {
 		switch (constypes[i]) {
-		case lp_simplex_CONS_T_EQ:
+		case lp_CONS_T_EQ:
 			*(basis + tmp_nbasis) = n + nslack + tmp_nartif;
 			tmp_nartif++;
 			break;
-		case lp_simplex_CONS_T_GE:
+		case lp_CONS_T_GE:
 			*(basis + tmp_nbasis) = n + nslack + tmp_nartif;
 			tmp_nartif++;
 			tmp_nslack++;
 			break;
-		case lp_simplex_CONS_T_LE:
+		case lp_CONS_T_LE:
 			*(basis + tmp_nbasis) = n + tmp_nslack;
 			tmp_nslack++;
 			break;
@@ -191,7 +194,7 @@ static void fill_artiflp_nrcost(double *table, const int ldtable, const int *con
 	int i, rowi;
 
 	for (i = 0; i < m; i++) {
-		if (lp_simplex_CONS_T_LE == constypes[i])
+		if (lp_CONS_T_LE == constypes[i])
 			continue;
 		rowi = (i + 1) * ldtable;
 		lp_simplex_linalg_daxpy(ncol, 1, table + rowi, 1, table, 1);
@@ -248,7 +251,7 @@ static void delete_artif_cols(double *table, const int ldtable, const int m, con
  */
 static int simplex_phase_1_usul(double **table, int *ldtable, int **basis, int **constypes,
 				int *nvar, int *epoch, int *code,
-				const struct lp_simplex_LinearConstraint *constraints,
+				const struct optm_LinearConstraint *constraints,
 				const int m, const int n, const char *criteria, const int niter)
 {
 	int nrow, ncol;
@@ -329,7 +332,7 @@ END:
 	return lp_simplex_EXIT_FAILURE;  /* error code already updated */
 }
 
-int lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+int lp_simplex_std(const double *objective, const struct optm_LinearConstraint *constraints,
 			const int m, const int n, const char *criteria, const int niter,
 			double *x, double *value, int *code)
 {

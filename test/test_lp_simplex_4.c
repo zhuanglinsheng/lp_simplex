@@ -23,13 +23,13 @@ double obj[] = {-1., 4.};
 double constraint_1_coef[] = {-3., 1.};
 double constraint_2_coef[] = {-1., -2.};
 
-struct lp_simplex_LinearConstraint constraints[] = {
-	{ "", constraint_1_coef,  6., lp_simplex_CONS_T_LE },
-	{ "", constraint_2_coef, -4., lp_simplex_CONS_T_GE },
+struct optm_LinearConstraint constraints[] = {
+	{ "", constraint_1_coef,  6., lp_CONS_T_LE },
+	{ "", constraint_2_coef, -4., lp_CONS_T_GE },
 };
-struct lp_simplex_VariableBound bounds[] = {
-	{ "x0", __lp_simplex_NINF__, __lp_simplex_INF__, lp_simplex_BOUND_T_FR, lp_simplex_VAR_T_REAL },
-	{ "x1",            -3, __lp_simplex_INF__, lp_simplex_BOUND_T_LO, lp_simplex_VAR_T_REAL },
+struct optm_VariableBound bounds[] = {
+	{ "x0", __lp_simplex_NINF__, __lp_simplex_INF__, lp_BOUND_T_FR, lp_VAR_T_REAL },
+	{ "x1",            -3, __lp_simplex_INF__, lp_BOUND_T_LO, lp_VAR_T_REAL },
 };
 
 int main(void)

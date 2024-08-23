@@ -5,14 +5,12 @@
 #ifndef __lp_simplex_LP_H__
 #define __lp_simplex_LP_H__
 
+#include "lp.h"
+#include "lp_simplex_utils.h"
+
 #ifdef __cpluscplus
 extern "C" {
 #endif /* __cplusplus */
-
-#ifdef USE_BLAS
-extern void dscal_(int *n, double *alpha, double *x, int *incx);
-extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
-#endif
 
 #define __lp_simplex_ABS__(x) ((x) >= 0 ? (x) : (-(x)))
 #define __lp_simplex_MAX__(x, y) ((x) >= (y) ? (x) : (y))
@@ -35,43 +33,6 @@ extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *
 #define lp_simplex_EXIT_FAILURE	-1
 #define lp_simplex_EXIT_SUCCESS	0
 
-#define lp_simplex_VAR_T_REAL	0
-#define lp_simplex_VAR_T_INT	1
-#define lp_simplex_VAR_T_BIN	2
-
-#define lp_simplex_BOUND_T_FR	0	/* free */
-#define lp_simplex_BOUND_T_UP	1	/* upper bounded */
-#define lp_simplex_BOUND_T_LO	2	/* lower bounded */
-#define lp_simplex_BOUND_T_BS	3	/* bounded from both sides */
-
-#define lp_simplex_CONS_T_EQ	0
-#define lp_simplex_CONS_T_GE	1
-#define lp_simplex_CONS_T_LE	2
-
-struct lp_simplex_VariableBound {
-	char name[16];
-	double lb;
-	double ub;
-	int b_type;
-	int v_type;
-};
-
-struct lp_simplex_LinearConstraint {
-	char name[16];
-	double * coef;
-	double rhs;
-	int type;
-};
-
-/* Linear programming model */
-struct lp_simplex_Model {
-	int m;			/* number of constraints */
-	int n;			/* number of variables */
-	double *objective;
-	double *coefficients;	/* row major */
-	struct lp_simplex_LinearConstraint *constraints;
-	struct lp_simplex_VariableBound *bounds;
-};
 
 /* Importing MPS file and get a `model`
  *
@@ -82,10 +43,10 @@ struct lp_simplex_Model {
  *	2. the return of this function should be released by `lp_simplex_free`
  *	3. return `NULL` on failure
  */
-struct lp_simplex_Model* lp_simplex_readmps(const char *file);
+struct lp_Model* lp_simplex_read_mps(const char *file);
 
 /* Release the LP model */
-void lp_simplex_model_free(struct lp_simplex_Model *model);
+void lp_simplex_model_free(struct lp_Model *model);
 
 /* Simplex algorithm for solving LP of general form
  *
@@ -115,8 +76,8 @@ void lp_simplex_model_free(struct lp_simplex_Model *model);
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
-		const struct lp_simplex_VariableBound *bounds,
+int lp_simplex(const double *objective, const struct optm_LinearConstraint *constraints,
+		const struct optm_VariableBound *bounds,
 		const int m, const int n, const char *criteria, const int niter,
 		double *x, double *value, int *code);
 
@@ -131,7 +92,7 @@ int lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex_wrp(const struct lp_simplex_Model *model, const char *criteria, const int niter,
+int lp_simplex_wrp(const struct lp_Model *model, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 
 /* Simplex algorithm for solving LP of standard form
@@ -159,7 +120,7 @@ int lp_simplex_wrp(const struct lp_simplex_Model *model, const char *criteria, c
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+int lp_simplex_std(const double *objective, const struct optm_LinearConstraint *constraints,
 			const int m, const int n, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 

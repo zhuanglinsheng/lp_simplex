@@ -5,6 +5,26 @@
 #include <lp_simplex/lp_simplex_utils.h>
 #include <lp_simplex/lp_simplex.h>
 
+
+#define __PAN_97_INVALID_BASIS_CRIT 1e-12
+
+/* Identifier of non-zero beta */
+#define __lp_simplex_ZEROS_BETA__		1e-9
+
+/* Checker of the general checking "LP is optimal" */
+#define __lp_simplex_CTR_SPLX_OPTIMAL__		1e-9
+
+/* Checker of the checking "LP is degenerated" */
+#define __lp_simplex_DEGENERATED__		1e-12
+
+/* Controllers for Bland's rule */
+#define __lp_simplex_BLAND_EPS__		1e-6
+#define __lp_simplex_BLAND_EPS_MIN__		__lp_simplex_ZEROS_BETA__
+
+/* Controller for pivot leaving rule */
+#define __lp_simplex_PIV_LEV__			1e-15
+
+
 /* Check simplex optimality: all zero row coefficients are non-positive
  * Return:
  * 	1 if is optimal
@@ -152,8 +172,6 @@ void lp_simplex_pivot_core(double *table, const int ldtable,
 }
 
 
-#define __PAN_97_INVALID_BASIS_CRIT 1e-12
-
 void simplex_pan97_trsf(const double *table, const int ldtable, const int *basis,
 			const int m, const int n, const int p, const int q)
 {
@@ -177,11 +195,11 @@ void simplex_pan97_trsf(const double *table, const int ldtable, const int *basis
 	}
 	if (m1 == m)
 		goto END;
-/*
+
 	lp_simplex_linalg_dlarfg(m - m1, vec_u, vec_u + 1, 1, &tau);
 	beta = vec_u[0];
 	vec_u[0] = 1.0;
-*/
+
 END:
 	lp_simplex_free(non_basis_1);
 	lp_simplex_free(vec_u);
@@ -199,8 +217,8 @@ END:
 static int simplex_pivot_on(double *table, const int ldtable, int *basis,
 			    const int m, const int n, const char *criteria)
 {
-	int bounded;
-	int q, p;
+	int bounded = 0;
+	int q = 0, p = 0;
 
 	if (is_simplex_optimal(table, n))
 		return 1;
@@ -213,11 +231,9 @@ static int simplex_pivot_on(double *table, const int ldtable, int *basis,
 		p = simplex_pivot_leave_rule(table, ldtable, m, n, q, &bounded);
 	}
 	else {  /* default method: "pan97" */
-	/*
 		q = simplex_pivot_enter_rule_datzig(table, basis, m, n);
 		simplex_pan97_trsf(table, ldtable, basis, m, n, p, q);
 		p = simplex_pivot_leave_rule(table, ldtable, m, n, q, &bounded);
-	*/
 	}
 	if (n <= q) {
 		return 9;

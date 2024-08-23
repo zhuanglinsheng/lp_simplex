@@ -1,3 +1,4 @@
+
 ###############################################################################
 # Setting
 ###############################################################################
@@ -39,7 +40,37 @@ set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
 
 ###############################################################################
-# shared library
+# BLAS Required
+###############################################################################
+
+find_package(BLAS REQUIRED)
+
+if(BLAS_FOUND)
+	message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
+	set(USE_BLAS TRUE)
+else()
+	message(WARNING "BLAS not found")
+	set(USE_BLAS FALSE)
+endif()
+
+
+###############################################################################
+# LAPACK Required
+###############################################################################
+
+find_package(LAPACK REQUIRED)
+
+if(LAPACK_FOUND)
+	message(STATUS "Found LAPACK: ${LAPACK_LIBRARIES}")
+	set(USE_LAPACK TRUE)
+else()
+	message(WARNING "LAPACK not found")
+	set(USE_LAPACK FALSE)
+endif()
+
+
+###############################################################################
+# Target
 ###############################################################################
 
 set(SOURCES
@@ -55,22 +86,8 @@ target_include_directories(lp_simplex PRIVATE
 	${PROJECT_SOURCE_DIR}/include
 )
 
-find_package(BLAS REQUIRED)
-
-if(BLAS_FOUND)
-	message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
-	set(USE_BLAS TRUE)
-else()
-	message(WARNING "BLAS not found")
-	set(USE_BLAS FALSE)
-endif()
-
-if(USE_BLAS)
-	target_link_libraries(lp_simplex ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
-	target_compile_definitions(lp_simplex PRIVATE USE_BLAS)
-else()
-	target_link_libraries(lp_simplex)
-endif()
+target_link_libraries(lp_simplex ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+target_compile_definitions(lp_simplex PRIVATE USE_BLAS USE_LAPACK)
 
 
 ###############################################################################
