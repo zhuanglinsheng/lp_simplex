@@ -2,7 +2,6 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
-
 #ifndef __lp_simplex_LP_H__
 #define __lp_simplex_LP_H__
 
@@ -33,8 +32,8 @@ extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *
 #define lp_simplex_Degeneracy			8
 #define lp_simplex_PrecisionError		9
 
-#define lp_simplex_EXIT_FAILURE -1
-#define lp_simplex_EXIT_SUCCESS 0
+#define lp_simplex_EXIT_FAILURE	-1
+#define lp_simplex_EXIT_SUCCESS	0
 
 #define lp_simplex_VAR_T_REAL	0
 #define lp_simplex_VAR_T_INT	1
@@ -127,8 +126,8 @@ int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_Linea
  * Note:
  * 	1. to use this method, users can either create `lp_simplex_Model_LP` manually
  *		or get a model from `lp_simplex_lp_readmps`
-	2. to manually create model, TAKE CARE of the inner relation of struct
-		`lp_simplex_Model_LP`, where you should map coefs to constraints
+ *	2. to manually create model, TAKE CARE of the inner relation of struct
+ *		`lp_simplex_Model_LP`, where you should map coefs to constraints
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
@@ -176,10 +175,6 @@ int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_L
 int simplex_pivot_bsc(int *epoch, double *table, const int ldtable, int *basis,
 			const int m, const int n, const int nreal,
 			const char *criteria, const int niter);
-
-void simplex_pivot_core(double *table, const int ldtable,
-			const int m, const int n, const int p, const int q,
-			const int rule1, const int rule2, const int rule3);
 
 #ifdef __cpluscplus
 }
