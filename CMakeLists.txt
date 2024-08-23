@@ -36,9 +36,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX "$HOME/.local" CACHE PATH "..." FORCE)
 endif()
 set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
-##
-## Third-party libraries
-## add_compile_definitions(WITH_BLAS)
 
 
 ###############################################################################
@@ -49,6 +46,7 @@ set(SOURCES
 	src/lp_simplex_bsc.c
 	src/lp_simplex_std.c
 	src/lp_simplex_gen.c
+	src/lp_simplex_utils.c
 )
 add_library(lp_simplex SHARED
 	${SOURCES}
@@ -69,7 +67,7 @@ endif()
 
 if(USE_BLAS)
 	target_link_libraries(lp_simplex ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
-	target_compile_definitions(lp_simplex PRIVATE USE_BLAS USE_LAPACK)
+	target_compile_definitions(lp_simplex PRIVATE USE_BLAS)
 else()
 	target_link_libraries(lp_simplex)
 endif()

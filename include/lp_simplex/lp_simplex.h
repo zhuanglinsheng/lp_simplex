@@ -3,21 +3,75 @@
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
 
-#ifndef __IMPF_LP_H__
-#define __IMPF_LP_H__
+#ifndef __lp_simplex_LP_H__
+#define __lp_simplex_LP_H__
 
 #ifdef __cpluscplus
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef USE_BLAS
+extern void dscal_(int *n, double *alpha, double *x, int *incx);
+extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
+#endif
+
+#define __lp_simplex_ABS__(x) ((x) >= 0 ? (x) : (-(x)))
+#define __lp_simplex_MAX__(x, y) ((x) >= (y) ? (x) : (y))
+#define __lp_simplex_MIN__(x, y) ((x) <= (y) ? (x) : (y))
+
+#define __lp_simplex_INF__ (1. / 0.)
+#define __lp_simplex_NINF__ (-1. / 0.)
+
+#define lp_simplex_Success			0
+#define lp_simplex_MemoryAllocError		1
+#define lp_simplex_CondUnsatisfied		2
+#define lp_simplex_ExceedIterLimit		3
+#define lp_simplex_Singularity			4
+#define lp_simplex_OverDetermination		5
+#define lp_simplex_Unboundedness		6
+#define lp_simplex_Infeasibility		7
+#define lp_simplex_Degeneracy			8
+#define lp_simplex_PrecisionError		9
+
+#define lp_simplex_EXIT_FAILURE -1
+#define lp_simplex_EXIT_SUCCESS 0
+
+#define lp_simplex_VAR_T_REAL	0
+#define lp_simplex_VAR_T_INT	1
+#define lp_simplex_VAR_T_BIN	2
+
+#define lp_simplex_BOUND_T_FR	0	/* free */
+#define lp_simplex_BOUND_T_UP	1	/* upper bounded */
+#define lp_simplex_BOUND_T_LO	2	/* lower bounded */
+#define lp_simplex_BOUND_T_BS	3	/* bounded from both sides */
+
+#define lp_simplex_CONS_T_EQ	0
+#define lp_simplex_CONS_T_GE	1
+#define lp_simplex_CONS_T_LE	2
+
+struct lp_simplex_VariableBound {
+	char name[16];
+	double lb;
+	double ub;
+	int b_type;
+	int v_type;
+};
+
+struct lp_simplex_LinearConstraint {
+	char name[16];
+	double * coef;
+	double rhs;
+	int type;
+};
+
 /* Linear programming model */
-struct impf_Model_LP {
+struct lp_simplex_Model_LP {
 	int m;			/* number of constraints */
 	int n;			/* number of variables */
 	double *objective;
 	double *coefficients;	/* row major */
-	struct impf_LinearConstraint *constraints;
-	struct impf_VariableBound *bounds;
+	struct lp_simplex_LinearConstraint *constraints;
+	struct lp_simplex_VariableBound *bounds;
 };
 
 /* Importing MPS file and get a `model`
@@ -26,17 +80,13 @@ struct impf_Model_LP {
  * 	1. only "strict" MPS format is recognized by this function, which is an
  *		old format with a line of at most 61 columns. See:
  *		https://lpsolve.sourceforge.net/5.5/mps-format.htm
- *	2. the return of this function should be released by `impf_lp_free`
+ *	2. the return of this function should be released by `lp_simplex_lp_free`
  *	3. return `NULL` on failure
  */
-struct impf_Model_LP* lp_readmps(const char *file);
+struct lp_simplex_Model_LP* lp_simplex_lp_readmps(const char *file);
 
 /* Release the LP model */
-void impf_lp_free(struct impf_Model_LP *model);
-
-/*******************************************************************************
- * Optimization of "lp-simplex-family"
- ******************************************************************************/
+void lp_simplex_lp_free(struct lp_simplex_Model_LP *model);
 
 /* Simplex algorithm for solving LP of general form
  *
@@ -66,23 +116,23 @@ void impf_lp_free(struct impf_Model_LP *model);
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int impf_lp_simplex(const double *objective, const struct impf_LinearConstraint *constraints,
-		    const struct impf_VariableBound *bounds,
-		    const int m, const int n, const char *criteria, const int niter,
-		    double *x, double *value, int *code);
+int lp_simplex_lp_simplex(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
+			const struct lp_simplex_VariableBound *bounds,
+			const int m, const int n, const char *criteria, const int niter,
+			double *x, double *value, int *code);
 
 /* Simplex algorithm for solving LP of general form
- * (Wrapper of `impf_fmin_lp_simplex_full` by taking `impf_Model_LP` as input)
+ * (Wrapper of `lp_simplex_fmin_lp_simplex_full` by taking `lp_simplex_Model_LP` as input)
  *
  * Note:
- * 	1. to use this method, users can either create `impf_Model_LP` manually
- *		or get a model from `impf_lp_readmps`
+ * 	1. to use this method, users can either create `lp_simplex_Model_LP` manually
+ *		or get a model from `lp_simplex_lp_readmps`
 	2. to manually create model, TAKE CARE of the inner relation of struct
-		`impf_Model_LP`, where you should map coefs to constraints
+		`lp_simplex_Model_LP`, where you should map coefs to constraints
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int impf_lp_simplex_wrp(const struct impf_Model_LP *model, const char *criteria, const int niter,
+int lp_simplex_lp_simplex_wrp(const struct lp_simplex_Model_LP *model, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 
 /* Simplex algorithm for solving LP of standard form
@@ -110,7 +160,7 @@ int impf_lp_simplex_wrp(const struct impf_Model_LP *model, const char *criteria,
  *
  * Return: `EXIT_SUCCESS` or `EXIT_FAILURE`
  */
-int impf_lp_simplex_std(const double *objective, const struct impf_LinearConstraint *constraints,
+int lp_simplex_lp_simplex_std(const double *objective, const struct lp_simplex_LinearConstraint *constraints,
 			const int m, const int n, const char *criteria, const int niter,
 			double *x, double *value, int *code);
 
@@ -130,10 +180,6 @@ int simplex_pivot_bsc(int *epoch, double *table, const int ldtable, int *basis,
 void simplex_pivot_core(double *table, const int ldtable,
 			const int m, const int n, const int p, const int q,
 			const int rule1, const int rule2, const int rule3);
-
-/*******************************************************************************
- * Optimization of "lp-interior-point-family"
- ******************************************************************************/
 
 #ifdef __cpluscplus
 }
