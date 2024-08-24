@@ -6,8 +6,6 @@
 #include <lp_simplex/lp_simplex.h>
 
 
-#define __PAN_97_INVALID_BASIS_CRIT 1e-12
-
 /* Identifier of non-zero beta */
 #define __lp_simplex_ZEROS_BETA__		1e-9
 
@@ -15,14 +13,16 @@
 #define __lp_simplex_CTR_SPLX_OPTIMAL__		1e-9
 
 /* Checker of the checking "LP is degenerated" */
-#define __lp_simplex_DEGENERATED__		1e-12
+#define __lp_simplex_DEGENERATED__		1e-9
 
 /* Controllers for Bland's rule */
-#define __lp_simplex_BLAND_EPS__		1e-6
-#define __lp_simplex_BLAND_EPS_MIN__		__lp_simplex_ZEROS_BETA__
+#define __lp_simplex_BLAND_EPS__		1e-3
+#define __lp_simplex_BLAND_EPS_MIN__		1e-9
 
 /* Controller for pivot leaving rule */
-#define __lp_simplex_PIV_LEV__			1e-15
+#define __lp_simplex_PIV_LEV__			1e-9
+
+#define __PAN_97_INVALID_BASIS_CRIT		1e-9
 
 
 /* Check simplex optimality: all zero row coefficients are non-positive
@@ -137,6 +137,41 @@ BLAND_BEGIN:
 		return n;
 }
 
+/* The transforming of proposed by Pan (1997)
+ */
+void simplex_pan97_trsf(const double *table, const int ldtable, const int *basis,
+			const int m, const int n, const int p, const int q)
+{
+	int *non_basis_1 = (int *)lp_simplex_malloc(sizeof(int) * m);
+
+	/* H = I - tau * u * u^T */
+	double *vec_u = (double *)lp_simplex_malloc(sizeof(double) * m);
+	double tau = 0, beta = 0;
+
+	int i, j, k = 0;
+	int m1 = m;
+
+	/* calculate m1 and general basis, copy column "q" */
+	for (i = 0; i < m; i++) {
+		if (table[(i + 1) * (n + 1) + n] < __PAN_97_INVALID_BASIS_CRIT) {
+			m1--;
+			vec_u[k] = table[(i + 1) * (n + 1) + q];
+			non_basis_1[k] = i;
+			k++;
+		}
+	}
+	if (m1 == m)
+		goto END;
+
+	lp_simplex_linalg_dlarfg(m - m1, vec_u, vec_u + 1, 1, &tau);
+	beta = vec_u[0];
+	vec_u[0] = 1.0;
+
+END:
+	lp_simplex_free(non_basis_1);
+	lp_simplex_free(vec_u);
+}
+
 /* Key subroutine of pivoting
  *
  * Parameter:
@@ -171,41 +206,6 @@ void lp_simplex_pivot_core(double *table, const int ldtable,
 		lp_simplex_linalg_daxpy(ncol, -table[q], table + rowp, 1, table, 1);
 }
 
-
-void simplex_pan97_trsf(const double *table, const int ldtable, const int *basis,
-			const int m, const int n, const int p, const int q)
-{
-	int *non_basis_1 = (int *)lp_simplex_malloc(sizeof(int) * m);
-
-	/* H = I - tau * u * u^T */
-	double *vec_u = (double *)lp_simplex_malloc(sizeof(double) * m);
-	double tau = 0, beta = 0;
-
-	int i, j, k = 0;
-	int m1 = m;
-
-	/* calculate m1 and general basis, copy column "q" */
-	for (i = 0; i < m; i++) {
-		if (table[(i + 1) * (n + 1) + n] < __PAN_97_INVALID_BASIS_CRIT) {
-			m1--;
-			vec_u[k] = table[(i + 1) * (n + 1) + q];
-			non_basis_1[k] = i;
-			k++;
-		}
-	}
-	if (m1 == m)
-		goto END;
-
-	lp_simplex_linalg_dlarfg(m - m1, vec_u, vec_u + 1, 1, &tau);
-	beta = vec_u[0];
-	vec_u[0] = 1.0;
-
-END:
-	lp_simplex_free(non_basis_1);
-	lp_simplex_free(vec_u);
-}
-
-
 /* Pivot starting from a basic representation for one round
  *
  * Return:
@@ -214,8 +214,8 @@ END:
  *	2: LP is unbounded
  *	9: numerical precision error
  */
-static int simplex_pivot_on(double *table, const int ldtable, int *basis,
-			    const int m, const int n, const char *criteria)
+static int lp_simplex_pivot_on(double *table, const int ldtable, int *basis,
+				const int m, const int n, const char *criteria)
 {
 	int bounded = 0;
 	int q = 0, p = 0;
@@ -258,7 +258,7 @@ int lp_simplex_bsc(int *epoch, double *table, const int ldtable, int *basis,
 
 	while (*epoch < niter) {
 		(*epoch)++;
-		switch (simplex_pivot_on(table, ldtable, basis, m, n, criteria)) {
+		switch (lp_simplex_pivot_on(table, ldtable, basis, m, n, criteria)) {
 		case 0:
 			break;
 		case 1:

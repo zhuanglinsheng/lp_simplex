@@ -12,7 +12,7 @@
  * and constraint type recorder
  */
 static int create_buffer(double **table, int **basis, int **constypes,
-				 const int m, const int nrow, const int ncol)
+				const int m, const int nrow, const int ncol)
 {
 	*table = NULL;
 	*basis = NULL;
@@ -80,7 +80,7 @@ static void fill_constypes(const struct optm_LinearConstraint *constraints, int 
  * Constraints rhs are transformed to be nonnegative
  */
 static void fill_conscoefs(double *table, const int ldtable, const struct optm_LinearConstraint *constraints,
-				   const int nrow, const int ncol, const int m, const int n)
+				const int nrow, const int ncol, const int m, const int n)
 {
 	int i, j;
 
@@ -147,7 +147,7 @@ static int add_slack(double *table, const int ldtable, const int *constypes, con
  * Return the number of artificial variables
  */
 static int add_artif(double *table, const int ldtable, const int *constypes,
-			     const int m, const int n, const int nslack)
+			const int m, const int n, const int nslack)
 {
 	int i, nartif = 0;
 

@@ -30,8 +30,8 @@ extern "C" {
 #define lp_simplex_Degeneracy			8
 #define lp_simplex_PrecisionError		9
 
-#define lp_simplex_EXIT_FAILURE	-1
-#define lp_simplex_EXIT_SUCCESS	0
+#define lp_simplex_EXIT_FAILURE			-1
+#define lp_simplex_EXIT_SUCCESS			0
 
 
 /* Importing MPS file and get a `model`
@@ -45,7 +45,8 @@ extern "C" {
  */
 struct lp_Model* lp_simplex_read_mps(const char *file);
 
-/* Release the LP model */
+/* Release the LP model
+ */
 void lp_simplex_model_free(struct lp_Model *model);
 
 /* Simplex algorithm for solving LP of general form
