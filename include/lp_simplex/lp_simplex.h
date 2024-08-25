@@ -141,13 +141,15 @@ int lp_simplex_bsc(int *epoch, double *table, const int ldtable, int *basis,
 /* Key subroutine of pivoting
  *
  * Parameter:
+ * 	table	simplex table
+ * 	ldtable	leading dimension of the simplex table
+ * 	m	number of linear constraints
+ * 	n	number of variables
  *	p	idx of variable to leave basis
  *	q	idx of variable to enter basis
- *
- * Work:
- *	rule 1. row_p normalized by dividing y_p_q
- *	rule 2. row_i -= row_p * y_i_q
- *	rule 3. row_0 -= row_p * beta_q
+ *	rule1	row_p normalized by dividing y_p_q
+ *	rule2	row_i -= row_p * y_i_q
+ *	rule3	row_0 -= row_p * beta_q
  */
 void lp_simplex_pivot_core(double *table, const int ldtable,
 			const int m, const int n, const int p, const int q,

@@ -307,22 +307,7 @@ static struct lp_Model *create_model(const int m, const int n)
 	return model;
 }
 
-void lp_simplex_model_free(struct lp_Model *model)
-{
-	if (model == NULL)
-		return;
-	if (model->coefficients)
-		lp_simplex_free(model->coefficients);
-	if (model->constraints)
-		lp_simplex_free(model->constraints);
-	if (model->bounds)
-		lp_simplex_free(model->bounds);
-	if (model->objective)
-		lp_simplex_free(model->objective);
-	lp_simplex_free(model);
-}
-
-void file_readline(FILE *f, char *line, const int n)
+static void file_readline(FILE *f, char *line, const int n)
 {
 	lp_simplex_memset(line, '\0', n);
 	fgets(line, n, f);
@@ -551,13 +536,17 @@ struct lp_Model *lp_simplex_read_mps(const char *file)
 	return model;
 }
 
-int lp_simplex_wrp(const struct lp_Model *model, const char *criteria, const int niter,
-			double *x, double *value, int *code)
+void lp_simplex_model_free(struct lp_Model *model)
 {
-	int m = model->m;
-	int n = model->n;
-	double *obj = model->objective;
-	struct optm_LinearConstraint *cons = model->constraints;
-	struct optm_VariableBound *bounds = model->bounds;
-	return lp_simplex(obj, cons, bounds, m, n, criteria, niter, x, value, code);
+	if (model == NULL)
+		return;
+	if (model->coefficients)
+		lp_simplex_free(model->coefficients);
+	if (model->constraints)
+		lp_simplex_free(model->constraints);
+	if (model->bounds)
+		lp_simplex_free(model->bounds);
+	if (model->objective)
+		lp_simplex_free(model->objective);
+	lp_simplex_free(model);
 }

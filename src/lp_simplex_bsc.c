@@ -172,7 +172,7 @@ END:
 	lp_simplex_free(vec_u);
 }
 
-/* Key subroutine of pivoting
+/* Key subroutine of pivoting given p and q
  *
  * Parameter:
  *	p	idx of variable to leave basis

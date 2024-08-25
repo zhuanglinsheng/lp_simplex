@@ -190,9 +190,9 @@ static void retreive_ori_lp_sol(const struct optm_VariableBound *bounds, const i
 }
 
 int lp_simplex(const double *objective, const struct optm_LinearConstraint *constraints,
-		    const struct optm_VariableBound *bounds,
-		    const int m, const int n, const char *criteria, const int niter,
-		    double *x, double *value, int *code)
+		const struct optm_VariableBound *bounds,
+		const int m, const int n, const char *criteria, const int niter,
+		double *x, double *value, int *code)
 {
 	int _M, _N;
 	double *obj2, *x2, *coef2;
@@ -223,4 +223,15 @@ int lp_simplex(const double *objective, const struct optm_LinearConstraint *cons
 	}
 	stdlpf_free(obj2, x2, coef2, constraints2);
 	return lp_simplex_EXIT_FAILURE; /* error code already updated */
+}
+
+int lp_simplex_wrp(const struct lp_Model *model, const char *criteria, const int niter,
+			double *x, double *value, int *code)
+{
+	int m = model->m;
+	int n = model->n;
+	double *obj = model->objective;
+	struct optm_LinearConstraint *cons = model->constraints;
+	struct optm_VariableBound *bounds = model->bounds;
+	return lp_simplex(obj, cons, bounds, m, n, criteria, niter, x, value, code);
 }
