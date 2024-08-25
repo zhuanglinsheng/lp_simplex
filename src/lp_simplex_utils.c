@@ -8,9 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-void lp_simplex_linalg_daxpy(const int n, const double a, const double *x, const int incx, double *y, const int incy)
+void lp_simplex_linalg_daxpy(int n, double a, double *x, int incx, double *y, int incy)
 {
 #if USE_BLAS
+	extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
 	daxpy_((int *)&n, (double *)&a, (double *)x, (int *)&incx, y, (int *)&incy);
 #else
 	int i = 0, j = 0;
@@ -26,9 +27,10 @@ void lp_simplex_linalg_daxpy(const int n, const double a, const double *x, const
 #endif
 }
 
-void lp_simplex_linalg_dscal(const int n, const double x, double *arr, const int inc)
+void lp_simplex_linalg_dscal(int n, double x, double *arr, int inc)
 {
 #if USE_BLAS
+	extern void dscal_(int *n, double *alpha, double *x, int *incx);
 	dscal_(&n, &x, arr, &inc);
 #else
 	int i;
@@ -40,14 +42,14 @@ void lp_simplex_linalg_dscal(const int n, const double x, double *arr, const int
 #endif
 }
 
-void lp_simplex_linalg_dlarfg(const int n, double *alpha, double *x, const int incx, double *tau)
+void lp_simplex_linalg_dlarfg(int n, double *alpha, double *x, int incx, double *tau)
 {
-	/*
 #if USE_LAPACK
+	extern void dlarfg_(int *n, double *alpha, double *x, int *incx, double *tau);
 	dlarfg_(&n, alpha, x, &incx, tau);
 #else
+
 #endif
-	*/
 }
 
 
@@ -555,7 +557,7 @@ int lp_simplex_wrp(const struct lp_Model *model, const char *criteria, const int
 	int m = model->m;
 	int n = model->n;
 	double *obj = model->objective;
-	struct impf_LinearConstraint *cons = model->constraints;
-	struct impf_VariableBound *bounds = model->bounds;
+	struct optm_LinearConstraint *cons = model->constraints;
+	struct optm_VariableBound *bounds = model->bounds;
 	return lp_simplex(obj, cons, bounds, m, n, criteria, niter, x, value, code);
 }

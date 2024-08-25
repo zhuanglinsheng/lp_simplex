@@ -12,18 +12,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef USE_BLAS
-extern void dscal_(int *n, double *alpha, double *x, int *incx);
-extern void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
-#endif
-
-#ifdef LAPACK_USE
-extern void dlarfg_(int *n, double *alpha, double *x, int *incx, double *tau);
-#endif
-
-void lp_simplex_linalg_daxpy(const int n, const double a, const double *x, const int incx, double *y, const int incy);
-void lp_simplex_linalg_dscal(const int n, const double x, double *arr, const int inc);
-void lp_simplex_linalg_dlarfg(const int n, double *alpha, double *x, const int incx, double *tau);
+void lp_simplex_linalg_daxpy(int n, double a, double *x, int incx, double *y, int incy);
+void lp_simplex_linalg_dscal(int n, double x, double *arr, int inc);
+void lp_simplex_linalg_dlarfg(int n, double *alpha, double *x, int incx, double *tau);
 
 int is_in_arri(const int idx, const int *idxset, const int len);
 int maxabs_arri(const int *arr, const int len, const int inc);
