@@ -23,6 +23,26 @@ void lp_simplex_linalg_daxpy(
 #endif
 }
 
+double lp_simplex_linalg_ddot(
+		int n, const double *x, int incx, const double *y, int incy)
+{
+#if USE_BLAS
+	extern double ddot_(int *, double *, int *, double *, int *);
+	return ddot_(&n, (double *)x, &incx, (double *)y, &incy);
+#else
+	int i = 0, j = 0;
+	double result = 0.;
+	assert(x != NULL);
+	assert(y != NULL);
+	while (i < n && j < n) {
+		result += x[i] * y[j];
+		i += incx;
+		j += incy;
+	}
+	return result;
+#endif
+}
+
 void lp_simplex_linalg_dscal(int n, double scale, double *array, int increment)
 {
 #if USE_BLAS

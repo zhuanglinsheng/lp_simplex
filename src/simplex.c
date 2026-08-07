@@ -3,99 +3,110 @@
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
 #include <lp_simplex/solve.h>
-#include "simplex_phase.h"
-#include "simplex_transform.h"
+#include "simplex_dual.h"
+#include "simplex_singleton_dual.h"
+#include "simplex_tableau_solver.h"
 #include "utils.h"
 
+#define SIMPLEX_DEFAULT_ITERATION_LIMIT 100000
+#define SIMPLEX_DEFAULT_PRIMAL_TOLERANCE 1e-7
+#define SIMPLEX_DEFAULT_DUAL_TOLERANCE 1e-7
+#define SIMPLEX_DEFAULT_PIVOT_TOLERANCE 1e-9
 
-static int simplex_solve_arrays(
-		const double *objective,
-		const struct optm_LinearConstraint *constraints,
-		const struct optm_VariableBound *bounds,
-		int m, int n, const char *criteria, int iteration_limit,
-		double *x, double *value, int *status)
+
+void lp_simplex_default_options(
+		struct lp_simplex_Options *options, const int algorithm)
 {
-	int transformed_m, transformed_n;
-	double *transformed_objective;
-	double *transformed_x;
-	double *transformed_coefficients;
-	double transformed_value = 0.;
-	double objective_offset = 0.;
-	struct optm_LinearConstraint *transformed_constraints;
-	int i, j;
-
-	if (status == NULL)
-		return lp_simplex_EXIT_FAILURE;
-	if (objective == NULL || constraints == NULL || x == NULL || value == NULL ||
-	    m <= 0 || n <= 0 || iteration_limit <= 0) {
-		*status = lp_simplex_CondUnsatisfied;
-		return lp_simplex_EXIT_FAILURE;
-	}
-	if (criteria == NULL)
-		criteria = "";
-	for (i = 0; i < m; i++) {
-		if (constraints[i].coef == NULL || constraints[i].type < optm_CONS_T_EQ ||
-		    constraints[i].type > optm_CONS_T_LE) {
-			*status = lp_simplex_CondUnsatisfied;
-			return lp_simplex_EXIT_FAILURE;
-		}
-	}
-	if (bounds == NULL)
-		return simplex_solve_standard(objective, constraints, m, n, criteria,
-					      iteration_limit, x, value, status);
-	for (j = 0; j < n; j++) {
-		if (bounds[j].b_type < optm_BOUND_T_FR ||
-		    bounds[j].b_type > optm_BOUND_T_BS ||
-		    bounds[j].v_type != optm_VAR_T_REAL ||
-		    (bounds[j].b_type == optm_BOUND_T_BS &&
-		     bounds[j].lb > bounds[j].ub)) {
-			*status = lp_simplex_CondUnsatisfied;
-			return lp_simplex_EXIT_FAILURE;
-		}
-	}
-
-	simplex_transform_size(bounds, m, n, &transformed_m, &transformed_n);
-	if (simplex_transform_alloc(transformed_m, transformed_n,
-				    &transformed_objective, &transformed_x,
-				    &transformed_coefficients,
-				    &transformed_constraints) == lp_simplex_EXIT_FAILURE) {
-		*status = lp_simplex_MemoryAllocError;
-		return lp_simplex_EXIT_FAILURE;
-	}
-	lp_simplex_memset(transformed_coefficients, 0,
-			  (size_t)transformed_m * transformed_n * sizeof(double));
-	simplex_transform_problem(objective, constraints, bounds, m, n,
-				  transformed_n, transformed_objective,
-				  &objective_offset, transformed_coefficients,
-				  transformed_constraints);
-	if (simplex_solve_standard(transformed_objective, transformed_constraints,
-				   transformed_m, transformed_n, criteria,
-				   iteration_limit, transformed_x,
-				   &transformed_value, status) == lp_simplex_EXIT_SUCCESS) {
-		simplex_transform_recover(bounds, n, transformed_x, transformed_value,
-					  objective_offset, x, value);
-		simplex_transform_free(transformed_objective, transformed_x,
-				       transformed_coefficients,
-				       transformed_constraints);
-		*status = lp_simplex_Success;
-		return lp_simplex_EXIT_SUCCESS;
-	}
-	simplex_transform_free(transformed_objective, transformed_x,
-			       transformed_coefficients, transformed_constraints);
-	return lp_simplex_EXIT_FAILURE;
+	if (options == NULL)
+		return;
+	options->algorithm = algorithm;
+	options->pricing = algorithm == lp_simplex_ALGORITHM_DUAL_REVISED
+		? lp_simplex_PRICING_DUAL_STEEPEST_EDGE
+		: lp_simplex_PRICING_BLAND;
+	options->iteration_limit = SIMPLEX_DEFAULT_ITERATION_LIMIT;
+	options->primal_tolerance = SIMPLEX_DEFAULT_PRIMAL_TOLERANCE;
+	options->dual_tolerance = SIMPLEX_DEFAULT_DUAL_TOLERANCE;
+	options->pivot_tolerance = SIMPLEX_DEFAULT_PIVOT_TOLERANCE;
 }
 
 
-int lp_simplex_solve(const struct lp_Model *model, const char *criteria,
-		int iteration_limit, double *x, double *objective,
-		int *status)
+static int simplex_validate_model(const struct lp_Model *model)
 {
-	if (model == NULL) {
-		if (status != NULL)
-			*status = lp_simplex_CondUnsatisfied;
-		return lp_simplex_EXIT_FAILURE;
+	int i, j;
+	if (model == NULL || model->objective == NULL || model->constraints == NULL ||
+	    model->m <= 0 || model->n <= 0)
+		return 0;
+	for (i = 0; i < model->m; i++) {
+		if (model->constraints[i].coef == NULL ||
+		    model->constraints[i].type < optm_CONS_T_EQ ||
+		    model->constraints[i].type > optm_CONS_T_LE)
+			return 0;
 	}
-	return simplex_solve_arrays(model->objective, model->constraints, model->bounds,
-				    model->m, model->n, criteria, iteration_limit,
-				    x, objective, status);
+	if (model->bounds == NULL)
+		return 1;
+	for (j = 0; j < model->n; j++) {
+		if (model->bounds[j].b_type < optm_BOUND_T_FR ||
+		    model->bounds[j].b_type > optm_BOUND_T_BS ||
+		    model->bounds[j].v_type != optm_VAR_T_REAL ||
+		    (model->bounds[j].b_type == optm_BOUND_T_BS &&
+		     model->bounds[j].lb > model->bounds[j].ub))
+			return 0;
+	}
+	return 1;
+}
+
+
+static int simplex_validate_options(const struct lp_simplex_Options *options)
+{
+	if (options == NULL || options->iteration_limit <= 0 ||
+	    options->primal_tolerance <= 0. || options->dual_tolerance <= 0. ||
+	    options->pivot_tolerance <= 0.)
+		return 0;
+	if (options->algorithm == lp_simplex_ALGORITHM_TABLEAU)
+		return options->pricing == lp_simplex_PRICING_BLAND ||
+			options->pricing == lp_simplex_PRICING_DANTZIG;
+	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED)
+		return options->pricing == lp_simplex_PRICING_DUAL_STEEPEST_EDGE;
+	return 0;
+}
+
+
+int lp_simplex_solve(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result)
+{
+	const char *criteria;
+	int state;
+	int status = lp_simplex_CondUnsatisfied;
+	double objective = 0.;
+
+	if (result == NULL)
+		return lp_simplex_EXIT_FAILURE;
+	result->status = lp_simplex_CondUnsatisfied;
+	result->iterations = 0;
+	result->objective = 0.;
+	result->primal_infeasibility = 0.;
+	result->dual_infeasibility = 0.;
+	if (x == NULL || !simplex_validate_model(model) ||
+	    !simplex_validate_options(options))
+		return lp_simplex_EXIT_FAILURE;
+
+	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED) {
+		int applicable = 0;
+		state = simplex_singleton_dual_solve(
+			model, options, x, result, &applicable);
+		if (applicable)
+			return state;
+		return simplex_dual_solve(model, options, x, NULL, result);
+	}
+
+	criteria = options->pricing == lp_simplex_PRICING_DANTZIG
+		? "dantzig" : "bland";
+	state = simplex_tableau_solve_model(model, criteria,
+					    options->iteration_limit,
+					    x, &objective, &status);
+	result->status = status;
+	result->objective = objective;
+	return state;
 }

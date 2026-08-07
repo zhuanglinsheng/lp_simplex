@@ -10,4 +10,9 @@ if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mp
 		COMMAND test_netlib
 			${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mps
 	)
+	add_test(
+		NAME netlib_afiro_dual_revised
+		COMMAND test_netlib --algorithm dual-revised
+			${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mps
+	)
 endif()

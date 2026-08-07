@@ -34,6 +34,7 @@
 struct Options {
 	const char *mps_path;
 	const char *criteria;
+	int algorithm;
 	int iteration_limit;
 	double tolerance;
 	int print_solution;
@@ -48,6 +49,7 @@ static void print_usage(const char *program)
 {
 	printf("Usage: %s [options] MODEL.mps\n", program);
 	printf("\nOptions:\n");
+	printf("  --algorithm NAME      tableau (default) or dual-revised\n");
 	printf("  --criteria RULE       bland (default), dantzig, or pan97\n");
 	printf("  --iterations N        total pivot limit (default: %d)\n",
 	       DEFAULT_ITERATION_LIMIT);
@@ -98,6 +100,7 @@ static int parse_options(int argc, char **argv, struct Options *options)
 
 	options->mps_path = NULL;
 	options->criteria = "bland";
+	options->algorithm = lp_simplex_ALGORITHM_TABLEAU;
 	options->iteration_limit = DEFAULT_ITERATION_LIMIT;
 	options->tolerance = DEFAULT_TOLERANCE;
 	options->print_solution = 0;
@@ -116,6 +119,16 @@ static int parse_options(int argc, char **argv, struct Options *options)
 			options->print_solution = 1;
 		} else if (strcmp(argument, "--infeasible") == 0) {
 			options->expected_kind = 2;
+		} else if (strcmp(argument, "--algorithm") == 0) {
+			value = option_value(argc, argv, &i);
+			if (value == NULL)
+				return 0;
+			if (strcmp(value, "tableau") == 0)
+				options->algorithm = lp_simplex_ALGORITHM_TABLEAU;
+			else if (strcmp(value, "dual-revised") == 0)
+				options->algorithm = lp_simplex_ALGORITHM_DUAL_REVISED;
+			else
+				return 0;
 		} else if (strcmp(argument, "--criteria") == 0) {
 			value = option_value(argc, argv, &i);
 			if (value == NULL ||
@@ -275,12 +288,13 @@ int main(int argc, char **argv)
 {
 	struct Options options;
 	struct lp_Model *model;
+	struct lp_simplex_Options solve_options;
+	struct lp_simplex_Result result;
 	double *x;
 	double objective = 0.;
 	clock_t started, finished;
 	double elapsed;
 	char model_name[128];
-	int code = lp_simplex_CondUnsatisfied;
 	int state;
 	int passed;
 
@@ -306,16 +320,26 @@ int main(int argc, char **argv)
 	}
 
 	started = clock();
-	state = lp_simplex_solve(model, options.criteria, options.iteration_limit,
-			       x, &objective, &code);
+	lp_simplex_default_options(&solve_options, options.algorithm);
+	solve_options.iteration_limit = options.iteration_limit;
+	if (options.algorithm == lp_simplex_ALGORITHM_TABLEAU)
+		solve_options.pricing = strcmp(options.criteria, "dantzig") == 0
+			? lp_simplex_PRICING_DANTZIG : lp_simplex_PRICING_BLAND;
+	state = lp_simplex_solve(model, &solve_options, x, &result);
+	objective = result.objective;
 	finished = clock();
 	elapsed = (double)(finished - started) / (double)CLOCKS_PER_SEC;
 
 	printf("model:      %s\n", model_name);
 	printf("dimensions: %d constraints, %d variables\n", model->m, model->n);
+	printf("algorithm:  %s\n", options.algorithm == lp_simplex_ALGORITHM_TABLEAU
+	       ? "tableau" : "dual-revised");
 	printf("criteria:   %s\n", options.criteria);
 	printf("result:     state=%d, code=%d (%s)\n",
-	       state, code, solver_code_name(code));
+	       state, result.status, solver_code_name(result.status));
+	printf("iterations: %d\n", result.iterations);
+	printf("residuals:  primal=%.3g, dual=%.3g\n",
+	       result.primal_infeasibility, result.dual_infeasibility);
 	printf("time:       %.6f seconds\n", elapsed);
 	if (options.has_gurobi_time) {
 		printf("gurobi:     %.6f seconds (bundled reference)\n",
@@ -331,15 +355,17 @@ int main(int argc, char **argv)
 
 	if (options.expected_kind == 2) {
 		passed = state == lp_simplex_EXIT_FAILURE &&
-			 code == lp_simplex_Infeasibility;
+			 result.status == lp_simplex_Infeasibility;
 		printf("expected:   infeasible\n");
 	} else if (options.expected_kind == 1) {
-		passed = state == lp_simplex_EXIT_SUCCESS && code == lp_simplex_Success &&
+		passed = state == lp_simplex_EXIT_SUCCESS &&
+			 result.status == lp_simplex_Success &&
 			 objectives_match(objective, options.expected_value, options.tolerance);
 		printf("expected:   objective %.15g (tolerance %.3g)\n",
 		       options.expected_value, options.tolerance);
 	} else {
-		passed = state == lp_simplex_EXIT_SUCCESS && code == lp_simplex_Success;
+		passed = state == lp_simplex_EXIT_SUCCESS &&
+			 result.status == lp_simplex_Success;
 		printf("expected:   no reference; successful solve required\n");
 	}
 	printf("[%s] prediction %s\n", passed ? "PASS" : "FAIL",

@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 3.12)
 project(lp_simplex LANGUAGES C)
 include(CTest)
 option(LP_SIMPLEX_BUILD_TOOLS "Build command-line diagnostic tools" ON)
+option(LP_SIMPLEX_USE_KLU "Use SuiteSparse KLU for sparse basis factorizations" ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 90)
@@ -66,6 +67,12 @@ set(SOURCES
 	src/model.c
 	src/mps.c
 	src/simplex.c
+	src/simplex_tableau_solver.c
+	src/simplex_dual.c
+	src/simplex_singleton_dual.c
+	src/simplex_csc.c
+	src/simplex_basis.c
+	src/simplex_sparse_lu.c
 	src/simplex_transform.c
 	src/simplex_tableau.c
 	src/simplex_phase.c
@@ -84,6 +91,19 @@ target_include_directories(lp_simplex PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(lp_simplex PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 target_compile_definitions(lp_simplex PRIVATE USE_BLAS USE_LAPACK)
+
+if(LP_SIMPLEX_USE_KLU)
+	find_path(KLU_INCLUDE_DIR klu.h PATH_SUFFIXES suitesparse)
+	find_library(KLU_LIBRARY NAMES klu)
+	if(KLU_INCLUDE_DIR AND KLU_LIBRARY)
+		target_include_directories(lp_simplex PRIVATE ${KLU_INCLUDE_DIR})
+		target_link_libraries(lp_simplex PRIVATE ${KLU_LIBRARY})
+		target_compile_definitions(lp_simplex PRIVATE LP_SIMPLEX_HAVE_KLU)
+		message(STATUS "Using SuiteSparse KLU basis backend")
+	else()
+		message(STATUS "SuiteSparse KLU not found; using internal sparse LU backend")
+	endif()
+endif()
 
 
 ###############################################################################

@@ -129,13 +129,14 @@ static int build_example_path(char *path, size_t capacity, const char *filename)
  * @return 1 when every prediction is reached; otherwise 0 after printing the
  *         exact failed condition.
  */
-static int run_example(const struct ExampleSpec *example)
+static int run_example(const struct ExampleSpec *example, const int algorithm)
 {
 	char path[1024];
 	struct lp_Model *model;
+	struct lp_simplex_Options options;
+	struct lp_simplex_Result result;
 	double *x;
 	double value = 0.;
-	int code = lp_simplex_CondUnsatisfied;
 	int state;
 	int i;
 	int passed = 1;
@@ -163,11 +164,16 @@ static int run_example(const struct ExampleSpec *example)
 		lp_model_free(model);
 		return 0;
 	}
-	state = lp_simplex_solve(model, example->criteria, example->iteration_limit,
-			       x, &value, &code);
-	if (state != lp_simplex_EXIT_SUCCESS || code != lp_simplex_Success) {
+	lp_simplex_default_options(&options, algorithm);
+	options.iteration_limit = example->iteration_limit;
+	if (algorithm == lp_simplex_ALGORITHM_TABLEAU)
+		options.pricing = strcmp(example->criteria, "dantzig") == 0
+			? lp_simplex_PRICING_DANTZIG : lp_simplex_PRICING_BLAND;
+	state = lp_simplex_solve(model, &options, x, &result);
+	value = result.objective;
+	if (state != lp_simplex_EXIT_SUCCESS || result.status != lp_simplex_Success) {
 		printf("[FAIL] %s: state=%d, code=%d; expected successful optimum\n",
-		       example->label, state, code);
+		       example->label, state, result.status);
 		passed = 0;
 	} else if (!nearly_equal(value, example->expected_value, example->tolerance)) {
 		printf("[FAIL] %s: objective=%.15g, expected=%.15g\n",
@@ -184,7 +190,8 @@ static int run_example(const struct ExampleSpec *example)
 		}
 	}
 	if (passed) {
-		printf("[PASS] %-23s objective=% .12g (expected % .12g)\n",
+		printf("[PASS] %-12s %-23s objective=% .12g (expected % .12g)\n",
+		       algorithm == lp_simplex_ALGORITHM_TABLEAU ? "tableau" : "dual-revised",
 		       example->label, value, example->expected_value);
 	}
 
@@ -198,13 +205,16 @@ int main(void)
 {
 	const int count = (int)(sizeof(examples) / sizeof(examples[0]));
 	int failures = 0;
-	int i;
+	int algorithm, i;
 
-	for (i = 0; i < count; i++) {
-		if (!run_example(examples + i))
-			failures++;
+	for (algorithm = lp_simplex_ALGORITHM_TABLEAU;
+	     algorithm <= lp_simplex_ALGORITHM_DUAL_REVISED; algorithm++) {
+		for (i = 0; i < count; i++) {
+			if (!run_example(examples + i, algorithm))
+				failures++;
+		}
 	}
-	printf("%d/%d simple MPS examples reached their predicted results.\n",
-	       count - failures, count);
+	printf("%d/%d solver/example pairs reached their predicted results.\n",
+	       2 * count - failures, 2 * count);
 	return failures == 0 ? 0 : 1;
 }

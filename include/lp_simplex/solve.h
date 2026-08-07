@@ -12,16 +12,49 @@
 extern "C" {
 #endif
 
+enum lp_simplex_Algorithm {
+	lp_simplex_ALGORITHM_TABLEAU = 0,
+	lp_simplex_ALGORITHM_DUAL_REVISED = 1
+};
+
+enum lp_simplex_Pricing {
+	lp_simplex_PRICING_BLAND = 0,
+	lp_simplex_PRICING_DANTZIG = 1,
+	lp_simplex_PRICING_DUAL_STEEPEST_EDGE = 2
+};
+
+struct lp_simplex_Options {
+	int algorithm;
+	int pricing;
+	int iteration_limit;
+	double primal_tolerance;
+	double dual_tolerance;
+	double pivot_tolerance;
+};
+
+struct lp_simplex_Result {
+	int status;
+	int iterations;
+	double objective;
+	double primal_infeasibility;
+	double dual_infeasibility;
+};
+
+/** Fill an option structure with the defaults for the selected algorithm. */
+void lp_simplex_default_options(struct lp_simplex_Options *options,
+		int algorithm);
+
 /**
- * Solve a continuous LP model with the two-phase tableau simplex method.
+ * Solve a continuous LP with the configured simplex implementation.
  *
- * `x` must provide model->n elements.  `criteria` accepts "bland" (the safe
- * default), "dantzig", or NULL.  The function returns EXIT_SUCCESS only when
- * an optimum has been produced; `status` contains the detailed termination
- * reason.
+ * `x` must provide `model->n` elements.  A successful call returns
+ * `lp_simplex_EXIT_SUCCESS` and sets `result->status` to
+ * `lp_simplex_Success`.
  */
-int lp_simplex_solve(const struct lp_Model *model, const char *criteria,
-		int iteration_limit, double *x, double *objective, int *status);
+int lp_simplex_solve(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result);
 
 #ifdef __cplusplus
 }

@@ -252,7 +252,12 @@ LOOP:
 		goto LOOP;
 	switch (sect_code) {
 	case 1:  /* ROWS */
-		switch (line[1]) {
+		/*
+		 * Fixed MPS puts the row type in column 2.  A few NETLIB files,
+		 * including qap12 and qap15, indent it by one extra column while
+		 * keeping the row name in columns 5--12.  Accept both layouts.
+		 */
+		switch (line[1] == ' ' ? line[2] : line[1]) {
 		case 'N':
 			lp_simplex_memset(obj_name, '\0', 8);
 			lp_simplex_memcpy(obj_name, line + 4, 8);
