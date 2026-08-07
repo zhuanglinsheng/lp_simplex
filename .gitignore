@@ -1,7 +1,10 @@
 .idea/*
 .vscode/*
 .DS_Store
+
 build/*
+build-analysis/*
+
 *.exe
 *.a
 *.out

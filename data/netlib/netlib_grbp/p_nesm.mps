@@ -1,0 +1,18140 @@
+NAME (null)_copy
+ROWS
+ N  OBJ
+ E  RCAPP11 
+ E  RCAPP12 
+ E  RCAPP13 
+ E  RCAPP14 
+ E  RCAPP15 
+ E  RCAPP16 
+ E  RCAPP17 
+ E  RCAPP18 
+ E  RCAPP21 
+ E  RCAPP22 
+ E  RCAPP23 
+ E  RCAPP24 
+ E  RCAPP25 
+ E  RCAPP26 
+ E  RCAPP27 
+ E  RCAPP28 
+ E  RCAPP31 
+ E  RCAPP32 
+ E  RCAPP33 
+ E  RCAPP34 
+ E  RCAPP35 
+ E  RCAPP36 
+ E  RCAPP37 
+ E  RCAPP38 
+ E  RCAPP41 
+ E  RCAPP42 
+ E  RCAPP43 
+ E  RCAPP44 
+ E  RCAPP45 
+ E  RCAPP46 
+ E  RCAPP47 
+ E  RCAPP48 
+ E  RCAPP51 
+ E  RCAPP52 
+ E  RCAPP53 
+ E  RCAPP54 
+ E  RCAPP55 
+ E  RCAPP56 
+ E  RCAPP57 
+ E  RCAPP58 
+ E  ERCPP11L
+ E  ERCPP12L
+ E  ERCPP13L
+ E  ERCPP14L
+ E  ERCPP15L
+ E  ERCPP16L
+ E  ERCPP17L
+ E  ERCPP18L
+ E  ERCPP21L
+ E  ERCPP22L
+ E  ERCPP23L
+ E  ERCPP24L
+ E  ERCPP25L
+ E  ERCPP26L
+ E  ERCPP27L
+ E  ERCPP28L
+ E  ERCPP31L
+ E  ERCPP32L
+ E  ERCPP33L
+ E  ERCPP34L
+ E  ERCPP35L
+ E  ERCPP36L
+ E  ERCPP37L
+ E  ERCPP38L
+ E  ERCPP41L
+ E  ERCPP42L
+ E  ERCPP43L
+ E  ERCPP44L
+ E  ERCPP45L
+ E  ERCPP46L
+ E  ERCPP47L
+ E  ERCPP48L
+ E  ERCPP51G
+ E  ERCPP52G
+ E  ERCPP53G
+ E  ERCPP54G
+ E  ERCPP55G
+ E  ERCPP56G
+ E  ERCPP57G
+ E  ERCPP58G
+ E  TRCP1L  
+ E  TRCP2L  
+ E  TRCP3L  
+ E  TRCP4L  
+ E  TRCP5L  
+ E  TRCP6L  
+ E  TRCP7L  
+ E  QCRP11  
+ E  QCRP12  
+ E  QCRP13  
+ E  QCRP14  
+ E  QCRP15  
+ E  QCRP16  
+ E  QCRP17  
+ L  QCRP18  
+ E  QCRP21  
+ E  QCRP22  
+ E  QCRP23  
+ E  QCRP24  
+ E  QCRP25  
+ E  QCRP26  
+ E  QCRP27  
+ L  QCRP28  
+ E  QCRP31  
+ E  QCRP32  
+ E  QCRP33  
+ E  QCRP34  
+ E  QCRP35  
+ E  QCRP36  
+ E  QCRP37  
+ L  QCRP38  
+ E  QCRP41  
+ E  QCRP42  
+ E  QCRP43  
+ E  QCRP44  
+ E  QCRP45  
+ E  QCRP46  
+ E  QCRP47  
+ L  QCRP48  
+ E  QCRP51  
+ E  QCRP52  
+ E  QCRP53  
+ E  QCRP54  
+ E  QCRP55  
+ E  QCRP56  
+ E  QCRP57  
+ L  QCRP58  
+ E  QGLP11  
+ E  QGLP12  
+ E  QGLP13  
+ E  QGLP14  
+ E  QGLP15  
+ E  QGLP16  
+ E  QGLP17  
+ E  QGLP18  
+ E  QGLP21  
+ E  QGLP22  
+ E  QGLP23  
+ E  QGLP24  
+ E  QGLP25  
+ E  QGLP26  
+ E  QGLP27  
+ E  QGLP28  
+ E  QGLP31  
+ E  QGLP32  
+ E  QGLP33  
+ E  QGLP34  
+ E  QGLP35  
+ E  QGLP36  
+ E  QGLP37  
+ E  QGLP38  
+ E  QGLP41  
+ E  QGLP42  
+ E  QGLP43  
+ E  QGLP44  
+ E  QGLP45  
+ E  QGLP46  
+ E  QGLP47  
+ E  QGLP48  
+ E  QGLP52  
+ E  QGLP53  
+ E  QGLP54  
+ E  QGLP55  
+ E  QGLP56  
+ E  QGLP57  
+ E  QGLP58  
+ E  QGAP11  
+ E  QGAP12  
+ E  QGAP13  
+ E  QGAP14  
+ E  QGAP15  
+ E  QGAP16  
+ E  QGAP17  
+ E  QGAP18  
+ E  QGAP21  
+ E  QGAP22  
+ E  QGAP23  
+ E  QGAP24  
+ E  QGAP25  
+ E  QGAP26  
+ E  QGAP27  
+ E  QGAP28  
+ E  QGAP31  
+ E  QGAP32  
+ E  QGAP33  
+ E  QGAP34  
+ E  QGAP35  
+ E  QGAP36  
+ E  QGAP37  
+ E  QGAP38  
+ E  QGAP41  
+ E  QGAP42  
+ E  QGAP43  
+ E  QGAP44  
+ E  QGAP45  
+ E  QGAP46  
+ E  QGAP47  
+ E  QGAP48  
+ E  QGAP51  
+ E  QGAP52  
+ E  QGAP53  
+ E  QGAP54  
+ E  QGAP55  
+ E  QGAP56  
+ E  QGAP57  
+ E  QGAP58  
+ E  QDSP11  
+ E  QDSP12  
+ E  QDSP13  
+ E  QDSP14  
+ E  QDSP15  
+ E  QDSP16  
+ E  QDSP17  
+ E  QDSP18  
+ E  QDSP21  
+ E  QDSP22  
+ E  QDSP23  
+ E  QDSP24  
+ E  QDSP25  
+ E  QDSP26  
+ E  QDSP27  
+ E  QDSP28  
+ E  QDSP31  
+ E  QDSP32  
+ E  QDSP33  
+ E  QDSP34  
+ E  QDSP35  
+ E  QDSP36  
+ E  QDSP37  
+ E  QDSP38  
+ E  QDSP41  
+ E  QDSP42  
+ E  QDSP43  
+ E  QDSP44  
+ E  QDSP45  
+ E  QDSP46  
+ E  QDSP47  
+ E  QDSP48  
+ E  QDSP51  
+ E  QDSP52  
+ E  QDSP53  
+ E  QDSP54  
+ E  QDSP55  
+ E  QDSP56  
+ E  QDSP57  
+ E  QDSP58  
+ E  QRSP11  
+ E  QRSP12  
+ E  QRSP13  
+ E  QRSP14  
+ E  QRSP15  
+ E  QRSP16  
+ E  QRSP17  
+ E  QRSP18  
+ E  QRSP21  
+ E  QRSP22  
+ E  QRSP23  
+ E  QRSP24  
+ E  QRSP25  
+ E  QRSP26  
+ E  QRSP27  
+ E  QRSP28  
+ E  QRSP31  
+ E  QRSP32  
+ E  QRSP33  
+ E  QRSP34  
+ E  QRSP35  
+ E  QRSP36  
+ E  QRSP37  
+ E  QRSP38  
+ E  QRSP41  
+ E  QRSP42  
+ E  QRSP43  
+ E  QRSP44  
+ E  QRSP45  
+ E  QRSP46  
+ E  QRSP47  
+ E  QRSP48  
+ E  QRSP51  
+ E  QRSP52  
+ E  QRSP53  
+ E  QRSP54  
+ E  QRSP55  
+ E  QRSP56  
+ E  QRSP57  
+ E  QRSP58  
+ E  QKJP11  
+ E  QKJP12  
+ E  QKJP13  
+ E  QKJP14  
+ E  QKJP15  
+ E  QKJP16  
+ E  QKJP17  
+ L  QKJP18  
+ E  QKJP21  
+ E  QKJP22  
+ E  QKJP23  
+ E  QKJP24  
+ E  QKJP25  
+ E  QKJP26  
+ E  QKJP27  
+ L  QKJP28  
+ E  QKJP31  
+ E  QKJP32  
+ E  QKJP33  
+ E  QKJP34  
+ E  QKJP35  
+ E  QKJP36  
+ E  QKJP37  
+ L  QKJP38  
+ E  QKJP41  
+ E  QKJP42  
+ E  QKJP43  
+ E  QKJP44  
+ E  QKJP45  
+ E  QKJP46  
+ E  QKJP47  
+ L  QKJP48  
+ E  QKJP51  
+ E  QKJP52  
+ E  QKJP53  
+ E  QKJP54  
+ E  QKJP55  
+ E  QKJP56  
+ E  QKJP57  
+ L  QKJP58  
+ E  QNJP11  
+ E  QNJP12  
+ E  QNJP13  
+ E  QNJP14  
+ E  QNJP15  
+ E  QNJP16  
+ E  QNJP17  
+ L  QNJP18  
+ E  QNJP21  
+ E  QNJP22  
+ E  QNJP23  
+ E  QNJP24  
+ E  QNJP25  
+ E  QNJP26  
+ E  QNJP27  
+ L  QNJP28  
+ E  QNJP31  
+ E  QNJP32  
+ E  QNJP33  
+ E  QNJP34  
+ E  QNJP35  
+ E  QNJP36  
+ E  QNJP37  
+ L  QNJP38  
+ E  QNJP41  
+ E  QNJP42  
+ E  QNJP43  
+ E  QNJP44  
+ E  QNJP45  
+ E  QNJP46  
+ E  QNJP47  
+ L  QNJP48  
+ E  QNJP51  
+ E  QNJP52  
+ E  QNJP53  
+ E  QNJP54  
+ E  QNJP55  
+ E  QNJP56  
+ E  QNJP57  
+ L  QNJP58  
+ E  QPFP11  
+ E  QPFP12  
+ E  QPFP13  
+ E  QPFP14  
+ E  QPFP15  
+ E  QPFP16  
+ E  QPFP17  
+ L  QPFP18  
+ E  QPFP21  
+ E  QPFP22  
+ E  QPFP23  
+ E  QPFP24  
+ E  QPFP25  
+ E  QPFP26  
+ E  QPFP27  
+ L  QPFP28  
+ E  QPFP31  
+ E  QPFP32  
+ E  QPFP33  
+ E  QPFP34  
+ E  QPFP35  
+ E  QPFP36  
+ E  QPFP37  
+ L  QPFP38  
+ E  QPFP41  
+ E  QPFP42  
+ E  QPFP43  
+ E  QPFP44  
+ E  QPFP45  
+ E  QPFP46  
+ E  QPFP47  
+ L  QPFP48  
+ E  QPFP51  
+ E  QPFP52  
+ E  QPFP53  
+ E  QPFP54  
+ E  QPFP55  
+ E  QPFP56  
+ E  QPFP57  
+ L  QPFP58  
+ E  QLPP11  
+ E  QLPP12  
+ E  QLPP13  
+ E  QLPP14  
+ E  QLPP15  
+ E  QLPP16  
+ E  QLPP17  
+ L  QLPP18  
+ E  QLPP21  
+ E  QLPP22  
+ E  QLPP23  
+ E  QLPP24  
+ E  QLPP25  
+ E  QLPP26  
+ E  QLPP27  
+ L  QLPP28  
+ E  QLPP31  
+ E  QLPP32  
+ E  QLPP33  
+ E  QLPP34  
+ E  QLPP35  
+ E  QLPP36  
+ E  QLPP37  
+ L  QLPP38  
+ E  QLPP41  
+ E  QLPP42  
+ E  QLPP43  
+ E  QLPP44  
+ E  QLPP45  
+ E  QLPP46  
+ E  QLPP47  
+ L  QLPP48  
+ E  QLPP51  
+ E  QLPP52  
+ E  QLPP53  
+ E  QLPP54  
+ E  QLPP55  
+ E  QLPP56  
+ E  QLPP57  
+ L  QLPP58  
+ E  QOTP11  
+ E  QOTP12  
+ E  QOTP13  
+ E  QOTP14  
+ E  QOTP15  
+ E  QOTP16  
+ E  QOTP17  
+ E  QOTP18  
+ E  QOTP21  
+ E  QOTP22  
+ E  QOTP23  
+ E  QOTP24  
+ E  QOTP25  
+ E  QOTP26  
+ E  QOTP27  
+ E  QOTP28  
+ E  QOTP31  
+ E  QOTP32  
+ E  QOTP33  
+ E  QOTP34  
+ E  QOTP35  
+ E  QOTP36  
+ E  QOTP37  
+ E  QOTP38  
+ E  QOTP41  
+ E  QOTP42  
+ E  QOTP43  
+ E  QOTP44  
+ E  QOTP45  
+ E  QOTP46  
+ E  QOTP47  
+ E  QOTP48  
+ E  QOTP51  
+ E  QOTP52  
+ E  QOTP53  
+ E  QOTP54  
+ E  QOTP55  
+ E  QOTP56  
+ E  QOTP57  
+ E  QOTP58  
+ E  AP1P21  
+ E  AP1P22  
+ E  AP1P23  
+ E  AP1P24  
+ E  AP1P25  
+ E  AP1P26  
+ E  AP1P27  
+ E  AP1P28  
+ E  AP1P31  
+ E  AP1P32  
+ E  AP1P33  
+ E  AP1P34  
+ E  AP1P35  
+ E  AP1P36  
+ E  AP1P37  
+ E  AP1P38  
+ E  AP2P11  
+ E  AP2P12  
+ E  AP2P13  
+ E  AP2P14  
+ E  AP2P15  
+ E  AP2P16  
+ E  AP2P17  
+ E  AP2P18  
+ E  AP2P31  
+ E  AP2P32  
+ E  AP2P33  
+ E  AP2P34  
+ E  AP2P35  
+ E  AP2P36  
+ E  AP2P37  
+ E  AP2P38  
+ E  AP2P41  
+ E  AP2P42  
+ E  AP2P43  
+ E  AP2P44  
+ E  AP2P45  
+ E  AP2P46  
+ E  AP2P47  
+ E  AP2P48  
+ E  AP3P21  
+ E  AP3P22  
+ E  AP3P23  
+ E  AP3P24  
+ E  AP3P25  
+ E  AP3P26  
+ E  AP3P27  
+ E  AP3P28  
+ E  AP4P21  
+ E  AP4P22  
+ E  AP4P23  
+ E  AP4P24  
+ E  AP4P25  
+ E  AP4P26  
+ E  AP4P27  
+ E  AP4P28  
+ E  AP4P31  
+ E  AP4P32  
+ E  AP4P33  
+ E  AP4P34  
+ E  AP4P35  
+ E  AP4P36  
+ E  AP4P37  
+ E  AP4P38  
+ E  AP5P31  
+ E  AP5P32  
+ E  AP5P33  
+ E  AP5P34  
+ E  AP5P35  
+ E  AP5P36  
+ E  AP5P37  
+ E  AP5P38  
+ E  AP5P41  
+ E  AP5P42  
+ E  AP5P43  
+ E  AP5P44  
+ E  AP5P45  
+ E  AP5P46  
+ E  AP5P47  
+ E  AP5P48  
+COLUMNS
+    ICRP11    OBJ       0.00072812
+    ICRP11    QCRP11    1
+    ICRP12    OBJ       0.00065232
+    ICRP12    QCRP12    1
+    ICRP13    OBJ       0.00065232
+    ICRP13    QCRP13    1
+    ICRP14    OBJ       0.00065232
+    ICRP14    QCRP14    1
+    ICRP15    OBJ       0.00065276
+    ICRP15    QCRP15    1
+    ICRP16    OBJ       0.00080438
+    ICRP16    QCRP16    1
+    ICRP17    OBJ       0.00072812
+    ICRP17    QCRP17    1
+    ICRP18    OBJ       0.00065232
+    ICRP18    QCRP18    -1
+    IGLP11    OBJ       0.1904763
+    IGLP11    QGLP11    1
+    IGLP12    OBJ       0.1904763
+    IGLP12    QGLP12    1
+    IGLP13    OBJ       0.1904763
+    IGLP13    QGLP13    1
+    IGLP14    OBJ       0.1904763
+    IGLP14    QGLP14    1
+    IGLP15    OBJ       0.19047636
+    IGLP15    QGLP15    1
+    IGLP16    OBJ       0.19047636
+    IGLP16    QGLP16    1
+    IGLP17    OBJ       0.19047636
+    IGLP17    QGLP17    1
+    IGLP18    OBJ       0.19047636
+    IGLP18    QGLP18    1
+    IUNP11    OBJ       0.01024066
+    IUNP11    QCRP11    1
+    IUNP12    OBJ       0.00881835
+    IUNP12    QCRP12    1
+    IUNP13    OBJ       0.00881835
+    IUNP13    QCRP13    1
+    IUNP14    OBJ       0.00881835
+    IUNP14    QCRP14    1
+    IUNP15    OBJ       0.00727009
+    IUNP15    QCRP15    1
+    IUNP16    OBJ       0.00942953
+    IUNP16    QCRP16    1
+    IUNP17    OBJ       0.01024066
+    IUNP17    QCRP17    1
+    IUNP18    OBJ       0.00881835
+    IUNP18    QCRP18    -1
+    IGAP11    OBJ       0.00602773
+    IGAP11    QGAP11    1
+    IGAP12    OBJ       0.00690132
+    IGAP12    QGAP12    1
+    IGAP13    OBJ       0.00690132
+    IGAP13    QGAP13    1
+    IGAP14    OBJ       0.00690132
+    IGAP14    QGAP14    1
+    IGAP15    OBJ       0.00517599
+    IGAP15    QGAP15    1
+    IGAP16    OBJ       0.00595238
+    IGAP16    QGAP16    1
+    IGAP17    OBJ       0.00602773
+    IGAP17    QGAP17    1
+    IGAP18    OBJ       0.00690132
+    IGAP18    QGAP18    1
+    IDSP11    OBJ       0.0042517
+    IDSP11    QDSP11    1
+    IDSP12    OBJ       0.00363505
+    IDSP12    QDSP12    1
+    IDSP13    OBJ       0.00363505
+    IDSP13    QDSP13    1
+    IDSP14    OBJ       0.00363505
+    IDSP14    QDSP14    1
+    IDSP15    OBJ       0.00221484
+    IDSP15    QDSP15    1
+    IDSP16    OBJ       0.00148115
+    IDSP16    QDSP16    1
+    IDSP17    OBJ       0.0042517
+    IDSP17    QDSP17    1
+    IDSP18    OBJ       0.00363505
+    IDSP18    QDSP18    1
+    IRSP11    OBJ       0.00056791
+    IRSP11    QRSP11    1
+    IRSP12    OBJ       0.0005599
+    IRSP12    QRSP12    1
+    IRSP13    OBJ       0.0005599
+    IRSP13    QRSP13    1
+    IRSP14    OBJ       0.0005599
+    IRSP14    QRSP14    1
+    IRSP15    OBJ       0.00049321
+    IRSP15    QRSP15    1
+    IRSP16    OBJ       0.00045115
+    IRSP16    QRSP16    1
+    IRSP17    OBJ       0.00056791
+    IRSP17    QRSP17    1
+    IRSP18    OBJ       0.0005599
+    IRSP18    QRSP18    1
+    IKJP11    OBJ       0.00821019
+    IKJP11    QKJP11    1
+    IKJP12    OBJ       0.00814001
+    IKJP12    QKJP12    1
+    IKJP13    OBJ       0.00814001
+    IKJP13    QKJP13    1
+    IKJP14    OBJ       0.00814001
+    IKJP14    QKJP14    1
+    IKJP15    OBJ       0.00835423
+    IKJP15    QKJP15    1
+    IKJP16    OBJ       0.01035198
+    IKJP16    QKJP16    1
+    IKJP17    OBJ       0.00821019
+    IKJP17    QKJP17    1
+    IKJP18    OBJ       0.00814002
+    IKJP18    QKJP18    -1
+    INJP11    OBJ       0.02801123
+    INJP11    QNJP11    1
+    INJP12    OBJ       0.01700681
+    INJP12    QNJP12    1
+    INJP13    OBJ       0.01700681
+    INJP13    QNJP13    1
+    INJP14    OBJ       0.01700681
+    INJP14    QNJP14    1
+    INJP15    OBJ       0.02070396
+    INJP15    QNJP15    1
+    INJP16    OBJ       0.03174609
+    INJP16    QNJP16    1
+    INJP17    OBJ       0.02801124
+    INJP17    QNJP17    1
+    INJP18    OBJ       0.01700682
+    INJP18    QNJP18    -1
+    IPFP11    OBJ       0.47619081
+    IPFP11    QPFP11    1
+    IPFP15    OBJ       0.19047636
+    IPFP15    QPFP15    1
+    IPFP16    OBJ       0.31746072
+    IPFP16    QPFP16    1
+    IPFP17    OBJ       0.47619098
+    IPFP17    QPFP17    1
+    ILPP11    OBJ       0.06349206
+    ILPP11    QLPP11    1
+    ILPP12    OBJ       0.05291011
+    ILPP12    QLPP12    1
+    ILPP13    OBJ       0.05291011
+    ILPP13    QLPP13    1
+    ILPP14    OBJ       0.05291011
+    ILPP14    QLPP14    1
+    ILPP15    OBJ       0.02645506
+    ILPP15    QLPP15    1
+    ILPP16    OBJ       0.01904764
+    ILPP16    QLPP16    1
+    ILPP17    OBJ       0.06349212
+    ILPP17    QLPP17    1
+    ILPP18    OBJ       0.05291015
+    ILPP18    QLPP18    -1
+    IOTP11    OBJ       0.02164504
+    IOTP11    QOTP11    1
+    IOTP12    OBJ       0.01796947
+    IOTP12    QOTP12    1
+    IOTP13    OBJ       0.01796947
+    IOTP13    QOTP13    1
+    IOTP14    OBJ       0.01796947
+    IOTP14    QOTP14    1
+    IOTP15    OBJ       0.01904764
+    IOTP15    QOTP15    1
+    IOTP16    OBJ       0.01511717
+    IOTP16    QOTP16    1
+    IOTP17    OBJ       0.02164505
+    IOTP17    QOTP17    1
+    IOTP18    OBJ       0.01796948
+    IOTP18    QOTP18    1
+    ICRP21    OBJ       0.00124332
+    ICRP21    QCRP21    1
+    ICRP22    OBJ       0.00124008
+    ICRP22    QCRP22    1
+    ICRP23    OBJ       0.00124008
+    ICRP23    QCRP23    1
+    ICRP24    OBJ       0.00124008
+    ICRP24    QCRP24    1
+    ICRP25    OBJ       0.00132829
+    ICRP25    QCRP25    1
+    ICRP26    OBJ       0.00123686
+    ICRP26    QCRP26    1
+    ICRP27    OBJ       0.00124332
+    ICRP27    QCRP27    1
+    ICRP28    OBJ       0.00124008
+    ICRP28    QCRP28    -1
+    IGLP21    OBJ       0.01465202
+    IGLP21    QGLP21    1
+    IGLP22    OBJ       0.01465202
+    IGLP22    QGLP22    1
+    IGLP23    OBJ       0.01465202
+    IGLP23    QGLP23    1
+    IGLP24    OBJ       0.01465202
+    IGLP24    QGLP24    1
+    IGLP25    OBJ       0.01465203
+    IGLP25    QGLP25    1
+    IGLP26    OBJ       0.01465203
+    IGLP26    QGLP26    1
+    IGLP27    OBJ       0.01465203
+    IGLP27    QGLP27    1
+    IGLP28    OBJ       0.01465203
+    IGLP28    QGLP28    1
+    IUNP21    OBJ       0.15873027
+    IUNP21    QCRP21    1
+    IUNP22    OBJ       0.15873027
+    IUNP22    QCRP22    1
+    IUNP23    OBJ       0.15873027
+    IUNP23    QCRP23    1
+    IUNP24    OBJ       0.15873027
+    IUNP24    QCRP24    1
+    IUNP25    OBJ       0.13605452
+    IUNP25    QCRP25    1
+    IUNP26    OBJ       0.13605452
+    IUNP26    QCRP26    1
+    IUNP27    OBJ       0.15873033
+    IUNP27    QCRP27    1
+    IUNP28    OBJ       0.15873027
+    IUNP28    QCRP28    -1
+    IGAP21    OBJ       0.15873027
+    IGAP21    QGAP21    1
+    IGAP22    OBJ       0.2380954
+    IGAP22    QGAP22    1
+    IGAP23    OBJ       0.2380954
+    IGAP23    QGAP23    1
+    IGAP26    OBJ       0.31746072
+    IGAP26    QGAP26    1
+    IDSP21    OBJ       0.07936513
+    IDSP21    QDSP21    1
+    IDSP22    OBJ       0.05602248
+    IDSP22    QDSP22    1
+    IDSP23    OBJ       0.05602248
+    IDSP23    QDSP23    1
+    IDSP24    OBJ       0.05602248
+    IDSP24    QDSP24    1
+    IDSP25    OBJ       0.23809546
+    IDSP25    QDSP25    1
+    IDSP26    OBJ       0.13605452
+    IDSP26    QDSP26    1
+    IDSP27    OBJ       0.07936513
+    IDSP27    QDSP27    1
+    IDSP28    OBJ       0.05602253
+    IDSP28    QDSP28    1
+    IRSP21    OBJ       0.04329009
+    IRSP21    QRSP21    1
+    IRSP22    OBJ       0.03174606
+    IRSP22    QRSP22    1
+    IRSP23    OBJ       0.03174606
+    IRSP23    QRSP23    1
+    IRSP24    OBJ       0.03174606
+    IRSP24    QRSP24    1
+    IRSP25    OBJ       0.02976195
+    IRSP25    QRSP25    1
+    IRSP26    OBJ       0.04761912
+    IRSP26    QRSP26    1
+    IRSP27    OBJ       0.04329012
+    IRSP27    QRSP27    1
+    IRSP28    OBJ       0.03174607
+    IRSP28    QRSP28    1
+    IKJP21    OBJ       0.07936513
+    IKJP21    QKJP21    1
+    IKJP22    OBJ       0.07326007
+    IKJP22    QKJP22    1
+    IKJP23    OBJ       0.07326007
+    IKJP23    QKJP23    1
+    IKJP24    OBJ       0.07326007
+    IKJP24    QKJP24    1
+    IKJP25    OBJ       0.09523815
+    IKJP25    QKJP25    1
+    IKJP26    OBJ       0.1190477
+    IKJP26    QKJP26    1
+    IKJP27    OBJ       0.07936513
+    IKJP27    QKJP27    1
+    IKJP28    OBJ       0.07326013
+    IKJP28    QKJP28    -1
+    ILPP21    OBJ       0.02214841
+    ILPP21    QLPP21    1
+    ILPP22    OBJ       0.02506268
+    ILPP22    QLPP22    1
+    ILPP23    OBJ       0.02506268
+    ILPP23    QLPP23    1
+    ILPP24    OBJ       0.02506268
+    ILPP24    QLPP24    1
+    ILPP25    OBJ       0.01400562
+    ILPP25    QLPP25    1
+    ILPP26    OBJ       0.01082252
+    ILPP26    QLPP26    1
+    ILPP27    OBJ       0.02214842
+    ILPP27    QLPP27    1
+    ILPP28    OBJ       0.02506269
+    ILPP28    QLPP28    -1
+    IOTP22    OBJ       0.95238161
+    IOTP22    QOTP22    1
+    IOTP23    OBJ       0.95238161
+    IOTP23    QOTP23    1
+    IOTP24    OBJ       0.95238161
+    IOTP24    QOTP24    1
+    IOTP25    OBJ       0.47619122
+    IOTP25    QOTP25    1
+    IOTP26    OBJ       0.15873027
+    IOTP26    QOTP26    1
+    IOTP27    OBJ       0.9523825
+    IOTP27    QOTP27    1
+    ICRP31    OBJ       0.00227299
+    ICRP31    QCRP31    1
+    ICRP32    OBJ       0.001821
+    ICRP32    QCRP32    1
+    ICRP33    OBJ       0.001821
+    ICRP33    QCRP33    1
+    ICRP34    OBJ       0.001821
+    ICRP34    QCRP34    1
+    ICRP35    OBJ       0.00147885
+    ICRP35    QCRP35    1
+    ICRP36    OBJ       0.00348858
+    ICRP36    QCRP36    1
+    ICRP37    OBJ       0.00227299
+    ICRP37    QCRP37    1
+    ICRP38    OBJ       0.001821
+    ICRP38    QCRP38    -1
+    IUNP31    OBJ       0.01984128
+    IUNP31    QCRP31    1
+    IUNP32    OBJ       0.01587303
+    IUNP32    QCRP32    1
+    IUNP33    OBJ       0.01587303
+    IUNP33    QCRP33    1
+    IUNP34    OBJ       0.01587303
+    IUNP34    QCRP34    1
+    IUNP35    OBJ       0.01561282
+    IUNP35    QCRP35    1
+    IUNP36    OBJ       0.01867416
+    IUNP36    QCRP36    1
+    IUNP37    OBJ       0.0198413
+    IUNP37    QCRP37    1
+    IUNP38    OBJ       0.01587303
+    IUNP38    QCRP38    -1
+    IGAP31    OBJ       0.06802726
+    IGAP31    QGAP31    1
+    IGAP32    OBJ       0.03284076
+    IGAP32    QGAP32    1
+    IGAP33    OBJ       0.03284076
+    IGAP33    QGAP33    1
+    IGAP34    OBJ       0.03284076
+    IGAP34    QGAP34    1
+    IGAP35    OBJ       0.05291015
+    IGAP35    QGAP35    1
+    IGAP36    OBJ       0.05291015
+    IGAP36    QGAP36    1
+    IGAP37    OBJ       0.06802726
+    IGAP37    QGAP37    1
+    IGAP38    OBJ       0.03284079
+    IGAP38    QGAP38    1
+    IDSP31    OBJ       0.02574005
+    IDSP31    QDSP31    1
+    IDSP32    OBJ       0.01287002
+    IDSP32    QDSP32    1
+    IDSP33    OBJ       0.01287002
+    IDSP33    QDSP33    1
+    IDSP34    OBJ       0.01287002
+    IDSP34    QDSP34    1
+    IDSP35    OBJ       0.01867417
+    IDSP35    QDSP35    1
+    IDSP36    OBJ       0.03174609
+    IDSP36    QDSP36    1
+    IDSP37    OBJ       0.02574006
+    IDSP37    QDSP37    1
+    IDSP38    OBJ       0.01287002
+    IDSP38    QDSP38    1
+    IRSP31    OBJ       0.02070395
+    IRSP31    QRSP31    1
+    IRSP32    OBJ       0.02070395
+    IRSP32    QRSP32    1
+    IRSP33    OBJ       0.02070395
+    IRSP33    QRSP33    1
+    IRSP34    OBJ       0.02070395
+    IRSP34    QRSP34    1
+    IRSP35    OBJ       0.01488097
+    IRSP35    QRSP35    1
+    IRSP36    OBJ       0.01904764
+    IRSP36    QRSP36    1
+    IRSP37    OBJ       0.02070396
+    IRSP37    QRSP37    1
+    IRSP38    OBJ       0.02070396
+    IRSP38    QRSP38    1
+    IKJP31    OBJ       0.02322882
+    IKJP31    QKJP31    1
+    IKJP32    OBJ       0.05012536
+    IKJP32    QKJP32    1
+    IKJP33    OBJ       0.05012536
+    IKJP33    QKJP33    1
+    IKJP34    OBJ       0.05012536
+    IKJP34    QKJP34    1
+    IKJP35    OBJ       0.04329012
+    IKJP35    QKJP35    1
+    IKJP36    OBJ       0.04329012
+    IKJP36    QKJP36    1
+    IKJP37    OBJ       0.02322883
+    IKJP37    QKJP37    1
+    IKJP38    OBJ       0.05012539
+    IKJP38    QKJP38    -1
+    IPFP31    OBJ       0.04761908
+    IPFP31    QPFP31    1
+    IPFP32    OBJ       0.0352734
+    IPFP32    QPFP32    1
+    IPFP33    OBJ       0.0352734
+    IPFP33    QPFP33    1
+    IPFP34    OBJ       0.0352734
+    IPFP34    QPFP34    1
+    IPFP35    OBJ       0.05012539
+    IPFP35    QPFP35    1
+    IPFP36    OBJ       0.04329012
+    IPFP36    QPFP36    1
+    IPFP37    OBJ       0.04761912
+    IPFP37    QPFP37    1
+    IPFP38    OBJ       0.03527342
+    IPFP38    QPFP38    -1
+    ILPP31    OBJ       0.02267576
+    ILPP31    QLPP31    1
+    ILPP32    OBJ       0.01561281
+    ILPP32    QLPP32    1
+    ILPP33    OBJ       0.01561281
+    ILPP33    QLPP33    1
+    ILPP34    OBJ       0.01561281
+    ILPP34    QLPP34    1
+    ILPP35    OBJ       0.02214842
+    ILPP35    QLPP35    1
+    ILPP36    OBJ       0.01700682
+    ILPP36    QLPP36    1
+    ILPP37    OBJ       0.02267576
+    ILPP37    QLPP37    1
+    ILPP38    OBJ       0.01561282
+    ILPP38    QLPP38    -1
+    IOTP31    OBJ       0.13605452
+    IOTP31    QOTP31    1
+    IOTP32    OBJ       0.10582018
+    IOTP32    QOTP32    1
+    IOTP33    OBJ       0.10582018
+    IOTP33    QOTP33    1
+    IOTP34    OBJ       0.10582018
+    IOTP34    QOTP34    1
+    IOTP35    OBJ       0.1190477
+    IOTP35    QOTP35    1
+    IOTP36    OBJ       0.0865801
+    IOTP36    QOTP36    1
+    IOTP37    OBJ       0.13605452
+    IOTP37    QOTP37    1
+    IOTP38    OBJ       0.10582018
+    IOTP38    QOTP38    1
+    ICRP41    OBJ       0.01731603
+    ICRP41    QCRP41    1
+    ICRP42    OBJ       0.01796947
+    ICRP42    QCRP42    1
+    ICRP43    OBJ       0.01796947
+    ICRP43    QCRP43    1
+    ICRP44    OBJ       0.01796947
+    ICRP44    QCRP44    1
+    ICRP45    OBJ       0.01400562
+    ICRP45    QCRP45    1
+    ICRP46    OBJ       0.01642038
+    ICRP46    QCRP46    1
+    ICRP47    OBJ       0.01731604
+    ICRP47    QCRP47    1
+    ICRP48    OBJ       0.01796948
+    ICRP48    QCRP48    -1
+    IGLP41    OBJ       0.03174606
+    IGLP41    QGLP41    1
+    IGLP42    OBJ       0.03174606
+    IGLP42    QGLP42    1
+    IGLP43    OBJ       0.03174606
+    IGLP43    QGLP43    1
+    IGLP44    OBJ       0.03174606
+    IGLP44    QGLP44    1
+    IGLP45    OBJ       0.03174609
+    IGLP45    QGLP45    1
+    IGLP46    OBJ       0.03174609
+    IGLP46    QGLP46    1
+    IGLP47    OBJ       0.03174607
+    IGLP47    QGLP47    1
+    IGLP48    OBJ       0.03174607
+    IGLP48    QGLP48    1
+    IGAP41    OBJ       0.47619081
+    IGAP41    QGAP41    1
+    IGAP42    OBJ       0.31746054
+    IGAP42    QGAP42    1
+    IGAP43    OBJ       0.31746054
+    IGAP43    QGAP43    1
+    IGAP44    OBJ       0.31746054
+    IGAP44    QGAP44    1
+    IGAP45    OBJ       0.3174606
+    IGAP45    QGAP45    1
+    IGAP46    OBJ       0.31746072
+    IGAP46    QGAP46    1
+    IGAP47    OBJ       0.47619098
+    IGAP47    QGAP47    1
+    IGAP48    OBJ       0.3174606
+    IGAP48    QGAP48    1
+    IDSP45    OBJ       0.47619122
+    IDSP45    QDSP45    1
+    IDSP46    OBJ       0.9523825
+    IDSP46    QDSP46    1
+    IRSP46    OBJ       0.9523825
+    IRSP46    QRSP46    1
+    ILPP41    OBJ       0.07326007
+    ILPP41    QLPP41    1
+    ILPP42    OBJ       0.07326007
+    ILPP42    QLPP42    1
+    ILPP43    OBJ       0.07326007
+    ILPP43    QLPP43    1
+    ILPP44    OBJ       0.07326007
+    ILPP44    QLPP44    1
+    ILPP45    OBJ       0.0380953
+    ILPP45    QLPP45    1
+    ILPP46    OBJ       0.02801124
+    ILPP46    QLPP46    1
+    ILPP47    OBJ       0.07326013
+    ILPP47    QLPP47    1
+    ILPP48    OBJ       0.07326013
+    ILPP48    QLPP48    -1
+    IOTP41    OBJ       0.47619081
+    IOTP41    QOTP41    1
+    IOTP47    OBJ       0.47619098
+    IOTP47    QOTP47    1
+    ICRP51    OBJ       0.001153
+    ICRP51    QCRP51    1
+    ICRP52    OBJ       0.00095048
+    ICRP52    QCRP52    1
+    ICRP53    OBJ       0.00095048
+    ICRP53    QCRP53    1
+    ICRP54    OBJ       0.00095048
+    ICRP54    QCRP54    1
+    ICRP55    OBJ       0.00107009
+    ICRP55    QCRP55    1
+    ICRP56    OBJ       0.0010352
+    ICRP56    QCRP56    1
+    ICRP57    OBJ       0.00115301
+    ICRP57    QCRP57    1
+    ICRP58    OBJ       0.00095048
+    ICRP58    QCRP58    -1
+    IGLP51    OBJ       0.09523815
+    IGLP51    QLPP51    -0.08699995
+    IGLP51    QGAP51    1.087
+    IGLP52    OBJ       0.09523815
+    IGLP52    QGLP52    1
+    IGLP53    OBJ       0.09523815
+    IGLP53    QGLP53    1
+    IGLP54    OBJ       0.09523815
+    IGLP54    QGLP54    1
+    IGLP55    OBJ       0.09523815
+    IGLP55    QGLP55    1
+    IGLP56    OBJ       0.09523815
+    IGLP56    QGLP56    1
+    IGLP57    OBJ       0.09523815
+    IGLP57    QGLP57    1
+    IGLP58    OBJ       0.09523815
+    IGLP58    QGLP58    1
+    IUNP51    OBJ       0.01421465
+    IUNP51    QCRP51    1
+    IUNP52    OBJ       0.01731603
+    IUNP52    QCRP52    1
+    IUNP53    OBJ       0.01731603
+    IUNP53    QCRP53    1
+    IUNP54    OBJ       0.01731603
+    IUNP54    QCRP54    1
+    IUNP55    OBJ       0.02026344
+    IUNP55    QCRP55    1
+    IUNP56    OBJ       0.01120449
+    IUNP56    QCRP56    1
+    IUNP57    OBJ       0.01421466
+    IUNP57    QCRP57    1
+    IUNP58    OBJ       0.01731604
+    IUNP58    QCRP58    -1
+    IGAP51    OBJ       0.31746054
+    IGAP51    QGAP51    1
+    IGAP52    OBJ       0.10582018
+    IGAP52    QGAP52    1
+    IGAP53    OBJ       0.10582018
+    IGAP53    QGAP53    1
+    IGAP54    OBJ       0.10582018
+    IGAP54    QGAP54    1
+    IGAP56    OBJ       0.13605452
+    IGAP56    QGAP56    1
+    IDSP51    OBJ       0.1190477
+    IDSP51    QDSP51    1
+    IDSP52    OBJ       0.02721091
+    IDSP52    QDSP52    1
+    IDSP53    OBJ       0.02721091
+    IDSP53    QDSP53    1
+    IDSP54    OBJ       0.02721091
+    IDSP54    QDSP54    1
+    IDSP55    OBJ       0.04329012
+    IDSP55    QDSP55    1
+    IDSP56    OBJ       0.10582018
+    IDSP56    QDSP56    1
+    IDSP57    OBJ       0.1190477
+    IDSP57    QDSP57    1
+    IDSP58    OBJ       0.02721092
+    IDSP58    QDSP58    1
+    IRSP51    OBJ       0.02267576
+    IRSP51    QRSP51    1
+    IRSP52    OBJ       0.00814001
+    IRSP52    QRSP52    1
+    IRSP53    OBJ       0.00814001
+    IRSP53    QRSP53    1
+    IRSP54    OBJ       0.00814001
+    IRSP54    QRSP54    1
+    IRSP55    OBJ       0.01796948
+    IRSP55    QRSP55    1
+    IRSP56    OBJ       0.00881835
+    IRSP56    QRSP56    1
+    IRSP57    OBJ       0.02267576
+    IRSP57    QRSP57    1
+    IRSP58    OBJ       0.00814002
+    IRSP58    QRSP58    1
+    IKJP51    OBJ       0.01058202
+    IKJP51    QKJP51    1
+    IKJP52    OBJ       0.01536099
+    IKJP52    QKJP52    1
+    IKJP53    OBJ       0.01536099
+    IKJP53    QKJP53    1
+    IKJP54    OBJ       0.01536099
+    IKJP54    QKJP54    1
+    IKJP55    OBJ       0.00821019
+    IKJP55    QKJP55    1
+    IKJP56    OBJ       0.00881835
+    IKJP56    QKJP56    1
+    IKJP57    OBJ       0.01058202
+    IKJP57    QKJP57    1
+    IKJP58    OBJ       0.015361
+    IKJP58    QKJP58    -1
+    INJP51    OBJ       0.02886006
+    INJP51    QNJP51    1
+    INJP52    OBJ       0.06802726
+    INJP52    QNJP52    1
+    INJP53    OBJ       0.06802726
+    INJP53    QNJP53    1
+    INJP54    OBJ       0.06802726
+    INJP54    QNJP54    1
+    INJP55    OBJ       0.02801124
+    INJP55    QNJP55    1
+    INJP56    OBJ       0.03968262
+    INJP56    QNJP56    1
+    INJP57    OBJ       0.02886008
+    INJP57    QNJP57    1
+    INJP58    OBJ       0.06802726
+    INJP58    QNJP58    -1
+    ILPP51    OBJ       0.06802726
+    ILPP51    QLPP51    1
+    ILPP52    OBJ       0.06349206
+    ILPP52    QLPP52    1
+    ILPP53    OBJ       0.06349206
+    ILPP53    QLPP53    1
+    ILPP54    OBJ       0.06349206
+    ILPP54    QLPP54    1
+    ILPP55    OBJ       0.02070396
+    ILPP55    QLPP55    1
+    ILPP56    OBJ       0.02380955
+    ILPP56    QLPP56    1
+    ILPP57    OBJ       0.06802726
+    ILPP57    QLPP57    1
+    ILPP58    OBJ       0.06349212
+    ILPP58    QLPP58    -1
+    IOTP51    OBJ       0.31746054
+    IOTP51    QOTP51    1
+    IOTP56    OBJ       0.9523825
+    IOTP56    QOTP56    1
+    IOTP57    OBJ       0.31746083
+    IOTP57    QOTP57    1
+    SGAP11    OBJ       0.04292184
+    SGAP11    QGAP11    1
+    SGAP12    OBJ       0.04150132
+    SGAP12    QGAP12    1
+    SGAP13    OBJ       0.04101191
+    SGAP13    QGAP13    1
+    SGAP14    OBJ       0.04547469
+    SGAP14    QGAP14    1
+    SGAP15    OBJ       0.04462988
+    SGAP15    QGAP15    1
+    SGAP16    OBJ       0.0457321
+    SGAP16    QGAP16    1
+    SGAP17    OBJ       0.0432305
+    SGAP17    QGAP17    1
+    SGAP18    OBJ       0.04196677
+    SGAP18    QGAP18    1
+    SDSP11    OBJ       0.1059435
+    SDSP11    QDSP11    1
+    SDSP12    OBJ       0.12180257
+    SDSP12    QDSP12    1
+    SDSP13    OBJ       0.12390274
+    SDSP13    QDSP13    1
+    SDSP14    OBJ       0.10509706
+    SDSP14    QDSP14    1
+    SDSP15    OBJ       0.05663638
+    SDSP15    QDSP15    1
+    SDSP16    OBJ       0.05116861
+    SDSP16    QDSP16    1
+    SDSP17    OBJ       0.0956862
+    SDSP17    QDSP17    1
+    SDSP18    OBJ       0.12617606
+    SDSP18    QDSP18    1
+    SRSP12    OBJ       0.06836843
+    SRSP12    QRSP12    1
+    SRSP13    OBJ       0.06705993
+    SRSP13    QRSP13    1
+    SRSP14    OBJ       0.06567746
+    SRSP14    QRSP14    1
+    SRSP17    OBJ       0.06056614
+    SRSP17    QRSP17    1
+    SKJP11    OBJ       0.29036647
+    SKJP11    QKJP11    1
+    SKJP12    OBJ       0.27803892
+    SKJP12    QKJP12    1
+    SKJP13    OBJ       0.29409081
+    SKJP13    QKJP13    1
+    SKJP14    OBJ       0.30751669
+    SKJP14    QKJP14    1
+    SKJP15    OBJ       0.26979882
+    SKJP15    QKJP15    1
+    SKJP16    OBJ       0.30365682
+    SKJP16    QKJP16    1
+    SKJP17    OBJ       0.29991788
+    SKJP17    QKJP17    1
+    SKJP18    OBJ       0.30048645
+    SKJP18    QKJP18    -1
+    SNJP11    OBJ       1.400392
+    SNJP11    QNJP11    1
+    SNJP12    OBJ       1.497574
+    SNJP12    QNJP12    1
+    SNJP13    OBJ       1.385371
+    SNJP13    QNJP13    1
+    SNJP14    OBJ       1.300112
+    SNJP14    QNJP14    1
+    SNJP15    OBJ       1.362556
+    SNJP15    QNJP15    1
+    SNJP16    OBJ       1.904313
+    SNJP16    QNJP16    1
+    SNJP17    OBJ       1.584533
+    SNJP17    QNJP17    1
+    SNJP18    OBJ       1.487161
+    SNJP18    QNJP18    -1
+    SPFP11    OBJ       3.867002
+    SPFP11    QPFP11    1
+    SPFP12    OBJ       4.007075
+    SPFP12    QPFP12    1
+    SPFP13    OBJ       3.863661
+    SPFP13    QPFP13    1
+    SPFP14    OBJ       3.645254
+    SPFP14    QPFP14    1
+    SPFP15    OBJ       4.117707
+    SPFP15    QPFP15    1
+    SPFP16    OBJ       4.522805
+    SPFP16    QPFP16    1
+    SPFP17    OBJ       4.975281
+    SPFP17    QPFP17    1
+    SPFP18    OBJ       4.667463
+    SPFP18    QPFP18    -1
+    SLPP11    OBJ       1.956604
+    SLPP11    QLPP11    1
+    SLPP12    OBJ       2.520732
+    SLPP12    QLPP12    1
+    SLPP13    OBJ       1.616884
+    SLPP13    QLPP13    1
+    SLPP14    OBJ       1.910111
+    SLPP14    QLPP14    1
+    SLPP15    OBJ       1.079723
+    SLPP15    QLPP15    1
+    SLPP16    OBJ       0.8623119
+    SLPP16    QLPP16    1
+    SLPP17    OBJ       1.787529
+    SLPP17    QLPP17    1
+    SLPP18    OBJ       2.122541
+    SLPP18    QLPP18    -1
+    SOTP11    OBJ       0.20084739
+    SOTP11    QOTP11    1
+    SOTP12    OBJ       0.19839996
+    SOTP12    QOTP12    1
+    SOTP13    OBJ       0.17361891
+    SOTP13    QOTP13    1
+    SOTP14    OBJ       0.17628211
+    SOTP14    QOTP14    1
+    SOTP15    OBJ       0.17393523
+    SOTP15    QOTP15    1
+    SOTP16    OBJ       0.19867545
+    SOTP16    QOTP16    1
+    SOTP17    OBJ       0.21681958
+    SOTP17    QOTP17    1
+    SOTP18    OBJ       0.19385791
+    SOTP18    QOTP18    1
+    SGAP21    OBJ       0.04122627
+    SGAP21    QGAP21    1
+    SGAP22    OBJ       0.0407639
+    SGAP22    QGAP22    1
+    SGAP23    OBJ       0.04192027
+    SGAP23    QGAP23    1
+    SGAP24    OBJ       0.04237031
+    SGAP24    QGAP24    1
+    SGAP25    OBJ       0.04286722
+    SGAP25    QGAP25    1
+    SGAP26    OBJ       0.04529674
+    SGAP26    QGAP26    1
+    SGAP27    OBJ       0.04325683
+    SGAP27    QGAP27    1
+    SGAP28    OBJ       0.04107654
+    SGAP28    QGAP28    1
+    SDSP21    OBJ       0.1353637
+    SDSP21    QDSP21    1
+    SDSP22    OBJ       0.14416963
+    SDSP22    QDSP22    1
+    SDSP23    OBJ       0.14517838
+    SDSP23    QDSP23    1
+    SDSP24    OBJ       0.12864524
+    SDSP24    QDSP24    1
+    SDSP25    OBJ       0.09621465
+    SDSP25    QDSP25    1
+    SDSP26    OBJ       0.09759653
+    SDSP26    QDSP26    1
+    SDSP27    OBJ       0.13469994
+    SDSP27    QDSP27    1
+    SDSP28    OBJ       0.15056008
+    SDSP28    QDSP28    1
+    SRSP21    OBJ       0.73876786
+    SRSP21    QRSP21    1
+    SRSP22    OBJ       0.72476488
+    SRSP22    QRSP22    1
+    SRSP23    OBJ       0.72376579
+    SRSP23    QRSP23    1
+    SRSP24    OBJ       0.66701323
+    SRSP24    QRSP24    1
+    SRSP25    OBJ       0.45545995
+    SRSP25    QRSP25    1
+    SRSP26    OBJ       0.36096942
+    SRSP26    QRSP26    1
+    SRSP27    OBJ       0.60186571
+    SRSP27    QRSP27    1
+    SRSP28    OBJ       0.61763448
+    SRSP28    QRSP28    1
+    SKJP21    OBJ       0.58728045
+    SKJP21    QKJP21    1
+    SKJP22    OBJ       0.60025042
+    SKJP22    QKJP22    1
+    SKJP23    OBJ       0.54178536
+    SKJP23    QKJP23    1
+    SKJP24    OBJ       0.57608968
+    SKJP24    QKJP24    1
+    SKJP25    OBJ       0.54555982
+    SKJP25    QKJP25    1
+    SKJP26    OBJ       0.62311661
+    SKJP26    QKJP26    1
+    SKJP27    OBJ       0.59366411
+    SKJP27    QKJP27    1
+    SKJP28    OBJ       0.58737022
+    SKJP28    QKJP28    -1
+    SNJP21    OBJ       2.135651
+    SNJP21    QNJP21    1
+    SNJP22    OBJ       2.503467
+    SNJP22    QNJP22    1
+    SNJP23    OBJ       1.96136
+    SNJP23    QNJP23    1
+    SNJP24    OBJ       2.008818
+    SNJP24    QNJP24    1
+    SNJP25    OBJ       2.131426
+    SNJP25    QNJP25    1
+    SNJP26    OBJ       2.884248
+    SNJP26    QNJP26    1
+    SNJP27    OBJ       2.233119
+    SNJP27    QNJP27    1
+    SNJP28    OBJ       2.290745
+    SNJP28    QNJP28    -1
+    SPFP21    OBJ       2.338903
+    SPFP21    QPFP21    1
+    SPFP22    OBJ       2.358767
+    SPFP22    QPFP22    1
+    SPFP23    OBJ       2.583843
+    SPFP23    QPFP23    1
+    SPFP24    OBJ       2.483714
+    SPFP24    QPFP24    1
+    SPFP25    OBJ       2.411227
+    SPFP25    QPFP25    1
+    SPFP26    OBJ       3.232235
+    SPFP26    QPFP26    1
+    SPFP27    OBJ       3.068479
+    SPFP27    QPFP27    1
+    SPFP28    OBJ       3.008929
+    SPFP28    QPFP28    -1
+    SLPP21    OBJ       0.94567388
+    SLPP21    QLPP21    1
+    SLPP22    OBJ       0.95230526
+    SLPP22    QLPP22    1
+    SLPP23    OBJ       0.68486887
+    SLPP23    QLPP23    1
+    SLPP24    OBJ       0.50362831
+    SLPP24    QLPP24    1
+    SLPP25    OBJ       0.30274445
+    SLPP25    QLPP25    1
+    SLPP26    OBJ       0.3024286
+    SLPP26    QLPP26    1
+    SLPP27    OBJ       0.7561568
+    SLPP27    QLPP27    1
+    SLPP28    OBJ       0.73383486
+    SLPP28    QLPP28    -1
+    SOTP21    OBJ       0.13922608
+    SOTP21    QOTP21    1
+    SOTP22    OBJ       0.13960981
+    SOTP22    QOTP22    1
+    SOTP23    OBJ       0.13440466
+    SOTP23    QOTP23    1
+    SOTP24    OBJ       0.13193744
+    SOTP24    QOTP24    1
+    SOTP25    OBJ       0.16647518
+    SOTP25    QOTP25    1
+    SOTP26    OBJ       0.18930638
+    SOTP26    QOTP26    1
+    SOTP27    OBJ       0.1725316
+    SOTP27    QOTP27    1
+    SOTP28    OBJ       0.14390039
+    SOTP28    QOTP28    1
+    SGAP31    OBJ       0.09840828
+    SGAP31    QGAP31    1
+    SGAP32    OBJ       0.1101535
+    SGAP32    QGAP32    1
+    SGAP33    OBJ       0.11299825
+    SGAP33    QGAP33    1
+    SGAP34    OBJ       0.10735071
+    SGAP34    QGAP34    1
+    SGAP35    OBJ       0.11059612
+    SGAP35    QGAP35    1
+    SGAP36    OBJ       0.11787218
+    SGAP36    QGAP36    1
+    SGAP37    OBJ       0.10139763
+    SGAP37    QGAP37    1
+    SGAP38    OBJ       0.10852444
+    SGAP38    QGAP38    1
+    SDSP31    OBJ       0.3650884
+    SDSP31    QDSP31    1
+    SDSP32    OBJ       0.32236356
+    SDSP32    QDSP32    1
+    SDSP33    OBJ       0.27987945
+    SDSP33    QDSP33    1
+    SDSP34    OBJ       0.36830717
+    SDSP34    QDSP34    1
+    SDSP35    OBJ       0.40624291
+    SDSP35    QDSP35    1
+    SDSP36    OBJ       0.34741038
+    SDSP36    QDSP36    1
+    SDSP37    OBJ       0.37842774
+    SDSP37    QDSP37    1
+    SDSP38    OBJ       0.34370112
+    SDSP38    QDSP38    1
+    SRSP31    OBJ       0.82139558
+    SRSP31    QRSP31    1
+    SRSP32    OBJ       1.057258
+    SRSP32    QRSP32    1
+    SRSP33    OBJ       1.027539
+    SRSP33    QRSP33    1
+    SRSP34    OBJ       1.544542
+    SRSP34    QRSP34    1
+    SRSP35    OBJ       1.176682
+    SRSP35    QRSP35    1
+    SRSP36    OBJ       0.82134342
+    SRSP36    QRSP36    1
+    SRSP37    OBJ       0.85542053
+    SRSP37    QRSP37    1
+    SRSP38    OBJ       1.021416
+    SRSP38    QRSP38    1
+    SKJP31    OBJ       1.253822
+    SKJP31    QKJP31    1
+    SKJP32    OBJ       2.829305
+    SKJP32    QKJP32    1
+    SKJP33    OBJ       1.552544
+    SKJP33    QKJP33    1
+    SKJP34    OBJ       1.494153
+    SKJP34    QKJP34    1
+    SKJP35    OBJ       2.864847
+    SKJP35    QKJP35    1
+    SKJP36    OBJ       2.336103
+    SKJP36    QKJP36    1
+    SKJP37    OBJ       1.517638
+    SKJP37    QKJP37    1
+    SKJP38    OBJ       1.855346
+    SKJP38    QKJP38    -1
+    SNJP31    OBJ       2.710982
+    SNJP31    QNJP31    1
+    SNJP32    OBJ       3.053005
+    SNJP32    QNJP32    1
+    SNJP33    OBJ       1.951006
+    SNJP33    QNJP33    1
+    SNJP34    OBJ       2.540846
+    SNJP34    QNJP34    1
+    SNJP35    OBJ       1.951686
+    SNJP35    QNJP35    1
+    SNJP36    OBJ       2.895353
+    SNJP36    QNJP36    1
+    SNJP37    OBJ       2.316819
+    SNJP37    QNJP37    1
+    SNJP38    OBJ       2.612369
+    SNJP38    QNJP38    -1
+    SPFP31    OBJ       0.38379079
+    SPFP31    QPFP31    1
+    SPFP32    OBJ       0.38897163
+    SPFP32    QPFP32    1
+    SPFP33    OBJ       0.3934409
+    SPFP33    QPFP33    1
+    SPFP34    OBJ       0.40698236
+    SPFP34    QPFP34    1
+    SPFP35    OBJ       0.37491435
+    SPFP35    QPFP35    1
+    SPFP36    OBJ       0.46904087
+    SPFP36    QPFP36    1
+    SPFP37    OBJ       0.47697461
+    SPFP37    QPFP37    1
+    SPFP38    OBJ       0.48222691
+    SPFP38    QPFP38    -1
+    SLPP31    OBJ       0.1471045
+    SLPP31    QLPP31    1
+    SLPP32    OBJ       0.14896441
+    SLPP32    QLPP32    1
+    SLPP33    OBJ       0.14109939
+    SLPP33    QLPP33    1
+    SLPP34    OBJ       0.14157784
+    SLPP34    QLPP34    1
+    SLPP35    OBJ       0.11238497
+    SLPP35    QLPP35    1
+    SLPP36    OBJ       0.11845142
+    SLPP36    QLPP36    1
+    SLPP37    OBJ       0.14746177
+    SLPP37    QLPP37    1
+    SLPP38    OBJ       0.1554811
+    SLPP38    QLPP38    -1
+    SOTP31    OBJ       0.14647257
+    SOTP31    QOTP31    1
+    SOTP32    OBJ       0.14447528
+    SOTP32    QOTP32    1
+    SOTP33    OBJ       0.15551835
+    SOTP33    QOTP33    1
+    SOTP34    OBJ       0.14900315
+    SOTP34    QOTP34    1
+    SOTP35    OBJ       0.15661466
+    SOTP35    QOTP35    1
+    SOTP36    OBJ       0.16277218
+    SOTP36    QOTP36    1
+    SOTP37    OBJ       0.16268909
+    SOTP37    QOTP37    1
+    SOTP38    OBJ       0.15900528
+    SOTP38    QOTP38    1
+    SGAP41    OBJ       0.42426956
+    SGAP41    QGAP41    1
+    SGAP42    OBJ       0.41889101
+    SGAP42    QGAP42    1
+    SGAP43    OBJ       0.41276586
+    SGAP43    QGAP43    1
+    SGAP44    OBJ       0.46135706
+    SGAP44    QGAP44    1
+    SGAP45    OBJ       0.52066702
+    SGAP45    QGAP45    1
+    SGAP46    OBJ       0.57374239
+    SGAP46    QGAP46    1
+    SGAP47    OBJ       0.46541244
+    SGAP47    QGAP47    1
+    SGAP48    OBJ       0.4238497
+    SGAP48    QGAP48    1
+    SDSP41    OBJ       1.078725
+    SDSP41    QDSP41    1
+    SDSP42    OBJ       1.137658
+    SDSP42    QDSP42    1
+    SDSP43    OBJ       1.15643
+    SDSP43    QDSP43    1
+    SDSP44    OBJ       0.97504961
+    SDSP44    QDSP44    1
+    SDSP45    OBJ       0.95342058
+    SDSP45    QDSP45    1
+    SDSP46    OBJ       1.265409
+    SDSP46    QDSP46    1
+    SDSP47    OBJ       1.157717
+    SDSP47    QDSP47    1
+    SDSP48    OBJ       1.175497
+    SDSP48    QDSP48    1
+    SRSP41    OBJ       5.290408
+    SRSP41    QRSP41    1
+    SRSP42    OBJ       5.696161
+    SRSP42    QRSP42    1
+    SRSP43    OBJ       5.655583
+    SRSP43    QRSP43    1
+    SRSP44    OBJ       4.676943
+    SRSP44    QRSP44    1
+    SRSP45    OBJ       3.471739
+    SRSP45    QRSP45    1
+    SRSP46    OBJ       3.508228
+    SRSP46    QRSP46    1
+    SRSP47    OBJ       4.618144
+    SRSP47    QRSP47    1
+    SRSP48    OBJ       4.652681
+    SRSP48    QRSP48    1
+    SKJP41    OBJ       4.01865
+    SKJP41    QKJP41    1
+    SKJP42    OBJ       4.059778
+    SKJP42    QKJP42    1
+    SKJP43    OBJ       3.827916
+    SKJP43    QKJP43    1
+    SKJP44    OBJ       4.143216
+    SKJP44    QKJP44    1
+    SKJP45    OBJ       4.223039
+    SKJP45    QKJP45    1
+    SKJP46    OBJ       5.022708
+    SKJP46    QKJP46    1
+    SKJP47    OBJ       4.561891
+    SKJP47    QKJP47    1
+    SKJP48    OBJ       4.114079
+    SKJP48    QKJP48    -1
+    SNJP41    OBJ       10.864693
+    SNJP41    QNJP41    1
+    SNJP42    OBJ       15.848481
+    SNJP42    QNJP42    1
+    SNJP43    OBJ       12.500811
+    SNJP43    QNJP43    1
+    SNJP44    OBJ       12.710386
+    SNJP44    QNJP44    1
+    SNJP45    OBJ       14.751899
+    SNJP45    QNJP45    1
+    SNJP46    OBJ       16.315689
+    SNJP46    QNJP46    1
+    SNJP47    OBJ       14.224612
+    SNJP47    QNJP47    1
+    SNJP48    OBJ       14.53436
+    SNJP48    QNJP48    -1
+    SPFP41    OBJ       132.454391
+    SPFP41    QPFP41    1
+    SPFP42    OBJ       128.826324
+    SPFP42    QPFP42    1
+    SPFP43    OBJ       179.88739
+    SPFP43    QPFP43    1
+    SPFP44    OBJ       93.472702
+    SPFP44    QPFP44    1
+    SPFP45    OBJ       99.601715
+    SPFP45    QPFP45    1
+    SPFP46    OBJ       163.531006
+    SPFP46    QPFP46    1
+    SPFP47    OBJ       175.10289
+    SPFP47    QPFP47    1
+    SPFP48    OBJ       152.657501
+    SPFP48    QPFP48    -1
+    SLPP41    OBJ       2.52561
+    SLPP41    QLPP41    1
+    SLPP42    OBJ       2.74194
+    SLPP42    QLPP42    1
+    SLPP43    OBJ       2.841696
+    SLPP43    QLPP43    1
+    SLPP44    OBJ       2.679461
+    SLPP44    QLPP44    1
+    SLPP45    OBJ       2.269223
+    SLPP45    QLPP45    1
+    SLPP46    OBJ       2.038697
+    SLPP46    QLPP46    1
+    SLPP47    OBJ       2.408115
+    SLPP47    QLPP47    1
+    SLPP48    OBJ       2.973405
+    SLPP48    QLPP48    -1
+    SOTP41    OBJ       0.95343924
+    SOTP41    QOTP41    1
+    SOTP42    OBJ       0.91897547
+    SOTP42    QOTP42    1
+    SOTP43    OBJ       0.86233056
+    SOTP43    QOTP43    1
+    SOTP44    OBJ       0.991844
+    SOTP44    QOTP44    1
+    SOTP45    OBJ       1.587003
+    SOTP45    QOTP45    1
+    SOTP46    OBJ       2.045012
+    SOTP46    QOTP46    1
+    SOTP47    OBJ       1.332575
+    SOTP47    QOTP47    1
+    SOTP48    OBJ       0.97955054
+    SOTP48    QOTP48    1
+    SGAP51    OBJ       0.09683651
+    SGAP51    QGAP51    1
+    SGAP52    OBJ       0.09749144
+    SGAP52    QGAP52    1
+    SGAP53    OBJ       0.09690285
+    SGAP53    QGAP53    1
+    SGAP54    OBJ       0.09964633
+    SGAP54    QGAP54    1
+    SGAP55    OBJ       0.10306031
+    SGAP55    QGAP55    1
+    SGAP56    OBJ       0.10976797
+    SGAP56    QGAP56    1
+    SGAP57    OBJ       0.09775496
+    SGAP57    QGAP57    1
+    SGAP58    OBJ       0.096591
+    SGAP58    QGAP58    1
+    SDSP51    OBJ       0.3639766
+    SDSP51    QDSP51    1
+    SDSP52    OBJ       0.32974839
+    SDSP52    QDSP52    1
+    SDSP53    OBJ       0.37546492
+    SDSP53    QDSP53    1
+    SDSP54    OBJ       0.36088258
+    SDSP54    QDSP54    1
+    SDSP55    OBJ       0.30772877
+    SDSP55    QDSP55    1
+    SDSP56    OBJ       0.34700596
+    SDSP56    QDSP56    1
+    SDSP57    OBJ       0.38329232
+    SDSP57    QDSP57    1
+    SDSP58    OBJ       0.38277864
+    SDSP58    QDSP58    1
+    SRSP51    OBJ       0.35332578
+    SRSP51    QRSP51    1
+    SRSP52    OBJ       0.387263
+    SRSP52    QRSP52    1
+    SRSP53    OBJ       0.35761863
+    SRSP53    QRSP53    1
+    SRSP54    OBJ       0.39469707
+    SRSP54    QRSP54    1
+    SRSP55    OBJ       0.28377575
+    SRSP55    QRSP55    1
+    SRSP56    OBJ       0.25583112
+    SRSP56    QRSP56    1
+    SRSP57    OBJ       0.31700081
+    SRSP57    QRSP57    1
+    SRSP58    OBJ       0.33229351
+    SRSP58    QRSP58    1
+    SKJP51    OBJ       0.38806283
+    SKJP51    QKJP51    1
+    SKJP52    OBJ       0.40037632
+    SKJP52    QKJP52    1
+    SKJP53    OBJ       0.42578685
+    SKJP53    QKJP53    1
+    SKJP54    OBJ       0.39814264
+    SKJP54    QKJP54    1
+    SKJP55    OBJ       0.39766282
+    SKJP55    QKJP55    1
+    SKJP56    OBJ       0.43959838
+    SKJP56    QKJP56    1
+    SKJP57    OBJ       0.43418443
+    SKJP57    QKJP57    1
+    SKJP58    OBJ       0.41884738
+    SKJP58    QKJP58    -1
+    SNJP51    OBJ       1.339123
+    SNJP51    QNJP51    1
+    SNJP52    OBJ       1.510204
+    SNJP52    QNJP52    1
+    SNJP53    OBJ       1.524928
+    SNJP53    QNJP53    1
+    SNJP54    OBJ       1.097956
+    SNJP54    QNJP54    1
+    SNJP55    OBJ       1.045207
+    SNJP55    QNJP55    1
+    SNJP56    OBJ       1.386017
+    SNJP56    QNJP56    1
+    SNJP57    OBJ       1.352881
+    SNJP57    QNJP57    1
+    SNJP58    OBJ       1.450454
+    SNJP58    QNJP58    -1
+    SPFP51    OBJ       3.439886
+    SPFP51    QPFP51    1
+    SPFP52    OBJ       4.590393
+    SPFP52    QPFP52    1
+    SPFP53    OBJ       4.049901
+    SPFP53    QPFP53    1
+    SPFP54    OBJ       3.172182
+    SPFP54    QPFP54    1
+    SPFP55    OBJ       4.253501
+    SPFP55    QPFP55    1
+    SPFP56    OBJ       5.834763
+    SPFP56    QPFP56    1
+    SPFP57    OBJ       4.52794
+    SPFP57    QPFP57    1
+    SPFP58    OBJ       4.691695
+    SPFP58    QPFP58    -1
+    SLPP51    OBJ       1.701782
+    SLPP51    QLPP51    1
+    SLPP52    OBJ       1.573605
+    SLPP52    QLPP52    1
+    SLPP53    OBJ       1.660325
+    SLPP53    QLPP53    1
+    SLPP54    OBJ       1.576273
+    SLPP54    QLPP54    1
+    SLPP55    OBJ       1.201875
+    SLPP55    QLPP55    1
+    SLPP56    OBJ       1.349604
+    SLPP56    QLPP56    1
+    SLPP57    OBJ       1.467562
+    SLPP57    QLPP57    1
+    SLPP58    OBJ       1.729532
+    SLPP58    QLPP58    -1
+    SOTP51    OBJ       0.27229857
+    SOTP51    QOTP51    1
+    SOTP52    OBJ       0.26830721
+    SOTP52    QOTP52    1
+    SOTP53    OBJ       0.27245975
+    SOTP53    QOTP53    1
+    SOTP54    OBJ       0.31964809
+    SOTP54    QOTP54    1
+    SOTP55    OBJ       0.29952705
+    SOTP55    QOTP55    1
+    SOTP56    OBJ       0.3531509
+    SOTP56    QOTP56    1
+    SOTP57    OBJ       0.30630869
+    SOTP57    QOTP57    1
+    SOTP58    OBJ       0.30281609
+    SOTP58    QOTP58    1
+    XSP11     OBJ       1000
+    XSP11     RCAPP11   1
+    XSP11     ERCPP11L  0.56338024
+    XSP11     ERCPP51G  0.56338024
+    XSP12     OBJ       1000
+    XSP12     RCAPP12   1
+    XSP12     ERCPP12L  0.56338024
+    XSP12     ERCPP52G  0.56338024
+    XSP13     OBJ       1000
+    XSP13     RCAPP13   1
+    XSP13     ERCPP13L  0.56338024
+    XSP13     ERCPP53G  0.56338024
+    XSP14     OBJ       1000
+    XSP14     RCAPP14   1
+    XSP14     ERCPP14L  0.56338024
+    XSP14     ERCPP54G  0.56338024
+    XSP15     OBJ       1000
+    XSP15     RCAPP15   1
+    XSP15     ERCPP15L  0.56338024
+    XSP15     ERCPP55G  0.56338024
+    XSP16     OBJ       1000
+    XSP16     RCAPP16   1
+    XSP16     ERCPP16L  0.56338024
+    XSP16     ERCPP56G  0.56338024
+    XSP17     OBJ       1000
+    XSP17     RCAPP17   1
+    XSP17     ERCPP17L  0.56338024
+    XSP17     ERCPP57G  0.56338024
+    XSP18     OBJ       1000
+    XSP18     RCAPP18   1
+    XSP18     ERCPP18L  0.56338024
+    XSP18     ERCPP58G  0.56338024
+    XSP21     OBJ       1000
+    XSP21     RCAPP21   1
+    XSP21     ERCPP21L  0.24378347
+    XSP21     ERCPP11L  -0.24378347
+    XSP22     OBJ       1000
+    XSP22     RCAPP22   1
+    XSP22     ERCPP22L  0.24378347
+    XSP22     ERCPP12L  -0.24378347
+    XSP23     OBJ       1000
+    XSP23     RCAPP23   1
+    XSP23     ERCPP23L  0.24378347
+    XSP23     ERCPP13L  -0.24378347
+    XSP24     OBJ       1000
+    XSP24     RCAPP24   1
+    XSP24     ERCPP24L  0.24378347
+    XSP24     ERCPP14L  -0.24378347
+    XSP25     OBJ       1000
+    XSP25     RCAPP25   1
+    XSP25     ERCPP25L  0.24378347
+    XSP25     ERCPP15L  -0.24378347
+    XSP26     OBJ       1000
+    XSP26     RCAPP26   1
+    XSP26     ERCPP26L  0.24378347
+    XSP26     ERCPP16L  -0.24378347
+    XSP27     OBJ       1000
+    XSP27     RCAPP27   1
+    XSP27     ERCPP27L  0.24378347
+    XSP27     ERCPP17L  -0.24378347
+    XSP28     OBJ       1000
+    XSP28     RCAPP28   1
+    XSP28     ERCPP28L  0.24378347
+    XSP28     ERCPP18L  -0.24378347
+    XSP31     OBJ       1000
+    XSP31     RCAPP31   1
+    XSP31     ERCPP31L  0.16071999
+    XSP31     ERCPP21L  -0.16071999
+    XSP31     TRCP1L    0.16071999
+    XSP32     OBJ       1000
+    XSP32     RCAPP32   1
+    XSP32     ERCPP32L  0.16071999
+    XSP32     ERCPP22L  -0.16071999
+    XSP32     TRCP1L    -0.16071999
+    XSP32     TRCP2L    0.16071999
+    XSP33     OBJ       1000
+    XSP33     RCAPP33   1
+    XSP33     ERCPP33L  0.16071999
+    XSP33     ERCPP23L  -0.16071999
+    XSP33     TRCP2L    -0.16071999
+    XSP33     TRCP3L    0.16071999
+    XSP34     OBJ       1000
+    XSP34     RCAPP34   1
+    XSP34     ERCPP34L  0.16071999
+    XSP34     ERCPP24L  -0.16071999
+    XSP34     TRCP3L    -0.16071999
+    XSP34     TRCP4L    0.16071999
+    XSP35     OBJ       1000
+    XSP35     RCAPP35   1
+    XSP35     ERCPP35L  0.16071999
+    XSP35     ERCPP25L  -0.16071999
+    XSP35     TRCP4L    -0.16071999
+    XSP35     TRCP5L    0.16071999
+    XSP36     OBJ       1000
+    XSP36     RCAPP36   1
+    XSP36     ERCPP36L  0.16071999
+    XSP36     ERCPP26L  -0.16071999
+    XSP36     TRCP5L    -0.16071999
+    XSP36     TRCP6L    0.16071999
+    XSP37     OBJ       1000
+    XSP37     RCAPP37   1
+    XSP37     ERCPP37L  0.16071999
+    XSP37     ERCPP27L  -0.16071999
+    XSP37     TRCP6L    -0.16071999
+    XSP37     TRCP7L    0.16071999
+    XSP38     OBJ       1000
+    XSP38     RCAPP38   1
+    XSP38     ERCPP38L  0.16071999
+    XSP38     ERCPP28L  -0.16071999
+    XSP38     TRCP7L    -0.16071999
+    XSP41     OBJ       1000
+    XSP41     RCAPP41   1
+    XSP41     ERCPP41L  1.811594
+    XSP41     ERCPP31L  -1.811594
+    XSP42     OBJ       1000
+    XSP42     RCAPP42   1
+    XSP42     ERCPP42L  1.811594
+    XSP42     ERCPP32L  -1.811594
+    XSP43     OBJ       1000
+    XSP43     RCAPP43   1
+    XSP43     ERCPP43L  1.811594
+    XSP43     ERCPP33L  -1.811594
+    XSP44     OBJ       1000
+    XSP44     RCAPP44   1
+    XSP44     ERCPP44L  1.811594
+    XSP44     ERCPP34L  -1.811594
+    XSP45     OBJ       1000
+    XSP45     RCAPP45   1
+    XSP45     ERCPP45L  1.811594
+    XSP45     ERCPP35L  -1.811594
+    XSP46     OBJ       1000
+    XSP46     RCAPP46   1
+    XSP46     ERCPP46L  1.811594
+    XSP46     ERCPP36L  -1.811594
+    XSP47     OBJ       1000
+    XSP47     RCAPP47   1
+    XSP47     ERCPP47L  1.811594
+    XSP47     ERCPP37L  -1.811594
+    XSP48     OBJ       1000
+    XSP48     RCAPP48   1
+    XSP48     ERCPP48L  1.811594
+    XSP48     ERCPP38L  -1.811594
+    XSP51     OBJ       1000
+    XSP51     RCAPP51   1
+    XSP51     ERCPP41L  -0.42087537
+    XSP51     ERCPP51G  -0.42087537
+    XSP52     OBJ       1000
+    XSP52     RCAPP52   1
+    XSP52     ERCPP42L  -0.42087537
+    XSP52     ERCPP52G  -0.42087537
+    XSP53     OBJ       1000
+    XSP53     RCAPP53   1
+    XSP53     ERCPP43L  -0.42087537
+    XSP53     ERCPP53G  -0.42087537
+    XSP54     OBJ       1000
+    XSP54     RCAPP54   1
+    XSP54     ERCPP44L  -0.42087537
+    XSP54     ERCPP54G  -0.42087537
+    XSP55     OBJ       1000
+    XSP55     RCAPP55   1
+    XSP55     ERCPP45L  -0.42087537
+    XSP55     ERCPP55G  -0.42087537
+    XSP56     OBJ       1000
+    XSP56     RCAPP56   1
+    XSP56     ERCPP46L  -0.42087537
+    XSP56     ERCPP56G  -0.42087537
+    XSP57     OBJ       1000
+    XSP57     RCAPP57   1
+    XSP57     ERCPP47L  -0.42087537
+    XSP57     ERCPP57G  -0.42087537
+    XSP58     OBJ       1000
+    XSP58     RCAPP58   1
+    XSP58     ERCPP48L  -0.42087537
+    XSP58     ERCPP58G  -0.42087537
+    STKCRP11  QCRP12    32.258057
+    STKCRP11  QCRP11    -33.333328
+    STKCRP12  QCRP13    32.258057
+    STKCRP12  QCRP12    -32.258057
+    STKCRP13  QCRP14    33.333328
+    STKCRP13  QCRP13    -32.258057
+    STKCRP14  QCRP15    10.869565
+    STKCRP14  QCRP14    -33.333328
+    STKCRP15  QCRP16    10.989011
+    STKCRP15  QCRP15    -10.869565
+    STKCRP16  QCRP17    10.989011
+    STKCRP16  QCRP16    -10.989011
+    STKCRP17  QCRP18    -10.869565
+    STKCRP17  QCRP17    -10.989011
+    STKCRP21  QCRP22    32.258057
+    STKCRP21  QCRP21    -33.333328
+    STKCRP22  QCRP23    32.258057
+    STKCRP22  QCRP22    -32.258057
+    STKCRP23  QCRP24    33.333328
+    STKCRP23  QCRP23    -32.258057
+    STKCRP24  QCRP25    10.869565
+    STKCRP24  QCRP24    -33.333328
+    STKCRP25  QCRP26    10.989011
+    STKCRP25  QCRP25    -10.869565
+    STKCRP26  QCRP27    10.989011
+    STKCRP26  QCRP26    -10.989011
+    STKCRP27  QCRP28    -10.869565
+    STKCRP27  QCRP27    -10.989011
+    STKCRP31  QCRP32    32.258057
+    STKCRP31  QCRP31    -33.333328
+    STKCRP32  QCRP33    32.258057
+    STKCRP32  QCRP32    -32.258057
+    STKCRP33  QCRP34    33.333328
+    STKCRP33  QCRP33    -32.258057
+    STKCRP34  QCRP35    10.869565
+    STKCRP34  QCRP34    -33.333328
+    STKCRP35  QCRP36    10.989011
+    STKCRP35  QCRP35    -10.869565
+    STKCRP36  QCRP37    10.989011
+    STKCRP36  QCRP36    -10.989011
+    STKCRP37  QCRP38    -10.869565
+    STKCRP37  QCRP37    -10.989011
+    STKCRP41  QCRP42    32.258057
+    STKCRP41  QCRP41    -33.333328
+    STKCRP42  QCRP43    32.258057
+    STKCRP42  QCRP42    -32.258057
+    STKCRP43  QCRP44    33.333328
+    STKCRP43  QCRP43    -32.258057
+    STKCRP44  QCRP45    10.869565
+    STKCRP44  QCRP44    -33.333328
+    STKCRP45  QCRP46    10.989011
+    STKCRP45  QCRP45    -10.869565
+    STKCRP46  QCRP47    10.989011
+    STKCRP46  QCRP46    -10.989011
+    STKCRP47  QCRP48    -10.869565
+    STKCRP47  QCRP47    -10.989011
+    STKCRP51  QCRP52    32.258057
+    STKCRP51  QCRP51    -33.333328
+    STKCRP52  QCRP53    32.258057
+    STKCRP52  QCRP52    -32.258057
+    STKCRP53  QCRP54    33.333328
+    STKCRP53  QCRP53    -32.258057
+    STKCRP54  QCRP55    10.869565
+    STKCRP54  QCRP54    -33.333328
+    STKCRP55  QCRP56    10.989011
+    STKCRP55  QCRP55    -10.869565
+    STKCRP56  QCRP57    10.989011
+    STKCRP56  QCRP56    -10.989011
+    STKCRP57  QCRP58    -10.869565
+    STKCRP57  QCRP57    -10.989011
+    STKGLP11  QGLP12    32.258057
+    STKGLP11  QGLP11    -33.333328
+    STKGLP12  QGLP13    32.258057
+    STKGLP12  QGLP12    -32.258057
+    STKGLP13  QGLP14    33.333328
+    STKGLP13  QGLP13    -32.258057
+    STKGLP14  QGLP15    10.869565
+    STKGLP14  QGLP14    -33.333328
+    STKGLP15  QGLP16    10.989011
+    STKGLP15  QGLP15    -10.869565
+    STKGLP16  QGLP17    10.989011
+    STKGLP16  QGLP16    -10.989011
+    STKGLP17  QGLP18    10.869565
+    STKGLP17  QGLP17    -10.989011
+    STKGLP18  QGLP18    -10.869565
+    STKGLP21  QGLP22    32.258057
+    STKGLP21  QGLP21    -33.333328
+    STKGLP22  QGLP23    32.258057
+    STKGLP22  QGLP22    -32.258057
+    STKGLP23  QGLP24    33.333328
+    STKGLP23  QGLP23    -32.258057
+    STKGLP24  QGLP25    10.869565
+    STKGLP24  QGLP24    -33.333328
+    STKGLP25  QGLP26    10.989011
+    STKGLP25  QGLP25    -10.869565
+    STKGLP26  QGLP27    10.989011
+    STKGLP26  QGLP26    -10.989011
+    STKGLP27  QGLP28    10.869565
+    STKGLP27  QGLP27    -10.989011
+    STKGLP28  QGLP28    -10.869565
+    STKGLP31  QGLP32    32.258057
+    STKGLP31  QGLP31    -33.333328
+    STKGLP32  QGLP33    32.258057
+    STKGLP32  QGLP32    -32.258057
+    STKGLP33  QGLP34    33.333328
+    STKGLP33  QGLP33    -32.258057
+    STKGLP34  QGLP35    10.869565
+    STKGLP34  QGLP34    -33.333328
+    STKGLP35  QGLP36    10.989011
+    STKGLP35  QGLP35    -10.869565
+    STKGLP36  QGLP37    10.989011
+    STKGLP36  QGLP36    -10.989011
+    STKGLP37  QGLP38    10.869565
+    STKGLP37  QGLP37    -10.989011
+    STKGLP38  QGLP38    -10.869565
+    STKGLP41  QGLP42    32.258057
+    STKGLP41  QGLP41    -33.333328
+    STKGLP42  QGLP43    32.258057
+    STKGLP42  QGLP42    -32.258057
+    STKGLP43  QGLP44    33.333328
+    STKGLP43  QGLP43    -32.258057
+    STKGLP44  QGLP45    10.869565
+    STKGLP44  QGLP44    -33.333328
+    STKGLP45  QGLP46    10.989011
+    STKGLP45  QGLP45    -10.869565
+    STKGLP46  QGLP47    10.989011
+    STKGLP46  QGLP46    -10.989011
+    STKGLP47  QGLP48    10.869565
+    STKGLP47  QGLP47    -10.989011
+    STKGLP48  QGLP48    -10.869565
+    STKGLP51  QLPP51    2.8999978693336
+    STKGLP51  QGAP51    -36.233327536
+    STKGLP51  QGLP52    32.258057
+    STKGLP52  QGLP53    32.258057
+    STKGLP52  QGLP52    -32.258057
+    STKGLP53  QGLP54    33.333328
+    STKGLP53  QGLP53    -32.258057
+    STKGLP54  QGLP55    10.869565
+    STKGLP54  QGLP54    -33.333328
+    STKGLP55  QGLP56    10.989011
+    STKGLP55  QGLP55    -10.869565
+    STKGLP56  QGLP57    10.989011
+    STKGLP56  QGLP56    -10.989011
+    STKGLP57  QGLP58    10.869565
+    STKGLP57  QGLP57    -10.989011
+    STKGLP58  QGLP58    -10.869565
+    STKGAP11  QGAP12    32.258057
+    STKGAP11  QGAP11    -33.333328
+    STKGAP12  QGAP13    32.258057
+    STKGAP12  QGAP12    -32.258057
+    STKGAP13  QGAP14    33.333328
+    STKGAP13  QGAP13    -32.258057
+    STKGAP14  QGAP15    10.869565
+    STKGAP14  QGAP14    -33.333328
+    STKGAP15  QGAP16    10.989011
+    STKGAP15  QGAP15    -10.869565
+    STKGAP16  QGAP17    10.989011
+    STKGAP16  QGAP16    -10.989011
+    STKGAP17  QGAP18    10.869565
+    STKGAP17  QGAP17    -10.989011
+    STKGAP18  QGAP18    -10.869565
+    STKGAP21  QGAP22    32.258057
+    STKGAP21  QGAP21    -33.333328
+    STKGAP22  QGAP23    32.258057
+    STKGAP22  QGAP22    -32.258057
+    STKGAP23  QGAP24    33.333328
+    STKGAP23  QGAP23    -32.258057
+    STKGAP24  QGAP25    10.869565
+    STKGAP24  QGAP24    -33.333328
+    STKGAP25  QGAP26    10.989011
+    STKGAP25  QGAP25    -10.869565
+    STKGAP26  QGAP27    10.989011
+    STKGAP26  QGAP26    -10.989011
+    STKGAP27  QGAP28    10.869565
+    STKGAP27  QGAP27    -10.989011
+    STKGAP28  QGAP28    -10.869565
+    STKGAP31  QGAP32    32.258057
+    STKGAP31  QGAP31    -33.333328
+    STKGAP32  QGAP33    32.258057
+    STKGAP32  QGAP32    -32.258057
+    STKGAP33  QGAP34    33.333328
+    STKGAP33  QGAP33    -32.258057
+    STKGAP34  QGAP35    10.869565
+    STKGAP34  QGAP34    -33.333328
+    STKGAP35  QGAP36    10.989011
+    STKGAP35  QGAP35    -10.869565
+    STKGAP36  QGAP37    10.989011
+    STKGAP36  QGAP36    -10.989011
+    STKGAP37  QGAP38    10.869565
+    STKGAP37  QGAP37    -10.989011
+    STKGAP38  QGAP38    -10.869565
+    STKGAP41  QGAP42    32.258057
+    STKGAP41  QGAP41    -33.333328
+    STKGAP42  QGAP43    32.258057
+    STKGAP42  QGAP42    -32.258057
+    STKGAP43  QGAP44    33.333328
+    STKGAP43  QGAP43    -32.258057
+    STKGAP44  QGAP45    10.869565
+    STKGAP44  QGAP44    -33.333328
+    STKGAP45  QGAP46    10.989011
+    STKGAP45  QGAP45    -10.869565
+    STKGAP46  QGAP47    10.989011
+    STKGAP46  QGAP46    -10.989011
+    STKGAP47  QGAP48    10.869565
+    STKGAP47  QGAP47    -10.989011
+    STKGAP48  QGAP48    -10.869565
+    STKGAP51  QGAP52    32.258057
+    STKGAP51  QGAP51    -33.333328
+    STKGAP52  QGAP53    32.258057
+    STKGAP52  QGAP52    -32.258057
+    STKGAP53  QGAP54    33.333328
+    STKGAP53  QGAP53    -32.258057
+    STKGAP54  QGAP55    10.869565
+    STKGAP54  QGAP54    -33.333328
+    STKGAP55  QGAP56    10.989011
+    STKGAP55  QGAP55    -10.869565
+    STKGAP56  QGAP57    10.989011
+    STKGAP56  QGAP56    -10.989011
+    STKGAP57  QGAP58    10.869565
+    STKGAP57  QGAP57    -10.989011
+    STKGAP58  QGAP58    -10.869565
+    STKDSP11  QDSP12    32.258057
+    STKDSP11  QDSP11    -33.333328
+    STKDSP12  QDSP13    32.258057
+    STKDSP12  QDSP12    -32.258057
+    STKDSP13  QDSP14    33.333328
+    STKDSP13  QDSP13    -32.258057
+    STKDSP14  QDSP15    10.869565
+    STKDSP14  QDSP14    -33.333328
+    STKDSP15  QDSP16    10.989011
+    STKDSP15  QDSP15    -10.869565
+    STKDSP16  QDSP17    10.989011
+    STKDSP16  QDSP16    -10.989011
+    STKDSP17  QDSP18    10.869565
+    STKDSP17  QDSP17    -10.989011
+    STKDSP18  QDSP18    -10.869565
+    STKDSP21  QDSP22    32.258057
+    STKDSP21  QDSP21    -33.333328
+    STKDSP22  QDSP23    32.258057
+    STKDSP22  QDSP22    -32.258057
+    STKDSP23  QDSP24    33.333328
+    STKDSP23  QDSP23    -32.258057
+    STKDSP24  QDSP25    10.869565
+    STKDSP24  QDSP24    -33.333328
+    STKDSP25  QDSP26    10.989011
+    STKDSP25  QDSP25    -10.869565
+    STKDSP26  QDSP27    10.989011
+    STKDSP26  QDSP26    -10.989011
+    STKDSP27  QDSP28    10.869565
+    STKDSP27  QDSP27    -10.989011
+    STKDSP28  QDSP28    -10.869565
+    STKDSP31  QDSP32    32.258057
+    STKDSP31  QDSP31    -33.333328
+    STKDSP32  QDSP33    32.258057
+    STKDSP32  QDSP32    -32.258057
+    STKDSP33  QDSP34    33.333328
+    STKDSP33  QDSP33    -32.258057
+    STKDSP34  QDSP35    10.869565
+    STKDSP34  QDSP34    -33.333328
+    STKDSP35  QDSP36    10.989011
+    STKDSP35  QDSP35    -10.869565
+    STKDSP36  QDSP37    10.989011
+    STKDSP36  QDSP36    -10.989011
+    STKDSP37  QDSP38    10.869565
+    STKDSP37  QDSP37    -10.989011
+    STKDSP38  QDSP38    -10.869565
+    STKDSP41  QDSP42    32.258057
+    STKDSP41  QDSP41    -33.333328
+    STKDSP42  QDSP43    32.258057
+    STKDSP42  QDSP42    -32.258057
+    STKDSP43  QDSP44    33.333328
+    STKDSP43  QDSP43    -32.258057
+    STKDSP44  QDSP45    10.869565
+    STKDSP44  QDSP44    -33.333328
+    STKDSP45  QDSP46    10.989011
+    STKDSP45  QDSP45    -10.869565
+    STKDSP46  QDSP47    10.989011
+    STKDSP46  QDSP46    -10.989011
+    STKDSP47  QDSP48    10.869565
+    STKDSP47  QDSP47    -10.989011
+    STKDSP48  QDSP48    -10.869565
+    STKDSP51  QDSP52    32.258057
+    STKDSP51  QDSP51    -33.333328
+    STKDSP52  QDSP53    32.258057
+    STKDSP52  QDSP52    -32.258057
+    STKDSP53  QDSP54    33.333328
+    STKDSP53  QDSP53    -32.258057
+    STKDSP54  QDSP55    10.869565
+    STKDSP54  QDSP54    -33.333328
+    STKDSP55  QDSP56    10.989011
+    STKDSP55  QDSP55    -10.869565
+    STKDSP56  QDSP57    10.989011
+    STKDSP56  QDSP56    -10.989011
+    STKDSP57  QDSP58    10.869565
+    STKDSP57  QDSP57    -10.989011
+    STKDSP58  QDSP58    -10.869565
+    STKRSP11  QRSP12    32.258057
+    STKRSP11  QRSP11    -33.333328
+    STKRSP12  QRSP13    32.258057
+    STKRSP12  QRSP12    -32.258057
+    STKRSP13  QRSP14    33.333328
+    STKRSP13  QRSP13    -32.258057
+    STKRSP14  QRSP15    10.869565
+    STKRSP14  QRSP14    -33.333328
+    STKRSP15  QRSP16    10.989011
+    STKRSP15  QRSP15    -10.869565
+    STKRSP16  QRSP17    10.989011
+    STKRSP16  QRSP16    -10.989011
+    STKRSP17  QRSP18    10.869565
+    STKRSP17  QRSP17    -10.989011
+    STKRSP18  QRSP18    -10.869565
+    STKRSP21  QRSP22    32.258057
+    STKRSP21  QRSP21    -33.333328
+    STKRSP22  QRSP23    32.258057
+    STKRSP22  QRSP22    -32.258057
+    STKRSP23  QRSP24    33.333328
+    STKRSP23  QRSP23    -32.258057
+    STKRSP24  QRSP25    10.869565
+    STKRSP24  QRSP24    -33.333328
+    STKRSP25  QRSP26    10.989011
+    STKRSP25  QRSP25    -10.869565
+    STKRSP26  QRSP27    10.989011
+    STKRSP26  QRSP26    -10.989011
+    STKRSP27  QRSP28    10.869565
+    STKRSP27  QRSP27    -10.989011
+    STKRSP28  QRSP28    -10.869565
+    STKRSP31  QRSP32    32.258057
+    STKRSP31  QRSP31    -33.333328
+    STKRSP32  QRSP33    32.258057
+    STKRSP32  QRSP32    -32.258057
+    STKRSP33  QRSP34    33.333328
+    STKRSP33  QRSP33    -32.258057
+    STKRSP34  QRSP35    10.869565
+    STKRSP34  QRSP34    -33.333328
+    STKRSP35  QRSP36    10.989011
+    STKRSP35  QRSP35    -10.869565
+    STKRSP36  QRSP37    10.989011
+    STKRSP36  QRSP36    -10.989011
+    STKRSP37  QRSP38    10.869565
+    STKRSP37  QRSP37    -10.989011
+    STKRSP38  QRSP38    -10.869565
+    STKRSP41  QRSP42    32.258057
+    STKRSP41  QRSP41    -33.333328
+    STKRSP42  QRSP43    32.258057
+    STKRSP42  QRSP42    -32.258057
+    STKRSP43  QRSP44    33.333328
+    STKRSP43  QRSP43    -32.258057
+    STKRSP44  QRSP45    10.869565
+    STKRSP44  QRSP44    -33.333328
+    STKRSP45  QRSP46    10.989011
+    STKRSP45  QRSP45    -10.869565
+    STKRSP46  QRSP47    10.989011
+    STKRSP46  QRSP46    -10.989011
+    STKRSP47  QRSP48    10.869565
+    STKRSP47  QRSP47    -10.989011
+    STKRSP48  QRSP48    -10.869565
+    STKRSP51  QRSP52    32.258057
+    STKRSP51  QRSP51    -33.333328
+    STKRSP52  QRSP53    32.258057
+    STKRSP52  QRSP52    -32.258057
+    STKRSP53  QRSP54    33.333328
+    STKRSP53  QRSP53    -32.258057
+    STKRSP54  QRSP55    10.869565
+    STKRSP54  QRSP54    -33.333328
+    STKRSP55  QRSP56    10.989011
+    STKRSP55  QRSP55    -10.869565
+    STKRSP56  QRSP57    10.989011
+    STKRSP56  QRSP56    -10.989011
+    STKRSP57  QRSP58    10.869565
+    STKRSP57  QRSP57    -10.989011
+    STKRSP58  QRSP58    -10.869565
+    STKKJP11  QKJP12    32.258057
+    STKKJP11  QKJP11    -33.333328
+    STKKJP12  QKJP13    32.258057
+    STKKJP12  QKJP12    -32.258057
+    STKKJP13  QKJP14    33.333328
+    STKKJP13  QKJP13    -32.258057
+    STKKJP14  QKJP15    10.869565
+    STKKJP14  QKJP14    -33.333328
+    STKKJP15  QKJP16    10.989011
+    STKKJP15  QKJP15    -10.869565
+    STKKJP16  QKJP17    10.989011
+    STKKJP16  QKJP16    -10.989011
+    STKKJP17  QKJP18    -10.869565
+    STKKJP17  QKJP17    -10.989011
+    STKKJP21  QKJP22    32.258057
+    STKKJP21  QKJP21    -33.333328
+    STKKJP22  QKJP23    32.258057
+    STKKJP22  QKJP22    -32.258057
+    STKKJP23  QKJP24    33.333328
+    STKKJP23  QKJP23    -32.258057
+    STKKJP24  QKJP25    10.869565
+    STKKJP24  QKJP24    -33.333328
+    STKKJP25  QKJP26    10.989011
+    STKKJP25  QKJP25    -10.869565
+    STKKJP26  QKJP27    10.989011
+    STKKJP26  QKJP26    -10.989011
+    STKKJP27  QKJP28    -10.869565
+    STKKJP27  QKJP27    -10.989011
+    STKKJP31  QKJP32    32.258057
+    STKKJP31  QKJP31    -33.333328
+    STKKJP32  QKJP33    32.258057
+    STKKJP32  QKJP32    -32.258057
+    STKKJP33  QKJP34    33.333328
+    STKKJP33  QKJP33    -32.258057
+    STKKJP34  QKJP35    10.869565
+    STKKJP34  QKJP34    -33.333328
+    STKKJP35  QKJP36    10.989011
+    STKKJP35  QKJP35    -10.869565
+    STKKJP36  QKJP37    10.989011
+    STKKJP36  QKJP36    -10.989011
+    STKKJP37  QKJP38    -10.869565
+    STKKJP37  QKJP37    -10.989011
+    STKKJP41  QKJP42    32.258057
+    STKKJP41  QKJP41    -33.333328
+    STKKJP42  QKJP43    32.258057
+    STKKJP42  QKJP42    -32.258057
+    STKKJP43  QKJP44    33.333328
+    STKKJP43  QKJP43    -32.258057
+    STKKJP44  QKJP45    10.869565
+    STKKJP44  QKJP44    -33.333328
+    STKKJP45  QKJP46    10.989011
+    STKKJP45  QKJP45    -10.869565
+    STKKJP46  QKJP47    10.989011
+    STKKJP46  QKJP46    -10.989011
+    STKKJP47  QKJP48    -10.869565
+    STKKJP47  QKJP47    -10.989011
+    STKKJP51  QKJP52    32.258057
+    STKKJP51  QKJP51    -33.333328
+    STKKJP52  QKJP53    32.258057
+    STKKJP52  QKJP52    -32.258057
+    STKKJP53  QKJP54    33.333328
+    STKKJP53  QKJP53    -32.258057
+    STKKJP54  QKJP55    10.869565
+    STKKJP54  QKJP54    -33.333328
+    STKKJP55  QKJP56    10.989011
+    STKKJP55  QKJP55    -10.869565
+    STKKJP56  QKJP57    10.989011
+    STKKJP56  QKJP56    -10.989011
+    STKKJP57  QKJP58    -10.869565
+    STKKJP57  QKJP57    -10.989011
+    STKNJP11  QNJP12    32.258057
+    STKNJP11  QNJP11    -33.333328
+    STKNJP12  QNJP13    32.258057
+    STKNJP12  QNJP12    -32.258057
+    STKNJP13  QNJP14    33.333328
+    STKNJP13  QNJP13    -32.258057
+    STKNJP14  QNJP15    10.869565
+    STKNJP14  QNJP14    -33.333328
+    STKNJP15  QNJP16    10.989011
+    STKNJP15  QNJP15    -10.869565
+    STKNJP16  QNJP17    10.989011
+    STKNJP16  QNJP16    -10.989011
+    STKNJP17  QNJP18    -10.869565
+    STKNJP17  QNJP17    -10.989011
+    STKNJP21  QNJP22    32.258057
+    STKNJP21  QNJP21    -33.333328
+    STKNJP22  QNJP23    32.258057
+    STKNJP22  QNJP22    -32.258057
+    STKNJP23  QNJP24    33.333328
+    STKNJP23  QNJP23    -32.258057
+    STKNJP24  QNJP25    10.869565
+    STKNJP24  QNJP24    -33.333328
+    STKNJP25  QNJP26    10.989011
+    STKNJP25  QNJP25    -10.869565
+    STKNJP26  QNJP27    10.989011
+    STKNJP26  QNJP26    -10.989011
+    STKNJP27  QNJP28    -10.869565
+    STKNJP27  QNJP27    -10.989011
+    STKNJP31  QNJP32    32.258057
+    STKNJP31  QNJP31    -33.333328
+    STKNJP32  QNJP33    32.258057
+    STKNJP32  QNJP32    -32.258057
+    STKNJP33  QNJP34    33.333328
+    STKNJP33  QNJP33    -32.258057
+    STKNJP34  QNJP35    10.869565
+    STKNJP34  QNJP34    -33.333328
+    STKNJP35  QNJP36    10.989011
+    STKNJP35  QNJP35    -10.869565
+    STKNJP36  QNJP37    10.989011
+    STKNJP36  QNJP36    -10.989011
+    STKNJP37  QNJP38    -10.869565
+    STKNJP37  QNJP37    -10.989011
+    STKNJP41  QNJP42    32.258057
+    STKNJP41  QNJP41    -33.333328
+    STKNJP42  QNJP43    32.258057
+    STKNJP42  QNJP42    -32.258057
+    STKNJP43  QNJP44    33.333328
+    STKNJP43  QNJP43    -32.258057
+    STKNJP44  QNJP45    10.869565
+    STKNJP44  QNJP44    -33.333328
+    STKNJP45  QNJP46    10.989011
+    STKNJP45  QNJP45    -10.869565
+    STKNJP46  QNJP47    10.989011
+    STKNJP46  QNJP46    -10.989011
+    STKNJP47  QNJP48    -10.869565
+    STKNJP47  QNJP47    -10.989011
+    STKNJP51  QNJP52    32.258057
+    STKNJP51  QNJP51    -33.333328
+    STKNJP52  QNJP53    32.258057
+    STKNJP52  QNJP52    -32.258057
+    STKNJP53  QNJP54    33.333328
+    STKNJP53  QNJP53    -32.258057
+    STKNJP54  QNJP55    10.869565
+    STKNJP54  QNJP54    -33.333328
+    STKNJP55  QNJP56    10.989011
+    STKNJP55  QNJP55    -10.869565
+    STKNJP56  QNJP57    10.989011
+    STKNJP56  QNJP56    -10.989011
+    STKNJP57  QNJP58    -10.869565
+    STKNJP57  QNJP57    -10.989011
+    STKPFP11  QPFP12    32.258057
+    STKPFP11  QPFP11    -33.333328
+    STKPFP12  QPFP13    32.258057
+    STKPFP12  QPFP12    -32.258057
+    STKPFP13  QPFP14    33.333328
+    STKPFP13  QPFP13    -32.258057
+    STKPFP14  QPFP15    10.869565
+    STKPFP14  QPFP14    -33.333328
+    STKPFP15  QPFP16    10.989011
+    STKPFP15  QPFP15    -10.869565
+    STKPFP16  QPFP17    10.989011
+    STKPFP16  QPFP16    -10.989011
+    STKPFP17  QPFP18    -10.869565
+    STKPFP17  QPFP17    -10.989011
+    STKPFP21  QPFP22    32.258057
+    STKPFP21  QPFP21    -33.333328
+    STKPFP22  QPFP23    32.258057
+    STKPFP22  QPFP22    -32.258057
+    STKPFP23  QPFP24    33.333328
+    STKPFP23  QPFP23    -32.258057
+    STKPFP24  QPFP25    10.869565
+    STKPFP24  QPFP24    -33.333328
+    STKPFP25  QPFP26    10.989011
+    STKPFP25  QPFP25    -10.869565
+    STKPFP26  QPFP27    10.989011
+    STKPFP26  QPFP26    -10.989011
+    STKPFP27  QPFP28    -10.869565
+    STKPFP27  QPFP27    -10.989011
+    STKPFP31  QPFP32    32.258057
+    STKPFP31  QPFP31    -33.333328
+    STKPFP32  QPFP33    32.258057
+    STKPFP32  QPFP32    -32.258057
+    STKPFP33  QPFP34    33.333328
+    STKPFP33  QPFP33    -32.258057
+    STKPFP34  QPFP35    10.869565
+    STKPFP34  QPFP34    -33.333328
+    STKPFP35  QPFP36    10.989011
+    STKPFP35  QPFP35    -10.869565
+    STKPFP36  QPFP37    10.989011
+    STKPFP36  QPFP36    -10.989011
+    STKPFP37  QPFP38    -10.869565
+    STKPFP37  QPFP37    -10.989011
+    STKPFP41  QPFP42    32.258057
+    STKPFP41  QPFP41    -33.333328
+    STKPFP42  QPFP43    32.258057
+    STKPFP42  QPFP42    -32.258057
+    STKPFP43  QPFP44    33.333328
+    STKPFP43  QPFP43    -32.258057
+    STKPFP44  QPFP45    10.869565
+    STKPFP44  QPFP44    -33.333328
+    STKPFP45  QPFP46    10.989011
+    STKPFP45  QPFP45    -10.869565
+    STKPFP46  QPFP47    10.989011
+    STKPFP46  QPFP46    -10.989011
+    STKPFP47  QPFP48    -10.869565
+    STKPFP47  QPFP47    -10.989011
+    STKPFP51  QPFP52    32.258057
+    STKPFP51  QPFP51    -33.333328
+    STKPFP52  QPFP53    32.258057
+    STKPFP52  QPFP52    -32.258057
+    STKPFP53  QPFP54    33.333328
+    STKPFP53  QPFP53    -32.258057
+    STKPFP54  QPFP55    10.869565
+    STKPFP54  QPFP54    -33.333328
+    STKPFP55  QPFP56    10.989011
+    STKPFP55  QPFP55    -10.869565
+    STKPFP56  QPFP57    10.989011
+    STKPFP56  QPFP56    -10.989011
+    STKPFP57  QPFP58    -10.869565
+    STKPFP57  QPFP57    -10.989011
+    STKLPP11  QLPP12    32.258057
+    STKLPP11  QLPP11    -33.333328
+    STKLPP12  QLPP13    32.258057
+    STKLPP12  QLPP12    -32.258057
+    STKLPP13  QLPP14    33.333328
+    STKLPP13  QLPP13    -32.258057
+    STKLPP14  QLPP15    10.869565
+    STKLPP14  QLPP14    -33.333328
+    STKLPP15  QLPP16    10.989011
+    STKLPP15  QLPP15    -10.869565
+    STKLPP16  QLPP17    10.989011
+    STKLPP16  QLPP16    -10.989011
+    STKLPP17  QLPP18    -10.869565
+    STKLPP17  QLPP17    -10.989011
+    STKLPP21  QLPP22    32.258057
+    STKLPP21  QLPP21    -33.333328
+    STKLPP22  QLPP23    32.258057
+    STKLPP22  QLPP22    -32.258057
+    STKLPP23  QLPP24    33.333328
+    STKLPP23  QLPP23    -32.258057
+    STKLPP24  QLPP25    10.869565
+    STKLPP24  QLPP24    -33.333328
+    STKLPP25  QLPP26    10.989011
+    STKLPP25  QLPP25    -10.869565
+    STKLPP26  QLPP27    10.989011
+    STKLPP26  QLPP26    -10.989011
+    STKLPP27  QLPP28    -10.869565
+    STKLPP27  QLPP27    -10.989011
+    STKLPP31  QLPP32    32.258057
+    STKLPP31  QLPP31    -33.333328
+    STKLPP32  QLPP33    32.258057
+    STKLPP32  QLPP32    -32.258057
+    STKLPP33  QLPP34    33.333328
+    STKLPP33  QLPP33    -32.258057
+    STKLPP34  QLPP35    10.869565
+    STKLPP34  QLPP34    -33.333328
+    STKLPP35  QLPP36    10.989011
+    STKLPP35  QLPP35    -10.869565
+    STKLPP36  QLPP37    10.989011
+    STKLPP36  QLPP36    -10.989011
+    STKLPP37  QLPP38    -10.869565
+    STKLPP37  QLPP37    -10.989011
+    STKLPP41  QLPP42    32.258057
+    STKLPP41  QLPP41    -33.333328
+    STKLPP42  QLPP43    32.258057
+    STKLPP42  QLPP42    -32.258057
+    STKLPP43  QLPP44    33.333328
+    STKLPP43  QLPP43    -32.258057
+    STKLPP44  QLPP45    10.869565
+    STKLPP44  QLPP44    -33.333328
+    STKLPP45  QLPP46    10.989011
+    STKLPP45  QLPP45    -10.869565
+    STKLPP46  QLPP47    10.989011
+    STKLPP46  QLPP46    -10.989011
+    STKLPP47  QLPP48    -10.869565
+    STKLPP47  QLPP47    -10.989011
+    STKLPP51  QLPP52    32.258057
+    STKLPP51  QLPP51    -33.333328
+    STKLPP52  QLPP53    32.258057
+    STKLPP52  QLPP52    -32.258057
+    STKLPP53  QLPP54    33.333328
+    STKLPP53  QLPP53    -32.258057
+    STKLPP54  QLPP55    10.869565
+    STKLPP54  QLPP54    -33.333328
+    STKLPP55  QLPP56    10.989011
+    STKLPP55  QLPP55    -10.869565
+    STKLPP56  QLPP57    10.989011
+    STKLPP56  QLPP56    -10.989011
+    STKLPP57  QLPP58    -10.869565
+    STKLPP57  QLPP57    -10.989011
+    STKOTP11  QOTP12    32.258057
+    STKOTP11  QOTP11    -33.333328
+    STKOTP12  QOTP13    32.258057
+    STKOTP12  QOTP12    -32.258057
+    STKOTP13  QOTP14    33.333328
+    STKOTP13  QOTP13    -32.258057
+    STKOTP14  QOTP15    10.869565
+    STKOTP14  QOTP14    -33.333328
+    STKOTP15  QOTP16    10.989011
+    STKOTP15  QOTP15    -10.869565
+    STKOTP16  QOTP17    10.989011
+    STKOTP16  QOTP16    -10.989011
+    STKOTP17  QOTP18    10.869565
+    STKOTP17  QOTP17    -10.989011
+    STKOTP18  QOTP18    -10.869565
+    STKOTP21  QOTP22    32.258057
+    STKOTP21  QOTP21    -33.333328
+    STKOTP22  QOTP23    32.258057
+    STKOTP22  QOTP22    -32.258057
+    STKOTP23  QOTP24    33.333328
+    STKOTP23  QOTP23    -32.258057
+    STKOTP24  QOTP25    10.869565
+    STKOTP24  QOTP24    -33.333328
+    STKOTP25  QOTP26    10.989011
+    STKOTP25  QOTP25    -10.869565
+    STKOTP26  QOTP27    10.989011
+    STKOTP26  QOTP26    -10.989011
+    STKOTP27  QOTP28    10.869565
+    STKOTP27  QOTP27    -10.989011
+    STKOTP28  QOTP28    -10.869565
+    STKOTP31  QOTP32    32.258057
+    STKOTP31  QOTP31    -33.333328
+    STKOTP32  QOTP33    32.258057
+    STKOTP32  QOTP32    -32.258057
+    STKOTP33  QOTP34    33.333328
+    STKOTP33  QOTP33    -32.258057
+    STKOTP34  QOTP35    10.869565
+    STKOTP34  QOTP34    -33.333328
+    STKOTP35  QOTP36    10.989011
+    STKOTP35  QOTP35    -10.869565
+    STKOTP36  QOTP37    10.989011
+    STKOTP36  QOTP36    -10.989011
+    STKOTP37  QOTP38    10.869565
+    STKOTP37  QOTP37    -10.989011
+    STKOTP38  QOTP38    -10.869565
+    STKOTP41  QOTP42    32.258057
+    STKOTP41  QOTP41    -33.333328
+    STKOTP42  QOTP43    32.258057
+    STKOTP42  QOTP42    -32.258057
+    STKOTP43  QOTP44    33.333328
+    STKOTP43  QOTP43    -32.258057
+    STKOTP44  QOTP45    10.869565
+    STKOTP44  QOTP44    -33.333328
+    STKOTP45  QOTP46    10.989011
+    STKOTP45  QOTP45    -10.869565
+    STKOTP46  QOTP47    10.989011
+    STKOTP46  QOTP46    -10.989011
+    STKOTP47  QOTP48    10.869565
+    STKOTP47  QOTP47    -10.989011
+    STKOTP48  QOTP48    -10.869565
+    STKOTP51  QOTP52    32.258057
+    STKOTP51  QOTP51    -33.333328
+    STKOTP52  QOTP53    32.258057
+    STKOTP52  QOTP52    -32.258057
+    STKOTP53  QOTP54    33.333328
+    STKOTP53  QOTP53    -32.258057
+    STKOTP54  QOTP55    10.869565
+    STKOTP54  QOTP54    -33.333328
+    STKOTP55  QOTP56    10.989011
+    STKOTP55  QOTP55    -10.869565
+    STKOTP56  QOTP57    10.989011
+    STKOTP56  QOTP56    -10.989011
+    STKOTP57  QOTP58    10.869565
+    STKOTP57  QOTP57    -10.989011
+    STKOTP58  QOTP58    -10.869565
+    XP111     RCAPP11   1
+    XP111     QCRP11    -1
+    XP111     QGAP11    0.47899985
+    XP111     QDSP11    0.24199986
+    XP111     QRSP11    0.07099998
+    XP111     QKJP11    0.029
+    XP111     QNJP11    0.004
+    XP111     QPFP11    0.01399999
+    XP111     QLPP11    0.03099999
+    XP111     QOTP11    0.1559999
+    XP112     RCAPP11   1
+    XP112     QCRP11    -1
+    XP112     QGAP11    0.47299981
+    XP112     QDSP11    0.24799985
+    XP112     QRSP11    0.05899999
+    XP112     QKJP11    0.02799999
+    XP112     QNJP11    0.003
+    XP112     QPFP11    0.009
+    XP112     QLPP11    0.035
+    XP112     QOTP11    0.15899992
+    XP113     RCAPP11   1
+    XP113     QCRP11    -1
+    XP113     QGAP11    0.4709999
+    XP113     QDSP11    0.24799985
+    XP113     QRSP11    0.06399995
+    XP113     QKJP11    0.01699999
+    XP113     QNJP11    0.005
+    XP113     QPFP11    0.01399999
+    XP113     QLPP11    0.03099999
+    XP113     QOTP11    0.17099988
+    XP114     RCAPP11   1
+    XP114     QCRP11    -1
+    XP114     QGAP11    0.46399993
+    XP114     QDSP11    0.25499988
+    XP114     QRSP11    0.06899995
+    XP114     QKJP11    0.01899999
+    XP114     QNJP11    0.004
+    XP114     QPFP11    0.01399999
+    XP114     QLPP11    0.03099999
+    XP114     QOTP11    0.17399985
+    XP115     RCAPP11   1
+    XP115     QCRP11    -1
+    XP115     QGAP11    0.50399989
+    XP115     QDSP11    0.20699996
+    XP115     QRSP11    0.079
+    XP115     QKJP11    0.01899999
+    XP115     QNJP11    0.005
+    XP115     QPFP11    0.01399999
+    XP115     QLPP11    0.02999999
+    XP115     QOTP11    0.17199993
+    XP116     RCAPP11   1
+    XP116     QCRP11    -1
+    XP116     QGAP11    0.49499995
+    XP116     QDSP11    0.2299999
+    XP116     QRSP11    0.06399995
+    XP116     QKJP11    0.01699999
+    XP116     QNJP11    0.004
+    XP116     QPFP11    0.01299999
+    XP116     QLPP11    0.03399999
+    XP116     QOTP11    0.19299984
+    XP117     RCAPP11   1
+    XP117     QCRP11    -1
+    XP117     QGAP11    0.4829998
+    XP117     QDSP11    0.2389999
+    XP117     QRSP11    0.05699999
+    XP117     QKJP11    0.022
+    XP117     QNJP11    0.003
+    XP117     QPFP11    0.01399999
+    XP117     QLPP11    0.03199999
+    XP117     QOTP11    0.1839999
+    XP118     RCAPP11   1
+    XP118     QCRP11    -1
+    XP118     QGAP11    0.48699987
+    XP118     QDSP11    0.24899983
+    XP118     QRSP11    0.05099999
+    XP118     QKJP11    0.01699999
+    XP118     QNJP11    0.005
+    XP118     QPFP11    0.01099999
+    XP118     QLPP11    0.03299999
+    XP118     QOTP11    0.17699993
+    XP119     RCAPP11   1
+    XP119     QCRP11    -1
+    XP119     QGAP11    0.48599982
+    XP119     QDSP11    0.24099988
+    XP119     QRSP11    0.06399995
+    XP119     QKJP11    0.01899999
+    XP119     QNJP11    0.004
+    XP119     QPFP11    0.01099999
+    XP119     QLPP11    0.03199999
+    XP119     QOTP11    0.16699988
+    XP1110    RCAPP11   1
+    XP1110    QCRP11    -1
+    XP1110    QGAP11    0.46899986
+    XP1110    QDSP11    0.2719999
+    XP1110    QRSP11    0.079
+    XP1110    QKJP11    0.02
+    XP1110    QNJP11    0.004
+    XP1110    QPFP11    0.01599999
+    XP1110    QLPP11    0.03299999
+    XP1110    QOTP11    0.13899994
+    XP1111    RCAPP11   1
+    XP1111    QCRP11    -1
+    XP1111    QGAP11    0.45699996
+    XP1111    QDSP11    0.27999991
+    XP1111    QRSP11    0.08899999
+    XP1111    QKJP11    0.022
+    XP1111    QNJP11    0.004
+    XP1111    QPFP11    0.01299999
+    XP1111    QLPP11    0.03699999
+    XP1111    QOTP11    0.12999988
+    XP1112    RCAPP11   1
+    XP1112    QCRP11    -1
+    XP1112    QGAP11    0.4519999
+    XP1112    QDSP11    0.27699995
+    XP1112    QRSP11    0.08599997
+    XP1112    QKJP11    0.02799999
+    XP1112    QNJP11    0.007
+    XP1112    QPFP11    0.008
+    XP1112    QLPP11    0.03299999
+    XP1112    QOTP11    0.13299996
+    XP1113    RCAPP11   1
+    XP1113    QCRP11    -1
+    XP1113    QGAP11    0.47399986
+    XP1113    QDSP11    0.25
+    XP1113    QRSP11    0.08899999
+    XP1113    QKJP11    0.02599999
+    XP1113    QNJP11    0.007
+    XP1113    QPFP11    0.009
+    XP1113    QLPP11    0.035
+    XP1113    QOTP11    0.13599992
+    XP1114    RCAPP11   1
+    XP1114    QCRP11    -1
+    XP1114    QGAP11    0.4879998
+    XP1114    QDSP11    0.22799987
+    XP1114    QRSP11    0.08399999
+    XP1114    QKJP11    0.02099999
+    XP1114    QNJP11    0.008
+    XP1114    QPFP11    0.009
+    XP1114    QLPP11    0.03299999
+    XP1114    QOTP11    0.16199988
+    XP1115    RCAPP11   1
+    XP1115    QCRP11    -1
+    XP1115    QGAP11    0.5
+    XP1115    QDSP11    0.22799987
+    XP1115    QRSP11    0.07499999
+    XP1115    QKJP11    0.01699999
+    XP1115    QNJP11    0.002
+    XP1115    QPFP11    0.009
+    XP1115    QLPP11    0.04599999
+    XP1115    QOTP11    0.17299986
+    XP1116    RCAPP11   1
+    XP1116    QCRP11    -1
+    XP1116    QGAP11    0.47799987
+    XP1116    QDSP11    0.2329998
+    XP1116    QRSP11    0.07999998
+    XP1116    QKJP11    0.01699999
+    XP1116    QNJP11    0.006
+    XP1116    QPFP11    0.008
+    XP1116    QLPP11    0.03199999
+    XP1116    QOTP11    0.17799985
+    XP1117    RCAPP11   1
+    XP1117    QCRP11    -1
+    XP1117    QGAP11    0.47199988
+    XP1117    QDSP11    0.23399991
+    XP1117    QRSP11    0.079
+    XP1117    QKJP11    0.022
+    XP1117    QNJP11    0.004
+    XP1117    QPFP11    0.008
+    XP1117    QLPP11    0.03299999
+    XP1117    QOTP11    0.18099982
+    XP1118    RCAPP11   1
+    XP1118    QCRP11    -1
+    XP1118    QGAP11    0.45299983
+    XP1118    QDSP11    0.2389999
+    XP1118    QRSP11    0.08199996
+    XP1118    QKJP11    0.022
+    XP1118    QNJP11    0.003
+    XP1118    QPFP11    0.01299999
+    XP1118    QLPP11    0.03599999
+    XP1118    QOTP11    0.1839999
+    XP1119    RCAPP11   1
+    XP1119    QCRP11    -1
+    XP1119    QGAP11    0.44299984
+    XP1119    QDSP11    0.23699987
+    XP1119    QRSP11    0.08999997
+    XP1119    QKJP11    0.02099999
+    XP1119    QNJP11    0.003
+    XP1119    QPFP11    0.01299999
+    XP1119    QLPP11    0.03299999
+    XP1119    QOTP11    0.18499994
+    XP1120    RCAPP11   1
+    XP1120    QCRP11    -1
+    XP1120    QGAP11    0.44599986
+    XP1120    QDSP11    0.24799985
+    XP1120    QRSP11    0.09899998
+    XP1120    QKJP11    0.02
+    XP1120    QNJP11    0.004
+    XP1120    QPFP11    0.01099999
+    XP1120    QLPP11    0.035
+    XP1120    QOTP11    0.17999989
+    XP1121    RCAPP11   1
+    XP1121    QCRP11    -1
+    XP1121    QGAP11    0.44799984
+    XP1121    QDSP11    0.25
+    XP1121    QRSP11    0.10399997
+    XP1121    QKJP11    0.01699999
+    XP1121    QNJP11    0.006
+    XP1121    QPFP11    0.01599999
+    XP1121    QLPP11    0.03399999
+    XP1121    QOTP11    0.16699988
+    XP1122    RCAPP11   1
+    XP1122    QCRP11    -1
+    XP1122    QGAP11    0.42399985
+    XP1122    QDSP11    0.28799981
+    XP1122    QRSP11    0.10599995
+    XP1122    QKJP11    0.01099999
+    XP1122    QNJP11    0.003
+    XP1122    QPFP11    0.01899999
+    XP1122    QLPP11    0.03299999
+    XP1122    QOTP11    0.15699995
+    XP1123    RCAPP11   1
+    XP1123    QCRP11    -1
+    XP1123    QGAP11    0.46099985
+    XP1123    QDSP11    0.28199995
+    XP1123    QRSP11    0.1099999
+    XP1123    QKJP11    0.01799999
+    XP1123    QNJP11    0.004
+    XP1123    QPFP11    0.01399999
+    XP1123    QLPP11    0.03099999
+    XP1123    QOTP11    0.12799996
+    XP1124    RCAPP11   1
+    XP1124    QCRP11    -1
+    XP1124    QGAP11    0.49299979
+    XP1124    QDSP11    0.23199993
+    XP1124    QRSP11    0.10799998
+    XP1124    QKJP11    0.025
+    XP1124    QNJP11    0.003
+    XP1124    QPFP11    0.015
+    XP1124    QLPP11    0.03899999
+    XP1124    QOTP11    0.13299996
+    XP121     RCAPP12   1
+    XP121     QCRP12    -1
+    XP121     QGAP12    0.47899985
+    XP121     QDSP12    0.24199986
+    XP121     QRSP12    0.07099998
+    XP121     QKJP12    0.029
+    XP121     QNJP12    0.004
+    XP121     QPFP12    0.01399999
+    XP121     QLPP12    0.03099999
+    XP121     QOTP12    0.1559999
+    XP122     RCAPP12   1
+    XP122     QCRP12    -1
+    XP122     QGAP12    0.47299981
+    XP122     QDSP12    0.24799985
+    XP122     QRSP12    0.05899999
+    XP122     QKJP12    0.02799999
+    XP122     QNJP12    0.003
+    XP122     QPFP12    0.009
+    XP122     QLPP12    0.035
+    XP122     QOTP12    0.15899992
+    XP123     RCAPP12   1
+    XP123     QCRP12    -1
+    XP123     QGAP12    0.4709999
+    XP123     QDSP12    0.24799985
+    XP123     QRSP12    0.06399995
+    XP123     QKJP12    0.01699999
+    XP123     QNJP12    0.005
+    XP123     QPFP12    0.01399999
+    XP123     QLPP12    0.03099999
+    XP123     QOTP12    0.17099988
+    XP124     RCAPP12   1
+    XP124     QCRP12    -1
+    XP124     QGAP12    0.46399993
+    XP124     QDSP12    0.25499988
+    XP124     QRSP12    0.06899995
+    XP124     QKJP12    0.01899999
+    XP124     QNJP12    0.004
+    XP124     QPFP12    0.01399999
+    XP124     QLPP12    0.03099999
+    XP124     QOTP12    0.17399985
+    XP125     RCAPP12   1
+    XP125     QCRP12    -1
+    XP125     QGAP12    0.50399989
+    XP125     QDSP12    0.20699996
+    XP125     QRSP12    0.079
+    XP125     QKJP12    0.01899999
+    XP125     QNJP12    0.005
+    XP125     QPFP12    0.01399999
+    XP125     QLPP12    0.02999999
+    XP125     QOTP12    0.17199993
+    XP126     RCAPP12   1
+    XP126     QCRP12    -1
+    XP126     QGAP12    0.49499995
+    XP126     QDSP12    0.2299999
+    XP126     QRSP12    0.06399995
+    XP126     QKJP12    0.01699999
+    XP126     QNJP12    0.004
+    XP126     QPFP12    0.01299999
+    XP126     QLPP12    0.03399999
+    XP126     QOTP12    0.19299984
+    XP127     RCAPP12   1
+    XP127     QCRP12    -1
+    XP127     QGAP12    0.4829998
+    XP127     QDSP12    0.2389999
+    XP127     QRSP12    0.05699999
+    XP127     QKJP12    0.022
+    XP127     QNJP12    0.003
+    XP127     QPFP12    0.01399999
+    XP127     QLPP12    0.03199999
+    XP127     QOTP12    0.1839999
+    XP128     RCAPP12   1
+    XP128     QCRP12    -1
+    XP128     QGAP12    0.48699987
+    XP128     QDSP12    0.24899983
+    XP128     QRSP12    0.05099999
+    XP128     QKJP12    0.01699999
+    XP128     QNJP12    0.005
+    XP128     QPFP12    0.01099999
+    XP128     QLPP12    0.03299999
+    XP128     QOTP12    0.17699993
+    XP129     RCAPP12   1
+    XP129     QCRP12    -1
+    XP129     QGAP12    0.48599982
+    XP129     QDSP12    0.24099988
+    XP129     QRSP12    0.06399995
+    XP129     QKJP12    0.01899999
+    XP129     QNJP12    0.004
+    XP129     QPFP12    0.01099999
+    XP129     QLPP12    0.03199999
+    XP129     QOTP12    0.16699988
+    XP1210    RCAPP12   1
+    XP1210    QCRP12    -1
+    XP1210    QGAP12    0.46899986
+    XP1210    QDSP12    0.2719999
+    XP1210    QRSP12    0.079
+    XP1210    QKJP12    0.02
+    XP1210    QNJP12    0.004
+    XP1210    QPFP12    0.01599999
+    XP1210    QLPP12    0.03299999
+    XP1210    QOTP12    0.13899994
+    XP1211    RCAPP12   1
+    XP1211    QCRP12    -1
+    XP1211    QGAP12    0.45699996
+    XP1211    QDSP12    0.27999991
+    XP1211    QRSP12    0.08899999
+    XP1211    QKJP12    0.022
+    XP1211    QNJP12    0.004
+    XP1211    QPFP12    0.01299999
+    XP1211    QLPP12    0.03699999
+    XP1211    QOTP12    0.12999988
+    XP1212    RCAPP12   1
+    XP1212    QCRP12    -1
+    XP1212    QGAP12    0.4519999
+    XP1212    QDSP12    0.27699995
+    XP1212    QRSP12    0.08599997
+    XP1212    QKJP12    0.02799999
+    XP1212    QNJP12    0.007
+    XP1212    QPFP12    0.008
+    XP1212    QLPP12    0.03299999
+    XP1212    QOTP12    0.13299996
+    XP1213    RCAPP12   1
+    XP1213    QCRP12    -1
+    XP1213    QGAP12    0.47399986
+    XP1213    QDSP12    0.25
+    XP1213    QRSP12    0.08899999
+    XP1213    QKJP12    0.02599999
+    XP1213    QNJP12    0.007
+    XP1213    QPFP12    0.009
+    XP1213    QLPP12    0.035
+    XP1213    QOTP12    0.13599992
+    XP1214    RCAPP12   1
+    XP1214    QCRP12    -1
+    XP1214    QGAP12    0.4879998
+    XP1214    QDSP12    0.22799987
+    XP1214    QRSP12    0.08399999
+    XP1214    QKJP12    0.02099999
+    XP1214    QNJP12    0.008
+    XP1214    QPFP12    0.009
+    XP1214    QLPP12    0.03299999
+    XP1214    QOTP12    0.16199988
+    XP1215    RCAPP12   1
+    XP1215    QCRP12    -1
+    XP1215    QGAP12    0.5
+    XP1215    QDSP12    0.22799987
+    XP1215    QRSP12    0.07499999
+    XP1215    QKJP12    0.01699999
+    XP1215    QNJP12    0.002
+    XP1215    QPFP12    0.009
+    XP1215    QLPP12    0.04599999
+    XP1215    QOTP12    0.17299986
+    XP1216    RCAPP12   1
+    XP1216    QCRP12    -1
+    XP1216    QGAP12    0.47799987
+    XP1216    QDSP12    0.2329998
+    XP1216    QRSP12    0.07999998
+    XP1216    QKJP12    0.01699999
+    XP1216    QNJP12    0.006
+    XP1216    QPFP12    0.008
+    XP1216    QLPP12    0.03199999
+    XP1216    QOTP12    0.17799985
+    XP1217    RCAPP12   1
+    XP1217    QCRP12    -1
+    XP1217    QGAP12    0.47199988
+    XP1217    QDSP12    0.23399991
+    XP1217    QRSP12    0.079
+    XP1217    QKJP12    0.022
+    XP1217    QNJP12    0.004
+    XP1217    QPFP12    0.008
+    XP1217    QLPP12    0.03299999
+    XP1217    QOTP12    0.18099982
+    XP1218    RCAPP12   1
+    XP1218    QCRP12    -1
+    XP1218    QGAP12    0.45299983
+    XP1218    QDSP12    0.2389999
+    XP1218    QRSP12    0.08199996
+    XP1218    QKJP12    0.022
+    XP1218    QNJP12    0.003
+    XP1218    QPFP12    0.01299999
+    XP1218    QLPP12    0.03599999
+    XP1218    QOTP12    0.1839999
+    XP1219    RCAPP12   1
+    XP1219    QCRP12    -1
+    XP1219    QGAP12    0.44299984
+    XP1219    QDSP12    0.23699987
+    XP1219    QRSP12    0.08999997
+    XP1219    QKJP12    0.02099999
+    XP1219    QNJP12    0.003
+    XP1219    QPFP12    0.01299999
+    XP1219    QLPP12    0.03299999
+    XP1219    QOTP12    0.18499994
+    XP1220    RCAPP12   1
+    XP1220    QCRP12    -1
+    XP1220    QGAP12    0.44599986
+    XP1220    QDSP12    0.24799985
+    XP1220    QRSP12    0.09899998
+    XP1220    QKJP12    0.02
+    XP1220    QNJP12    0.004
+    XP1220    QPFP12    0.01099999
+    XP1220    QLPP12    0.035
+    XP1220    QOTP12    0.17999989
+    XP1221    RCAPP12   1
+    XP1221    QCRP12    -1
+    XP1221    QGAP12    0.44799984
+    XP1221    QDSP12    0.25
+    XP1221    QRSP12    0.10399997
+    XP1221    QKJP12    0.01699999
+    XP1221    QNJP12    0.006
+    XP1221    QPFP12    0.01599999
+    XP1221    QLPP12    0.03399999
+    XP1221    QOTP12    0.16699988
+    XP1222    RCAPP12   1
+    XP1222    QCRP12    -1
+    XP1222    QGAP12    0.42399985
+    XP1222    QDSP12    0.28799981
+    XP1222    QRSP12    0.10599995
+    XP1222    QKJP12    0.01099999
+    XP1222    QNJP12    0.003
+    XP1222    QPFP12    0.01899999
+    XP1222    QLPP12    0.03299999
+    XP1222    QOTP12    0.15699995
+    XP1223    RCAPP12   1
+    XP1223    QCRP12    -1
+    XP1223    QGAP12    0.46099985
+    XP1223    QDSP12    0.28199995
+    XP1223    QRSP12    0.1099999
+    XP1223    QKJP12    0.01799999
+    XP1223    QNJP12    0.004
+    XP1223    QPFP12    0.01399999
+    XP1223    QLPP12    0.03099999
+    XP1223    QOTP12    0.12799996
+    XP1224    RCAPP12   1
+    XP1224    QCRP12    -1
+    XP1224    QGAP12    0.49299979
+    XP1224    QDSP12    0.23199993
+    XP1224    QRSP12    0.10799998
+    XP1224    QKJP12    0.025
+    XP1224    QNJP12    0.003
+    XP1224    QPFP12    0.015
+    XP1224    QLPP12    0.03899999
+    XP1224    QOTP12    0.13299996
+    XP131     RCAPP13   1
+    XP131     QCRP13    -1
+    XP131     QGAP13    0.47899985
+    XP131     QDSP13    0.24199986
+    XP131     QRSP13    0.07099998
+    XP131     QKJP13    0.029
+    XP131     QNJP13    0.004
+    XP131     QPFP13    0.01399999
+    XP131     QLPP13    0.03099999
+    XP131     QOTP13    0.1559999
+    XP132     RCAPP13   1
+    XP132     QCRP13    -1
+    XP132     QGAP13    0.47299981
+    XP132     QDSP13    0.24799985
+    XP132     QRSP13    0.05899999
+    XP132     QKJP13    0.02799999
+    XP132     QNJP13    0.003
+    XP132     QPFP13    0.009
+    XP132     QLPP13    0.035
+    XP132     QOTP13    0.15899992
+    XP133     RCAPP13   1
+    XP133     QCRP13    -1
+    XP133     QGAP13    0.4709999
+    XP133     QDSP13    0.24799985
+    XP133     QRSP13    0.06399995
+    XP133     QKJP13    0.01699999
+    XP133     QNJP13    0.005
+    XP133     QPFP13    0.01399999
+    XP133     QLPP13    0.03099999
+    XP133     QOTP13    0.17099988
+    XP134     RCAPP13   1
+    XP134     QCRP13    -1
+    XP134     QGAP13    0.46399993
+    XP134     QDSP13    0.25499988
+    XP134     QRSP13    0.06899995
+    XP134     QKJP13    0.01899999
+    XP134     QNJP13    0.004
+    XP134     QPFP13    0.01399999
+    XP134     QLPP13    0.03099999
+    XP134     QOTP13    0.17399985
+    XP135     RCAPP13   1
+    XP135     QCRP13    -1
+    XP135     QGAP13    0.50399989
+    XP135     QDSP13    0.20699996
+    XP135     QRSP13    0.079
+    XP135     QKJP13    0.01899999
+    XP135     QNJP13    0.005
+    XP135     QPFP13    0.01399999
+    XP135     QLPP13    0.02999999
+    XP135     QOTP13    0.17199993
+    XP136     RCAPP13   1
+    XP136     QCRP13    -1
+    XP136     QGAP13    0.49499995
+    XP136     QDSP13    0.2299999
+    XP136     QRSP13    0.06399995
+    XP136     QKJP13    0.01699999
+    XP136     QNJP13    0.004
+    XP136     QPFP13    0.01299999
+    XP136     QLPP13    0.03399999
+    XP136     QOTP13    0.19299984
+    XP137     RCAPP13   1
+    XP137     QCRP13    -1
+    XP137     QGAP13    0.4829998
+    XP137     QDSP13    0.2389999
+    XP137     QRSP13    0.05699999
+    XP137     QKJP13    0.022
+    XP137     QNJP13    0.003
+    XP137     QPFP13    0.01399999
+    XP137     QLPP13    0.03199999
+    XP137     QOTP13    0.1839999
+    XP138     RCAPP13   1
+    XP138     QCRP13    -1
+    XP138     QGAP13    0.48699987
+    XP138     QDSP13    0.24899983
+    XP138     QRSP13    0.05099999
+    XP138     QKJP13    0.01699999
+    XP138     QNJP13    0.005
+    XP138     QPFP13    0.01099999
+    XP138     QLPP13    0.03299999
+    XP138     QOTP13    0.17699993
+    XP139     RCAPP13   1
+    XP139     QCRP13    -1
+    XP139     QGAP13    0.48599982
+    XP139     QDSP13    0.24099988
+    XP139     QRSP13    0.06399995
+    XP139     QKJP13    0.01899999
+    XP139     QNJP13    0.004
+    XP139     QPFP13    0.01099999
+    XP139     QLPP13    0.03199999
+    XP139     QOTP13    0.16699988
+    XP1310    RCAPP13   1
+    XP1310    QCRP13    -1
+    XP1310    QGAP13    0.46899986
+    XP1310    QDSP13    0.2719999
+    XP1310    QRSP13    0.079
+    XP1310    QKJP13    0.02
+    XP1310    QNJP13    0.004
+    XP1310    QPFP13    0.01599999
+    XP1310    QLPP13    0.03299999
+    XP1310    QOTP13    0.13899994
+    XP1311    RCAPP13   1
+    XP1311    QCRP13    -1
+    XP1311    QGAP13    0.45699996
+    XP1311    QDSP13    0.27999991
+    XP1311    QRSP13    0.08899999
+    XP1311    QKJP13    0.022
+    XP1311    QNJP13    0.004
+    XP1311    QPFP13    0.01299999
+    XP1311    QLPP13    0.03699999
+    XP1311    QOTP13    0.12999988
+    XP1312    RCAPP13   1
+    XP1312    QCRP13    -1
+    XP1312    QGAP13    0.4519999
+    XP1312    QDSP13    0.27699995
+    XP1312    QRSP13    0.08599997
+    XP1312    QKJP13    0.02799999
+    XP1312    QNJP13    0.007
+    XP1312    QPFP13    0.008
+    XP1312    QLPP13    0.03299999
+    XP1312    QOTP13    0.13299996
+    XP1313    RCAPP13   1
+    XP1313    QCRP13    -1
+    XP1313    QGAP13    0.47399986
+    XP1313    QDSP13    0.25
+    XP1313    QRSP13    0.08899999
+    XP1313    QKJP13    0.02599999
+    XP1313    QNJP13    0.007
+    XP1313    QPFP13    0.009
+    XP1313    QLPP13    0.035
+    XP1313    QOTP13    0.13599992
+    XP1314    RCAPP13   1
+    XP1314    QCRP13    -1
+    XP1314    QGAP13    0.4879998
+    XP1314    QDSP13    0.22799987
+    XP1314    QRSP13    0.08399999
+    XP1314    QKJP13    0.02099999
+    XP1314    QNJP13    0.008
+    XP1314    QPFP13    0.009
+    XP1314    QLPP13    0.03299999
+    XP1314    QOTP13    0.16199988
+    XP1315    RCAPP13   1
+    XP1315    QCRP13    -1
+    XP1315    QGAP13    0.5
+    XP1315    QDSP13    0.22799987
+    XP1315    QRSP13    0.07499999
+    XP1315    QKJP13    0.01699999
+    XP1315    QNJP13    0.002
+    XP1315    QPFP13    0.009
+    XP1315    QLPP13    0.04599999
+    XP1315    QOTP13    0.17299986
+    XP1316    RCAPP13   1
+    XP1316    QCRP13    -1
+    XP1316    QGAP13    0.47799987
+    XP1316    QDSP13    0.2329998
+    XP1316    QRSP13    0.07999998
+    XP1316    QKJP13    0.01699999
+    XP1316    QNJP13    0.006
+    XP1316    QPFP13    0.008
+    XP1316    QLPP13    0.03199999
+    XP1316    QOTP13    0.17799985
+    XP1317    RCAPP13   1
+    XP1317    QCRP13    -1
+    XP1317    QGAP13    0.47199988
+    XP1317    QDSP13    0.23399991
+    XP1317    QRSP13    0.079
+    XP1317    QKJP13    0.022
+    XP1317    QNJP13    0.004
+    XP1317    QPFP13    0.008
+    XP1317    QLPP13    0.03299999
+    XP1317    QOTP13    0.18099982
+    XP1318    RCAPP13   1
+    XP1318    QCRP13    -1
+    XP1318    QGAP13    0.45299983
+    XP1318    QDSP13    0.2389999
+    XP1318    QRSP13    0.08199996
+    XP1318    QKJP13    0.022
+    XP1318    QNJP13    0.003
+    XP1318    QPFP13    0.01299999
+    XP1318    QLPP13    0.03599999
+    XP1318    QOTP13    0.1839999
+    XP1319    RCAPP13   1
+    XP1319    QCRP13    -1
+    XP1319    QGAP13    0.44299984
+    XP1319    QDSP13    0.23699987
+    XP1319    QRSP13    0.08999997
+    XP1319    QKJP13    0.02099999
+    XP1319    QNJP13    0.003
+    XP1319    QPFP13    0.01299999
+    XP1319    QLPP13    0.03299999
+    XP1319    QOTP13    0.18499994
+    XP1320    RCAPP13   1
+    XP1320    QCRP13    -1
+    XP1320    QGAP13    0.44599986
+    XP1320    QDSP13    0.24799985
+    XP1320    QRSP13    0.09899998
+    XP1320    QKJP13    0.02
+    XP1320    QNJP13    0.004
+    XP1320    QPFP13    0.01099999
+    XP1320    QLPP13    0.035
+    XP1320    QOTP13    0.17999989
+    XP1321    RCAPP13   1
+    XP1321    QCRP13    -1
+    XP1321    QGAP13    0.44799984
+    XP1321    QDSP13    0.25
+    XP1321    QRSP13    0.10399997
+    XP1321    QKJP13    0.01699999
+    XP1321    QNJP13    0.006
+    XP1321    QPFP13    0.01599999
+    XP1321    QLPP13    0.03399999
+    XP1321    QOTP13    0.16699988
+    XP1322    RCAPP13   1
+    XP1322    QCRP13    -1
+    XP1322    QGAP13    0.42399985
+    XP1322    QDSP13    0.28799981
+    XP1322    QRSP13    0.10599995
+    XP1322    QKJP13    0.01099999
+    XP1322    QNJP13    0.003
+    XP1322    QPFP13    0.01899999
+    XP1322    QLPP13    0.03299999
+    XP1322    QOTP13    0.15699995
+    XP1323    RCAPP13   1
+    XP1323    QCRP13    -1
+    XP1323    QGAP13    0.46099985
+    XP1323    QDSP13    0.28199995
+    XP1323    QRSP13    0.1099999
+    XP1323    QKJP13    0.01799999
+    XP1323    QNJP13    0.004
+    XP1323    QPFP13    0.01399999
+    XP1323    QLPP13    0.03099999
+    XP1323    QOTP13    0.12799996
+    XP1324    RCAPP13   1
+    XP1324    QCRP13    -1
+    XP1324    QGAP13    0.49299979
+    XP1324    QDSP13    0.23199993
+    XP1324    QRSP13    0.10799998
+    XP1324    QKJP13    0.025
+    XP1324    QNJP13    0.003
+    XP1324    QPFP13    0.015
+    XP1324    QLPP13    0.03899999
+    XP1324    QOTP13    0.13299996
+    XP141     RCAPP14   1
+    XP141     QCRP14    -1
+    XP141     QGAP14    0.47899985
+    XP141     QDSP14    0.24199986
+    XP141     QRSP14    0.07099998
+    XP141     QKJP14    0.029
+    XP141     QNJP14    0.004
+    XP141     QPFP14    0.01399999
+    XP141     QLPP14    0.03099999
+    XP141     QOTP14    0.1559999
+    XP142     RCAPP14   1
+    XP142     QCRP14    -1
+    XP142     QGAP14    0.47299981
+    XP142     QDSP14    0.24799985
+    XP142     QRSP14    0.05899999
+    XP142     QKJP14    0.02799999
+    XP142     QNJP14    0.003
+    XP142     QPFP14    0.009
+    XP142     QLPP14    0.035
+    XP142     QOTP14    0.15899992
+    XP143     RCAPP14   1
+    XP143     QCRP14    -1
+    XP143     QGAP14    0.4709999
+    XP143     QDSP14    0.24799985
+    XP143     QRSP14    0.06399995
+    XP143     QKJP14    0.01699999
+    XP143     QNJP14    0.005
+    XP143     QPFP14    0.01399999
+    XP143     QLPP14    0.03099999
+    XP143     QOTP14    0.17099988
+    XP144     RCAPP14   1
+    XP144     QCRP14    -1
+    XP144     QGAP14    0.46399993
+    XP144     QDSP14    0.25499988
+    XP144     QRSP14    0.06899995
+    XP144     QKJP14    0.01899999
+    XP144     QNJP14    0.004
+    XP144     QPFP14    0.01399999
+    XP144     QLPP14    0.03099999
+    XP144     QOTP14    0.17399985
+    XP145     RCAPP14   1
+    XP145     QCRP14    -1
+    XP145     QGAP14    0.50399989
+    XP145     QDSP14    0.20699996
+    XP145     QRSP14    0.079
+    XP145     QKJP14    0.01899999
+    XP145     QNJP14    0.005
+    XP145     QPFP14    0.01399999
+    XP145     QLPP14    0.02999999
+    XP145     QOTP14    0.17199993
+    XP146     RCAPP14   1
+    XP146     QCRP14    -1
+    XP146     QGAP14    0.49499995
+    XP146     QDSP14    0.2299999
+    XP146     QRSP14    0.06399995
+    XP146     QKJP14    0.01699999
+    XP146     QNJP14    0.004
+    XP146     QPFP14    0.01299999
+    XP146     QLPP14    0.03399999
+    XP146     QOTP14    0.19299984
+    XP147     RCAPP14   1
+    XP147     QCRP14    -1
+    XP147     QGAP14    0.4829998
+    XP147     QDSP14    0.2389999
+    XP147     QRSP14    0.05699999
+    XP147     QKJP14    0.022
+    XP147     QNJP14    0.003
+    XP147     QPFP14    0.01399999
+    XP147     QLPP14    0.03199999
+    XP147     QOTP14    0.1839999
+    XP148     RCAPP14   1
+    XP148     QCRP14    -1
+    XP148     QGAP14    0.48699987
+    XP148     QDSP14    0.24899983
+    XP148     QRSP14    0.05099999
+    XP148     QKJP14    0.01699999
+    XP148     QNJP14    0.005
+    XP148     QPFP14    0.01099999
+    XP148     QLPP14    0.03299999
+    XP148     QOTP14    0.17699993
+    XP149     RCAPP14   1
+    XP149     QCRP14    -1
+    XP149     QGAP14    0.48599982
+    XP149     QDSP14    0.24099988
+    XP149     QRSP14    0.06399995
+    XP149     QKJP14    0.01899999
+    XP149     QNJP14    0.004
+    XP149     QPFP14    0.01099999
+    XP149     QLPP14    0.03199999
+    XP149     QOTP14    0.16699988
+    XP1410    RCAPP14   1
+    XP1410    QCRP14    -1
+    XP1410    QGAP14    0.46899986
+    XP1410    QDSP14    0.2719999
+    XP1410    QRSP14    0.079
+    XP1410    QKJP14    0.02
+    XP1410    QNJP14    0.004
+    XP1410    QPFP14    0.01599999
+    XP1410    QLPP14    0.03299999
+    XP1410    QOTP14    0.13899994
+    XP1411    RCAPP14   1
+    XP1411    QCRP14    -1
+    XP1411    QGAP14    0.45699996
+    XP1411    QDSP14    0.27999991
+    XP1411    QRSP14    0.08899999
+    XP1411    QKJP14    0.022
+    XP1411    QNJP14    0.004
+    XP1411    QPFP14    0.01299999
+    XP1411    QLPP14    0.03699999
+    XP1411    QOTP14    0.12999988
+    XP1412    RCAPP14   1
+    XP1412    QCRP14    -1
+    XP1412    QGAP14    0.4519999
+    XP1412    QDSP14    0.27699995
+    XP1412    QRSP14    0.08599997
+    XP1412    QKJP14    0.02799999
+    XP1412    QNJP14    0.007
+    XP1412    QPFP14    0.008
+    XP1412    QLPP14    0.03299999
+    XP1412    QOTP14    0.13299996
+    XP1413    RCAPP14   1
+    XP1413    QCRP14    -1
+    XP1413    QGAP14    0.47399986
+    XP1413    QDSP14    0.25
+    XP1413    QRSP14    0.08899999
+    XP1413    QKJP14    0.02599999
+    XP1413    QNJP14    0.007
+    XP1413    QPFP14    0.009
+    XP1413    QLPP14    0.035
+    XP1413    QOTP14    0.13599992
+    XP1414    RCAPP14   1
+    XP1414    QCRP14    -1
+    XP1414    QGAP14    0.4879998
+    XP1414    QDSP14    0.22799987
+    XP1414    QRSP14    0.08399999
+    XP1414    QKJP14    0.02099999
+    XP1414    QNJP14    0.008
+    XP1414    QPFP14    0.009
+    XP1414    QLPP14    0.03299999
+    XP1414    QOTP14    0.16199988
+    XP1415    RCAPP14   1
+    XP1415    QCRP14    -1
+    XP1415    QGAP14    0.5
+    XP1415    QDSP14    0.22799987
+    XP1415    QRSP14    0.07499999
+    XP1415    QKJP14    0.01699999
+    XP1415    QNJP14    0.002
+    XP1415    QPFP14    0.009
+    XP1415    QLPP14    0.04599999
+    XP1415    QOTP14    0.17299986
+    XP1416    RCAPP14   1
+    XP1416    QCRP14    -1
+    XP1416    QGAP14    0.47799987
+    XP1416    QDSP14    0.2329998
+    XP1416    QRSP14    0.07999998
+    XP1416    QKJP14    0.01699999
+    XP1416    QNJP14    0.006
+    XP1416    QPFP14    0.008
+    XP1416    QLPP14    0.03199999
+    XP1416    QOTP14    0.17799985
+    XP1417    RCAPP14   1
+    XP1417    QCRP14    -1
+    XP1417    QGAP14    0.47199988
+    XP1417    QDSP14    0.23399991
+    XP1417    QRSP14    0.079
+    XP1417    QKJP14    0.022
+    XP1417    QNJP14    0.004
+    XP1417    QPFP14    0.008
+    XP1417    QLPP14    0.03299999
+    XP1417    QOTP14    0.18099982
+    XP1418    RCAPP14   1
+    XP1418    QCRP14    -1
+    XP1418    QGAP14    0.45299983
+    XP1418    QDSP14    0.2389999
+    XP1418    QRSP14    0.08199996
+    XP1418    QKJP14    0.022
+    XP1418    QNJP14    0.003
+    XP1418    QPFP14    0.01299999
+    XP1418    QLPP14    0.03599999
+    XP1418    QOTP14    0.1839999
+    XP1419    RCAPP14   1
+    XP1419    QCRP14    -1
+    XP1419    QGAP14    0.44299984
+    XP1419    QDSP14    0.23699987
+    XP1419    QRSP14    0.08999997
+    XP1419    QKJP14    0.02099999
+    XP1419    QNJP14    0.003
+    XP1419    QPFP14    0.01299999
+    XP1419    QLPP14    0.03299999
+    XP1419    QOTP14    0.18499994
+    XP1420    RCAPP14   1
+    XP1420    QCRP14    -1
+    XP1420    QGAP14    0.44599986
+    XP1420    QDSP14    0.24799985
+    XP1420    QRSP14    0.09899998
+    XP1420    QKJP14    0.02
+    XP1420    QNJP14    0.004
+    XP1420    QPFP14    0.01099999
+    XP1420    QLPP14    0.035
+    XP1420    QOTP14    0.17999989
+    XP1421    RCAPP14   1
+    XP1421    QCRP14    -1
+    XP1421    QGAP14    0.44799984
+    XP1421    QDSP14    0.25
+    XP1421    QRSP14    0.10399997
+    XP1421    QKJP14    0.01699999
+    XP1421    QNJP14    0.006
+    XP1421    QPFP14    0.01599999
+    XP1421    QLPP14    0.03399999
+    XP1421    QOTP14    0.16699988
+    XP1422    RCAPP14   1
+    XP1422    QCRP14    -1
+    XP1422    QGAP14    0.42399985
+    XP1422    QDSP14    0.28799981
+    XP1422    QRSP14    0.10599995
+    XP1422    QKJP14    0.01099999
+    XP1422    QNJP14    0.003
+    XP1422    QPFP14    0.01899999
+    XP1422    QLPP14    0.03299999
+    XP1422    QOTP14    0.15699995
+    XP1423    RCAPP14   1
+    XP1423    QCRP14    -1
+    XP1423    QGAP14    0.46099985
+    XP1423    QDSP14    0.28199995
+    XP1423    QRSP14    0.1099999
+    XP1423    QKJP14    0.01799999
+    XP1423    QNJP14    0.004
+    XP1423    QPFP14    0.01399999
+    XP1423    QLPP14    0.03099999
+    XP1423    QOTP14    0.12799996
+    XP1424    RCAPP14   1
+    XP1424    QCRP14    -1
+    XP1424    QGAP14    0.49299979
+    XP1424    QDSP14    0.23199993
+    XP1424    QRSP14    0.10799998
+    XP1424    QKJP14    0.025
+    XP1424    QNJP14    0.003
+    XP1424    QPFP14    0.015
+    XP1424    QLPP14    0.03899999
+    XP1424    QOTP14    0.13299996
+    XP151     RCAPP15   1
+    XP151     QCRP15    -1
+    XP151     QGAP15    0.47899985
+    XP151     QDSP15    0.24199986
+    XP151     QRSP15    0.07099998
+    XP151     QKJP15    0.029
+    XP151     QNJP15    0.004
+    XP151     QPFP15    0.01399999
+    XP151     QLPP15    0.03099999
+    XP151     QOTP15    0.1559999
+    XP152     RCAPP15   1
+    XP152     QCRP15    -1
+    XP152     QGAP15    0.47299981
+    XP152     QDSP15    0.24799985
+    XP152     QRSP15    0.05899999
+    XP152     QKJP15    0.02799999
+    XP152     QNJP15    0.003
+    XP152     QPFP15    0.009
+    XP152     QLPP15    0.035
+    XP152     QOTP15    0.15899992
+    XP153     RCAPP15   1
+    XP153     QCRP15    -1
+    XP153     QGAP15    0.4709999
+    XP153     QDSP15    0.24799985
+    XP153     QRSP15    0.06399995
+    XP153     QKJP15    0.01699999
+    XP153     QNJP15    0.005
+    XP153     QPFP15    0.01399999
+    XP153     QLPP15    0.03099999
+    XP153     QOTP15    0.17099988
+    XP154     RCAPP15   1
+    XP154     QCRP15    -1
+    XP154     QGAP15    0.46399993
+    XP154     QDSP15    0.25499988
+    XP154     QRSP15    0.06899995
+    XP154     QKJP15    0.01899999
+    XP154     QNJP15    0.004
+    XP154     QPFP15    0.01399999
+    XP154     QLPP15    0.03099999
+    XP154     QOTP15    0.17399985
+    XP155     RCAPP15   1
+    XP155     QCRP15    -1
+    XP155     QGAP15    0.50399989
+    XP155     QDSP15    0.20699996
+    XP155     QRSP15    0.079
+    XP155     QKJP15    0.01899999
+    XP155     QNJP15    0.005
+    XP155     QPFP15    0.01399999
+    XP155     QLPP15    0.02999999
+    XP155     QOTP15    0.17199993
+    XP156     RCAPP15   1
+    XP156     QCRP15    -1
+    XP156     QGAP15    0.49499995
+    XP156     QDSP15    0.2299999
+    XP156     QRSP15    0.06399995
+    XP156     QKJP15    0.01699999
+    XP156     QNJP15    0.004
+    XP156     QPFP15    0.01299999
+    XP156     QLPP15    0.03399999
+    XP156     QOTP15    0.19299984
+    XP157     RCAPP15   1
+    XP157     QCRP15    -1
+    XP157     QGAP15    0.4829998
+    XP157     QDSP15    0.2389999
+    XP157     QRSP15    0.05699999
+    XP157     QKJP15    0.022
+    XP157     QNJP15    0.003
+    XP157     QPFP15    0.01399999
+    XP157     QLPP15    0.03199999
+    XP157     QOTP15    0.1839999
+    XP158     RCAPP15   1
+    XP158     QCRP15    -1
+    XP158     QGAP15    0.48699987
+    XP158     QDSP15    0.24899983
+    XP158     QRSP15    0.05099999
+    XP158     QKJP15    0.01699999
+    XP158     QNJP15    0.005
+    XP158     QPFP15    0.01099999
+    XP158     QLPP15    0.03299999
+    XP158     QOTP15    0.17699993
+    XP159     RCAPP15   1
+    XP159     QCRP15    -1
+    XP159     QGAP15    0.48599982
+    XP159     QDSP15    0.24099988
+    XP159     QRSP15    0.06399995
+    XP159     QKJP15    0.01899999
+    XP159     QNJP15    0.004
+    XP159     QPFP15    0.01099999
+    XP159     QLPP15    0.03199999
+    XP159     QOTP15    0.16699988
+    XP1510    RCAPP15   1
+    XP1510    QCRP15    -1
+    XP1510    QGAP15    0.46899986
+    XP1510    QDSP15    0.2719999
+    XP1510    QRSP15    0.079
+    XP1510    QKJP15    0.02
+    XP1510    QNJP15    0.004
+    XP1510    QPFP15    0.01599999
+    XP1510    QLPP15    0.03299999
+    XP1510    QOTP15    0.13899994
+    XP1511    RCAPP15   1
+    XP1511    QCRP15    -1
+    XP1511    QGAP15    0.45699996
+    XP1511    QDSP15    0.27999991
+    XP1511    QRSP15    0.08899999
+    XP1511    QKJP15    0.022
+    XP1511    QNJP15    0.004
+    XP1511    QPFP15    0.01299999
+    XP1511    QLPP15    0.03699999
+    XP1511    QOTP15    0.12999988
+    XP1512    RCAPP15   1
+    XP1512    QCRP15    -1
+    XP1512    QGAP15    0.4519999
+    XP1512    QDSP15    0.27699995
+    XP1512    QRSP15    0.08599997
+    XP1512    QKJP15    0.02799999
+    XP1512    QNJP15    0.007
+    XP1512    QPFP15    0.008
+    XP1512    QLPP15    0.03299999
+    XP1512    QOTP15    0.13299996
+    XP1513    RCAPP15   1
+    XP1513    QCRP15    -1
+    XP1513    QGAP15    0.47399986
+    XP1513    QDSP15    0.25
+    XP1513    QRSP15    0.08899999
+    XP1513    QKJP15    0.02599999
+    XP1513    QNJP15    0.007
+    XP1513    QPFP15    0.009
+    XP1513    QLPP15    0.035
+    XP1513    QOTP15    0.13599992
+    XP1514    RCAPP15   1
+    XP1514    QCRP15    -1
+    XP1514    QGAP15    0.4879998
+    XP1514    QDSP15    0.22799987
+    XP1514    QRSP15    0.08399999
+    XP1514    QKJP15    0.02099999
+    XP1514    QNJP15    0.008
+    XP1514    QPFP15    0.009
+    XP1514    QLPP15    0.03299999
+    XP1514    QOTP15    0.16199988
+    XP1515    RCAPP15   1
+    XP1515    QCRP15    -1
+    XP1515    QGAP15    0.5
+    XP1515    QDSP15    0.22799987
+    XP1515    QRSP15    0.07499999
+    XP1515    QKJP15    0.01699999
+    XP1515    QNJP15    0.002
+    XP1515    QPFP15    0.009
+    XP1515    QLPP15    0.04599999
+    XP1515    QOTP15    0.17299986
+    XP1516    RCAPP15   1
+    XP1516    QCRP15    -1
+    XP1516    QGAP15    0.47799987
+    XP1516    QDSP15    0.2329998
+    XP1516    QRSP15    0.07999998
+    XP1516    QKJP15    0.01699999
+    XP1516    QNJP15    0.006
+    XP1516    QPFP15    0.008
+    XP1516    QLPP15    0.03199999
+    XP1516    QOTP15    0.17799985
+    XP1517    RCAPP15   1
+    XP1517    QCRP15    -1
+    XP1517    QGAP15    0.47199988
+    XP1517    QDSP15    0.23399991
+    XP1517    QRSP15    0.079
+    XP1517    QKJP15    0.022
+    XP1517    QNJP15    0.004
+    XP1517    QPFP15    0.008
+    XP1517    QLPP15    0.03299999
+    XP1517    QOTP15    0.18099982
+    XP1518    RCAPP15   1
+    XP1518    QCRP15    -1
+    XP1518    QGAP15    0.45299983
+    XP1518    QDSP15    0.2389999
+    XP1518    QRSP15    0.08199996
+    XP1518    QKJP15    0.022
+    XP1518    QNJP15    0.003
+    XP1518    QPFP15    0.01299999
+    XP1518    QLPP15    0.03599999
+    XP1518    QOTP15    0.1839999
+    XP1519    RCAPP15   1
+    XP1519    QCRP15    -1
+    XP1519    QGAP15    0.44299984
+    XP1519    QDSP15    0.23699987
+    XP1519    QRSP15    0.08999997
+    XP1519    QKJP15    0.02099999
+    XP1519    QNJP15    0.003
+    XP1519    QPFP15    0.01299999
+    XP1519    QLPP15    0.03299999
+    XP1519    QOTP15    0.18499994
+    XP1520    RCAPP15   1
+    XP1520    QCRP15    -1
+    XP1520    QGAP15    0.44599986
+    XP1520    QDSP15    0.24799985
+    XP1520    QRSP15    0.09899998
+    XP1520    QKJP15    0.02
+    XP1520    QNJP15    0.004
+    XP1520    QPFP15    0.01099999
+    XP1520    QLPP15    0.035
+    XP1520    QOTP15    0.17999989
+    XP1521    RCAPP15   1
+    XP1521    QCRP15    -1
+    XP1521    QGAP15    0.44799984
+    XP1521    QDSP15    0.25
+    XP1521    QRSP15    0.10399997
+    XP1521    QKJP15    0.01699999
+    XP1521    QNJP15    0.006
+    XP1521    QPFP15    0.01599999
+    XP1521    QLPP15    0.03399999
+    XP1521    QOTP15    0.16699988
+    XP1522    RCAPP15   1
+    XP1522    QCRP15    -1
+    XP1522    QGAP15    0.42399985
+    XP1522    QDSP15    0.28799981
+    XP1522    QRSP15    0.10599995
+    XP1522    QKJP15    0.01099999
+    XP1522    QNJP15    0.003
+    XP1522    QPFP15    0.01899999
+    XP1522    QLPP15    0.03299999
+    XP1522    QOTP15    0.15699995
+    XP1523    RCAPP15   1
+    XP1523    QCRP15    -1
+    XP1523    QGAP15    0.46099985
+    XP1523    QDSP15    0.28199995
+    XP1523    QRSP15    0.1099999
+    XP1523    QKJP15    0.01799999
+    XP1523    QNJP15    0.004
+    XP1523    QPFP15    0.01399999
+    XP1523    QLPP15    0.03099999
+    XP1523    QOTP15    0.12799996
+    XP1524    RCAPP15   1
+    XP1524    QCRP15    -1
+    XP1524    QGAP15    0.49299979
+    XP1524    QDSP15    0.23199993
+    XP1524    QRSP15    0.10799998
+    XP1524    QKJP15    0.025
+    XP1524    QNJP15    0.003
+    XP1524    QPFP15    0.015
+    XP1524    QLPP15    0.03899999
+    XP1524    QOTP15    0.13299996
+    XP161     RCAPP16   1
+    XP161     QCRP16    -1
+    XP161     QGAP16    0.47899985
+    XP161     QDSP16    0.24199986
+    XP161     QRSP16    0.07099998
+    XP161     QKJP16    0.029
+    XP161     QNJP16    0.004
+    XP161     QPFP16    0.01399999
+    XP161     QLPP16    0.03099999
+    XP161     QOTP16    0.1559999
+    XP162     RCAPP16   1
+    XP162     QCRP16    -1
+    XP162     QGAP16    0.47299981
+    XP162     QDSP16    0.24799985
+    XP162     QRSP16    0.05899999
+    XP162     QKJP16    0.02799999
+    XP162     QNJP16    0.003
+    XP162     QPFP16    0.009
+    XP162     QLPP16    0.035
+    XP162     QOTP16    0.15899992
+    XP163     RCAPP16   1
+    XP163     QCRP16    -1
+    XP163     QGAP16    0.4709999
+    XP163     QDSP16    0.24799985
+    XP163     QRSP16    0.06399995
+    XP163     QKJP16    0.01699999
+    XP163     QNJP16    0.005
+    XP163     QPFP16    0.01399999
+    XP163     QLPP16    0.03099999
+    XP163     QOTP16    0.17099988
+    XP164     RCAPP16   1
+    XP164     QCRP16    -1
+    XP164     QGAP16    0.46399993
+    XP164     QDSP16    0.25499988
+    XP164     QRSP16    0.06899995
+    XP164     QKJP16    0.01899999
+    XP164     QNJP16    0.004
+    XP164     QPFP16    0.01399999
+    XP164     QLPP16    0.03099999
+    XP164     QOTP16    0.17399985
+    XP165     RCAPP16   1
+    XP165     QCRP16    -1
+    XP165     QGAP16    0.50399989
+    XP165     QDSP16    0.20699996
+    XP165     QRSP16    0.079
+    XP165     QKJP16    0.01899999
+    XP165     QNJP16    0.005
+    XP165     QPFP16    0.01399999
+    XP165     QLPP16    0.02999999
+    XP165     QOTP16    0.17199993
+    XP166     RCAPP16   1
+    XP166     QCRP16    -1
+    XP166     QGAP16    0.49499995
+    XP166     QDSP16    0.2299999
+    XP166     QRSP16    0.06399995
+    XP166     QKJP16    0.01699999
+    XP166     QNJP16    0.004
+    XP166     QPFP16    0.01299999
+    XP166     QLPP16    0.03399999
+    XP166     QOTP16    0.19299984
+    XP167     RCAPP16   1
+    XP167     QCRP16    -1
+    XP167     QGAP16    0.4829998
+    XP167     QDSP16    0.2389999
+    XP167     QRSP16    0.05699999
+    XP167     QKJP16    0.022
+    XP167     QNJP16    0.003
+    XP167     QPFP16    0.01399999
+    XP167     QLPP16    0.03199999
+    XP167     QOTP16    0.1839999
+    XP168     RCAPP16   1
+    XP168     QCRP16    -1
+    XP168     QGAP16    0.48699987
+    XP168     QDSP16    0.24899983
+    XP168     QRSP16    0.05099999
+    XP168     QKJP16    0.01699999
+    XP168     QNJP16    0.005
+    XP168     QPFP16    0.01099999
+    XP168     QLPP16    0.03299999
+    XP168     QOTP16    0.17699993
+    XP169     RCAPP16   1
+    XP169     QCRP16    -1
+    XP169     QGAP16    0.48599982
+    XP169     QDSP16    0.24099988
+    XP169     QRSP16    0.06399995
+    XP169     QKJP16    0.01899999
+    XP169     QNJP16    0.004
+    XP169     QPFP16    0.01099999
+    XP169     QLPP16    0.03199999
+    XP169     QOTP16    0.16699988
+    XP1610    RCAPP16   1
+    XP1610    QCRP16    -1
+    XP1610    QGAP16    0.46899986
+    XP1610    QDSP16    0.2719999
+    XP1610    QRSP16    0.079
+    XP1610    QKJP16    0.02
+    XP1610    QNJP16    0.004
+    XP1610    QPFP16    0.01599999
+    XP1610    QLPP16    0.03299999
+    XP1610    QOTP16    0.13899994
+    XP1611    RCAPP16   1
+    XP1611    QCRP16    -1
+    XP1611    QGAP16    0.45699996
+    XP1611    QDSP16    0.27999991
+    XP1611    QRSP16    0.08899999
+    XP1611    QKJP16    0.022
+    XP1611    QNJP16    0.004
+    XP1611    QPFP16    0.01299999
+    XP1611    QLPP16    0.03699999
+    XP1611    QOTP16    0.12999988
+    XP1612    RCAPP16   1
+    XP1612    QCRP16    -1
+    XP1612    QGAP16    0.4519999
+    XP1612    QDSP16    0.27699995
+    XP1612    QRSP16    0.08599997
+    XP1612    QKJP16    0.02799999
+    XP1612    QNJP16    0.007
+    XP1612    QPFP16    0.008
+    XP1612    QLPP16    0.03299999
+    XP1612    QOTP16    0.13299996
+    XP1613    RCAPP16   1
+    XP1613    QCRP16    -1
+    XP1613    QGAP16    0.47399986
+    XP1613    QDSP16    0.25
+    XP1613    QRSP16    0.08899999
+    XP1613    QKJP16    0.02599999
+    XP1613    QNJP16    0.007
+    XP1613    QPFP16    0.009
+    XP1613    QLPP16    0.035
+    XP1613    QOTP16    0.13599992
+    XP1614    RCAPP16   1
+    XP1614    QCRP16    -1
+    XP1614    QGAP16    0.4879998
+    XP1614    QDSP16    0.22799987
+    XP1614    QRSP16    0.08399999
+    XP1614    QKJP16    0.02099999
+    XP1614    QNJP16    0.008
+    XP1614    QPFP16    0.009
+    XP1614    QLPP16    0.03299999
+    XP1614    QOTP16    0.16199988
+    XP1615    RCAPP16   1
+    XP1615    QCRP16    -1
+    XP1615    QGAP16    0.5
+    XP1615    QDSP16    0.22799987
+    XP1615    QRSP16    0.07499999
+    XP1615    QKJP16    0.01699999
+    XP1615    QNJP16    0.002
+    XP1615    QPFP16    0.009
+    XP1615    QLPP16    0.04599999
+    XP1615    QOTP16    0.17299986
+    XP1616    RCAPP16   1
+    XP1616    QCRP16    -1
+    XP1616    QGAP16    0.47799987
+    XP1616    QDSP16    0.2329998
+    XP1616    QRSP16    0.07999998
+    XP1616    QKJP16    0.01699999
+    XP1616    QNJP16    0.006
+    XP1616    QPFP16    0.008
+    XP1616    QLPP16    0.03199999
+    XP1616    QOTP16    0.17799985
+    XP1617    RCAPP16   1
+    XP1617    QCRP16    -1
+    XP1617    QGAP16    0.47199988
+    XP1617    QDSP16    0.23399991
+    XP1617    QRSP16    0.079
+    XP1617    QKJP16    0.022
+    XP1617    QNJP16    0.004
+    XP1617    QPFP16    0.008
+    XP1617    QLPP16    0.03299999
+    XP1617    QOTP16    0.18099982
+    XP1618    RCAPP16   1
+    XP1618    QCRP16    -1
+    XP1618    QGAP16    0.45299983
+    XP1618    QDSP16    0.2389999
+    XP1618    QRSP16    0.08199996
+    XP1618    QKJP16    0.022
+    XP1618    QNJP16    0.003
+    XP1618    QPFP16    0.01299999
+    XP1618    QLPP16    0.03599999
+    XP1618    QOTP16    0.1839999
+    XP1619    RCAPP16   1
+    XP1619    QCRP16    -1
+    XP1619    QGAP16    0.44299984
+    XP1619    QDSP16    0.23699987
+    XP1619    QRSP16    0.08999997
+    XP1619    QKJP16    0.02099999
+    XP1619    QNJP16    0.003
+    XP1619    QPFP16    0.01299999
+    XP1619    QLPP16    0.03299999
+    XP1619    QOTP16    0.18499994
+    XP1620    RCAPP16   1
+    XP1620    QCRP16    -1
+    XP1620    QGAP16    0.44599986
+    XP1620    QDSP16    0.24799985
+    XP1620    QRSP16    0.09899998
+    XP1620    QKJP16    0.02
+    XP1620    QNJP16    0.004
+    XP1620    QPFP16    0.01099999
+    XP1620    QLPP16    0.035
+    XP1620    QOTP16    0.17999989
+    XP1621    RCAPP16   1
+    XP1621    QCRP16    -1
+    XP1621    QGAP16    0.44799984
+    XP1621    QDSP16    0.25
+    XP1621    QRSP16    0.10399997
+    XP1621    QKJP16    0.01699999
+    XP1621    QNJP16    0.006
+    XP1621    QPFP16    0.01599999
+    XP1621    QLPP16    0.03399999
+    XP1621    QOTP16    0.16699988
+    XP1622    RCAPP16   1
+    XP1622    QCRP16    -1
+    XP1622    QGAP16    0.42399985
+    XP1622    QDSP16    0.28799981
+    XP1622    QRSP16    0.10599995
+    XP1622    QKJP16    0.01099999
+    XP1622    QNJP16    0.003
+    XP1622    QPFP16    0.01899999
+    XP1622    QLPP16    0.03299999
+    XP1622    QOTP16    0.15699995
+    XP1623    RCAPP16   1
+    XP1623    QCRP16    -1
+    XP1623    QGAP16    0.46099985
+    XP1623    QDSP16    0.28199995
+    XP1623    QRSP16    0.1099999
+    XP1623    QKJP16    0.01799999
+    XP1623    QNJP16    0.004
+    XP1623    QPFP16    0.01399999
+    XP1623    QLPP16    0.03099999
+    XP1623    QOTP16    0.12799996
+    XP1624    RCAPP16   1
+    XP1624    QCRP16    -1
+    XP1624    QGAP16    0.49299979
+    XP1624    QDSP16    0.23199993
+    XP1624    QRSP16    0.10799998
+    XP1624    QKJP16    0.025
+    XP1624    QNJP16    0.003
+    XP1624    QPFP16    0.015
+    XP1624    QLPP16    0.03899999
+    XP1624    QOTP16    0.13299996
+    XP171     RCAPP17   1
+    XP171     QCRP17    -1
+    XP171     QGAP17    0.47899985
+    XP171     QDSP17    0.24199986
+    XP171     QRSP17    0.07099998
+    XP171     QKJP17    0.029
+    XP171     QNJP17    0.004
+    XP171     QPFP17    0.01399999
+    XP171     QLPP17    0.03099999
+    XP171     QOTP17    0.1559999
+    XP172     RCAPP17   1
+    XP172     QCRP17    -1
+    XP172     QGAP17    0.47299981
+    XP172     QDSP17    0.24799985
+    XP172     QRSP17    0.05899999
+    XP172     QKJP17    0.02799999
+    XP172     QNJP17    0.003
+    XP172     QPFP17    0.009
+    XP172     QLPP17    0.035
+    XP172     QOTP17    0.15899992
+    XP173     RCAPP17   1
+    XP173     QCRP17    -1
+    XP173     QGAP17    0.4709999
+    XP173     QDSP17    0.24799985
+    XP173     QRSP17    0.06399995
+    XP173     QKJP17    0.01699999
+    XP173     QNJP17    0.005
+    XP173     QPFP17    0.01399999
+    XP173     QLPP17    0.03099999
+    XP173     QOTP17    0.17099988
+    XP174     RCAPP17   1
+    XP174     QCRP17    -1
+    XP174     QGAP17    0.46399993
+    XP174     QDSP17    0.25499988
+    XP174     QRSP17    0.06899995
+    XP174     QKJP17    0.01899999
+    XP174     QNJP17    0.004
+    XP174     QPFP17    0.01399999
+    XP174     QLPP17    0.03099999
+    XP174     QOTP17    0.17399985
+    XP175     RCAPP17   1
+    XP175     QCRP17    -1
+    XP175     QGAP17    0.50399989
+    XP175     QDSP17    0.20699996
+    XP175     QRSP17    0.079
+    XP175     QKJP17    0.01899999
+    XP175     QNJP17    0.005
+    XP175     QPFP17    0.01399999
+    XP175     QLPP17    0.02999999
+    XP175     QOTP17    0.17199993
+    XP176     RCAPP17   1
+    XP176     QCRP17    -1
+    XP176     QGAP17    0.49499995
+    XP176     QDSP17    0.2299999
+    XP176     QRSP17    0.06399995
+    XP176     QKJP17    0.01699999
+    XP176     QNJP17    0.004
+    XP176     QPFP17    0.01299999
+    XP176     QLPP17    0.03399999
+    XP176     QOTP17    0.19299984
+    XP177     RCAPP17   1
+    XP177     QCRP17    -1
+    XP177     QGAP17    0.4829998
+    XP177     QDSP17    0.2389999
+    XP177     QRSP17    0.05699999
+    XP177     QKJP17    0.022
+    XP177     QNJP17    0.003
+    XP177     QPFP17    0.01399999
+    XP177     QLPP17    0.03199999
+    XP177     QOTP17    0.1839999
+    XP178     RCAPP17   1
+    XP178     QCRP17    -1
+    XP178     QGAP17    0.48699987
+    XP178     QDSP17    0.24899983
+    XP178     QRSP17    0.05099999
+    XP178     QKJP17    0.01699999
+    XP178     QNJP17    0.005
+    XP178     QPFP17    0.01099999
+    XP178     QLPP17    0.03299999
+    XP178     QOTP17    0.17699993
+    XP179     RCAPP17   1
+    XP179     QCRP17    -1
+    XP179     QGAP17    0.48599982
+    XP179     QDSP17    0.24099988
+    XP179     QRSP17    0.06399995
+    XP179     QKJP17    0.01899999
+    XP179     QNJP17    0.004
+    XP179     QPFP17    0.01099999
+    XP179     QLPP17    0.03199999
+    XP179     QOTP17    0.16699988
+    XP1710    RCAPP17   1
+    XP1710    QCRP17    -1
+    XP1710    QGAP17    0.46899986
+    XP1710    QDSP17    0.2719999
+    XP1710    QRSP17    0.079
+    XP1710    QKJP17    0.02
+    XP1710    QNJP17    0.004
+    XP1710    QPFP17    0.01599999
+    XP1710    QLPP17    0.03299999
+    XP1710    QOTP17    0.13899994
+    XP1711    RCAPP17   1
+    XP1711    QCRP17    -1
+    XP1711    QGAP17    0.45699996
+    XP1711    QDSP17    0.27999991
+    XP1711    QRSP17    0.08899999
+    XP1711    QKJP17    0.022
+    XP1711    QNJP17    0.004
+    XP1711    QPFP17    0.01299999
+    XP1711    QLPP17    0.03699999
+    XP1711    QOTP17    0.12999988
+    XP1712    RCAPP17   1
+    XP1712    QCRP17    -1
+    XP1712    QGAP17    0.4519999
+    XP1712    QDSP17    0.27699995
+    XP1712    QRSP17    0.08599997
+    XP1712    QKJP17    0.02799999
+    XP1712    QNJP17    0.007
+    XP1712    QPFP17    0.008
+    XP1712    QLPP17    0.03299999
+    XP1712    QOTP17    0.13299996
+    XP1713    RCAPP17   1
+    XP1713    QCRP17    -1
+    XP1713    QGAP17    0.47399986
+    XP1713    QDSP17    0.25
+    XP1713    QRSP17    0.08899999
+    XP1713    QKJP17    0.02599999
+    XP1713    QNJP17    0.007
+    XP1713    QPFP17    0.009
+    XP1713    QLPP17    0.035
+    XP1713    QOTP17    0.13599992
+    XP1714    RCAPP17   1
+    XP1714    QCRP17    -1
+    XP1714    QGAP17    0.4879998
+    XP1714    QDSP17    0.22799987
+    XP1714    QRSP17    0.08399999
+    XP1714    QKJP17    0.02099999
+    XP1714    QNJP17    0.008
+    XP1714    QPFP17    0.009
+    XP1714    QLPP17    0.03299999
+    XP1714    QOTP17    0.16199988
+    XP1715    RCAPP17   1
+    XP1715    QCRP17    -1
+    XP1715    QGAP17    0.5
+    XP1715    QDSP17    0.22799987
+    XP1715    QRSP17    0.07499999
+    XP1715    QKJP17    0.01699999
+    XP1715    QNJP17    0.002
+    XP1715    QPFP17    0.009
+    XP1715    QLPP17    0.04599999
+    XP1715    QOTP17    0.17299986
+    XP1716    RCAPP17   1
+    XP1716    QCRP17    -1
+    XP1716    QGAP17    0.47799987
+    XP1716    QDSP17    0.2329998
+    XP1716    QRSP17    0.07999998
+    XP1716    QKJP17    0.01699999
+    XP1716    QNJP17    0.006
+    XP1716    QPFP17    0.008
+    XP1716    QLPP17    0.03199999
+    XP1716    QOTP17    0.17799985
+    XP1717    RCAPP17   1
+    XP1717    QCRP17    -1
+    XP1717    QGAP17    0.47199988
+    XP1717    QDSP17    0.23399991
+    XP1717    QRSP17    0.079
+    XP1717    QKJP17    0.022
+    XP1717    QNJP17    0.004
+    XP1717    QPFP17    0.008
+    XP1717    QLPP17    0.03299999
+    XP1717    QOTP17    0.18099982
+    XP1718    RCAPP17   1
+    XP1718    QCRP17    -1
+    XP1718    QGAP17    0.45299983
+    XP1718    QDSP17    0.2389999
+    XP1718    QRSP17    0.08199996
+    XP1718    QKJP17    0.022
+    XP1718    QNJP17    0.003
+    XP1718    QPFP17    0.01299999
+    XP1718    QLPP17    0.03599999
+    XP1718    QOTP17    0.1839999
+    XP1719    RCAPP17   1
+    XP1719    QCRP17    -1
+    XP1719    QGAP17    0.44299984
+    XP1719    QDSP17    0.23699987
+    XP1719    QRSP17    0.08999997
+    XP1719    QKJP17    0.02099999
+    XP1719    QNJP17    0.003
+    XP1719    QPFP17    0.01299999
+    XP1719    QLPP17    0.03299999
+    XP1719    QOTP17    0.18499994
+    XP1720    RCAPP17   1
+    XP1720    QCRP17    -1
+    XP1720    QGAP17    0.44599986
+    XP1720    QDSP17    0.24799985
+    XP1720    QRSP17    0.09899998
+    XP1720    QKJP17    0.02
+    XP1720    QNJP17    0.004
+    XP1720    QPFP17    0.01099999
+    XP1720    QLPP17    0.035
+    XP1720    QOTP17    0.17999989
+    XP1721    RCAPP17   1
+    XP1721    QCRP17    -1
+    XP1721    QGAP17    0.44799984
+    XP1721    QDSP17    0.25
+    XP1721    QRSP17    0.10399997
+    XP1721    QKJP17    0.01699999
+    XP1721    QNJP17    0.006
+    XP1721    QPFP17    0.01599999
+    XP1721    QLPP17    0.03399999
+    XP1721    QOTP17    0.16699988
+    XP1722    RCAPP17   1
+    XP1722    QCRP17    -1
+    XP1722    QGAP17    0.42399985
+    XP1722    QDSP17    0.28799981
+    XP1722    QRSP17    0.10599995
+    XP1722    QKJP17    0.01099999
+    XP1722    QNJP17    0.003
+    XP1722    QPFP17    0.01899999
+    XP1722    QLPP17    0.03299999
+    XP1722    QOTP17    0.15699995
+    XP1723    RCAPP17   1
+    XP1723    QCRP17    -1
+    XP1723    QGAP17    0.46099985
+    XP1723    QDSP17    0.28199995
+    XP1723    QRSP17    0.1099999
+    XP1723    QKJP17    0.01799999
+    XP1723    QNJP17    0.004
+    XP1723    QPFP17    0.01399999
+    XP1723    QLPP17    0.03099999
+    XP1723    QOTP17    0.12799996
+    XP1724    RCAPP17   1
+    XP1724    QCRP17    -1
+    XP1724    QGAP17    0.49299979
+    XP1724    QDSP17    0.23199993
+    XP1724    QRSP17    0.10799998
+    XP1724    QKJP17    0.025
+    XP1724    QNJP17    0.003
+    XP1724    QPFP17    0.015
+    XP1724    QLPP17    0.03899999
+    XP1724    QOTP17    0.13299996
+    XP181     RCAPP18   1
+    XP181     QCRP18    1
+    XP181     QGAP18    0.47899985
+    XP181     QDSP18    0.24199986
+    XP181     QRSP18    0.07099998
+    XP181     QKJP18    -0.029
+    XP181     QNJP18    -0.004
+    XP181     QPFP18    -0.01399999
+    XP181     QLPP18    -0.03099999
+    XP181     QOTP18    0.1559999
+    XP182     RCAPP18   1
+    XP182     QCRP18    1
+    XP182     QGAP18    0.47299981
+    XP182     QDSP18    0.24799985
+    XP182     QRSP18    0.05899999
+    XP182     QKJP18    -0.02799999
+    XP182     QNJP18    -0.003
+    XP182     QPFP18    -0.009
+    XP182     QLPP18    -0.035
+    XP182     QOTP18    0.15899992
+    XP183     RCAPP18   1
+    XP183     QCRP18    1
+    XP183     QGAP18    0.4709999
+    XP183     QDSP18    0.24799985
+    XP183     QRSP18    0.06399995
+    XP183     QKJP18    -0.01699999
+    XP183     QNJP18    -0.005
+    XP183     QPFP18    -0.01399999
+    XP183     QLPP18    -0.03099999
+    XP183     QOTP18    0.17099988
+    XP184     RCAPP18   1
+    XP184     QCRP18    1
+    XP184     QGAP18    0.46399993
+    XP184     QDSP18    0.25499988
+    XP184     QRSP18    0.06899995
+    XP184     QKJP18    -0.01899999
+    XP184     QNJP18    -0.004
+    XP184     QPFP18    -0.01399999
+    XP184     QLPP18    -0.03099999
+    XP184     QOTP18    0.17399985
+    XP185     RCAPP18   1
+    XP185     QCRP18    1
+    XP185     QGAP18    0.50399989
+    XP185     QDSP18    0.20699996
+    XP185     QRSP18    0.079
+    XP185     QKJP18    -0.01899999
+    XP185     QNJP18    -0.005
+    XP185     QPFP18    -0.01399999
+    XP185     QLPP18    -0.02999999
+    XP185     QOTP18    0.17199993
+    XP186     RCAPP18   1
+    XP186     QCRP18    1
+    XP186     QGAP18    0.49499995
+    XP186     QDSP18    0.2299999
+    XP186     QRSP18    0.06399995
+    XP186     QKJP18    -0.01699999
+    XP186     QNJP18    -0.004
+    XP186     QPFP18    -0.01299999
+    XP186     QLPP18    -0.03399999
+    XP186     QOTP18    0.19299984
+    XP187     RCAPP18   1
+    XP187     QCRP18    1
+    XP187     QGAP18    0.4829998
+    XP187     QDSP18    0.2389999
+    XP187     QRSP18    0.05699999
+    XP187     QKJP18    -0.022
+    XP187     QNJP18    -0.003
+    XP187     QPFP18    -0.01399999
+    XP187     QLPP18    -0.03199999
+    XP187     QOTP18    0.1839999
+    XP188     RCAPP18   1
+    XP188     QCRP18    1
+    XP188     QGAP18    0.48699987
+    XP188     QDSP18    0.24899983
+    XP188     QRSP18    0.05099999
+    XP188     QKJP18    -0.01699999
+    XP188     QNJP18    -0.005
+    XP188     QPFP18    -0.01099999
+    XP188     QLPP18    -0.03299999
+    XP188     QOTP18    0.17699993
+    XP189     RCAPP18   1
+    XP189     QCRP18    1
+    XP189     QGAP18    0.48599982
+    XP189     QDSP18    0.24099988
+    XP189     QRSP18    0.06399995
+    XP189     QKJP18    -0.01899999
+    XP189     QNJP18    -0.004
+    XP189     QPFP18    -0.01099999
+    XP189     QLPP18    -0.03199999
+    XP189     QOTP18    0.16699988
+    XP1810    RCAPP18   1
+    XP1810    QCRP18    1
+    XP1810    QGAP18    0.46899986
+    XP1810    QDSP18    0.2719999
+    XP1810    QRSP18    0.079
+    XP1810    QKJP18    -0.02
+    XP1810    QNJP18    -0.004
+    XP1810    QPFP18    -0.01599999
+    XP1810    QLPP18    -0.03299999
+    XP1810    QOTP18    0.13899994
+    XP1811    RCAPP18   1
+    XP1811    QCRP18    1
+    XP1811    QGAP18    0.45699996
+    XP1811    QDSP18    0.27999991
+    XP1811    QRSP18    0.08899999
+    XP1811    QKJP18    -0.022
+    XP1811    QNJP18    -0.004
+    XP1811    QPFP18    -0.01299999
+    XP1811    QLPP18    -0.03699999
+    XP1811    QOTP18    0.12999988
+    XP1812    RCAPP18   1
+    XP1812    QCRP18    1
+    XP1812    QGAP18    0.4519999
+    XP1812    QDSP18    0.27699995
+    XP1812    QRSP18    0.08599997
+    XP1812    QKJP18    -0.02799999
+    XP1812    QNJP18    -0.007
+    XP1812    QPFP18    -0.008
+    XP1812    QLPP18    -0.03299999
+    XP1812    QOTP18    0.13299996
+    XP1813    RCAPP18   1
+    XP1813    QCRP18    1
+    XP1813    QGAP18    0.47399986
+    XP1813    QDSP18    0.25
+    XP1813    QRSP18    0.08899999
+    XP1813    QKJP18    -0.02599999
+    XP1813    QNJP18    -0.007
+    XP1813    QPFP18    -0.009
+    XP1813    QLPP18    -0.035
+    XP1813    QOTP18    0.13599992
+    XP1814    RCAPP18   1
+    XP1814    QCRP18    1
+    XP1814    QGAP18    0.4879998
+    XP1814    QDSP18    0.22799987
+    XP1814    QRSP18    0.08399999
+    XP1814    QKJP18    -0.02099999
+    XP1814    QNJP18    -0.008
+    XP1814    QPFP18    -0.009
+    XP1814    QLPP18    -0.03299999
+    XP1814    QOTP18    0.16199988
+    XP1815    RCAPP18   1
+    XP1815    QCRP18    1
+    XP1815    QGAP18    0.5
+    XP1815    QDSP18    0.22799987
+    XP1815    QRSP18    0.07499999
+    XP1815    QKJP18    -0.01699999
+    XP1815    QNJP18    -0.002
+    XP1815    QPFP18    -0.009
+    XP1815    QLPP18    -0.04599999
+    XP1815    QOTP18    0.17299986
+    XP1816    RCAPP18   1
+    XP1816    QCRP18    1
+    XP1816    QGAP18    0.47799987
+    XP1816    QDSP18    0.2329998
+    XP1816    QRSP18    0.07999998
+    XP1816    QKJP18    -0.01699999
+    XP1816    QNJP18    -0.006
+    XP1816    QPFP18    -0.008
+    XP1816    QLPP18    -0.03199999
+    XP1816    QOTP18    0.17799985
+    XP1817    RCAPP18   1
+    XP1817    QCRP18    1
+    XP1817    QGAP18    0.47199988
+    XP1817    QDSP18    0.23399991
+    XP1817    QRSP18    0.079
+    XP1817    QKJP18    -0.022
+    XP1817    QNJP18    -0.004
+    XP1817    QPFP18    -0.008
+    XP1817    QLPP18    -0.03299999
+    XP1817    QOTP18    0.18099982
+    XP1818    RCAPP18   1
+    XP1818    QCRP18    1
+    XP1818    QGAP18    0.45299983
+    XP1818    QDSP18    0.2389999
+    XP1818    QRSP18    0.08199996
+    XP1818    QKJP18    -0.022
+    XP1818    QNJP18    -0.003
+    XP1818    QPFP18    -0.01299999
+    XP1818    QLPP18    -0.03599999
+    XP1818    QOTP18    0.1839999
+    XP1819    RCAPP18   1
+    XP1819    QCRP18    1
+    XP1819    QGAP18    0.44299984
+    XP1819    QDSP18    0.23699987
+    XP1819    QRSP18    0.08999997
+    XP1819    QKJP18    -0.02099999
+    XP1819    QNJP18    -0.003
+    XP1819    QPFP18    -0.01299999
+    XP1819    QLPP18    -0.03299999
+    XP1819    QOTP18    0.18499994
+    XP1820    RCAPP18   1
+    XP1820    QCRP18    1
+    XP1820    QGAP18    0.44599986
+    XP1820    QDSP18    0.24799985
+    XP1820    QRSP18    0.09899998
+    XP1820    QKJP18    -0.02
+    XP1820    QNJP18    -0.004
+    XP1820    QPFP18    -0.01099999
+    XP1820    QLPP18    -0.035
+    XP1820    QOTP18    0.17999989
+    XP1821    RCAPP18   1
+    XP1821    QCRP18    1
+    XP1821    QGAP18    0.44799984
+    XP1821    QDSP18    0.25
+    XP1821    QRSP18    0.10399997
+    XP1821    QKJP18    -0.01699999
+    XP1821    QNJP18    -0.006
+    XP1821    QPFP18    -0.01599999
+    XP1821    QLPP18    -0.03399999
+    XP1821    QOTP18    0.16699988
+    XP1822    RCAPP18   1
+    XP1822    QCRP18    1
+    XP1822    QGAP18    0.42399985
+    XP1822    QDSP18    0.28799981
+    XP1822    QRSP18    0.10599995
+    XP1822    QKJP18    -0.01099999
+    XP1822    QNJP18    -0.003
+    XP1822    QPFP18    -0.01899999
+    XP1822    QLPP18    -0.03299999
+    XP1822    QOTP18    0.15699995
+    XP1823    RCAPP18   1
+    XP1823    QCRP18    1
+    XP1823    QGAP18    0.46099985
+    XP1823    QDSP18    0.28199995
+    XP1823    QRSP18    0.1099999
+    XP1823    QKJP18    -0.01799999
+    XP1823    QNJP18    -0.004
+    XP1823    QPFP18    -0.01399999
+    XP1823    QLPP18    -0.03099999
+    XP1823    QOTP18    0.12799996
+    XP1824    RCAPP18   1
+    XP1824    QCRP18    1
+    XP1824    QGAP18    0.49299979
+    XP1824    QDSP18    0.23199993
+    XP1824    QRSP18    0.10799998
+    XP1824    QKJP18    -0.025
+    XP1824    QNJP18    -0.003
+    XP1824    QPFP18    -0.015
+    XP1824    QLPP18    -0.03899999
+    XP1824    QOTP18    0.13299996
+    XP211     RCAPP21   1
+    XP211     QCRP21    -1
+    XP211     QGAP21    0.5429998
+    XP211     QDSP21    0.2209999
+    XP211     QRSP21    0.05499999
+    XP211     QKJP21    0.03899999
+    XP211     QNJP21    0.01399999
+    XP211     QPFP21    0.00999999
+    XP211     QLPP21    0.02299999
+    XP211     QOTP21    0.13099992
+    XP212     RCAPP21   1
+    XP212     QCRP21    -1
+    XP212     QGAP21    0.53599983
+    XP212     QDSP21    0.21399993
+    XP212     QRSP21    0.052
+    XP212     QKJP21    0.04099999
+    XP212     QNJP21    0.01599999
+    XP212     QPFP21    0.00999999
+    XP212     QLPP21    0.02299999
+    XP212     QOTP21    0.13899994
+    XP213     RCAPP21   1
+    XP213     QCRP21    -1
+    XP213     QGAP21    0.53599983
+    XP213     QDSP21    0.21899986
+    XP213     QRSP21    0.04099999
+    XP213     QKJP21    0.042
+    XP213     QNJP21    0.01299999
+    XP213     QPFP21    0.009
+    XP213     QLPP21    0.022
+    XP213     QOTP21    0.1469999
+    XP214     RCAPP21   1
+    XP214     QCRP21    -1
+    XP214     QGAP21    0.55199993
+    XP214     QDSP21    0.2019999
+    XP214     QRSP21    0.04
+    XP214     QKJP21    0.03599999
+    XP214     QNJP21    0.015
+    XP214     QPFP21    0.01199999
+    XP214     QLPP21    0.022
+    XP214     QOTP21    0.1509999
+    XP215     RCAPP21   1
+    XP215     QCRP21    -1
+    XP215     QGAP21    0.54999995
+    XP215     QDSP21    0.21299982
+    XP215     QRSP21    0.03599999
+    XP215     QKJP21    0.03399999
+    XP215     QNJP21    0.01099999
+    XP215     QPFP21    0.01199999
+    XP215     QLPP21    0.02099999
+    XP215     QOTP21    0.14999998
+    XP216     RCAPP21   1
+    XP216     QCRP21    -1
+    XP216     QGAP21    0.54999995
+    XP216     QDSP21    0.20699996
+    XP216     QRSP21    0.03399999
+    XP216     QKJP21    0.03599999
+    XP216     QNJP21    0.01299999
+    XP216     QPFP21    0.01299999
+    XP216     QLPP21    0.02099999
+    XP216     QOTP21    0.15699995
+    XP217     RCAPP21   1
+    XP217     QCRP21    -1
+    XP217     QGAP21    0.55099982
+    XP217     QDSP21    0.21299982
+    XP217     QRSP21    0.04099999
+    XP217     QKJP21    0.03299999
+    XP217     QNJP21    0.01099999
+    XP217     QPFP21    0.01199999
+    XP217     QLPP21    0.02099999
+    XP217     QOTP21    0.15299994
+    XP218     RCAPP21   1
+    XP218     QCRP21    -1
+    XP218     QGAP21    0.54699993
+    XP218     QDSP21    0.21699989
+    XP218     QRSP21    0.04399999
+    XP218     QKJP21    0.03799999
+    XP218     QNJP21    0.01099999
+    XP218     QPFP21    0.01199999
+    XP218     QLPP21    0.02
+    XP218     QOTP21    0.14499998
+    XP219     RCAPP21   1
+    XP219     QCRP21    -1
+    XP219     QGAP21    0.55099982
+    XP219     QDSP21    0.21899986
+    XP219     QRSP21    0.05999999
+    XP219     QKJP21    0.03099999
+    XP219     QNJP21    0.01199999
+    XP219     QPFP21    0.01199999
+    XP219     QLPP21    0.02
+    XP219     QOTP21    0.13399988
+    XP2110    RCAPP21   1
+    XP2110    QCRP21    -1
+    XP2110    QGAP21    0.52899987
+    XP2110    QDSP21    0.2329998
+    XP2110    QRSP21    0.08099997
+    XP2110    QKJP21    0.035
+    XP2110    QNJP21    0.009
+    XP2110    QPFP21    0.01199999
+    XP2110    QLPP21    0.02
+    XP2110    QOTP21    0.11799991
+    XP2111    RCAPP21   1
+    XP2111    QCRP21    -1
+    XP2111    QGAP21    0.52399987
+    XP2111    QDSP21    0.2349999
+    XP2111    QRSP21    0.079
+    XP2111    QKJP21    0.035
+    XP2111    QNJP21    0.007
+    XP2111    QPFP21    0.01099999
+    XP2111    QLPP21    0.02099999
+    XP2111    QOTP21    0.12399995
+    XP2112    RCAPP21   1
+    XP2112    QCRP21    -1
+    XP2112    QGAP21    0.52799988
+    XP2112    QDSP21    0.22799987
+    XP2112    QRSP21    0.06999999
+    XP2112    QKJP21    0.03899999
+    XP2112    QNJP21    0.007
+    XP2112    QPFP21    0.009
+    XP2112    QLPP21    0.022
+    XP2112    QOTP21    0.13299996
+    XP2113    RCAPP21   1
+    XP2113    QCRP21    -1
+    XP2113    QGAP21    0.53299975
+    XP2113    QDSP21    0.22599983
+    XP2113    QRSP21    0.05699999
+    XP2113    QKJP21    0.04299999
+    XP2113    QNJP21    0.008
+    XP2113    QPFP21    0.009
+    XP2113    QLPP21    0.022
+    XP2113    QOTP21    0.13699996
+    XP2114    RCAPP21   1
+    XP2114    QCRP21    -1
+    XP2114    QGAP21    0.55099982
+    XP2114    QDSP21    0.20999992
+    XP2114    QRSP21    0.052
+    XP2114    QKJP21    0.042
+    XP2114    QNJP21    0.008
+    XP2114    QPFP21    0.00999999
+    XP2114    QLPP21    0.02299999
+    XP2114    QOTP21    0.13999993
+    XP2115    RCAPP21   1
+    XP2115    QCRP21    -1
+    XP2115    QGAP21    0.56099987
+    XP2115    QDSP21    0.19599986
+    XP2115    QRSP21    0.045
+    XP2115    QKJP21    0.03699999
+    XP2115    QNJP21    0.01199999
+    XP2115    QPFP21    0.00999999
+    XP2115    QLPP21    0.02299999
+    XP2115    QOTP21    0.1469999
+    XP2116    RCAPP21   1
+    XP2116    QCRP21    -1
+    XP2116    QGAP21    0.55799979
+    XP2116    QDSP21    0.20899987
+    XP2116    QRSP21    0.04099999
+    XP2116    QKJP21    0.03799999
+    XP2116    QNJP21    0.009
+    XP2116    QPFP21    0.008
+    XP2116    QLPP21    0.02299999
+    XP2116    QOTP21    0.14799994
+    XP2117    RCAPP21   1
+    XP2117    QCRP21    -1
+    XP2117    QGAP21    0.55499989
+    XP2117    QDSP21    0.20799977
+    XP2117    QRSP21    0.04299999
+    XP2117    QKJP21    0.03799999
+    XP2117    QNJP21    0.00999999
+    XP2117    QPFP21    0.009
+    XP2117    QLPP21    0.022
+    XP2117    QOTP21    0.14999998
+    XP2118    RCAPP21   1
+    XP2118    QCRP21    -1
+    XP2118    QGAP21    0.55299985
+    XP2118    QDSP21    0.21099985
+    XP2118    QRSP21    0.03599999
+    XP2118    QKJP21    0.035
+    XP2118    QNJP21    0.00999999
+    XP2118    QPFP21    0.008
+    XP2118    QLPP21    0.022
+    XP2118    QOTP21    0.15799999
+    XP2119    RCAPP21   1
+    XP2119    QCRP21    -1
+    XP2119    QGAP21    0.54799986
+    XP2119    QDSP21    0.21599984
+    XP2119    QRSP21    0.04
+    XP2119    QKJP21    0.03899999
+    XP2119    QNJP21    0.00999999
+    XP2119    QPFP21    0.009
+    XP2119    QLPP21    0.02299999
+    XP2119    QOTP21    0.15399998
+    XP2120    RCAPP21   1
+    XP2120    QCRP21    -1
+    XP2120    QGAP21    0.53799981
+    XP2120    QDSP21    0.22199988
+    XP2120    QRSP21    0.04399999
+    XP2120    QKJP21    0.03899999
+    XP2120    QNJP21    0.009
+    XP2120    QPFP21    0.009
+    XP2120    QLPP21    0.022
+    XP2120    QOTP21    0.1509999
+    XP2121    RCAPP21   1
+    XP2121    QCRP21    -1
+    XP2121    QGAP21    0.52099991
+    XP2121    QDSP21    0.24399984
+    XP2121    QRSP21    0.05699999
+    XP2121    QKJP21    0.03699999
+    XP2121    QNJP21    0.009
+    XP2121    QPFP21    0.009
+    XP2121    QLPP21    0.02
+    XP2121    QOTP21    0.13599992
+    XP2122    RCAPP21   1
+    XP2122    QCRP21    -1
+    XP2122    QGAP21    0.5169999
+    XP2122    QDSP21    0.25399989
+    XP2122    QRSP21    0.07099998
+    XP2122    QKJP21    0.03199999
+    XP2122    QNJP21    0.007
+    XP2122    QPFP21    0.009
+    XP2122    QLPP21    0.02099999
+    XP2122    QOTP21    0.11999995
+    XP2123    RCAPP21   1
+    XP2123    QCRP21    -1
+    XP2123    QGAP21    0.52699995
+    XP2123    QDSP21    0.24499995
+    XP2123    QRSP21    0.07299995
+    XP2123    QKJP21    0.035
+    XP2123    QNJP21    0.008
+    XP2123    QPFP21    0.008
+    XP2123    QLPP21    0.02
+    XP2123    QOTP21    0.12299991
+    XP2124    RCAPP21   1
+    XP2124    QCRP21    -1
+    XP2124    QGAP21    0.55999994
+    XP2124    QDSP21    0.20899987
+    XP2124    QRSP21    0.06099999
+    XP2124    QKJP21    0.03299999
+    XP2124    QNJP21    0.00999999
+    XP2124    QPFP21    0.008
+    XP2124    QLPP21    0.02099999
+    XP2124    QOTP21    0.13299996
+    XP221     RCAPP22   1
+    XP221     QCRP22    -1
+    XP221     QGAP22    0.5429998
+    XP221     QDSP22    0.2209999
+    XP221     QRSP22    0.05499999
+    XP221     QKJP22    0.03899999
+    XP221     QNJP22    0.01399999
+    XP221     QPFP22    0.00999999
+    XP221     QLPP22    0.02299999
+    XP221     QOTP22    0.13099992
+    XP222     RCAPP22   1
+    XP222     QCRP22    -1
+    XP222     QGAP22    0.53599983
+    XP222     QDSP22    0.21399993
+    XP222     QRSP22    0.052
+    XP222     QKJP22    0.04099999
+    XP222     QNJP22    0.01599999
+    XP222     QPFP22    0.00999999
+    XP222     QLPP22    0.02299999
+    XP222     QOTP22    0.13899994
+    XP223     RCAPP22   1
+    XP223     QCRP22    -1
+    XP223     QGAP22    0.53599983
+    XP223     QDSP22    0.21899986
+    XP223     QRSP22    0.04099999
+    XP223     QKJP22    0.042
+    XP223     QNJP22    0.01299999
+    XP223     QPFP22    0.009
+    XP223     QLPP22    0.022
+    XP223     QOTP22    0.1469999
+    XP224     RCAPP22   1
+    XP224     QCRP22    -1
+    XP224     QGAP22    0.55199993
+    XP224     QDSP22    0.2019999
+    XP224     QRSP22    0.04
+    XP224     QKJP22    0.03599999
+    XP224     QNJP22    0.015
+    XP224     QPFP22    0.01199999
+    XP224     QLPP22    0.022
+    XP224     QOTP22    0.1509999
+    XP225     RCAPP22   1
+    XP225     QCRP22    -1
+    XP225     QGAP22    0.54999995
+    XP225     QDSP22    0.21299982
+    XP225     QRSP22    0.03599999
+    XP225     QKJP22    0.03399999
+    XP225     QNJP22    0.01099999
+    XP225     QPFP22    0.01199999
+    XP225     QLPP22    0.02099999
+    XP225     QOTP22    0.14999998
+    XP226     RCAPP22   1
+    XP226     QCRP22    -1
+    XP226     QGAP22    0.54999995
+    XP226     QDSP22    0.20699996
+    XP226     QRSP22    0.03399999
+    XP226     QKJP22    0.03599999
+    XP226     QNJP22    0.01299999
+    XP226     QPFP22    0.01299999
+    XP226     QLPP22    0.02099999
+    XP226     QOTP22    0.15699995
+    XP227     RCAPP22   1
+    XP227     QCRP22    -1
+    XP227     QGAP22    0.55099982
+    XP227     QDSP22    0.21299982
+    XP227     QRSP22    0.04099999
+    XP227     QKJP22    0.03299999
+    XP227     QNJP22    0.01099999
+    XP227     QPFP22    0.01199999
+    XP227     QLPP22    0.02099999
+    XP227     QOTP22    0.15299994
+    XP228     RCAPP22   1
+    XP228     QCRP22    -1
+    XP228     QGAP22    0.54699993
+    XP228     QDSP22    0.21699989
+    XP228     QRSP22    0.04399999
+    XP228     QKJP22    0.03799999
+    XP228     QNJP22    0.01099999
+    XP228     QPFP22    0.01199999
+    XP228     QLPP22    0.02
+    XP228     QOTP22    0.14499998
+    XP229     RCAPP22   1
+    XP229     QCRP22    -1
+    XP229     QGAP22    0.55099982
+    XP229     QDSP22    0.21899986
+    XP229     QRSP22    0.05999999
+    XP229     QKJP22    0.03099999
+    XP229     QNJP22    0.01199999
+    XP229     QPFP22    0.01199999
+    XP229     QLPP22    0.02
+    XP229     QOTP22    0.13399988
+    XP2210    RCAPP22   1
+    XP2210    QCRP22    -1
+    XP2210    QGAP22    0.52899987
+    XP2210    QDSP22    0.2329998
+    XP2210    QRSP22    0.08099997
+    XP2210    QKJP22    0.035
+    XP2210    QNJP22    0.009
+    XP2210    QPFP22    0.01199999
+    XP2210    QLPP22    0.02
+    XP2210    QOTP22    0.11799991
+    XP2211    RCAPP22   1
+    XP2211    QCRP22    -1
+    XP2211    QGAP22    0.52399987
+    XP2211    QDSP22    0.2349999
+    XP2211    QRSP22    0.079
+    XP2211    QKJP22    0.035
+    XP2211    QNJP22    0.007
+    XP2211    QPFP22    0.01099999
+    XP2211    QLPP22    0.02099999
+    XP2211    QOTP22    0.12399995
+    XP2212    RCAPP22   1
+    XP2212    QCRP22    -1
+    XP2212    QGAP22    0.52799988
+    XP2212    QDSP22    0.22799987
+    XP2212    QRSP22    0.06999999
+    XP2212    QKJP22    0.03899999
+    XP2212    QNJP22    0.007
+    XP2212    QPFP22    0.009
+    XP2212    QLPP22    0.022
+    XP2212    QOTP22    0.13299996
+    XP2213    RCAPP22   1
+    XP2213    QCRP22    -1
+    XP2213    QGAP22    0.53299975
+    XP2213    QDSP22    0.22599983
+    XP2213    QRSP22    0.05699999
+    XP2213    QKJP22    0.04299999
+    XP2213    QNJP22    0.008
+    XP2213    QPFP22    0.009
+    XP2213    QLPP22    0.022
+    XP2213    QOTP22    0.13699996
+    XP2214    RCAPP22   1
+    XP2214    QCRP22    -1
+    XP2214    QGAP22    0.55099982
+    XP2214    QDSP22    0.20999992
+    XP2214    QRSP22    0.052
+    XP2214    QKJP22    0.042
+    XP2214    QNJP22    0.008
+    XP2214    QPFP22    0.00999999
+    XP2214    QLPP22    0.02299999
+    XP2214    QOTP22    0.13999993
+    XP2215    RCAPP22   1
+    XP2215    QCRP22    -1
+    XP2215    QGAP22    0.56099987
+    XP2215    QDSP22    0.19599986
+    XP2215    QRSP22    0.045
+    XP2215    QKJP22    0.03699999
+    XP2215    QNJP22    0.01199999
+    XP2215    QPFP22    0.00999999
+    XP2215    QLPP22    0.02299999
+    XP2215    QOTP22    0.1469999
+    XP2216    RCAPP22   1
+    XP2216    QCRP22    -1
+    XP2216    QGAP22    0.55799979
+    XP2216    QDSP22    0.20899987
+    XP2216    QRSP22    0.04099999
+    XP2216    QKJP22    0.03799999
+    XP2216    QNJP22    0.009
+    XP2216    QPFP22    0.008
+    XP2216    QLPP22    0.02299999
+    XP2216    QOTP22    0.14799994
+    XP2217    RCAPP22   1
+    XP2217    QCRP22    -1
+    XP2217    QGAP22    0.55499989
+    XP2217    QDSP22    0.20799977
+    XP2217    QRSP22    0.04299999
+    XP2217    QKJP22    0.03799999
+    XP2217    QNJP22    0.00999999
+    XP2217    QPFP22    0.009
+    XP2217    QLPP22    0.022
+    XP2217    QOTP22    0.14999998
+    XP2218    RCAPP22   1
+    XP2218    QCRP22    -1
+    XP2218    QGAP22    0.55299985
+    XP2218    QDSP22    0.21099985
+    XP2218    QRSP22    0.03599999
+    XP2218    QKJP22    0.035
+    XP2218    QNJP22    0.00999999
+    XP2218    QPFP22    0.008
+    XP2218    QLPP22    0.022
+    XP2218    QOTP22    0.15799999
+    XP2219    RCAPP22   1
+    XP2219    QCRP22    -1
+    XP2219    QGAP22    0.54799986
+    XP2219    QDSP22    0.21599984
+    XP2219    QRSP22    0.04
+    XP2219    QKJP22    0.03899999
+    XP2219    QNJP22    0.00999999
+    XP2219    QPFP22    0.009
+    XP2219    QLPP22    0.02299999
+    XP2219    QOTP22    0.15399998
+    XP2220    RCAPP22   1
+    XP2220    QCRP22    -1
+    XP2220    QGAP22    0.53799981
+    XP2220    QDSP22    0.22199988
+    XP2220    QRSP22    0.04399999
+    XP2220    QKJP22    0.03899999
+    XP2220    QNJP22    0.009
+    XP2220    QPFP22    0.009
+    XP2220    QLPP22    0.022
+    XP2220    QOTP22    0.1509999
+    XP2221    RCAPP22   1
+    XP2221    QCRP22    -1
+    XP2221    QGAP22    0.52099991
+    XP2221    QDSP22    0.24399984
+    XP2221    QRSP22    0.05699999
+    XP2221    QKJP22    0.03699999
+    XP2221    QNJP22    0.009
+    XP2221    QPFP22    0.009
+    XP2221    QLPP22    0.02
+    XP2221    QOTP22    0.13599992
+    XP2222    RCAPP22   1
+    XP2222    QCRP22    -1
+    XP2222    QGAP22    0.5169999
+    XP2222    QDSP22    0.25399989
+    XP2222    QRSP22    0.07099998
+    XP2222    QKJP22    0.03199999
+    XP2222    QNJP22    0.007
+    XP2222    QPFP22    0.009
+    XP2222    QLPP22    0.02099999
+    XP2222    QOTP22    0.11999995
+    XP2223    RCAPP22   1
+    XP2223    QCRP22    -1
+    XP2223    QGAP22    0.52699995
+    XP2223    QDSP22    0.24499995
+    XP2223    QRSP22    0.07299995
+    XP2223    QKJP22    0.035
+    XP2223    QNJP22    0.008
+    XP2223    QPFP22    0.008
+    XP2223    QLPP22    0.02
+    XP2223    QOTP22    0.12299991
+    XP2224    RCAPP22   1
+    XP2224    QCRP22    -1
+    XP2224    QGAP22    0.55999994
+    XP2224    QDSP22    0.20899987
+    XP2224    QRSP22    0.06099999
+    XP2224    QKJP22    0.03299999
+    XP2224    QNJP22    0.00999999
+    XP2224    QPFP22    0.008
+    XP2224    QLPP22    0.02099999
+    XP2224    QOTP22    0.13299996
+    XP231     RCAPP23   1
+    XP231     QCRP23    -1
+    XP231     QGAP23    0.5429998
+    XP231     QDSP23    0.2209999
+    XP231     QRSP23    0.05499999
+    XP231     QKJP23    0.03899999
+    XP231     QNJP23    0.01399999
+    XP231     QPFP23    0.00999999
+    XP231     QLPP23    0.02299999
+    XP231     QOTP23    0.13099992
+    XP232     RCAPP23   1
+    XP232     QCRP23    -1
+    XP232     QGAP23    0.53599983
+    XP232     QDSP23    0.21399993
+    XP232     QRSP23    0.052
+    XP232     QKJP23    0.04099999
+    XP232     QNJP23    0.01599999
+    XP232     QPFP23    0.00999999
+    XP232     QLPP23    0.02299999
+    XP232     QOTP23    0.13899994
+    XP233     RCAPP23   1
+    XP233     QCRP23    -1
+    XP233     QGAP23    0.53599983
+    XP233     QDSP23    0.21899986
+    XP233     QRSP23    0.04099999
+    XP233     QKJP23    0.042
+    XP233     QNJP23    0.01299999
+    XP233     QPFP23    0.009
+    XP233     QLPP23    0.022
+    XP233     QOTP23    0.1469999
+    XP234     RCAPP23   1
+    XP234     QCRP23    -1
+    XP234     QGAP23    0.55199993
+    XP234     QDSP23    0.2019999
+    XP234     QRSP23    0.04
+    XP234     QKJP23    0.03599999
+    XP234     QNJP23    0.015
+    XP234     QPFP23    0.01199999
+    XP234     QLPP23    0.022
+    XP234     QOTP23    0.1509999
+    XP235     RCAPP23   1
+    XP235     QCRP23    -1
+    XP235     QGAP23    0.54999995
+    XP235     QDSP23    0.21299982
+    XP235     QRSP23    0.03599999
+    XP235     QKJP23    0.03399999
+    XP235     QNJP23    0.01099999
+    XP235     QPFP23    0.01199999
+    XP235     QLPP23    0.02099999
+    XP235     QOTP23    0.14999998
+    XP236     RCAPP23   1
+    XP236     QCRP23    -1
+    XP236     QGAP23    0.54999995
+    XP236     QDSP23    0.20699996
+    XP236     QRSP23    0.03399999
+    XP236     QKJP23    0.03599999
+    XP236     QNJP23    0.01299999
+    XP236     QPFP23    0.01299999
+    XP236     QLPP23    0.02099999
+    XP236     QOTP23    0.15699995
+    XP237     RCAPP23   1
+    XP237     QCRP23    -1
+    XP237     QGAP23    0.55099982
+    XP237     QDSP23    0.21299982
+    XP237     QRSP23    0.04099999
+    XP237     QKJP23    0.03299999
+    XP237     QNJP23    0.01099999
+    XP237     QPFP23    0.01199999
+    XP237     QLPP23    0.02099999
+    XP237     QOTP23    0.15299994
+    XP238     RCAPP23   1
+    XP238     QCRP23    -1
+    XP238     QGAP23    0.54699993
+    XP238     QDSP23    0.21699989
+    XP238     QRSP23    0.04399999
+    XP238     QKJP23    0.03799999
+    XP238     QNJP23    0.01099999
+    XP238     QPFP23    0.01199999
+    XP238     QLPP23    0.02
+    XP238     QOTP23    0.14499998
+    XP239     RCAPP23   1
+    XP239     QCRP23    -1
+    XP239     QGAP23    0.55099982
+    XP239     QDSP23    0.21899986
+    XP239     QRSP23    0.05999999
+    XP239     QKJP23    0.03099999
+    XP239     QNJP23    0.01199999
+    XP239     QPFP23    0.01199999
+    XP239     QLPP23    0.02
+    XP239     QOTP23    0.13399988
+    XP2310    RCAPP23   1
+    XP2310    QCRP23    -1
+    XP2310    QGAP23    0.52899987
+    XP2310    QDSP23    0.2329998
+    XP2310    QRSP23    0.08099997
+    XP2310    QKJP23    0.035
+    XP2310    QNJP23    0.009
+    XP2310    QPFP23    0.01199999
+    XP2310    QLPP23    0.02
+    XP2310    QOTP23    0.11799991
+    XP2311    RCAPP23   1
+    XP2311    QCRP23    -1
+    XP2311    QGAP23    0.52399987
+    XP2311    QDSP23    0.2349999
+    XP2311    QRSP23    0.079
+    XP2311    QKJP23    0.035
+    XP2311    QNJP23    0.007
+    XP2311    QPFP23    0.01099999
+    XP2311    QLPP23    0.02099999
+    XP2311    QOTP23    0.12399995
+    XP2312    RCAPP23   1
+    XP2312    QCRP23    -1
+    XP2312    QGAP23    0.52799988
+    XP2312    QDSP23    0.22799987
+    XP2312    QRSP23    0.06999999
+    XP2312    QKJP23    0.03899999
+    XP2312    QNJP23    0.007
+    XP2312    QPFP23    0.009
+    XP2312    QLPP23    0.022
+    XP2312    QOTP23    0.13299996
+    XP2313    RCAPP23   1
+    XP2313    QCRP23    -1
+    XP2313    QGAP23    0.53299975
+    XP2313    QDSP23    0.22599983
+    XP2313    QRSP23    0.05699999
+    XP2313    QKJP23    0.04299999
+    XP2313    QNJP23    0.008
+    XP2313    QPFP23    0.009
+    XP2313    QLPP23    0.022
+    XP2313    QOTP23    0.13699996
+    XP2314    RCAPP23   1
+    XP2314    QCRP23    -1
+    XP2314    QGAP23    0.55099982
+    XP2314    QDSP23    0.20999992
+    XP2314    QRSP23    0.052
+    XP2314    QKJP23    0.042
+    XP2314    QNJP23    0.008
+    XP2314    QPFP23    0.00999999
+    XP2314    QLPP23    0.02299999
+    XP2314    QOTP23    0.13999993
+    XP2315    RCAPP23   1
+    XP2315    QCRP23    -1
+    XP2315    QGAP23    0.56099987
+    XP2315    QDSP23    0.19599986
+    XP2315    QRSP23    0.045
+    XP2315    QKJP23    0.03699999
+    XP2315    QNJP23    0.01199999
+    XP2315    QPFP23    0.00999999
+    XP2315    QLPP23    0.02299999
+    XP2315    QOTP23    0.1469999
+    XP2316    RCAPP23   1
+    XP2316    QCRP23    -1
+    XP2316    QGAP23    0.55799979
+    XP2316    QDSP23    0.20899987
+    XP2316    QRSP23    0.04099999
+    XP2316    QKJP23    0.03799999
+    XP2316    QNJP23    0.009
+    XP2316    QPFP23    0.008
+    XP2316    QLPP23    0.02299999
+    XP2316    QOTP23    0.14799994
+    XP2317    RCAPP23   1
+    XP2317    QCRP23    -1
+    XP2317    QGAP23    0.55499989
+    XP2317    QDSP23    0.20799977
+    XP2317    QRSP23    0.04299999
+    XP2317    QKJP23    0.03799999
+    XP2317    QNJP23    0.00999999
+    XP2317    QPFP23    0.009
+    XP2317    QLPP23    0.022
+    XP2317    QOTP23    0.14999998
+    XP2318    RCAPP23   1
+    XP2318    QCRP23    -1
+    XP2318    QGAP23    0.55299985
+    XP2318    QDSP23    0.21099985
+    XP2318    QRSP23    0.03599999
+    XP2318    QKJP23    0.035
+    XP2318    QNJP23    0.00999999
+    XP2318    QPFP23    0.008
+    XP2318    QLPP23    0.022
+    XP2318    QOTP23    0.15799999
+    XP2319    RCAPP23   1
+    XP2319    QCRP23    -1
+    XP2319    QGAP23    0.54799986
+    XP2319    QDSP23    0.21599984
+    XP2319    QRSP23    0.04
+    XP2319    QKJP23    0.03899999
+    XP2319    QNJP23    0.00999999
+    XP2319    QPFP23    0.009
+    XP2319    QLPP23    0.02299999
+    XP2319    QOTP23    0.15399998
+    XP2320    RCAPP23   1
+    XP2320    QCRP23    -1
+    XP2320    QGAP23    0.53799981
+    XP2320    QDSP23    0.22199988
+    XP2320    QRSP23    0.04399999
+    XP2320    QKJP23    0.03899999
+    XP2320    QNJP23    0.009
+    XP2320    QPFP23    0.009
+    XP2320    QLPP23    0.022
+    XP2320    QOTP23    0.1509999
+    XP2321    RCAPP23   1
+    XP2321    QCRP23    -1
+    XP2321    QGAP23    0.52099991
+    XP2321    QDSP23    0.24399984
+    XP2321    QRSP23    0.05699999
+    XP2321    QKJP23    0.03699999
+    XP2321    QNJP23    0.009
+    XP2321    QPFP23    0.009
+    XP2321    QLPP23    0.02
+    XP2321    QOTP23    0.13599992
+    XP2322    RCAPP23   1
+    XP2322    QCRP23    -1
+    XP2322    QGAP23    0.5169999
+    XP2322    QDSP23    0.25399989
+    XP2322    QRSP23    0.07099998
+    XP2322    QKJP23    0.03199999
+    XP2322    QNJP23    0.007
+    XP2322    QPFP23    0.009
+    XP2322    QLPP23    0.02099999
+    XP2322    QOTP23    0.11999995
+    XP2323    RCAPP23   1
+    XP2323    QCRP23    -1
+    XP2323    QGAP23    0.52699995
+    XP2323    QDSP23    0.24499995
+    XP2323    QRSP23    0.07299995
+    XP2323    QKJP23    0.035
+    XP2323    QNJP23    0.008
+    XP2323    QPFP23    0.008
+    XP2323    QLPP23    0.02
+    XP2323    QOTP23    0.12299991
+    XP2324    RCAPP23   1
+    XP2324    QCRP23    -1
+    XP2324    QGAP23    0.55999994
+    XP2324    QDSP23    0.20899987
+    XP2324    QRSP23    0.06099999
+    XP2324    QKJP23    0.03299999
+    XP2324    QNJP23    0.00999999
+    XP2324    QPFP23    0.008
+    XP2324    QLPP23    0.02099999
+    XP2324    QOTP23    0.13299996
+    XP241     RCAPP24   1
+    XP241     QCRP24    -1
+    XP241     QGAP24    0.5429998
+    XP241     QDSP24    0.2209999
+    XP241     QRSP24    0.05499999
+    XP241     QKJP24    0.03899999
+    XP241     QNJP24    0.01399999
+    XP241     QPFP24    0.00999999
+    XP241     QLPP24    0.02299999
+    XP241     QOTP24    0.13099992
+    XP242     RCAPP24   1
+    XP242     QCRP24    -1
+    XP242     QGAP24    0.53599983
+    XP242     QDSP24    0.21399993
+    XP242     QRSP24    0.052
+    XP242     QKJP24    0.04099999
+    XP242     QNJP24    0.01599999
+    XP242     QPFP24    0.00999999
+    XP242     QLPP24    0.02299999
+    XP242     QOTP24    0.13899994
+    XP243     RCAPP24   1
+    XP243     QCRP24    -1
+    XP243     QGAP24    0.53599983
+    XP243     QDSP24    0.21899986
+    XP243     QRSP24    0.04099999
+    XP243     QKJP24    0.042
+    XP243     QNJP24    0.01299999
+    XP243     QPFP24    0.009
+    XP243     QLPP24    0.022
+    XP243     QOTP24    0.1469999
+    XP244     RCAPP24   1
+    XP244     QCRP24    -1
+    XP244     QGAP24    0.55199993
+    XP244     QDSP24    0.2019999
+    XP244     QRSP24    0.04
+    XP244     QKJP24    0.03599999
+    XP244     QNJP24    0.015
+    XP244     QPFP24    0.01199999
+    XP244     QLPP24    0.022
+    XP244     QOTP24    0.1509999
+    XP245     RCAPP24   1
+    XP245     QCRP24    -1
+    XP245     QGAP24    0.54999995
+    XP245     QDSP24    0.21299982
+    XP245     QRSP24    0.03599999
+    XP245     QKJP24    0.03399999
+    XP245     QNJP24    0.01099999
+    XP245     QPFP24    0.01199999
+    XP245     QLPP24    0.02099999
+    XP245     QOTP24    0.14999998
+    XP246     RCAPP24   1
+    XP246     QCRP24    -1
+    XP246     QGAP24    0.54999995
+    XP246     QDSP24    0.20699996
+    XP246     QRSP24    0.03399999
+    XP246     QKJP24    0.03599999
+    XP246     QNJP24    0.01299999
+    XP246     QPFP24    0.01299999
+    XP246     QLPP24    0.02099999
+    XP246     QOTP24    0.15699995
+    XP247     RCAPP24   1
+    XP247     QCRP24    -1
+    XP247     QGAP24    0.55099982
+    XP247     QDSP24    0.21299982
+    XP247     QRSP24    0.04099999
+    XP247     QKJP24    0.03299999
+    XP247     QNJP24    0.01099999
+    XP247     QPFP24    0.01199999
+    XP247     QLPP24    0.02099999
+    XP247     QOTP24    0.15299994
+    XP248     RCAPP24   1
+    XP248     QCRP24    -1
+    XP248     QGAP24    0.54699993
+    XP248     QDSP24    0.21699989
+    XP248     QRSP24    0.04399999
+    XP248     QKJP24    0.03799999
+    XP248     QNJP24    0.01099999
+    XP248     QPFP24    0.01199999
+    XP248     QLPP24    0.02
+    XP248     QOTP24    0.14499998
+    XP249     RCAPP24   1
+    XP249     QCRP24    -1
+    XP249     QGAP24    0.55099982
+    XP249     QDSP24    0.21899986
+    XP249     QRSP24    0.05999999
+    XP249     QKJP24    0.03099999
+    XP249     QNJP24    0.01199999
+    XP249     QPFP24    0.01199999
+    XP249     QLPP24    0.02
+    XP249     QOTP24    0.13399988
+    XP2410    RCAPP24   1
+    XP2410    QCRP24    -1
+    XP2410    QGAP24    0.52899987
+    XP2410    QDSP24    0.2329998
+    XP2410    QRSP24    0.08099997
+    XP2410    QKJP24    0.035
+    XP2410    QNJP24    0.009
+    XP2410    QPFP24    0.01199999
+    XP2410    QLPP24    0.02
+    XP2410    QOTP24    0.11799991
+    XP2411    RCAPP24   1
+    XP2411    QCRP24    -1
+    XP2411    QGAP24    0.52399987
+    XP2411    QDSP24    0.2349999
+    XP2411    QRSP24    0.079
+    XP2411    QKJP24    0.035
+    XP2411    QNJP24    0.007
+    XP2411    QPFP24    0.01099999
+    XP2411    QLPP24    0.02099999
+    XP2411    QOTP24    0.12399995
+    XP2412    RCAPP24   1
+    XP2412    QCRP24    -1
+    XP2412    QGAP24    0.52799988
+    XP2412    QDSP24    0.22799987
+    XP2412    QRSP24    0.06999999
+    XP2412    QKJP24    0.03899999
+    XP2412    QNJP24    0.007
+    XP2412    QPFP24    0.009
+    XP2412    QLPP24    0.022
+    XP2412    QOTP24    0.13299996
+    XP2413    RCAPP24   1
+    XP2413    QCRP24    -1
+    XP2413    QGAP24    0.53299975
+    XP2413    QDSP24    0.22599983
+    XP2413    QRSP24    0.05699999
+    XP2413    QKJP24    0.04299999
+    XP2413    QNJP24    0.008
+    XP2413    QPFP24    0.009
+    XP2413    QLPP24    0.022
+    XP2413    QOTP24    0.13699996
+    XP2414    RCAPP24   1
+    XP2414    QCRP24    -1
+    XP2414    QGAP24    0.55099982
+    XP2414    QDSP24    0.20999992
+    XP2414    QRSP24    0.052
+    XP2414    QKJP24    0.042
+    XP2414    QNJP24    0.008
+    XP2414    QPFP24    0.00999999
+    XP2414    QLPP24    0.02299999
+    XP2414    QOTP24    0.13999993
+    XP2415    RCAPP24   1
+    XP2415    QCRP24    -1
+    XP2415    QGAP24    0.56099987
+    XP2415    QDSP24    0.19599986
+    XP2415    QRSP24    0.045
+    XP2415    QKJP24    0.03699999
+    XP2415    QNJP24    0.01199999
+    XP2415    QPFP24    0.00999999
+    XP2415    QLPP24    0.02299999
+    XP2415    QOTP24    0.1469999
+    XP2416    RCAPP24   1
+    XP2416    QCRP24    -1
+    XP2416    QGAP24    0.55799979
+    XP2416    QDSP24    0.20899987
+    XP2416    QRSP24    0.04099999
+    XP2416    QKJP24    0.03799999
+    XP2416    QNJP24    0.009
+    XP2416    QPFP24    0.008
+    XP2416    QLPP24    0.02299999
+    XP2416    QOTP24    0.14799994
+    XP2417    RCAPP24   1
+    XP2417    QCRP24    -1
+    XP2417    QGAP24    0.55499989
+    XP2417    QDSP24    0.20799977
+    XP2417    QRSP24    0.04299999
+    XP2417    QKJP24    0.03799999
+    XP2417    QNJP24    0.00999999
+    XP2417    QPFP24    0.009
+    XP2417    QLPP24    0.022
+    XP2417    QOTP24    0.14999998
+    XP2418    RCAPP24   1
+    XP2418    QCRP24    -1
+    XP2418    QGAP24    0.55299985
+    XP2418    QDSP24    0.21099985
+    XP2418    QRSP24    0.03599999
+    XP2418    QKJP24    0.035
+    XP2418    QNJP24    0.00999999
+    XP2418    QPFP24    0.008
+    XP2418    QLPP24    0.022
+    XP2418    QOTP24    0.15799999
+    XP2419    RCAPP24   1
+    XP2419    QCRP24    -1
+    XP2419    QGAP24    0.54799986
+    XP2419    QDSP24    0.21599984
+    XP2419    QRSP24    0.04
+    XP2419    QKJP24    0.03899999
+    XP2419    QNJP24    0.00999999
+    XP2419    QPFP24    0.009
+    XP2419    QLPP24    0.02299999
+    XP2419    QOTP24    0.15399998
+    XP2420    RCAPP24   1
+    XP2420    QCRP24    -1
+    XP2420    QGAP24    0.53799981
+    XP2420    QDSP24    0.22199988
+    XP2420    QRSP24    0.04399999
+    XP2420    QKJP24    0.03899999
+    XP2420    QNJP24    0.009
+    XP2420    QPFP24    0.009
+    XP2420    QLPP24    0.022
+    XP2420    QOTP24    0.1509999
+    XP2421    RCAPP24   1
+    XP2421    QCRP24    -1
+    XP2421    QGAP24    0.52099991
+    XP2421    QDSP24    0.24399984
+    XP2421    QRSP24    0.05699999
+    XP2421    QKJP24    0.03699999
+    XP2421    QNJP24    0.009
+    XP2421    QPFP24    0.009
+    XP2421    QLPP24    0.02
+    XP2421    QOTP24    0.13599992
+    XP2422    RCAPP24   1
+    XP2422    QCRP24    -1
+    XP2422    QGAP24    0.5169999
+    XP2422    QDSP24    0.25399989
+    XP2422    QRSP24    0.07099998
+    XP2422    QKJP24    0.03199999
+    XP2422    QNJP24    0.007
+    XP2422    QPFP24    0.009
+    XP2422    QLPP24    0.02099999
+    XP2422    QOTP24    0.11999995
+    XP2423    RCAPP24   1
+    XP2423    QCRP24    -1
+    XP2423    QGAP24    0.52699995
+    XP2423    QDSP24    0.24499995
+    XP2423    QRSP24    0.07299995
+    XP2423    QKJP24    0.035
+    XP2423    QNJP24    0.008
+    XP2423    QPFP24    0.008
+    XP2423    QLPP24    0.02
+    XP2423    QOTP24    0.12299991
+    XP2424    RCAPP24   1
+    XP2424    QCRP24    -1
+    XP2424    QGAP24    0.55999994
+    XP2424    QDSP24    0.20899987
+    XP2424    QRSP24    0.06099999
+    XP2424    QKJP24    0.03299999
+    XP2424    QNJP24    0.00999999
+    XP2424    QPFP24    0.008
+    XP2424    QLPP24    0.02099999
+    XP2424    QOTP24    0.13299996
+    XP251     RCAPP25   1
+    XP251     QCRP25    -1
+    XP251     QGAP25    0.5429998
+    XP251     QDSP25    0.2209999
+    XP251     QRSP25    0.05499999
+    XP251     QKJP25    0.03899999
+    XP251     QNJP25    0.01399999
+    XP251     QPFP25    0.00999999
+    XP251     QLPP25    0.02299999
+    XP251     QOTP25    0.13099992
+    XP252     RCAPP25   1
+    XP252     QCRP25    -1
+    XP252     QGAP25    0.53599983
+    XP252     QDSP25    0.21399993
+    XP252     QRSP25    0.052
+    XP252     QKJP25    0.04099999
+    XP252     QNJP25    0.01599999
+    XP252     QPFP25    0.00999999
+    XP252     QLPP25    0.02299999
+    XP252     QOTP25    0.13899994
+    XP253     RCAPP25   1
+    XP253     QCRP25    -1
+    XP253     QGAP25    0.53599983
+    XP253     QDSP25    0.21899986
+    XP253     QRSP25    0.04099999
+    XP253     QKJP25    0.042
+    XP253     QNJP25    0.01299999
+    XP253     QPFP25    0.009
+    XP253     QLPP25    0.022
+    XP253     QOTP25    0.1469999
+    XP254     RCAPP25   1
+    XP254     QCRP25    -1
+    XP254     QGAP25    0.55199993
+    XP254     QDSP25    0.2019999
+    XP254     QRSP25    0.04
+    XP254     QKJP25    0.03599999
+    XP254     QNJP25    0.015
+    XP254     QPFP25    0.01199999
+    XP254     QLPP25    0.022
+    XP254     QOTP25    0.1509999
+    XP255     RCAPP25   1
+    XP255     QCRP25    -1
+    XP255     QGAP25    0.54999995
+    XP255     QDSP25    0.21299982
+    XP255     QRSP25    0.03599999
+    XP255     QKJP25    0.03399999
+    XP255     QNJP25    0.01099999
+    XP255     QPFP25    0.01199999
+    XP255     QLPP25    0.02099999
+    XP255     QOTP25    0.14999998
+    XP256     RCAPP25   1
+    XP256     QCRP25    -1
+    XP256     QGAP25    0.54999995
+    XP256     QDSP25    0.20699996
+    XP256     QRSP25    0.03399999
+    XP256     QKJP25    0.03599999
+    XP256     QNJP25    0.01299999
+    XP256     QPFP25    0.01299999
+    XP256     QLPP25    0.02099999
+    XP256     QOTP25    0.15699995
+    XP257     RCAPP25   1
+    XP257     QCRP25    -1
+    XP257     QGAP25    0.55099982
+    XP257     QDSP25    0.21299982
+    XP257     QRSP25    0.04099999
+    XP257     QKJP25    0.03299999
+    XP257     QNJP25    0.01099999
+    XP257     QPFP25    0.01199999
+    XP257     QLPP25    0.02099999
+    XP257     QOTP25    0.15299994
+    XP258     RCAPP25   1
+    XP258     QCRP25    -1
+    XP258     QGAP25    0.54699993
+    XP258     QDSP25    0.21699989
+    XP258     QRSP25    0.04399999
+    XP258     QKJP25    0.03799999
+    XP258     QNJP25    0.01099999
+    XP258     QPFP25    0.01199999
+    XP258     QLPP25    0.02
+    XP258     QOTP25    0.14499998
+    XP259     RCAPP25   1
+    XP259     QCRP25    -1
+    XP259     QGAP25    0.55099982
+    XP259     QDSP25    0.21899986
+    XP259     QRSP25    0.05999999
+    XP259     QKJP25    0.03099999
+    XP259     QNJP25    0.01199999
+    XP259     QPFP25    0.01199999
+    XP259     QLPP25    0.02
+    XP259     QOTP25    0.13399988
+    XP2510    RCAPP25   1
+    XP2510    QCRP25    -1
+    XP2510    QGAP25    0.52899987
+    XP2510    QDSP25    0.2329998
+    XP2510    QRSP25    0.08099997
+    XP2510    QKJP25    0.035
+    XP2510    QNJP25    0.009
+    XP2510    QPFP25    0.01199999
+    XP2510    QLPP25    0.02
+    XP2510    QOTP25    0.11799991
+    XP2511    RCAPP25   1
+    XP2511    QCRP25    -1
+    XP2511    QGAP25    0.52399987
+    XP2511    QDSP25    0.2349999
+    XP2511    QRSP25    0.079
+    XP2511    QKJP25    0.035
+    XP2511    QNJP25    0.007
+    XP2511    QPFP25    0.01099999
+    XP2511    QLPP25    0.02099999
+    XP2511    QOTP25    0.12399995
+    XP2512    RCAPP25   1
+    XP2512    QCRP25    -1
+    XP2512    QGAP25    0.52799988
+    XP2512    QDSP25    0.22799987
+    XP2512    QRSP25    0.06999999
+    XP2512    QKJP25    0.03899999
+    XP2512    QNJP25    0.007
+    XP2512    QPFP25    0.009
+    XP2512    QLPP25    0.022
+    XP2512    QOTP25    0.13299996
+    XP2513    RCAPP25   1
+    XP2513    QCRP25    -1
+    XP2513    QGAP25    0.53299975
+    XP2513    QDSP25    0.22599983
+    XP2513    QRSP25    0.05699999
+    XP2513    QKJP25    0.04299999
+    XP2513    QNJP25    0.008
+    XP2513    QPFP25    0.009
+    XP2513    QLPP25    0.022
+    XP2513    QOTP25    0.13699996
+    XP2514    RCAPP25   1
+    XP2514    QCRP25    -1
+    XP2514    QGAP25    0.55099982
+    XP2514    QDSP25    0.20999992
+    XP2514    QRSP25    0.052
+    XP2514    QKJP25    0.042
+    XP2514    QNJP25    0.008
+    XP2514    QPFP25    0.00999999
+    XP2514    QLPP25    0.02299999
+    XP2514    QOTP25    0.13999993
+    XP2515    RCAPP25   1
+    XP2515    QCRP25    -1
+    XP2515    QGAP25    0.56099987
+    XP2515    QDSP25    0.19599986
+    XP2515    QRSP25    0.045
+    XP2515    QKJP25    0.03699999
+    XP2515    QNJP25    0.01199999
+    XP2515    QPFP25    0.00999999
+    XP2515    QLPP25    0.02299999
+    XP2515    QOTP25    0.1469999
+    XP2516    RCAPP25   1
+    XP2516    QCRP25    -1
+    XP2516    QGAP25    0.55799979
+    XP2516    QDSP25    0.20899987
+    XP2516    QRSP25    0.04099999
+    XP2516    QKJP25    0.03799999
+    XP2516    QNJP25    0.009
+    XP2516    QPFP25    0.008
+    XP2516    QLPP25    0.02299999
+    XP2516    QOTP25    0.14799994
+    XP2517    RCAPP25   1
+    XP2517    QCRP25    -1
+    XP2517    QGAP25    0.55499989
+    XP2517    QDSP25    0.20799977
+    XP2517    QRSP25    0.04299999
+    XP2517    QKJP25    0.03799999
+    XP2517    QNJP25    0.00999999
+    XP2517    QPFP25    0.009
+    XP2517    QLPP25    0.022
+    XP2517    QOTP25    0.14999998
+    XP2518    RCAPP25   1
+    XP2518    QCRP25    -1
+    XP2518    QGAP25    0.55299985
+    XP2518    QDSP25    0.21099985
+    XP2518    QRSP25    0.03599999
+    XP2518    QKJP25    0.035
+    XP2518    QNJP25    0.00999999
+    XP2518    QPFP25    0.008
+    XP2518    QLPP25    0.022
+    XP2518    QOTP25    0.15799999
+    XP2519    RCAPP25   1
+    XP2519    QCRP25    -1
+    XP2519    QGAP25    0.54799986
+    XP2519    QDSP25    0.21599984
+    XP2519    QRSP25    0.04
+    XP2519    QKJP25    0.03899999
+    XP2519    QNJP25    0.00999999
+    XP2519    QPFP25    0.009
+    XP2519    QLPP25    0.02299999
+    XP2519    QOTP25    0.15399998
+    XP2520    RCAPP25   1
+    XP2520    QCRP25    -1
+    XP2520    QGAP25    0.53799981
+    XP2520    QDSP25    0.22199988
+    XP2520    QRSP25    0.04399999
+    XP2520    QKJP25    0.03899999
+    XP2520    QNJP25    0.009
+    XP2520    QPFP25    0.009
+    XP2520    QLPP25    0.022
+    XP2520    QOTP25    0.1509999
+    XP2521    RCAPP25   1
+    XP2521    QCRP25    -1
+    XP2521    QGAP25    0.52099991
+    XP2521    QDSP25    0.24399984
+    XP2521    QRSP25    0.05699999
+    XP2521    QKJP25    0.03699999
+    XP2521    QNJP25    0.009
+    XP2521    QPFP25    0.009
+    XP2521    QLPP25    0.02
+    XP2521    QOTP25    0.13599992
+    XP2522    RCAPP25   1
+    XP2522    QCRP25    -1
+    XP2522    QGAP25    0.5169999
+    XP2522    QDSP25    0.25399989
+    XP2522    QRSP25    0.07099998
+    XP2522    QKJP25    0.03199999
+    XP2522    QNJP25    0.007
+    XP2522    QPFP25    0.009
+    XP2522    QLPP25    0.02099999
+    XP2522    QOTP25    0.11999995
+    XP2523    RCAPP25   1
+    XP2523    QCRP25    -1
+    XP2523    QGAP25    0.52699995
+    XP2523    QDSP25    0.24499995
+    XP2523    QRSP25    0.07299995
+    XP2523    QKJP25    0.035
+    XP2523    QNJP25    0.008
+    XP2523    QPFP25    0.008
+    XP2523    QLPP25    0.02
+    XP2523    QOTP25    0.12299991
+    XP2524    RCAPP25   1
+    XP2524    QCRP25    -1
+    XP2524    QGAP25    0.55999994
+    XP2524    QDSP25    0.20899987
+    XP2524    QRSP25    0.06099999
+    XP2524    QKJP25    0.03299999
+    XP2524    QNJP25    0.00999999
+    XP2524    QPFP25    0.008
+    XP2524    QLPP25    0.02099999
+    XP2524    QOTP25    0.13299996
+    XP261     RCAPP26   1
+    XP261     QCRP26    -1
+    XP261     QGAP26    0.5429998
+    XP261     QDSP26    0.2209999
+    XP261     QRSP26    0.05499999
+    XP261     QKJP26    0.03899999
+    XP261     QNJP26    0.01399999
+    XP261     QPFP26    0.00999999
+    XP261     QLPP26    0.02299999
+    XP261     QOTP26    0.13099992
+    XP262     RCAPP26   1
+    XP262     QCRP26    -1
+    XP262     QGAP26    0.53599983
+    XP262     QDSP26    0.21399993
+    XP262     QRSP26    0.052
+    XP262     QKJP26    0.04099999
+    XP262     QNJP26    0.01599999
+    XP262     QPFP26    0.00999999
+    XP262     QLPP26    0.02299999
+    XP262     QOTP26    0.13899994
+    XP263     RCAPP26   1
+    XP263     QCRP26    -1
+    XP263     QGAP26    0.53599983
+    XP263     QDSP26    0.21899986
+    XP263     QRSP26    0.04099999
+    XP263     QKJP26    0.042
+    XP263     QNJP26    0.01299999
+    XP263     QPFP26    0.009
+    XP263     QLPP26    0.022
+    XP263     QOTP26    0.1469999
+    XP264     RCAPP26   1
+    XP264     QCRP26    -1
+    XP264     QGAP26    0.55199993
+    XP264     QDSP26    0.2019999
+    XP264     QRSP26    0.04
+    XP264     QKJP26    0.03599999
+    XP264     QNJP26    0.015
+    XP264     QPFP26    0.01199999
+    XP264     QLPP26    0.022
+    XP264     QOTP26    0.1509999
+    XP265     RCAPP26   1
+    XP265     QCRP26    -1
+    XP265     QGAP26    0.54999995
+    XP265     QDSP26    0.21299982
+    XP265     QRSP26    0.03599999
+    XP265     QKJP26    0.03399999
+    XP265     QNJP26    0.01099999
+    XP265     QPFP26    0.01199999
+    XP265     QLPP26    0.02099999
+    XP265     QOTP26    0.14999998
+    XP266     RCAPP26   1
+    XP266     QCRP26    -1
+    XP266     QGAP26    0.54999995
+    XP266     QDSP26    0.20699996
+    XP266     QRSP26    0.03399999
+    XP266     QKJP26    0.03599999
+    XP266     QNJP26    0.01299999
+    XP266     QPFP26    0.01299999
+    XP266     QLPP26    0.02099999
+    XP266     QOTP26    0.15699995
+    XP267     RCAPP26   1
+    XP267     QCRP26    -1
+    XP267     QGAP26    0.55099982
+    XP267     QDSP26    0.21299982
+    XP267     QRSP26    0.04099999
+    XP267     QKJP26    0.03299999
+    XP267     QNJP26    0.01099999
+    XP267     QPFP26    0.01199999
+    XP267     QLPP26    0.02099999
+    XP267     QOTP26    0.15299994
+    XP268     RCAPP26   1
+    XP268     QCRP26    -1
+    XP268     QGAP26    0.54699993
+    XP268     QDSP26    0.21699989
+    XP268     QRSP26    0.04399999
+    XP268     QKJP26    0.03799999
+    XP268     QNJP26    0.01099999
+    XP268     QPFP26    0.01199999
+    XP268     QLPP26    0.02
+    XP268     QOTP26    0.14499998
+    XP269     RCAPP26   1
+    XP269     QCRP26    -1
+    XP269     QGAP26    0.55099982
+    XP269     QDSP26    0.21899986
+    XP269     QRSP26    0.05999999
+    XP269     QKJP26    0.03099999
+    XP269     QNJP26    0.01199999
+    XP269     QPFP26    0.01199999
+    XP269     QLPP26    0.02
+    XP269     QOTP26    0.13399988
+    XP2610    RCAPP26   1
+    XP2610    QCRP26    -1
+    XP2610    QGAP26    0.52899987
+    XP2610    QDSP26    0.2329998
+    XP2610    QRSP26    0.08099997
+    XP2610    QKJP26    0.035
+    XP2610    QNJP26    0.009
+    XP2610    QPFP26    0.01199999
+    XP2610    QLPP26    0.02
+    XP2610    QOTP26    0.11799991
+    XP2611    RCAPP26   1
+    XP2611    QCRP26    -1
+    XP2611    QGAP26    0.52399987
+    XP2611    QDSP26    0.2349999
+    XP2611    QRSP26    0.079
+    XP2611    QKJP26    0.035
+    XP2611    QNJP26    0.007
+    XP2611    QPFP26    0.01099999
+    XP2611    QLPP26    0.02099999
+    XP2611    QOTP26    0.12399995
+    XP2612    RCAPP26   1
+    XP2612    QCRP26    -1
+    XP2612    QGAP26    0.52799988
+    XP2612    QDSP26    0.22799987
+    XP2612    QRSP26    0.06999999
+    XP2612    QKJP26    0.03899999
+    XP2612    QNJP26    0.007
+    XP2612    QPFP26    0.009
+    XP2612    QLPP26    0.022
+    XP2612    QOTP26    0.13299996
+    XP2613    RCAPP26   1
+    XP2613    QCRP26    -1
+    XP2613    QGAP26    0.53299975
+    XP2613    QDSP26    0.22599983
+    XP2613    QRSP26    0.05699999
+    XP2613    QKJP26    0.04299999
+    XP2613    QNJP26    0.008
+    XP2613    QPFP26    0.009
+    XP2613    QLPP26    0.022
+    XP2613    QOTP26    0.13699996
+    XP2614    RCAPP26   1
+    XP2614    QCRP26    -1
+    XP2614    QGAP26    0.55099982
+    XP2614    QDSP26    0.20999992
+    XP2614    QRSP26    0.052
+    XP2614    QKJP26    0.042
+    XP2614    QNJP26    0.008
+    XP2614    QPFP26    0.00999999
+    XP2614    QLPP26    0.02299999
+    XP2614    QOTP26    0.13999993
+    XP2615    RCAPP26   1
+    XP2615    QCRP26    -1
+    XP2615    QGAP26    0.56099987
+    XP2615    QDSP26    0.19599986
+    XP2615    QRSP26    0.045
+    XP2615    QKJP26    0.03699999
+    XP2615    QNJP26    0.01199999
+    XP2615    QPFP26    0.00999999
+    XP2615    QLPP26    0.02299999
+    XP2615    QOTP26    0.1469999
+    XP2616    RCAPP26   1
+    XP2616    QCRP26    -1
+    XP2616    QGAP26    0.55799979
+    XP2616    QDSP26    0.20899987
+    XP2616    QRSP26    0.04099999
+    XP2616    QKJP26    0.03799999
+    XP2616    QNJP26    0.009
+    XP2616    QPFP26    0.008
+    XP2616    QLPP26    0.02299999
+    XP2616    QOTP26    0.14799994
+    XP2617    RCAPP26   1
+    XP2617    QCRP26    -1
+    XP2617    QGAP26    0.55499989
+    XP2617    QDSP26    0.20799977
+    XP2617    QRSP26    0.04299999
+    XP2617    QKJP26    0.03799999
+    XP2617    QNJP26    0.00999999
+    XP2617    QPFP26    0.009
+    XP2617    QLPP26    0.022
+    XP2617    QOTP26    0.14999998
+    XP2618    RCAPP26   1
+    XP2618    QCRP26    -1
+    XP2618    QGAP26    0.55299985
+    XP2618    QDSP26    0.21099985
+    XP2618    QRSP26    0.03599999
+    XP2618    QKJP26    0.035
+    XP2618    QNJP26    0.00999999
+    XP2618    QPFP26    0.008
+    XP2618    QLPP26    0.022
+    XP2618    QOTP26    0.15799999
+    XP2619    RCAPP26   1
+    XP2619    QCRP26    -1
+    XP2619    QGAP26    0.54799986
+    XP2619    QDSP26    0.21599984
+    XP2619    QRSP26    0.04
+    XP2619    QKJP26    0.03899999
+    XP2619    QNJP26    0.00999999
+    XP2619    QPFP26    0.009
+    XP2619    QLPP26    0.02299999
+    XP2619    QOTP26    0.15399998
+    XP2620    RCAPP26   1
+    XP2620    QCRP26    -1
+    XP2620    QGAP26    0.53799981
+    XP2620    QDSP26    0.22199988
+    XP2620    QRSP26    0.04399999
+    XP2620    QKJP26    0.03899999
+    XP2620    QNJP26    0.009
+    XP2620    QPFP26    0.009
+    XP2620    QLPP26    0.022
+    XP2620    QOTP26    0.1509999
+    XP2621    RCAPP26   1
+    XP2621    QCRP26    -1
+    XP2621    QGAP26    0.52099991
+    XP2621    QDSP26    0.24399984
+    XP2621    QRSP26    0.05699999
+    XP2621    QKJP26    0.03699999
+    XP2621    QNJP26    0.009
+    XP2621    QPFP26    0.009
+    XP2621    QLPP26    0.02
+    XP2621    QOTP26    0.13599992
+    XP2622    RCAPP26   1
+    XP2622    QCRP26    -1
+    XP2622    QGAP26    0.5169999
+    XP2622    QDSP26    0.25399989
+    XP2622    QRSP26    0.07099998
+    XP2622    QKJP26    0.03199999
+    XP2622    QNJP26    0.007
+    XP2622    QPFP26    0.009
+    XP2622    QLPP26    0.02099999
+    XP2622    QOTP26    0.11999995
+    XP2623    RCAPP26   1
+    XP2623    QCRP26    -1
+    XP2623    QGAP26    0.52699995
+    XP2623    QDSP26    0.24499995
+    XP2623    QRSP26    0.07299995
+    XP2623    QKJP26    0.035
+    XP2623    QNJP26    0.008
+    XP2623    QPFP26    0.008
+    XP2623    QLPP26    0.02
+    XP2623    QOTP26    0.12299991
+    XP2624    RCAPP26   1
+    XP2624    QCRP26    -1
+    XP2624    QGAP26    0.55999994
+    XP2624    QDSP26    0.20899987
+    XP2624    QRSP26    0.06099999
+    XP2624    QKJP26    0.03299999
+    XP2624    QNJP26    0.00999999
+    XP2624    QPFP26    0.008
+    XP2624    QLPP26    0.02099999
+    XP2624    QOTP26    0.13299996
+    XP271     RCAPP27   1
+    XP271     QCRP27    -1
+    XP271     QGAP27    0.5429998
+    XP271     QDSP27    0.2209999
+    XP271     QRSP27    0.05499999
+    XP271     QKJP27    0.03899999
+    XP271     QNJP27    0.01399999
+    XP271     QPFP27    0.00999999
+    XP271     QLPP27    0.02299999
+    XP271     QOTP27    0.13099992
+    XP272     RCAPP27   1
+    XP272     QCRP27    -1
+    XP272     QGAP27    0.53599983
+    XP272     QDSP27    0.21399993
+    XP272     QRSP27    0.052
+    XP272     QKJP27    0.04099999
+    XP272     QNJP27    0.01599999
+    XP272     QPFP27    0.00999999
+    XP272     QLPP27    0.02299999
+    XP272     QOTP27    0.13899994
+    XP273     RCAPP27   1
+    XP273     QCRP27    -1
+    XP273     QGAP27    0.53599983
+    XP273     QDSP27    0.21899986
+    XP273     QRSP27    0.04099999
+    XP273     QKJP27    0.042
+    XP273     QNJP27    0.01299999
+    XP273     QPFP27    0.009
+    XP273     QLPP27    0.022
+    XP273     QOTP27    0.1469999
+    XP274     RCAPP27   1
+    XP274     QCRP27    -1
+    XP274     QGAP27    0.55199993
+    XP274     QDSP27    0.2019999
+    XP274     QRSP27    0.04
+    XP274     QKJP27    0.03599999
+    XP274     QNJP27    0.015
+    XP274     QPFP27    0.01199999
+    XP274     QLPP27    0.022
+    XP274     QOTP27    0.1509999
+    XP275     RCAPP27   1
+    XP275     QCRP27    -1
+    XP275     QGAP27    0.54999995
+    XP275     QDSP27    0.21299982
+    XP275     QRSP27    0.03599999
+    XP275     QKJP27    0.03399999
+    XP275     QNJP27    0.01099999
+    XP275     QPFP27    0.01199999
+    XP275     QLPP27    0.02099999
+    XP275     QOTP27    0.14999998
+    XP276     RCAPP27   1
+    XP276     QCRP27    -1
+    XP276     QGAP27    0.54999995
+    XP276     QDSP27    0.20699996
+    XP276     QRSP27    0.03399999
+    XP276     QKJP27    0.03599999
+    XP276     QNJP27    0.01299999
+    XP276     QPFP27    0.01299999
+    XP276     QLPP27    0.02099999
+    XP276     QOTP27    0.15699995
+    XP277     RCAPP27   1
+    XP277     QCRP27    -1
+    XP277     QGAP27    0.55099982
+    XP277     QDSP27    0.21299982
+    XP277     QRSP27    0.04099999
+    XP277     QKJP27    0.03299999
+    XP277     QNJP27    0.01099999
+    XP277     QPFP27    0.01199999
+    XP277     QLPP27    0.02099999
+    XP277     QOTP27    0.15299994
+    XP278     RCAPP27   1
+    XP278     QCRP27    -1
+    XP278     QGAP27    0.54699993
+    XP278     QDSP27    0.21699989
+    XP278     QRSP27    0.04399999
+    XP278     QKJP27    0.03799999
+    XP278     QNJP27    0.01099999
+    XP278     QPFP27    0.01199999
+    XP278     QLPP27    0.02
+    XP278     QOTP27    0.14499998
+    XP279     RCAPP27   1
+    XP279     QCRP27    -1
+    XP279     QGAP27    0.55099982
+    XP279     QDSP27    0.21899986
+    XP279     QRSP27    0.05999999
+    XP279     QKJP27    0.03099999
+    XP279     QNJP27    0.01199999
+    XP279     QPFP27    0.01199999
+    XP279     QLPP27    0.02
+    XP279     QOTP27    0.13399988
+    XP2710    RCAPP27   1
+    XP2710    QCRP27    -1
+    XP2710    QGAP27    0.52899987
+    XP2710    QDSP27    0.2329998
+    XP2710    QRSP27    0.08099997
+    XP2710    QKJP27    0.035
+    XP2710    QNJP27    0.009
+    XP2710    QPFP27    0.01199999
+    XP2710    QLPP27    0.02
+    XP2710    QOTP27    0.11799991
+    XP2711    RCAPP27   1
+    XP2711    QCRP27    -1
+    XP2711    QGAP27    0.52399987
+    XP2711    QDSP27    0.2349999
+    XP2711    QRSP27    0.079
+    XP2711    QKJP27    0.035
+    XP2711    QNJP27    0.007
+    XP2711    QPFP27    0.01099999
+    XP2711    QLPP27    0.02099999
+    XP2711    QOTP27    0.12399995
+    XP2712    RCAPP27   1
+    XP2712    QCRP27    -1
+    XP2712    QGAP27    0.52799988
+    XP2712    QDSP27    0.22799987
+    XP2712    QRSP27    0.06999999
+    XP2712    QKJP27    0.03899999
+    XP2712    QNJP27    0.007
+    XP2712    QPFP27    0.009
+    XP2712    QLPP27    0.022
+    XP2712    QOTP27    0.13299996
+    XP2713    RCAPP27   1
+    XP2713    QCRP27    -1
+    XP2713    QGAP27    0.53299975
+    XP2713    QDSP27    0.22599983
+    XP2713    QRSP27    0.05699999
+    XP2713    QKJP27    0.04299999
+    XP2713    QNJP27    0.008
+    XP2713    QPFP27    0.009
+    XP2713    QLPP27    0.022
+    XP2713    QOTP27    0.13699996
+    XP2714    RCAPP27   1
+    XP2714    QCRP27    -1
+    XP2714    QGAP27    0.55099982
+    XP2714    QDSP27    0.20999992
+    XP2714    QRSP27    0.052
+    XP2714    QKJP27    0.042
+    XP2714    QNJP27    0.008
+    XP2714    QPFP27    0.00999999
+    XP2714    QLPP27    0.02299999
+    XP2714    QOTP27    0.13999993
+    XP2715    RCAPP27   1
+    XP2715    QCRP27    -1
+    XP2715    QGAP27    0.56099987
+    XP2715    QDSP27    0.19599986
+    XP2715    QRSP27    0.045
+    XP2715    QKJP27    0.03699999
+    XP2715    QNJP27    0.01199999
+    XP2715    QPFP27    0.00999999
+    XP2715    QLPP27    0.02299999
+    XP2715    QOTP27    0.1469999
+    XP2716    RCAPP27   1
+    XP2716    QCRP27    -1
+    XP2716    QGAP27    0.55799979
+    XP2716    QDSP27    0.20899987
+    XP2716    QRSP27    0.04099999
+    XP2716    QKJP27    0.03799999
+    XP2716    QNJP27    0.009
+    XP2716    QPFP27    0.008
+    XP2716    QLPP27    0.02299999
+    XP2716    QOTP27    0.14799994
+    XP2717    RCAPP27   1
+    XP2717    QCRP27    -1
+    XP2717    QGAP27    0.55499989
+    XP2717    QDSP27    0.20799977
+    XP2717    QRSP27    0.04299999
+    XP2717    QKJP27    0.03799999
+    XP2717    QNJP27    0.00999999
+    XP2717    QPFP27    0.009
+    XP2717    QLPP27    0.022
+    XP2717    QOTP27    0.14999998
+    XP2718    RCAPP27   1
+    XP2718    QCRP27    -1
+    XP2718    QGAP27    0.55299985
+    XP2718    QDSP27    0.21099985
+    XP2718    QRSP27    0.03599999
+    XP2718    QKJP27    0.035
+    XP2718    QNJP27    0.00999999
+    XP2718    QPFP27    0.008
+    XP2718    QLPP27    0.022
+    XP2718    QOTP27    0.15799999
+    XP2719    RCAPP27   1
+    XP2719    QCRP27    -1
+    XP2719    QGAP27    0.54799986
+    XP2719    QDSP27    0.21599984
+    XP2719    QRSP27    0.04
+    XP2719    QKJP27    0.03899999
+    XP2719    QNJP27    0.00999999
+    XP2719    QPFP27    0.009
+    XP2719    QLPP27    0.02299999
+    XP2719    QOTP27    0.15399998
+    XP2720    RCAPP27   1
+    XP2720    QCRP27    -1
+    XP2720    QGAP27    0.53799981
+    XP2720    QDSP27    0.22199988
+    XP2720    QRSP27    0.04399999
+    XP2720    QKJP27    0.03899999
+    XP2720    QNJP27    0.009
+    XP2720    QPFP27    0.009
+    XP2720    QLPP27    0.022
+    XP2720    QOTP27    0.1509999
+    XP2721    RCAPP27   1
+    XP2721    QCRP27    -1
+    XP2721    QGAP27    0.52099991
+    XP2721    QDSP27    0.24399984
+    XP2721    QRSP27    0.05699999
+    XP2721    QKJP27    0.03699999
+    XP2721    QNJP27    0.009
+    XP2721    QPFP27    0.009
+    XP2721    QLPP27    0.02
+    XP2721    QOTP27    0.13599992
+    XP2722    RCAPP27   1
+    XP2722    QCRP27    -1
+    XP2722    QGAP27    0.5169999
+    XP2722    QDSP27    0.25399989
+    XP2722    QRSP27    0.07099998
+    XP2722    QKJP27    0.03199999
+    XP2722    QNJP27    0.007
+    XP2722    QPFP27    0.009
+    XP2722    QLPP27    0.02099999
+    XP2722    QOTP27    0.11999995
+    XP2723    RCAPP27   1
+    XP2723    QCRP27    -1
+    XP2723    QGAP27    0.52699995
+    XP2723    QDSP27    0.24499995
+    XP2723    QRSP27    0.07299995
+    XP2723    QKJP27    0.035
+    XP2723    QNJP27    0.008
+    XP2723    QPFP27    0.008
+    XP2723    QLPP27    0.02
+    XP2723    QOTP27    0.12299991
+    XP2724    RCAPP27   1
+    XP2724    QCRP27    -1
+    XP2724    QGAP27    0.55999994
+    XP2724    QDSP27    0.20899987
+    XP2724    QRSP27    0.06099999
+    XP2724    QKJP27    0.03299999
+    XP2724    QNJP27    0.00999999
+    XP2724    QPFP27    0.008
+    XP2724    QLPP27    0.02099999
+    XP2724    QOTP27    0.13299996
+    XP281     RCAPP28   1
+    XP281     QCRP28    1
+    XP281     QGAP28    0.5429998
+    XP281     QDSP28    0.2209999
+    XP281     QRSP28    0.05499999
+    XP281     QKJP28    -0.03899999
+    XP281     QNJP28    -0.01399999
+    XP281     QPFP28    -0.00999999
+    XP281     QLPP28    -0.02299999
+    XP281     QOTP28    0.13099992
+    XP282     RCAPP28   1
+    XP282     QCRP28    1
+    XP282     QGAP28    0.53599983
+    XP282     QDSP28    0.21399993
+    XP282     QRSP28    0.052
+    XP282     QKJP28    -0.04099999
+    XP282     QNJP28    -0.01599999
+    XP282     QPFP28    -0.00999999
+    XP282     QLPP28    -0.02299999
+    XP282     QOTP28    0.13899994
+    XP283     RCAPP28   1
+    XP283     QCRP28    1
+    XP283     QGAP28    0.53599983
+    XP283     QDSP28    0.21899986
+    XP283     QRSP28    0.04099999
+    XP283     QKJP28    -0.042
+    XP283     QNJP28    -0.01299999
+    XP283     QPFP28    -0.009
+    XP283     QLPP28    -0.022
+    XP283     QOTP28    0.1469999
+    XP284     RCAPP28   1
+    XP284     QCRP28    1
+    XP284     QGAP28    0.55199993
+    XP284     QDSP28    0.2019999
+    XP284     QRSP28    0.04
+    XP284     QKJP28    -0.03599999
+    XP284     QNJP28    -0.015
+    XP284     QPFP28    -0.01199999
+    XP284     QLPP28    -0.022
+    XP284     QOTP28    0.1509999
+    XP285     RCAPP28   1
+    XP285     QCRP28    1
+    XP285     QGAP28    0.54999995
+    XP285     QDSP28    0.21299982
+    XP285     QRSP28    0.03599999
+    XP285     QKJP28    -0.03399999
+    XP285     QNJP28    -0.01099999
+    XP285     QPFP28    -0.01199999
+    XP285     QLPP28    -0.02099999
+    XP285     QOTP28    0.14999998
+    XP286     RCAPP28   1
+    XP286     QCRP28    1
+    XP286     QGAP28    0.54999995
+    XP286     QDSP28    0.20699996
+    XP286     QRSP28    0.03399999
+    XP286     QKJP28    -0.03599999
+    XP286     QNJP28    -0.01299999
+    XP286     QPFP28    -0.01299999
+    XP286     QLPP28    -0.02099999
+    XP286     QOTP28    0.15699995
+    XP287     RCAPP28   1
+    XP287     QCRP28    1
+    XP287     QGAP28    0.55099982
+    XP287     QDSP28    0.21299982
+    XP287     QRSP28    0.04099999
+    XP287     QKJP28    -0.03299999
+    XP287     QNJP28    -0.01099999
+    XP287     QPFP28    -0.01199999
+    XP287     QLPP28    -0.02099999
+    XP287     QOTP28    0.15299994
+    XP288     RCAPP28   1
+    XP288     QCRP28    1
+    XP288     QGAP28    0.54699993
+    XP288     QDSP28    0.21699989
+    XP288     QRSP28    0.04399999
+    XP288     QKJP28    -0.03799999
+    XP288     QNJP28    -0.01099999
+    XP288     QPFP28    -0.01199999
+    XP288     QLPP28    -0.02
+    XP288     QOTP28    0.14499998
+    XP289     RCAPP28   1
+    XP289     QCRP28    1
+    XP289     QGAP28    0.55099982
+    XP289     QDSP28    0.21899986
+    XP289     QRSP28    0.05999999
+    XP289     QKJP28    -0.03099999
+    XP289     QNJP28    -0.01199999
+    XP289     QPFP28    -0.01199999
+    XP289     QLPP28    -0.02
+    XP289     QOTP28    0.13399988
+    XP2810    RCAPP28   1
+    XP2810    QCRP28    1
+    XP2810    QGAP28    0.52899987
+    XP2810    QDSP28    0.2329998
+    XP2810    QRSP28    0.08099997
+    XP2810    QKJP28    -0.035
+    XP2810    QNJP28    -0.009
+    XP2810    QPFP28    -0.01199999
+    XP2810    QLPP28    -0.02
+    XP2810    QOTP28    0.11799991
+    XP2811    RCAPP28   1
+    XP2811    QCRP28    1
+    XP2811    QGAP28    0.52399987
+    XP2811    QDSP28    0.2349999
+    XP2811    QRSP28    0.079
+    XP2811    QKJP28    -0.035
+    XP2811    QNJP28    -0.007
+    XP2811    QPFP28    -0.01099999
+    XP2811    QLPP28    -0.02099999
+    XP2811    QOTP28    0.12399995
+    XP2812    RCAPP28   1
+    XP2812    QCRP28    1
+    XP2812    QGAP28    0.52799988
+    XP2812    QDSP28    0.22799987
+    XP2812    QRSP28    0.06999999
+    XP2812    QKJP28    -0.03899999
+    XP2812    QNJP28    -0.007
+    XP2812    QPFP28    -0.009
+    XP2812    QLPP28    -0.022
+    XP2812    QOTP28    0.13299996
+    XP2813    RCAPP28   1
+    XP2813    QCRP28    1
+    XP2813    QGAP28    0.53299975
+    XP2813    QDSP28    0.22599983
+    XP2813    QRSP28    0.05699999
+    XP2813    QKJP28    -0.04299999
+    XP2813    QNJP28    -0.008
+    XP2813    QPFP28    -0.009
+    XP2813    QLPP28    -0.022
+    XP2813    QOTP28    0.13699996
+    XP2814    RCAPP28   1
+    XP2814    QCRP28    1
+    XP2814    QGAP28    0.55099982
+    XP2814    QDSP28    0.20999992
+    XP2814    QRSP28    0.052
+    XP2814    QKJP28    -0.042
+    XP2814    QNJP28    -0.008
+    XP2814    QPFP28    -0.00999999
+    XP2814    QLPP28    -0.02299999
+    XP2814    QOTP28    0.13999993
+    XP2815    RCAPP28   1
+    XP2815    QCRP28    1
+    XP2815    QGAP28    0.56099987
+    XP2815    QDSP28    0.19599986
+    XP2815    QRSP28    0.045
+    XP2815    QKJP28    -0.03699999
+    XP2815    QNJP28    -0.01199999
+    XP2815    QPFP28    -0.00999999
+    XP2815    QLPP28    -0.02299999
+    XP2815    QOTP28    0.1469999
+    XP2816    RCAPP28   1
+    XP2816    QCRP28    1
+    XP2816    QGAP28    0.55799979
+    XP2816    QDSP28    0.20899987
+    XP2816    QRSP28    0.04099999
+    XP2816    QKJP28    -0.03799999
+    XP2816    QNJP28    -0.009
+    XP2816    QPFP28    -0.008
+    XP2816    QLPP28    -0.02299999
+    XP2816    QOTP28    0.14799994
+    XP2817    RCAPP28   1
+    XP2817    QCRP28    1
+    XP2817    QGAP28    0.55499989
+    XP2817    QDSP28    0.20799977
+    XP2817    QRSP28    0.04299999
+    XP2817    QKJP28    -0.03799999
+    XP2817    QNJP28    -0.00999999
+    XP2817    QPFP28    -0.009
+    XP2817    QLPP28    -0.022
+    XP2817    QOTP28    0.14999998
+    XP2818    RCAPP28   1
+    XP2818    QCRP28    1
+    XP2818    QGAP28    0.55299985
+    XP2818    QDSP28    0.21099985
+    XP2818    QRSP28    0.03599999
+    XP2818    QKJP28    -0.035
+    XP2818    QNJP28    -0.00999999
+    XP2818    QPFP28    -0.008
+    XP2818    QLPP28    -0.022
+    XP2818    QOTP28    0.15799999
+    XP2819    RCAPP28   1
+    XP2819    QCRP28    1
+    XP2819    QGAP28    0.54799986
+    XP2819    QDSP28    0.21599984
+    XP2819    QRSP28    0.04
+    XP2819    QKJP28    -0.03899999
+    XP2819    QNJP28    -0.00999999
+    XP2819    QPFP28    -0.009
+    XP2819    QLPP28    -0.02299999
+    XP2819    QOTP28    0.15399998
+    XP2820    RCAPP28   1
+    XP2820    QCRP28    1
+    XP2820    QGAP28    0.53799981
+    XP2820    QDSP28    0.22199988
+    XP2820    QRSP28    0.04399999
+    XP2820    QKJP28    -0.03899999
+    XP2820    QNJP28    -0.009
+    XP2820    QPFP28    -0.009
+    XP2820    QLPP28    -0.022
+    XP2820    QOTP28    0.1509999
+    XP2821    RCAPP28   1
+    XP2821    QCRP28    1
+    XP2821    QGAP28    0.52099991
+    XP2821    QDSP28    0.24399984
+    XP2821    QRSP28    0.05699999
+    XP2821    QKJP28    -0.03699999
+    XP2821    QNJP28    -0.009
+    XP2821    QPFP28    -0.009
+    XP2821    QLPP28    -0.02
+    XP2821    QOTP28    0.13599992
+    XP2822    RCAPP28   1
+    XP2822    QCRP28    1
+    XP2822    QGAP28    0.5169999
+    XP2822    QDSP28    0.25399989
+    XP2822    QRSP28    0.07099998
+    XP2822    QKJP28    -0.03199999
+    XP2822    QNJP28    -0.007
+    XP2822    QPFP28    -0.009
+    XP2822    QLPP28    -0.02099999
+    XP2822    QOTP28    0.11999995
+    XP2823    RCAPP28   1
+    XP2823    QCRP28    1
+    XP2823    QGAP28    0.52699995
+    XP2823    QDSP28    0.24499995
+    XP2823    QRSP28    0.07299995
+    XP2823    QKJP28    -0.035
+    XP2823    QNJP28    -0.008
+    XP2823    QPFP28    -0.008
+    XP2823    QLPP28    -0.02
+    XP2823    QOTP28    0.12299991
+    XP2824    RCAPP28   1
+    XP2824    QCRP28    1
+    XP2824    QGAP28    0.55999994
+    XP2824    QDSP28    0.20899987
+    XP2824    QRSP28    0.06099999
+    XP2824    QKJP28    -0.03299999
+    XP2824    QNJP28    -0.00999999
+    XP2824    QPFP28    -0.008
+    XP2824    QLPP28    -0.02099999
+    XP2824    QOTP28    0.13299996
+    XP311     RCAPP31   1
+    XP311     QCRP31    -1
+    XP311     QGAP31    0.47299981
+    XP311     QDSP31    0.22899985
+    XP311     QRSP31    0.03199999
+    XP311     QKJP31    0.06299996
+    XP311     QNJP31    0.01799999
+    XP311     QPFP31    0.04599999
+    XP311     QLPP31    0.03199999
+    XP311     QOTP31    0.14399993
+    XP312     RCAPP31   1
+    XP312     QCRP31    -1
+    XP312     QGAP31    0.48099983
+    XP312     QDSP31    0.21799982
+    XP312     QRSP31    0.03099999
+    XP312     QKJP31    0.05899999
+    XP312     QNJP31    0.01799999
+    XP312     QPFP31    0.05499999
+    XP312     QLPP31    0.03199999
+    XP312     QOTP31    0.14299989
+    XP313     RCAPP31   1
+    XP313     QCRP31    -1
+    XP313     QGAP31    0.47799987
+    XP313     QDSP31    0.22599983
+    XP313     QRSP31    0.025
+    XP313     QKJP31    0.06099999
+    XP313     QNJP31    0.01699999
+    XP313     QPFP31    0.04899999
+    XP313     QLPP31    0.03199999
+    XP313     QOTP31    0.1419999
+    XP314     RCAPP31   1
+    XP314     QCRP31    -1
+    XP314     QGAP31    0.47899985
+    XP314     QDSP31    0.22599983
+    XP314     QRSP31    0.03099999
+    XP314     QKJP31    0.05399999
+    XP314     QNJP31    0.01699999
+    XP314     QPFP31    0.04299999
+    XP314     QLPP31    0.02999999
+    XP314     QOTP31    0.14399993
+    XP315     RCAPP31   1
+    XP315     QCRP31    -1
+    XP315     QGAP31    0.5
+    XP315     QDSP31    0.20699996
+    XP315     QRSP31    0.02799999
+    XP315     QKJP31    0.05799999
+    XP315     QNJP31    0.01299999
+    XP315     QPFP31    0.045
+    XP315     QLPP31    0.03199999
+    XP315     QOTP31    0.1419999
+    XP316     RCAPP31   1
+    XP316     QCRP31    -1
+    XP316     QGAP31    0.49299979
+    XP316     QDSP31    0.20999992
+    XP316     QRSP31    0.03299999
+    XP316     QKJP31    0.05299999
+    XP316     QNJP31    0.01599999
+    XP316     QPFP31    0.05
+    XP316     QLPP31    0.03099999
+    XP316     QOTP31    0.14899993
+    XP317     RCAPP31   1
+    XP317     QCRP31    -1
+    XP317     QGAP31    0.49799985
+    XP317     QDSP31    0.20799977
+    XP317     QRSP31    0.03399999
+    XP317     QKJP31    0.05299999
+    XP317     QNJP31    0.01099999
+    XP317     QPFP31    0.04599999
+    XP317     QLPP31    0.027
+    XP317     QOTP31    0.14999998
+    XP318     RCAPP31   1
+    XP318     QCRP31    -1
+    XP318     QGAP31    0.49299979
+    XP318     QDSP31    0.21999997
+    XP318     QRSP31    0.03399999
+    XP318     QKJP31    0.05599999
+    XP318     QNJP31    0.01199999
+    XP318     QPFP31    0.05
+    XP318     QLPP31    0.027
+    XP318     QOTP31    0.14399993
+    XP319     RCAPP31   1
+    XP319     QCRP31    -1
+    XP319     QGAP31    0.48199993
+    XP319     QDSP31    0.21799982
+    XP319     QRSP31    0.04
+    XP319     QKJP31    0.052
+    XP319     QNJP31    0.01099999
+    XP319     QPFP31    0.052
+    XP319     QLPP31    0.027
+    XP319     QOTP31    0.1469999
+    XP3110    RCAPP31   1
+    XP3110    QCRP31    -1
+    XP3110    QGAP31    0.46999997
+    XP3110    QDSP31    0.22499996
+    XP3110    QRSP31    0.04699999
+    XP3110    QKJP31    0.05099999
+    XP3110    QNJP31    0.01399999
+    XP3110    QPFP31    0.05
+    XP3110    QLPP31    0.027
+    XP3110    QOTP31    0.14999998
+    XP3111    RCAPP31   1
+    XP3111    QCRP31    -1
+    XP3111    QGAP31    0.45699996
+    XP3111    QDSP31    0.23699987
+    XP3111    QRSP31    0.04299999
+    XP3111    QKJP31    0.06399995
+    XP3111    QNJP31    0.01199999
+    XP3111    QPFP31    0.04899999
+    XP3111    QLPP31    0.02799999
+    XP3111    QOTP31    0.14599991
+    XP3112    RCAPP31   1
+    XP3112    QCRP31    -1
+    XP3112    QGAP31    0.44299984
+    XP3112    QDSP31    0.23399991
+    XP3112    QRSP31    0.042
+    XP3112    QKJP31    0.06399995
+    XP3112    QNJP31    0.01099999
+    XP3112    QPFP31    0.052
+    XP3112    QLPP31    0.02999999
+    XP3112    QOTP31    0.1509999
+    XP3113    RCAPP31   1
+    XP3113    QCRP31    -1
+    XP3113    QGAP31    0.46499991
+    XP3113    QDSP31    0.20899987
+    XP3113    QRSP31    0.04099999
+    XP3113    QKJP31    0.06299996
+    XP3113    QNJP31    0.01699999
+    XP3113    QPFP31    0.05399999
+    XP3113    QLPP31    0.03199999
+    XP3113    QOTP31    0.15199995
+    XP3114    RCAPP31   1
+    XP3114    QCRP31    -1
+    XP3114    QGAP31    0.48599982
+    XP3114    QDSP31    0.19699991
+    XP3114    QRSP31    0.03899999
+    XP3114    QKJP31    0.05699999
+    XP3114    QNJP31    0.01599999
+    XP3114    QPFP31    0.05499999
+    XP3114    QLPP31    0.02999999
+    XP3114    QOTP31    0.1469999
+    XP3115    RCAPP31   1
+    XP3115    QCRP31    -1
+    XP3115    QGAP31    0.50699997
+    XP3115    QDSP31    0.20599985
+    XP3115    QRSP31    0.04599999
+    XP3115    QKJP31    0.05299999
+    XP3115    QNJP31    0.015
+    XP3115    QPFP31    0.04599999
+    XP3115    QLPP31    0.03299999
+    XP3115    QOTP31    0.13999993
+    XP3116    RCAPP31   1
+    XP3116    QCRP31    -1
+    XP3116    QGAP31    0.5
+    XP3116    QDSP31    0.21499991
+    XP3116    QRSP31    0.04
+    XP3116    QKJP31    0.04899999
+    XP3116    QNJP31    0.01199999
+    XP3116    QPFP31    0.05099999
+    XP3116    QLPP31    0.029
+    XP3116    QOTP31    0.13699996
+    XP3117    RCAPP31   1
+    XP3117    QCRP31    -1
+    XP3117    QGAP31    0.50499988
+    XP3117    QDSP31    0.20699996
+    XP3117    QRSP31    0.03899999
+    XP3117    QKJP31    0.04799999
+    XP3117    QNJP31    0.01099999
+    XP3117    QPFP31    0.05
+    XP3117    QLPP31    0.03199999
+    XP3117    QOTP31    0.14499998
+    XP3118    RCAPP31   1
+    XP3118    QCRP31    -1
+    XP3118    QGAP31    0.49199986
+    XP3118    QDSP31    0.20999992
+    XP3118    QRSP31    0.042
+    XP3118    QKJP31    0.052
+    XP3118    QNJP31    0.01099999
+    XP3118    QPFP31    0.05099999
+    XP3118    QLPP31    0.027
+    XP3118    QOTP31    0.1469999
+    XP3119    RCAPP31   1
+    XP3119    QCRP31    -1
+    XP3119    QGAP31    0.48399991
+    XP3119    QDSP31    0.21599984
+    XP3119    QRSP31    0.04399999
+    XP3119    QKJP31    0.05299999
+    XP3119    QNJP31    0.01399999
+    XP3119    QPFP31    0.04899999
+    XP3119    QLPP31    0.027
+    XP3119    QOTP31    0.14499998
+    XP3120    RCAPP31   1
+    XP3120    QCRP31    -1
+    XP3120    QGAP31    0.46999997
+    XP3120    QDSP31    0.21599984
+    XP3120    QRSP31    0.04799999
+    XP3120    QKJP31    0.05899999
+    XP3120    QNJP31    0.01099999
+    XP3120    QPFP31    0.052
+    XP3120    QLPP31    0.029
+    XP3120    QOTP31    0.14999998
+    XP3121    RCAPP31   1
+    XP3121    QCRP31    -1
+    XP3121    QGAP31    0.46699989
+    XP3121    QDSP31    0.21699989
+    XP3121    QRSP31    0.04899999
+    XP3121    QKJP31    0.05899999
+    XP3121    QNJP31    0.01099999
+    XP3121    QPFP31    0.05399999
+    XP3121    QLPP31    0.025
+    XP3121    QOTP31    0.1469999
+    XP3122    RCAPP31   1
+    XP3122    QCRP31    -1
+    XP3122    QGAP31    0.44499993
+    XP3122    QDSP31    0.23599982
+    XP3122    QRSP31    0.04899999
+    XP3122    QKJP31    0.05599999
+    XP3122    QNJP31    0.022
+    XP3122    QPFP31    0.05399999
+    XP3122    QLPP31    0.02599999
+    XP3122    QOTP31    0.1419999
+    XP3123    RCAPP31   1
+    XP3123    QCRP31    -1
+    XP3123    QGAP31    0.44899988
+    XP3123    QDSP31    0.2349999
+    XP3123    QRSP31    0.05099999
+    XP3123    QKJP31    0.05999999
+    XP3123    QNJP31    0.01599999
+    XP3123    QPFP31    0.05
+    XP3123    QLPP31    0.029
+    XP3123    QOTP31    0.14399993
+    XP3124    RCAPP31   1
+    XP3124    QCRP31    -1
+    XP3124    QGAP31    0.46499991
+    XP3124    QDSP31    0.20299983
+    XP3124    QRSP31    0.05499999
+    XP3124    QKJP31    0.05699999
+    XP3124    QNJP31    0.01599999
+    XP3124    QPFP31    0.05899999
+    XP3124    QLPP31    0.02799999
+    XP3124    QOTP31    0.14999998
+    XP321     RCAPP32   1
+    XP321     QCRP32    -1
+    XP321     QGAP32    0.47299981
+    XP321     QDSP32    0.22899985
+    XP321     QRSP32    0.03199999
+    XP321     QKJP32    0.06299996
+    XP321     QNJP32    0.01799999
+    XP321     QPFP32    0.04599999
+    XP321     QLPP32    0.03199999
+    XP321     QOTP32    0.14399993
+    XP322     RCAPP32   1
+    XP322     QCRP32    -1
+    XP322     QGAP32    0.48099983
+    XP322     QDSP32    0.21799982
+    XP322     QRSP32    0.03099999
+    XP322     QKJP32    0.05899999
+    XP322     QNJP32    0.01799999
+    XP322     QPFP32    0.05499999
+    XP322     QLPP32    0.03199999
+    XP322     QOTP32    0.14299989
+    XP323     RCAPP32   1
+    XP323     QCRP32    -1
+    XP323     QGAP32    0.47799987
+    XP323     QDSP32    0.22599983
+    XP323     QRSP32    0.025
+    XP323     QKJP32    0.06099999
+    XP323     QNJP32    0.01699999
+    XP323     QPFP32    0.04899999
+    XP323     QLPP32    0.03199999
+    XP323     QOTP32    0.1419999
+    XP324     RCAPP32   1
+    XP324     QCRP32    -1
+    XP324     QGAP32    0.47899985
+    XP324     QDSP32    0.22599983
+    XP324     QRSP32    0.03099999
+    XP324     QKJP32    0.05399999
+    XP324     QNJP32    0.01699999
+    XP324     QPFP32    0.04299999
+    XP324     QLPP32    0.02999999
+    XP324     QOTP32    0.14399993
+    XP325     RCAPP32   1
+    XP325     QCRP32    -1
+    XP325     QGAP32    0.5
+    XP325     QDSP32    0.20699996
+    XP325     QRSP32    0.02799999
+    XP325     QKJP32    0.05799999
+    XP325     QNJP32    0.01299999
+    XP325     QPFP32    0.045
+    XP325     QLPP32    0.03199999
+    XP325     QOTP32    0.1419999
+    XP326     RCAPP32   1
+    XP326     QCRP32    -1
+    XP326     QGAP32    0.49299979
+    XP326     QDSP32    0.20999992
+    XP326     QRSP32    0.03299999
+    XP326     QKJP32    0.05299999
+    XP326     QNJP32    0.01599999
+    XP326     QPFP32    0.05
+    XP326     QLPP32    0.03099999
+    XP326     QOTP32    0.14899993
+    XP327     RCAPP32   1
+    XP327     QCRP32    -1
+    XP327     QGAP32    0.49799985
+    XP327     QDSP32    0.20799977
+    XP327     QRSP32    0.03399999
+    XP327     QKJP32    0.05299999
+    XP327     QNJP32    0.01099999
+    XP327     QPFP32    0.04599999
+    XP327     QLPP32    0.027
+    XP327     QOTP32    0.14999998
+    XP328     RCAPP32   1
+    XP328     QCRP32    -1
+    XP328     QGAP32    0.49299979
+    XP328     QDSP32    0.21999997
+    XP328     QRSP32    0.03399999
+    XP328     QKJP32    0.05599999
+    XP328     QNJP32    0.01199999
+    XP328     QPFP32    0.05
+    XP328     QLPP32    0.027
+    XP328     QOTP32    0.14399993
+    XP329     RCAPP32   1
+    XP329     QCRP32    -1
+    XP329     QGAP32    0.48199993
+    XP329     QDSP32    0.21799982
+    XP329     QRSP32    0.04
+    XP329     QKJP32    0.052
+    XP329     QNJP32    0.01099999
+    XP329     QPFP32    0.052
+    XP329     QLPP32    0.027
+    XP329     QOTP32    0.1469999
+    XP3210    RCAPP32   1
+    XP3210    QCRP32    -1
+    XP3210    QGAP32    0.46999997
+    XP3210    QDSP32    0.22499996
+    XP3210    QRSP32    0.04699999
+    XP3210    QKJP32    0.05099999
+    XP3210    QNJP32    0.01399999
+    XP3210    QPFP32    0.05
+    XP3210    QLPP32    0.027
+    XP3210    QOTP32    0.14999998
+    XP3211    RCAPP32   1
+    XP3211    QCRP32    -1
+    XP3211    QGAP32    0.45699996
+    XP3211    QDSP32    0.23699987
+    XP3211    QRSP32    0.04299999
+    XP3211    QKJP32    0.06399995
+    XP3211    QNJP32    0.01199999
+    XP3211    QPFP32    0.04899999
+    XP3211    QLPP32    0.02799999
+    XP3211    QOTP32    0.14599991
+    XP3212    RCAPP32   1
+    XP3212    QCRP32    -1
+    XP3212    QGAP32    0.44299984
+    XP3212    QDSP32    0.23399991
+    XP3212    QRSP32    0.042
+    XP3212    QKJP32    0.06399995
+    XP3212    QNJP32    0.01099999
+    XP3212    QPFP32    0.052
+    XP3212    QLPP32    0.02999999
+    XP3212    QOTP32    0.1509999
+    XP3213    RCAPP32   1
+    XP3213    QCRP32    -1
+    XP3213    QGAP32    0.46499991
+    XP3213    QDSP32    0.20899987
+    XP3213    QRSP32    0.04099999
+    XP3213    QKJP32    0.06299996
+    XP3213    QNJP32    0.01699999
+    XP3213    QPFP32    0.05399999
+    XP3213    QLPP32    0.03199999
+    XP3213    QOTP32    0.15199995
+    XP3214    RCAPP32   1
+    XP3214    QCRP32    -1
+    XP3214    QGAP32    0.48599982
+    XP3214    QDSP32    0.19699991
+    XP3214    QRSP32    0.03899999
+    XP3214    QKJP32    0.05699999
+    XP3214    QNJP32    0.01599999
+    XP3214    QPFP32    0.05499999
+    XP3214    QLPP32    0.02999999
+    XP3214    QOTP32    0.1469999
+    XP3215    RCAPP32   1
+    XP3215    QCRP32    -1
+    XP3215    QGAP32    0.50699997
+    XP3215    QDSP32    0.20599985
+    XP3215    QRSP32    0.04599999
+    XP3215    QKJP32    0.05299999
+    XP3215    QNJP32    0.015
+    XP3215    QPFP32    0.04599999
+    XP3215    QLPP32    0.03299999
+    XP3215    QOTP32    0.13999993
+    XP3216    RCAPP32   1
+    XP3216    QCRP32    -1
+    XP3216    QGAP32    0.5
+    XP3216    QDSP32    0.21499991
+    XP3216    QRSP32    0.04
+    XP3216    QKJP32    0.04899999
+    XP3216    QNJP32    0.01199999
+    XP3216    QPFP32    0.05099999
+    XP3216    QLPP32    0.029
+    XP3216    QOTP32    0.13699996
+    XP3217    RCAPP32   1
+    XP3217    QCRP32    -1
+    XP3217    QGAP32    0.50499988
+    XP3217    QDSP32    0.20699996
+    XP3217    QRSP32    0.03899999
+    XP3217    QKJP32    0.04799999
+    XP3217    QNJP32    0.01099999
+    XP3217    QPFP32    0.05
+    XP3217    QLPP32    0.03199999
+    XP3217    QOTP32    0.14499998
+    XP3218    RCAPP32   1
+    XP3218    QCRP32    -1
+    XP3218    QGAP32    0.49199986
+    XP3218    QDSP32    0.20999992
+    XP3218    QRSP32    0.042
+    XP3218    QKJP32    0.052
+    XP3218    QNJP32    0.01099999
+    XP3218    QPFP32    0.05099999
+    XP3218    QLPP32    0.027
+    XP3218    QOTP32    0.1469999
+    XP3219    RCAPP32   1
+    XP3219    QCRP32    -1
+    XP3219    QGAP32    0.48399991
+    XP3219    QDSP32    0.21599984
+    XP3219    QRSP32    0.04399999
+    XP3219    QKJP32    0.05299999
+    XP3219    QNJP32    0.01399999
+    XP3219    QPFP32    0.04899999
+    XP3219    QLPP32    0.027
+    XP3219    QOTP32    0.14499998
+    XP3220    RCAPP32   1
+    XP3220    QCRP32    -1
+    XP3220    QGAP32    0.46999997
+    XP3220    QDSP32    0.21599984
+    XP3220    QRSP32    0.04799999
+    XP3220    QKJP32    0.05899999
+    XP3220    QNJP32    0.01099999
+    XP3220    QPFP32    0.052
+    XP3220    QLPP32    0.029
+    XP3220    QOTP32    0.14999998
+    XP3221    RCAPP32   1
+    XP3221    QCRP32    -1
+    XP3221    QGAP32    0.46699989
+    XP3221    QDSP32    0.21699989
+    XP3221    QRSP32    0.04899999
+    XP3221    QKJP32    0.05899999
+    XP3221    QNJP32    0.01099999
+    XP3221    QPFP32    0.05399999
+    XP3221    QLPP32    0.025
+    XP3221    QOTP32    0.1469999
+    XP3222    RCAPP32   1
+    XP3222    QCRP32    -1
+    XP3222    QGAP32    0.44499993
+    XP3222    QDSP32    0.23599982
+    XP3222    QRSP32    0.04899999
+    XP3222    QKJP32    0.05599999
+    XP3222    QNJP32    0.022
+    XP3222    QPFP32    0.05399999
+    XP3222    QLPP32    0.02599999
+    XP3222    QOTP32    0.1419999
+    XP3223    RCAPP32   1
+    XP3223    QCRP32    -1
+    XP3223    QGAP32    0.44899988
+    XP3223    QDSP32    0.2349999
+    XP3223    QRSP32    0.05099999
+    XP3223    QKJP32    0.05999999
+    XP3223    QNJP32    0.01599999
+    XP3223    QPFP32    0.05
+    XP3223    QLPP32    0.029
+    XP3223    QOTP32    0.14399993
+    XP3224    RCAPP32   1
+    XP3224    QCRP32    -1
+    XP3224    QGAP32    0.46499991
+    XP3224    QDSP32    0.20299983
+    XP3224    QRSP32    0.05499999
+    XP3224    QKJP32    0.05699999
+    XP3224    QNJP32    0.01599999
+    XP3224    QPFP32    0.05899999
+    XP3224    QLPP32    0.02799999
+    XP3224    QOTP32    0.14999998
+    XP331     RCAPP33   1
+    XP331     QCRP33    -1
+    XP331     QGAP33    0.47299981
+    XP331     QDSP33    0.22899985
+    XP331     QRSP33    0.03199999
+    XP331     QKJP33    0.06299996
+    XP331     QNJP33    0.01799999
+    XP331     QPFP33    0.04599999
+    XP331     QLPP33    0.03199999
+    XP331     QOTP33    0.14399993
+    XP332     RCAPP33   1
+    XP332     QCRP33    -1
+    XP332     QGAP33    0.48099983
+    XP332     QDSP33    0.21799982
+    XP332     QRSP33    0.03099999
+    XP332     QKJP33    0.05899999
+    XP332     QNJP33    0.01799999
+    XP332     QPFP33    0.05499999
+    XP332     QLPP33    0.03199999
+    XP332     QOTP33    0.14299989
+    XP333     RCAPP33   1
+    XP333     QCRP33    -1
+    XP333     QGAP33    0.47799987
+    XP333     QDSP33    0.22599983
+    XP333     QRSP33    0.025
+    XP333     QKJP33    0.06099999
+    XP333     QNJP33    0.01699999
+    XP333     QPFP33    0.04899999
+    XP333     QLPP33    0.03199999
+    XP333     QOTP33    0.1419999
+    XP334     RCAPP33   1
+    XP334     QCRP33    -1
+    XP334     QGAP33    0.47899985
+    XP334     QDSP33    0.22599983
+    XP334     QRSP33    0.03099999
+    XP334     QKJP33    0.05399999
+    XP334     QNJP33    0.01699999
+    XP334     QPFP33    0.04299999
+    XP334     QLPP33    0.02999999
+    XP334     QOTP33    0.14399993
+    XP335     RCAPP33   1
+    XP335     QCRP33    -1
+    XP335     QGAP33    0.5
+    XP335     QDSP33    0.20699996
+    XP335     QRSP33    0.02799999
+    XP335     QKJP33    0.05799999
+    XP335     QNJP33    0.01299999
+    XP335     QPFP33    0.045
+    XP335     QLPP33    0.03199999
+    XP335     QOTP33    0.1419999
+    XP336     RCAPP33   1
+    XP336     QCRP33    -1
+    XP336     QGAP33    0.49299979
+    XP336     QDSP33    0.20999992
+    XP336     QRSP33    0.03299999
+    XP336     QKJP33    0.05299999
+    XP336     QNJP33    0.01599999
+    XP336     QPFP33    0.05
+    XP336     QLPP33    0.03099999
+    XP336     QOTP33    0.14899993
+    XP337     RCAPP33   1
+    XP337     QCRP33    -1
+    XP337     QGAP33    0.49799985
+    XP337     QDSP33    0.20799977
+    XP337     QRSP33    0.03399999
+    XP337     QKJP33    0.05299999
+    XP337     QNJP33    0.01099999
+    XP337     QPFP33    0.04599999
+    XP337     QLPP33    0.027
+    XP337     QOTP33    0.14999998
+    XP338     RCAPP33   1
+    XP338     QCRP33    -1
+    XP338     QGAP33    0.49299979
+    XP338     QDSP33    0.21999997
+    XP338     QRSP33    0.03399999
+    XP338     QKJP33    0.05599999
+    XP338     QNJP33    0.01199999
+    XP338     QPFP33    0.05
+    XP338     QLPP33    0.027
+    XP338     QOTP33    0.14399993
+    XP339     RCAPP33   1
+    XP339     QCRP33    -1
+    XP339     QGAP33    0.48199993
+    XP339     QDSP33    0.21799982
+    XP339     QRSP33    0.04
+    XP339     QKJP33    0.052
+    XP339     QNJP33    0.01099999
+    XP339     QPFP33    0.052
+    XP339     QLPP33    0.027
+    XP339     QOTP33    0.1469999
+    XP3310    RCAPP33   1
+    XP3310    QCRP33    -1
+    XP3310    QGAP33    0.46999997
+    XP3310    QDSP33    0.22499996
+    XP3310    QRSP33    0.04699999
+    XP3310    QKJP33    0.05099999
+    XP3310    QNJP33    0.01399999
+    XP3310    QPFP33    0.05
+    XP3310    QLPP33    0.027
+    XP3310    QOTP33    0.14999998
+    XP3311    RCAPP33   1
+    XP3311    QCRP33    -1
+    XP3311    QGAP33    0.45699996
+    XP3311    QDSP33    0.23699987
+    XP3311    QRSP33    0.04299999
+    XP3311    QKJP33    0.06399995
+    XP3311    QNJP33    0.01199999
+    XP3311    QPFP33    0.04899999
+    XP3311    QLPP33    0.02799999
+    XP3311    QOTP33    0.14599991
+    XP3312    RCAPP33   1
+    XP3312    QCRP33    -1
+    XP3312    QGAP33    0.44299984
+    XP3312    QDSP33    0.23399991
+    XP3312    QRSP33    0.042
+    XP3312    QKJP33    0.06399995
+    XP3312    QNJP33    0.01099999
+    XP3312    QPFP33    0.052
+    XP3312    QLPP33    0.02999999
+    XP3312    QOTP33    0.1509999
+    XP3313    RCAPP33   1
+    XP3313    QCRP33    -1
+    XP3313    QGAP33    0.46499991
+    XP3313    QDSP33    0.20899987
+    XP3313    QRSP33    0.04099999
+    XP3313    QKJP33    0.06299996
+    XP3313    QNJP33    0.01699999
+    XP3313    QPFP33    0.05399999
+    XP3313    QLPP33    0.03199999
+    XP3313    QOTP33    0.15199995
+    XP3314    RCAPP33   1
+    XP3314    QCRP33    -1
+    XP3314    QGAP33    0.48599982
+    XP3314    QDSP33    0.19699991
+    XP3314    QRSP33    0.03899999
+    XP3314    QKJP33    0.05699999
+    XP3314    QNJP33    0.01599999
+    XP3314    QPFP33    0.05499999
+    XP3314    QLPP33    0.02999999
+    XP3314    QOTP33    0.1469999
+    XP3315    RCAPP33   1
+    XP3315    QCRP33    -1
+    XP3315    QGAP33    0.50699997
+    XP3315    QDSP33    0.20599985
+    XP3315    QRSP33    0.04599999
+    XP3315    QKJP33    0.05299999
+    XP3315    QNJP33    0.015
+    XP3315    QPFP33    0.04599999
+    XP3315    QLPP33    0.03299999
+    XP3315    QOTP33    0.13999993
+    XP3316    RCAPP33   1
+    XP3316    QCRP33    -1
+    XP3316    QGAP33    0.5
+    XP3316    QDSP33    0.21499991
+    XP3316    QRSP33    0.04
+    XP3316    QKJP33    0.04899999
+    XP3316    QNJP33    0.01199999
+    XP3316    QPFP33    0.05099999
+    XP3316    QLPP33    0.029
+    XP3316    QOTP33    0.13699996
+    XP3317    RCAPP33   1
+    XP3317    QCRP33    -1
+    XP3317    QGAP33    0.50499988
+    XP3317    QDSP33    0.20699996
+    XP3317    QRSP33    0.03899999
+    XP3317    QKJP33    0.04799999
+    XP3317    QNJP33    0.01099999
+    XP3317    QPFP33    0.05
+    XP3317    QLPP33    0.03199999
+    XP3317    QOTP33    0.14499998
+    XP3318    RCAPP33   1
+    XP3318    QCRP33    -1
+    XP3318    QGAP33    0.49199986
+    XP3318    QDSP33    0.20999992
+    XP3318    QRSP33    0.042
+    XP3318    QKJP33    0.052
+    XP3318    QNJP33    0.01099999
+    XP3318    QPFP33    0.05099999
+    XP3318    QLPP33    0.027
+    XP3318    QOTP33    0.1469999
+    XP3319    RCAPP33   1
+    XP3319    QCRP33    -1
+    XP3319    QGAP33    0.48399991
+    XP3319    QDSP33    0.21599984
+    XP3319    QRSP33    0.04399999
+    XP3319    QKJP33    0.05299999
+    XP3319    QNJP33    0.01399999
+    XP3319    QPFP33    0.04899999
+    XP3319    QLPP33    0.027
+    XP3319    QOTP33    0.14499998
+    XP3320    RCAPP33   1
+    XP3320    QCRP33    -1
+    XP3320    QGAP33    0.46999997
+    XP3320    QDSP33    0.21599984
+    XP3320    QRSP33    0.04799999
+    XP3320    QKJP33    0.05899999
+    XP3320    QNJP33    0.01099999
+    XP3320    QPFP33    0.052
+    XP3320    QLPP33    0.029
+    XP3320    QOTP33    0.14999998
+    XP3321    RCAPP33   1
+    XP3321    QCRP33    -1
+    XP3321    QGAP33    0.46699989
+    XP3321    QDSP33    0.21699989
+    XP3321    QRSP33    0.04899999
+    XP3321    QKJP33    0.05899999
+    XP3321    QNJP33    0.01099999
+    XP3321    QPFP33    0.05399999
+    XP3321    QLPP33    0.025
+    XP3321    QOTP33    0.1469999
+    XP3322    RCAPP33   1
+    XP3322    QCRP33    -1
+    XP3322    QGAP33    0.44499993
+    XP3322    QDSP33    0.23599982
+    XP3322    QRSP33    0.04899999
+    XP3322    QKJP33    0.05599999
+    XP3322    QNJP33    0.022
+    XP3322    QPFP33    0.05399999
+    XP3322    QLPP33    0.02599999
+    XP3322    QOTP33    0.1419999
+    XP3323    RCAPP33   1
+    XP3323    QCRP33    -1
+    XP3323    QGAP33    0.44899988
+    XP3323    QDSP33    0.2349999
+    XP3323    QRSP33    0.05099999
+    XP3323    QKJP33    0.05999999
+    XP3323    QNJP33    0.01599999
+    XP3323    QPFP33    0.05
+    XP3323    QLPP33    0.029
+    XP3323    QOTP33    0.14399993
+    XP3324    RCAPP33   1
+    XP3324    QCRP33    -1
+    XP3324    QGAP33    0.46499991
+    XP3324    QDSP33    0.20299983
+    XP3324    QRSP33    0.05499999
+    XP3324    QKJP33    0.05699999
+    XP3324    QNJP33    0.01599999
+    XP3324    QPFP33    0.05899999
+    XP3324    QLPP33    0.02799999
+    XP3324    QOTP33    0.14999998
+    XP341     RCAPP34   1
+    XP341     QCRP34    -1
+    XP341     QGAP34    0.47299981
+    XP341     QDSP34    0.22899985
+    XP341     QRSP34    0.03199999
+    XP341     QKJP34    0.06299996
+    XP341     QNJP34    0.01799999
+    XP341     QPFP34    0.04599999
+    XP341     QLPP34    0.03199999
+    XP341     QOTP34    0.14399993
+    XP342     RCAPP34   1
+    XP342     QCRP34    -1
+    XP342     QGAP34    0.48099983
+    XP342     QDSP34    0.21799982
+    XP342     QRSP34    0.03099999
+    XP342     QKJP34    0.05899999
+    XP342     QNJP34    0.01799999
+    XP342     QPFP34    0.05499999
+    XP342     QLPP34    0.03199999
+    XP342     QOTP34    0.14299989
+    XP343     RCAPP34   1
+    XP343     QCRP34    -1
+    XP343     QGAP34    0.47799987
+    XP343     QDSP34    0.22599983
+    XP343     QRSP34    0.025
+    XP343     QKJP34    0.06099999
+    XP343     QNJP34    0.01699999
+    XP343     QPFP34    0.04899999
+    XP343     QLPP34    0.03199999
+    XP343     QOTP34    0.1419999
+    XP344     RCAPP34   1
+    XP344     QCRP34    -1
+    XP344     QGAP34    0.47899985
+    XP344     QDSP34    0.22599983
+    XP344     QRSP34    0.03099999
+    XP344     QKJP34    0.05399999
+    XP344     QNJP34    0.01699999
+    XP344     QPFP34    0.04299999
+    XP344     QLPP34    0.02999999
+    XP344     QOTP34    0.14399993
+    XP345     RCAPP34   1
+    XP345     QCRP34    -1
+    XP345     QGAP34    0.5
+    XP345     QDSP34    0.20699996
+    XP345     QRSP34    0.02799999
+    XP345     QKJP34    0.05799999
+    XP345     QNJP34    0.01299999
+    XP345     QPFP34    0.045
+    XP345     QLPP34    0.03199999
+    XP345     QOTP34    0.1419999
+    XP346     RCAPP34   1
+    XP346     QCRP34    -1
+    XP346     QGAP34    0.49299979
+    XP346     QDSP34    0.20999992
+    XP346     QRSP34    0.03299999
+    XP346     QKJP34    0.05299999
+    XP346     QNJP34    0.01599999
+    XP346     QPFP34    0.05
+    XP346     QLPP34    0.03099999
+    XP346     QOTP34    0.14899993
+    XP347     RCAPP34   1
+    XP347     QCRP34    -1
+    XP347     QGAP34    0.49799985
+    XP347     QDSP34    0.20799977
+    XP347     QRSP34    0.03399999
+    XP347     QKJP34    0.05299999
+    XP347     QNJP34    0.01099999
+    XP347     QPFP34    0.04599999
+    XP347     QLPP34    0.027
+    XP347     QOTP34    0.14999998
+    XP348     RCAPP34   1
+    XP348     QCRP34    -1
+    XP348     QGAP34    0.49299979
+    XP348     QDSP34    0.21999997
+    XP348     QRSP34    0.03399999
+    XP348     QKJP34    0.05599999
+    XP348     QNJP34    0.01199999
+    XP348     QPFP34    0.05
+    XP348     QLPP34    0.027
+    XP348     QOTP34    0.14399993
+    XP349     RCAPP34   1
+    XP349     QCRP34    -1
+    XP349     QGAP34    0.48199993
+    XP349     QDSP34    0.21799982
+    XP349     QRSP34    0.04
+    XP349     QKJP34    0.052
+    XP349     QNJP34    0.01099999
+    XP349     QPFP34    0.052
+    XP349     QLPP34    0.027
+    XP349     QOTP34    0.1469999
+    XP3410    RCAPP34   1
+    XP3410    QCRP34    -1
+    XP3410    QGAP34    0.46999997
+    XP3410    QDSP34    0.22499996
+    XP3410    QRSP34    0.04699999
+    XP3410    QKJP34    0.05099999
+    XP3410    QNJP34    0.01399999
+    XP3410    QPFP34    0.05
+    XP3410    QLPP34    0.027
+    XP3410    QOTP34    0.14999998
+    XP3411    RCAPP34   1
+    XP3411    QCRP34    -1
+    XP3411    QGAP34    0.45699996
+    XP3411    QDSP34    0.23699987
+    XP3411    QRSP34    0.04299999
+    XP3411    QKJP34    0.06399995
+    XP3411    QNJP34    0.01199999
+    XP3411    QPFP34    0.04899999
+    XP3411    QLPP34    0.02799999
+    XP3411    QOTP34    0.14599991
+    XP3412    RCAPP34   1
+    XP3412    QCRP34    -1
+    XP3412    QGAP34    0.44299984
+    XP3412    QDSP34    0.23399991
+    XP3412    QRSP34    0.042
+    XP3412    QKJP34    0.06399995
+    XP3412    QNJP34    0.01099999
+    XP3412    QPFP34    0.052
+    XP3412    QLPP34    0.02999999
+    XP3412    QOTP34    0.1509999
+    XP3413    RCAPP34   1
+    XP3413    QCRP34    -1
+    XP3413    QGAP34    0.46499991
+    XP3413    QDSP34    0.20899987
+    XP3413    QRSP34    0.04099999
+    XP3413    QKJP34    0.06299996
+    XP3413    QNJP34    0.01699999
+    XP3413    QPFP34    0.05399999
+    XP3413    QLPP34    0.03199999
+    XP3413    QOTP34    0.15199995
+    XP3414    RCAPP34   1
+    XP3414    QCRP34    -1
+    XP3414    QGAP34    0.48599982
+    XP3414    QDSP34    0.19699991
+    XP3414    QRSP34    0.03899999
+    XP3414    QKJP34    0.05699999
+    XP3414    QNJP34    0.01599999
+    XP3414    QPFP34    0.05499999
+    XP3414    QLPP34    0.02999999
+    XP3414    QOTP34    0.1469999
+    XP3415    RCAPP34   1
+    XP3415    QCRP34    -1
+    XP3415    QGAP34    0.50699997
+    XP3415    QDSP34    0.20599985
+    XP3415    QRSP34    0.04599999
+    XP3415    QKJP34    0.05299999
+    XP3415    QNJP34    0.015
+    XP3415    QPFP34    0.04599999
+    XP3415    QLPP34    0.03299999
+    XP3415    QOTP34    0.13999993
+    XP3416    RCAPP34   1
+    XP3416    QCRP34    -1
+    XP3416    QGAP34    0.5
+    XP3416    QDSP34    0.21499991
+    XP3416    QRSP34    0.04
+    XP3416    QKJP34    0.04899999
+    XP3416    QNJP34    0.01199999
+    XP3416    QPFP34    0.05099999
+    XP3416    QLPP34    0.029
+    XP3416    QOTP34    0.13699996
+    XP3417    RCAPP34   1
+    XP3417    QCRP34    -1
+    XP3417    QGAP34    0.50499988
+    XP3417    QDSP34    0.20699996
+    XP3417    QRSP34    0.03899999
+    XP3417    QKJP34    0.04799999
+    XP3417    QNJP34    0.01099999
+    XP3417    QPFP34    0.05
+    XP3417    QLPP34    0.03199999
+    XP3417    QOTP34    0.14499998
+    XP3418    RCAPP34   1
+    XP3418    QCRP34    -1
+    XP3418    QGAP34    0.49199986
+    XP3418    QDSP34    0.20999992
+    XP3418    QRSP34    0.042
+    XP3418    QKJP34    0.052
+    XP3418    QNJP34    0.01099999
+    XP3418    QPFP34    0.05099999
+    XP3418    QLPP34    0.027
+    XP3418    QOTP34    0.1469999
+    XP3419    RCAPP34   1
+    XP3419    QCRP34    -1
+    XP3419    QGAP34    0.48399991
+    XP3419    QDSP34    0.21599984
+    XP3419    QRSP34    0.04399999
+    XP3419    QKJP34    0.05299999
+    XP3419    QNJP34    0.01399999
+    XP3419    QPFP34    0.04899999
+    XP3419    QLPP34    0.027
+    XP3419    QOTP34    0.14499998
+    XP3420    RCAPP34   1
+    XP3420    QCRP34    -1
+    XP3420    QGAP34    0.46999997
+    XP3420    QDSP34    0.21599984
+    XP3420    QRSP34    0.04799999
+    XP3420    QKJP34    0.05899999
+    XP3420    QNJP34    0.01099999
+    XP3420    QPFP34    0.052
+    XP3420    QLPP34    0.029
+    XP3420    QOTP34    0.14999998
+    XP3421    RCAPP34   1
+    XP3421    QCRP34    -1
+    XP3421    QGAP34    0.46699989
+    XP3421    QDSP34    0.21699989
+    XP3421    QRSP34    0.04899999
+    XP3421    QKJP34    0.05899999
+    XP3421    QNJP34    0.01099999
+    XP3421    QPFP34    0.05399999
+    XP3421    QLPP34    0.025
+    XP3421    QOTP34    0.1469999
+    XP3422    RCAPP34   1
+    XP3422    QCRP34    -1
+    XP3422    QGAP34    0.44499993
+    XP3422    QDSP34    0.23599982
+    XP3422    QRSP34    0.04899999
+    XP3422    QKJP34    0.05599999
+    XP3422    QNJP34    0.022
+    XP3422    QPFP34    0.05399999
+    XP3422    QLPP34    0.02599999
+    XP3422    QOTP34    0.1419999
+    XP3423    RCAPP34   1
+    XP3423    QCRP34    -1
+    XP3423    QGAP34    0.44899988
+    XP3423    QDSP34    0.2349999
+    XP3423    QRSP34    0.05099999
+    XP3423    QKJP34    0.05999999
+    XP3423    QNJP34    0.01599999
+    XP3423    QPFP34    0.05
+    XP3423    QLPP34    0.029
+    XP3423    QOTP34    0.14399993
+    XP3424    RCAPP34   1
+    XP3424    QCRP34    -1
+    XP3424    QGAP34    0.46499991
+    XP3424    QDSP34    0.20299983
+    XP3424    QRSP34    0.05499999
+    XP3424    QKJP34    0.05699999
+    XP3424    QNJP34    0.01599999
+    XP3424    QPFP34    0.05899999
+    XP3424    QLPP34    0.02799999
+    XP3424    QOTP34    0.14999998
+    XP351     RCAPP35   1
+    XP351     QCRP35    -1
+    XP351     QGAP35    0.47299981
+    XP351     QDSP35    0.22899985
+    XP351     QRSP35    0.03199999
+    XP351     QKJP35    0.06299996
+    XP351     QNJP35    0.01799999
+    XP351     QPFP35    0.04599999
+    XP351     QLPP35    0.03199999
+    XP351     QOTP35    0.14399993
+    XP352     RCAPP35   1
+    XP352     QCRP35    -1
+    XP352     QGAP35    0.48099983
+    XP352     QDSP35    0.21799982
+    XP352     QRSP35    0.03099999
+    XP352     QKJP35    0.05899999
+    XP352     QNJP35    0.01799999
+    XP352     QPFP35    0.05499999
+    XP352     QLPP35    0.03199999
+    XP352     QOTP35    0.14299989
+    XP353     RCAPP35   1
+    XP353     QCRP35    -1
+    XP353     QGAP35    0.47799987
+    XP353     QDSP35    0.22599983
+    XP353     QRSP35    0.025
+    XP353     QKJP35    0.06099999
+    XP353     QNJP35    0.01699999
+    XP353     QPFP35    0.04899999
+    XP353     QLPP35    0.03199999
+    XP353     QOTP35    0.1419999
+    XP354     RCAPP35   1
+    XP354     QCRP35    -1
+    XP354     QGAP35    0.47899985
+    XP354     QDSP35    0.22599983
+    XP354     QRSP35    0.03099999
+    XP354     QKJP35    0.05399999
+    XP354     QNJP35    0.01699999
+    XP354     QPFP35    0.04299999
+    XP354     QLPP35    0.02999999
+    XP354     QOTP35    0.14399993
+    XP355     RCAPP35   1
+    XP355     QCRP35    -1
+    XP355     QGAP35    0.5
+    XP355     QDSP35    0.20699996
+    XP355     QRSP35    0.02799999
+    XP355     QKJP35    0.05799999
+    XP355     QNJP35    0.01299999
+    XP355     QPFP35    0.045
+    XP355     QLPP35    0.03199999
+    XP355     QOTP35    0.1419999
+    XP356     RCAPP35   1
+    XP356     QCRP35    -1
+    XP356     QGAP35    0.49299979
+    XP356     QDSP35    0.20999992
+    XP356     QRSP35    0.03299999
+    XP356     QKJP35    0.05299999
+    XP356     QNJP35    0.01599999
+    XP356     QPFP35    0.05
+    XP356     QLPP35    0.03099999
+    XP356     QOTP35    0.14899993
+    XP357     RCAPP35   1
+    XP357     QCRP35    -1
+    XP357     QGAP35    0.49799985
+    XP357     QDSP35    0.20799977
+    XP357     QRSP35    0.03399999
+    XP357     QKJP35    0.05299999
+    XP357     QNJP35    0.01099999
+    XP357     QPFP35    0.04599999
+    XP357     QLPP35    0.027
+    XP357     QOTP35    0.14999998
+    XP358     RCAPP35   1
+    XP358     QCRP35    -1
+    XP358     QGAP35    0.49299979
+    XP358     QDSP35    0.21999997
+    XP358     QRSP35    0.03399999
+    XP358     QKJP35    0.05599999
+    XP358     QNJP35    0.01199999
+    XP358     QPFP35    0.05
+    XP358     QLPP35    0.027
+    XP358     QOTP35    0.14399993
+    XP359     RCAPP35   1
+    XP359     QCRP35    -1
+    XP359     QGAP35    0.48199993
+    XP359     QDSP35    0.21799982
+    XP359     QRSP35    0.04
+    XP359     QKJP35    0.052
+    XP359     QNJP35    0.01099999
+    XP359     QPFP35    0.052
+    XP359     QLPP35    0.027
+    XP359     QOTP35    0.1469999
+    XP3510    RCAPP35   1
+    XP3510    QCRP35    -1
+    XP3510    QGAP35    0.46999997
+    XP3510    QDSP35    0.22499996
+    XP3510    QRSP35    0.04699999
+    XP3510    QKJP35    0.05099999
+    XP3510    QNJP35    0.01399999
+    XP3510    QPFP35    0.05
+    XP3510    QLPP35    0.027
+    XP3510    QOTP35    0.14999998
+    XP3511    RCAPP35   1
+    XP3511    QCRP35    -1
+    XP3511    QGAP35    0.45699996
+    XP3511    QDSP35    0.23699987
+    XP3511    QRSP35    0.04299999
+    XP3511    QKJP35    0.06399995
+    XP3511    QNJP35    0.01199999
+    XP3511    QPFP35    0.04899999
+    XP3511    QLPP35    0.02799999
+    XP3511    QOTP35    0.14599991
+    XP3512    RCAPP35   1
+    XP3512    QCRP35    -1
+    XP3512    QGAP35    0.44299984
+    XP3512    QDSP35    0.23399991
+    XP3512    QRSP35    0.042
+    XP3512    QKJP35    0.06399995
+    XP3512    QNJP35    0.01099999
+    XP3512    QPFP35    0.052
+    XP3512    QLPP35    0.02999999
+    XP3512    QOTP35    0.1509999
+    XP3513    RCAPP35   1
+    XP3513    QCRP35    -1
+    XP3513    QGAP35    0.46499991
+    XP3513    QDSP35    0.20899987
+    XP3513    QRSP35    0.04099999
+    XP3513    QKJP35    0.06299996
+    XP3513    QNJP35    0.01699999
+    XP3513    QPFP35    0.05399999
+    XP3513    QLPP35    0.03199999
+    XP3513    QOTP35    0.15199995
+    XP3514    RCAPP35   1
+    XP3514    QCRP35    -1
+    XP3514    QGAP35    0.48599982
+    XP3514    QDSP35    0.19699991
+    XP3514    QRSP35    0.03899999
+    XP3514    QKJP35    0.05699999
+    XP3514    QNJP35    0.01599999
+    XP3514    QPFP35    0.05499999
+    XP3514    QLPP35    0.02999999
+    XP3514    QOTP35    0.1469999
+    XP3515    RCAPP35   1
+    XP3515    QCRP35    -1
+    XP3515    QGAP35    0.50699997
+    XP3515    QDSP35    0.20599985
+    XP3515    QRSP35    0.04599999
+    XP3515    QKJP35    0.05299999
+    XP3515    QNJP35    0.015
+    XP3515    QPFP35    0.04599999
+    XP3515    QLPP35    0.03299999
+    XP3515    QOTP35    0.13999993
+    XP3516    RCAPP35   1
+    XP3516    QCRP35    -1
+    XP3516    QGAP35    0.5
+    XP3516    QDSP35    0.21499991
+    XP3516    QRSP35    0.04
+    XP3516    QKJP35    0.04899999
+    XP3516    QNJP35    0.01199999
+    XP3516    QPFP35    0.05099999
+    XP3516    QLPP35    0.029
+    XP3516    QOTP35    0.13699996
+    XP3517    RCAPP35   1
+    XP3517    QCRP35    -1
+    XP3517    QGAP35    0.50499988
+    XP3517    QDSP35    0.20699996
+    XP3517    QRSP35    0.03899999
+    XP3517    QKJP35    0.04799999
+    XP3517    QNJP35    0.01099999
+    XP3517    QPFP35    0.05
+    XP3517    QLPP35    0.03199999
+    XP3517    QOTP35    0.14499998
+    XP3518    RCAPP35   1
+    XP3518    QCRP35    -1
+    XP3518    QGAP35    0.49199986
+    XP3518    QDSP35    0.20999992
+    XP3518    QRSP35    0.042
+    XP3518    QKJP35    0.052
+    XP3518    QNJP35    0.01099999
+    XP3518    QPFP35    0.05099999
+    XP3518    QLPP35    0.027
+    XP3518    QOTP35    0.1469999
+    XP3519    RCAPP35   1
+    XP3519    QCRP35    -1
+    XP3519    QGAP35    0.48399991
+    XP3519    QDSP35    0.21599984
+    XP3519    QRSP35    0.04399999
+    XP3519    QKJP35    0.05299999
+    XP3519    QNJP35    0.01399999
+    XP3519    QPFP35    0.04899999
+    XP3519    QLPP35    0.027
+    XP3519    QOTP35    0.14499998
+    XP3520    RCAPP35   1
+    XP3520    QCRP35    -1
+    XP3520    QGAP35    0.46999997
+    XP3520    QDSP35    0.21599984
+    XP3520    QRSP35    0.04799999
+    XP3520    QKJP35    0.05899999
+    XP3520    QNJP35    0.01099999
+    XP3520    QPFP35    0.052
+    XP3520    QLPP35    0.029
+    XP3520    QOTP35    0.14999998
+    XP3521    RCAPP35   1
+    XP3521    QCRP35    -1
+    XP3521    QGAP35    0.46699989
+    XP3521    QDSP35    0.21699989
+    XP3521    QRSP35    0.04899999
+    XP3521    QKJP35    0.05899999
+    XP3521    QNJP35    0.01099999
+    XP3521    QPFP35    0.05399999
+    XP3521    QLPP35    0.025
+    XP3521    QOTP35    0.1469999
+    XP3522    RCAPP35   1
+    XP3522    QCRP35    -1
+    XP3522    QGAP35    0.44499993
+    XP3522    QDSP35    0.23599982
+    XP3522    QRSP35    0.04899999
+    XP3522    QKJP35    0.05599999
+    XP3522    QNJP35    0.022
+    XP3522    QPFP35    0.05399999
+    XP3522    QLPP35    0.02599999
+    XP3522    QOTP35    0.1419999
+    XP3523    RCAPP35   1
+    XP3523    QCRP35    -1
+    XP3523    QGAP35    0.44899988
+    XP3523    QDSP35    0.2349999
+    XP3523    QRSP35    0.05099999
+    XP3523    QKJP35    0.05999999
+    XP3523    QNJP35    0.01599999
+    XP3523    QPFP35    0.05
+    XP3523    QLPP35    0.029
+    XP3523    QOTP35    0.14399993
+    XP3524    RCAPP35   1
+    XP3524    QCRP35    -1
+    XP3524    QGAP35    0.46499991
+    XP3524    QDSP35    0.20299983
+    XP3524    QRSP35    0.05499999
+    XP3524    QKJP35    0.05699999
+    XP3524    QNJP35    0.01599999
+    XP3524    QPFP35    0.05899999
+    XP3524    QLPP35    0.02799999
+    XP3524    QOTP35    0.14999998
+    XP361     RCAPP36   1
+    XP361     QCRP36    -1
+    XP361     QGAP36    0.47299981
+    XP361     QDSP36    0.22899985
+    XP361     QRSP36    0.03199999
+    XP361     QKJP36    0.06299996
+    XP361     QNJP36    0.01799999
+    XP361     QPFP36    0.04599999
+    XP361     QLPP36    0.03199999
+    XP361     QOTP36    0.14399993
+    XP362     RCAPP36   1
+    XP362     QCRP36    -1
+    XP362     QGAP36    0.48099983
+    XP362     QDSP36    0.21799982
+    XP362     QRSP36    0.03099999
+    XP362     QKJP36    0.05899999
+    XP362     QNJP36    0.01799999
+    XP362     QPFP36    0.05499999
+    XP362     QLPP36    0.03199999
+    XP362     QOTP36    0.14299989
+    XP363     RCAPP36   1
+    XP363     QCRP36    -1
+    XP363     QGAP36    0.47799987
+    XP363     QDSP36    0.22599983
+    XP363     QRSP36    0.025
+    XP363     QKJP36    0.06099999
+    XP363     QNJP36    0.01699999
+    XP363     QPFP36    0.04899999
+    XP363     QLPP36    0.03199999
+    XP363     QOTP36    0.1419999
+    XP364     RCAPP36   1
+    XP364     QCRP36    -1
+    XP364     QGAP36    0.47899985
+    XP364     QDSP36    0.22599983
+    XP364     QRSP36    0.03099999
+    XP364     QKJP36    0.05399999
+    XP364     QNJP36    0.01699999
+    XP364     QPFP36    0.04299999
+    XP364     QLPP36    0.02999999
+    XP364     QOTP36    0.14399993
+    XP365     RCAPP36   1
+    XP365     QCRP36    -1
+    XP365     QGAP36    0.5
+    XP365     QDSP36    0.20699996
+    XP365     QRSP36    0.02799999
+    XP365     QKJP36    0.05799999
+    XP365     QNJP36    0.01299999
+    XP365     QPFP36    0.045
+    XP365     QLPP36    0.03199999
+    XP365     QOTP36    0.1419999
+    XP366     RCAPP36   1
+    XP366     QCRP36    -1
+    XP366     QGAP36    0.49299979
+    XP366     QDSP36    0.20999992
+    XP366     QRSP36    0.03299999
+    XP366     QKJP36    0.05299999
+    XP366     QNJP36    0.01599999
+    XP366     QPFP36    0.05
+    XP366     QLPP36    0.03099999
+    XP366     QOTP36    0.14899993
+    XP367     RCAPP36   1
+    XP367     QCRP36    -1
+    XP367     QGAP36    0.49799985
+    XP367     QDSP36    0.20799977
+    XP367     QRSP36    0.03399999
+    XP367     QKJP36    0.05299999
+    XP367     QNJP36    0.01099999
+    XP367     QPFP36    0.04599999
+    XP367     QLPP36    0.027
+    XP367     QOTP36    0.14999998
+    XP368     RCAPP36   1
+    XP368     QCRP36    -1
+    XP368     QGAP36    0.49299979
+    XP368     QDSP36    0.21999997
+    XP368     QRSP36    0.03399999
+    XP368     QKJP36    0.05599999
+    XP368     QNJP36    0.01199999
+    XP368     QPFP36    0.05
+    XP368     QLPP36    0.027
+    XP368     QOTP36    0.14399993
+    XP369     RCAPP36   1
+    XP369     QCRP36    -1
+    XP369     QGAP36    0.48199993
+    XP369     QDSP36    0.21799982
+    XP369     QRSP36    0.04
+    XP369     QKJP36    0.052
+    XP369     QNJP36    0.01099999
+    XP369     QPFP36    0.052
+    XP369     QLPP36    0.027
+    XP369     QOTP36    0.1469999
+    XP3610    RCAPP36   1
+    XP3610    QCRP36    -1
+    XP3610    QGAP36    0.46999997
+    XP3610    QDSP36    0.22499996
+    XP3610    QRSP36    0.04699999
+    XP3610    QKJP36    0.05099999
+    XP3610    QNJP36    0.01399999
+    XP3610    QPFP36    0.05
+    XP3610    QLPP36    0.027
+    XP3610    QOTP36    0.14999998
+    XP3611    RCAPP36   1
+    XP3611    QCRP36    -1
+    XP3611    QGAP36    0.45699996
+    XP3611    QDSP36    0.23699987
+    XP3611    QRSP36    0.04299999
+    XP3611    QKJP36    0.06399995
+    XP3611    QNJP36    0.01199999
+    XP3611    QPFP36    0.04899999
+    XP3611    QLPP36    0.02799999
+    XP3611    QOTP36    0.14599991
+    XP3612    RCAPP36   1
+    XP3612    QCRP36    -1
+    XP3612    QGAP36    0.44299984
+    XP3612    QDSP36    0.23399991
+    XP3612    QRSP36    0.042
+    XP3612    QKJP36    0.06399995
+    XP3612    QNJP36    0.01099999
+    XP3612    QPFP36    0.052
+    XP3612    QLPP36    0.02999999
+    XP3612    QOTP36    0.1509999
+    XP3613    RCAPP36   1
+    XP3613    QCRP36    -1
+    XP3613    QGAP36    0.46499991
+    XP3613    QDSP36    0.20899987
+    XP3613    QRSP36    0.04099999
+    XP3613    QKJP36    0.06299996
+    XP3613    QNJP36    0.01699999
+    XP3613    QPFP36    0.05399999
+    XP3613    QLPP36    0.03199999
+    XP3613    QOTP36    0.15199995
+    XP3614    RCAPP36   1
+    XP3614    QCRP36    -1
+    XP3614    QGAP36    0.48599982
+    XP3614    QDSP36    0.19699991
+    XP3614    QRSP36    0.03899999
+    XP3614    QKJP36    0.05699999
+    XP3614    QNJP36    0.01599999
+    XP3614    QPFP36    0.05499999
+    XP3614    QLPP36    0.02999999
+    XP3614    QOTP36    0.1469999
+    XP3615    RCAPP36   1
+    XP3615    QCRP36    -1
+    XP3615    QGAP36    0.50699997
+    XP3615    QDSP36    0.20599985
+    XP3615    QRSP36    0.04599999
+    XP3615    QKJP36    0.05299999
+    XP3615    QNJP36    0.015
+    XP3615    QPFP36    0.04599999
+    XP3615    QLPP36    0.03299999
+    XP3615    QOTP36    0.13999993
+    XP3616    RCAPP36   1
+    XP3616    QCRP36    -1
+    XP3616    QGAP36    0.5
+    XP3616    QDSP36    0.21499991
+    XP3616    QRSP36    0.04
+    XP3616    QKJP36    0.04899999
+    XP3616    QNJP36    0.01199999
+    XP3616    QPFP36    0.05099999
+    XP3616    QLPP36    0.029
+    XP3616    QOTP36    0.13699996
+    XP3617    RCAPP36   1
+    XP3617    QCRP36    -1
+    XP3617    QGAP36    0.50499988
+    XP3617    QDSP36    0.20699996
+    XP3617    QRSP36    0.03899999
+    XP3617    QKJP36    0.04799999
+    XP3617    QNJP36    0.01099999
+    XP3617    QPFP36    0.05
+    XP3617    QLPP36    0.03199999
+    XP3617    QOTP36    0.14499998
+    XP3618    RCAPP36   1
+    XP3618    QCRP36    -1
+    XP3618    QGAP36    0.49199986
+    XP3618    QDSP36    0.20999992
+    XP3618    QRSP36    0.042
+    XP3618    QKJP36    0.052
+    XP3618    QNJP36    0.01099999
+    XP3618    QPFP36    0.05099999
+    XP3618    QLPP36    0.027
+    XP3618    QOTP36    0.1469999
+    XP3619    RCAPP36   1
+    XP3619    QCRP36    -1
+    XP3619    QGAP36    0.48399991
+    XP3619    QDSP36    0.21599984
+    XP3619    QRSP36    0.04399999
+    XP3619    QKJP36    0.05299999
+    XP3619    QNJP36    0.01399999
+    XP3619    QPFP36    0.04899999
+    XP3619    QLPP36    0.027
+    XP3619    QOTP36    0.14499998
+    XP3620    RCAPP36   1
+    XP3620    QCRP36    -1
+    XP3620    QGAP36    0.46999997
+    XP3620    QDSP36    0.21599984
+    XP3620    QRSP36    0.04799999
+    XP3620    QKJP36    0.05899999
+    XP3620    QNJP36    0.01099999
+    XP3620    QPFP36    0.052
+    XP3620    QLPP36    0.029
+    XP3620    QOTP36    0.14999998
+    XP3621    RCAPP36   1
+    XP3621    QCRP36    -1
+    XP3621    QGAP36    0.46699989
+    XP3621    QDSP36    0.21699989
+    XP3621    QRSP36    0.04899999
+    XP3621    QKJP36    0.05899999
+    XP3621    QNJP36    0.01099999
+    XP3621    QPFP36    0.05399999
+    XP3621    QLPP36    0.025
+    XP3621    QOTP36    0.1469999
+    XP3622    RCAPP36   1
+    XP3622    QCRP36    -1
+    XP3622    QGAP36    0.44499993
+    XP3622    QDSP36    0.23599982
+    XP3622    QRSP36    0.04899999
+    XP3622    QKJP36    0.05599999
+    XP3622    QNJP36    0.022
+    XP3622    QPFP36    0.05399999
+    XP3622    QLPP36    0.02599999
+    XP3622    QOTP36    0.1419999
+    XP3623    RCAPP36   1
+    XP3623    QCRP36    -1
+    XP3623    QGAP36    0.44899988
+    XP3623    QDSP36    0.2349999
+    XP3623    QRSP36    0.05099999
+    XP3623    QKJP36    0.05999999
+    XP3623    QNJP36    0.01599999
+    XP3623    QPFP36    0.05
+    XP3623    QLPP36    0.029
+    XP3623    QOTP36    0.14399993
+    XP3624    RCAPP36   1
+    XP3624    QCRP36    -1
+    XP3624    QGAP36    0.46499991
+    XP3624    QDSP36    0.20299983
+    XP3624    QRSP36    0.05499999
+    XP3624    QKJP36    0.05699999
+    XP3624    QNJP36    0.01599999
+    XP3624    QPFP36    0.05899999
+    XP3624    QLPP36    0.02799999
+    XP3624    QOTP36    0.14999998
+    XP371     RCAPP37   1
+    XP371     QCRP37    -1
+    XP371     QGAP37    0.47299981
+    XP371     QDSP37    0.22899985
+    XP371     QRSP37    0.03199999
+    XP371     QKJP37    0.06299996
+    XP371     QNJP37    0.01799999
+    XP371     QPFP37    0.04599999
+    XP371     QLPP37    0.03199999
+    XP371     QOTP37    0.14399993
+    XP372     RCAPP37   1
+    XP372     QCRP37    -1
+    XP372     QGAP37    0.48099983
+    XP372     QDSP37    0.21799982
+    XP372     QRSP37    0.03099999
+    XP372     QKJP37    0.05899999
+    XP372     QNJP37    0.01799999
+    XP372     QPFP37    0.05499999
+    XP372     QLPP37    0.03199999
+    XP372     QOTP37    0.14299989
+    XP373     RCAPP37   1
+    XP373     QCRP37    -1
+    XP373     QGAP37    0.47799987
+    XP373     QDSP37    0.22599983
+    XP373     QRSP37    0.025
+    XP373     QKJP37    0.06099999
+    XP373     QNJP37    0.01699999
+    XP373     QPFP37    0.04899999
+    XP373     QLPP37    0.03199999
+    XP373     QOTP37    0.1419999
+    XP374     RCAPP37   1
+    XP374     QCRP37    -1
+    XP374     QGAP37    0.47899985
+    XP374     QDSP37    0.22599983
+    XP374     QRSP37    0.03099999
+    XP374     QKJP37    0.05399999
+    XP374     QNJP37    0.01699999
+    XP374     QPFP37    0.04299999
+    XP374     QLPP37    0.02999999
+    XP374     QOTP37    0.14399993
+    XP375     RCAPP37   1
+    XP375     QCRP37    -1
+    XP375     QGAP37    0.5
+    XP375     QDSP37    0.20699996
+    XP375     QRSP37    0.02799999
+    XP375     QKJP37    0.05799999
+    XP375     QNJP37    0.01299999
+    XP375     QPFP37    0.045
+    XP375     QLPP37    0.03199999
+    XP375     QOTP37    0.1419999
+    XP376     RCAPP37   1
+    XP376     QCRP37    -1
+    XP376     QGAP37    0.49299979
+    XP376     QDSP37    0.20999992
+    XP376     QRSP37    0.03299999
+    XP376     QKJP37    0.05299999
+    XP376     QNJP37    0.01599999
+    XP376     QPFP37    0.05
+    XP376     QLPP37    0.03099999
+    XP376     QOTP37    0.14899993
+    XP377     RCAPP37   1
+    XP377     QCRP37    -1
+    XP377     QGAP37    0.49799985
+    XP377     QDSP37    0.20799977
+    XP377     QRSP37    0.03399999
+    XP377     QKJP37    0.05299999
+    XP377     QNJP37    0.01099999
+    XP377     QPFP37    0.04599999
+    XP377     QLPP37    0.027
+    XP377     QOTP37    0.14999998
+    XP378     RCAPP37   1
+    XP378     QCRP37    -1
+    XP378     QGAP37    0.49299979
+    XP378     QDSP37    0.21999997
+    XP378     QRSP37    0.03399999
+    XP378     QKJP37    0.05599999
+    XP378     QNJP37    0.01199999
+    XP378     QPFP37    0.05
+    XP378     QLPP37    0.027
+    XP378     QOTP37    0.14399993
+    XP379     RCAPP37   1
+    XP379     QCRP37    -1
+    XP379     QGAP37    0.48199993
+    XP379     QDSP37    0.21799982
+    XP379     QRSP37    0.04
+    XP379     QKJP37    0.052
+    XP379     QNJP37    0.01099999
+    XP379     QPFP37    0.052
+    XP379     QLPP37    0.027
+    XP379     QOTP37    0.1469999
+    XP3710    RCAPP37   1
+    XP3710    QCRP37    -1
+    XP3710    QGAP37    0.46999997
+    XP3710    QDSP37    0.22499996
+    XP3710    QRSP37    0.04699999
+    XP3710    QKJP37    0.05099999
+    XP3710    QNJP37    0.01399999
+    XP3710    QPFP37    0.05
+    XP3710    QLPP37    0.027
+    XP3710    QOTP37    0.14999998
+    XP3711    RCAPP37   1
+    XP3711    QCRP37    -1
+    XP3711    QGAP37    0.45699996
+    XP3711    QDSP37    0.23699987
+    XP3711    QRSP37    0.04299999
+    XP3711    QKJP37    0.06399995
+    XP3711    QNJP37    0.01199999
+    XP3711    QPFP37    0.04899999
+    XP3711    QLPP37    0.02799999
+    XP3711    QOTP37    0.14599991
+    XP3712    RCAPP37   1
+    XP3712    QCRP37    -1
+    XP3712    QGAP37    0.44299984
+    XP3712    QDSP37    0.23399991
+    XP3712    QRSP37    0.042
+    XP3712    QKJP37    0.06399995
+    XP3712    QNJP37    0.01099999
+    XP3712    QPFP37    0.052
+    XP3712    QLPP37    0.02999999
+    XP3712    QOTP37    0.1509999
+    XP3713    RCAPP37   1
+    XP3713    QCRP37    -1
+    XP3713    QGAP37    0.46499991
+    XP3713    QDSP37    0.20899987
+    XP3713    QRSP37    0.04099999
+    XP3713    QKJP37    0.06299996
+    XP3713    QNJP37    0.01699999
+    XP3713    QPFP37    0.05399999
+    XP3713    QLPP37    0.03199999
+    XP3713    QOTP37    0.15199995
+    XP3714    RCAPP37   1
+    XP3714    QCRP37    -1
+    XP3714    QGAP37    0.48599982
+    XP3714    QDSP37    0.19699991
+    XP3714    QRSP37    0.03899999
+    XP3714    QKJP37    0.05699999
+    XP3714    QNJP37    0.01599999
+    XP3714    QPFP37    0.05499999
+    XP3714    QLPP37    0.02999999
+    XP3714    QOTP37    0.1469999
+    XP3715    RCAPP37   1
+    XP3715    QCRP37    -1
+    XP3715    QGAP37    0.50699997
+    XP3715    QDSP37    0.20599985
+    XP3715    QRSP37    0.04599999
+    XP3715    QKJP37    0.05299999
+    XP3715    QNJP37    0.015
+    XP3715    QPFP37    0.04599999
+    XP3715    QLPP37    0.03299999
+    XP3715    QOTP37    0.13999993
+    XP3716    RCAPP37   1
+    XP3716    QCRP37    -1
+    XP3716    QGAP37    0.5
+    XP3716    QDSP37    0.21499991
+    XP3716    QRSP37    0.04
+    XP3716    QKJP37    0.04899999
+    XP3716    QNJP37    0.01199999
+    XP3716    QPFP37    0.05099999
+    XP3716    QLPP37    0.029
+    XP3716    QOTP37    0.13699996
+    XP3717    RCAPP37   1
+    XP3717    QCRP37    -1
+    XP3717    QGAP37    0.50499988
+    XP3717    QDSP37    0.20699996
+    XP3717    QRSP37    0.03899999
+    XP3717    QKJP37    0.04799999
+    XP3717    QNJP37    0.01099999
+    XP3717    QPFP37    0.05
+    XP3717    QLPP37    0.03199999
+    XP3717    QOTP37    0.14499998
+    XP3718    RCAPP37   1
+    XP3718    QCRP37    -1
+    XP3718    QGAP37    0.49199986
+    XP3718    QDSP37    0.20999992
+    XP3718    QRSP37    0.042
+    XP3718    QKJP37    0.052
+    XP3718    QNJP37    0.01099999
+    XP3718    QPFP37    0.05099999
+    XP3718    QLPP37    0.027
+    XP3718    QOTP37    0.1469999
+    XP3719    RCAPP37   1
+    XP3719    QCRP37    -1
+    XP3719    QGAP37    0.48399991
+    XP3719    QDSP37    0.21599984
+    XP3719    QRSP37    0.04399999
+    XP3719    QKJP37    0.05299999
+    XP3719    QNJP37    0.01399999
+    XP3719    QPFP37    0.04899999
+    XP3719    QLPP37    0.027
+    XP3719    QOTP37    0.14499998
+    XP3720    RCAPP37   1
+    XP3720    QCRP37    -1
+    XP3720    QGAP37    0.46999997
+    XP3720    QDSP37    0.21599984
+    XP3720    QRSP37    0.04799999
+    XP3720    QKJP37    0.05899999
+    XP3720    QNJP37    0.01099999
+    XP3720    QPFP37    0.052
+    XP3720    QLPP37    0.029
+    XP3720    QOTP37    0.14999998
+    XP3721    RCAPP37   1
+    XP3721    QCRP37    -1
+    XP3721    QGAP37    0.46699989
+    XP3721    QDSP37    0.21699989
+    XP3721    QRSP37    0.04899999
+    XP3721    QKJP37    0.05899999
+    XP3721    QNJP37    0.01099999
+    XP3721    QPFP37    0.05399999
+    XP3721    QLPP37    0.025
+    XP3721    QOTP37    0.1469999
+    XP3722    RCAPP37   1
+    XP3722    QCRP37    -1
+    XP3722    QGAP37    0.44499993
+    XP3722    QDSP37    0.23599982
+    XP3722    QRSP37    0.04899999
+    XP3722    QKJP37    0.05599999
+    XP3722    QNJP37    0.022
+    XP3722    QPFP37    0.05399999
+    XP3722    QLPP37    0.02599999
+    XP3722    QOTP37    0.1419999
+    XP3723    RCAPP37   1
+    XP3723    QCRP37    -1
+    XP3723    QGAP37    0.44899988
+    XP3723    QDSP37    0.2349999
+    XP3723    QRSP37    0.05099999
+    XP3723    QKJP37    0.05999999
+    XP3723    QNJP37    0.01599999
+    XP3723    QPFP37    0.05
+    XP3723    QLPP37    0.029
+    XP3723    QOTP37    0.14399993
+    XP3724    RCAPP37   1
+    XP3724    QCRP37    -1
+    XP3724    QGAP37    0.46499991
+    XP3724    QDSP37    0.20299983
+    XP3724    QRSP37    0.05499999
+    XP3724    QKJP37    0.05699999
+    XP3724    QNJP37    0.01599999
+    XP3724    QPFP37    0.05899999
+    XP3724    QLPP37    0.02799999
+    XP3724    QOTP37    0.14999998
+    XP381     RCAPP38   1
+    XP381     QCRP38    1
+    XP381     QGAP38    0.47299981
+    XP381     QDSP38    0.22899985
+    XP381     QRSP38    0.03199999
+    XP381     QKJP38    -0.06299996
+    XP381     QNJP38    -0.01799999
+    XP381     QPFP38    -0.04599999
+    XP381     QLPP38    -0.03199999
+    XP381     QOTP38    0.14399993
+    XP382     RCAPP38   1
+    XP382     QCRP38    1
+    XP382     QGAP38    0.48099983
+    XP382     QDSP38    0.21799982
+    XP382     QRSP38    0.03099999
+    XP382     QKJP38    -0.05899999
+    XP382     QNJP38    -0.01799999
+    XP382     QPFP38    -0.05499999
+    XP382     QLPP38    -0.03199999
+    XP382     QOTP38    0.14299989
+    XP383     RCAPP38   1
+    XP383     QCRP38    1
+    XP383     QGAP38    0.47799987
+    XP383     QDSP38    0.22599983
+    XP383     QRSP38    0.025
+    XP383     QKJP38    -0.06099999
+    XP383     QNJP38    -0.01699999
+    XP383     QPFP38    -0.04899999
+    XP383     QLPP38    -0.03199999
+    XP383     QOTP38    0.1419999
+    XP384     RCAPP38   1
+    XP384     QCRP38    1
+    XP384     QGAP38    0.47899985
+    XP384     QDSP38    0.22599983
+    XP384     QRSP38    0.03099999
+    XP384     QKJP38    -0.05399999
+    XP384     QNJP38    -0.01699999
+    XP384     QPFP38    -0.04299999
+    XP384     QLPP38    -0.02999999
+    XP384     QOTP38    0.14399993
+    XP385     RCAPP38   1
+    XP385     QCRP38    1
+    XP385     QGAP38    0.5
+    XP385     QDSP38    0.20699996
+    XP385     QRSP38    0.02799999
+    XP385     QKJP38    -0.05799999
+    XP385     QNJP38    -0.01299999
+    XP385     QPFP38    -0.045
+    XP385     QLPP38    -0.03199999
+    XP385     QOTP38    0.1419999
+    XP386     RCAPP38   1
+    XP386     QCRP38    1
+    XP386     QGAP38    0.49299979
+    XP386     QDSP38    0.20999992
+    XP386     QRSP38    0.03299999
+    XP386     QKJP38    -0.05299999
+    XP386     QNJP38    -0.01599999
+    XP386     QPFP38    -0.05
+    XP386     QLPP38    -0.03099999
+    XP386     QOTP38    0.14899993
+    XP387     RCAPP38   1
+    XP387     QCRP38    1
+    XP387     QGAP38    0.49799985
+    XP387     QDSP38    0.20799977
+    XP387     QRSP38    0.03399999
+    XP387     QKJP38    -0.05299999
+    XP387     QNJP38    -0.01099999
+    XP387     QPFP38    -0.04599999
+    XP387     QLPP38    -0.027
+    XP387     QOTP38    0.14999998
+    XP388     RCAPP38   1
+    XP388     QCRP38    1
+    XP388     QGAP38    0.49299979
+    XP388     QDSP38    0.21999997
+    XP388     QRSP38    0.03399999
+    XP388     QKJP38    -0.05599999
+    XP388     QNJP38    -0.01199999
+    XP388     QPFP38    -0.05
+    XP388     QLPP38    -0.027
+    XP388     QOTP38    0.14399993
+    XP389     RCAPP38   1
+    XP389     QCRP38    1
+    XP389     QGAP38    0.48199993
+    XP389     QDSP38    0.21799982
+    XP389     QRSP38    0.04
+    XP389     QKJP38    -0.052
+    XP389     QNJP38    -0.01099999
+    XP389     QPFP38    -0.052
+    XP389     QLPP38    -0.027
+    XP389     QOTP38    0.1469999
+    XP3810    RCAPP38   1
+    XP3810    QCRP38    1
+    XP3810    QGAP38    0.46999997
+    XP3810    QDSP38    0.22499996
+    XP3810    QRSP38    0.04699999
+    XP3810    QKJP38    -0.05099999
+    XP3810    QNJP38    -0.01399999
+    XP3810    QPFP38    -0.05
+    XP3810    QLPP38    -0.027
+    XP3810    QOTP38    0.14999998
+    XP3811    RCAPP38   1
+    XP3811    QCRP38    1
+    XP3811    QGAP38    0.45699996
+    XP3811    QDSP38    0.23699987
+    XP3811    QRSP38    0.04299999
+    XP3811    QKJP38    -0.06399995
+    XP3811    QNJP38    -0.01199999
+    XP3811    QPFP38    -0.04899999
+    XP3811    QLPP38    -0.02799999
+    XP3811    QOTP38    0.14599991
+    XP3812    RCAPP38   1
+    XP3812    QCRP38    1
+    XP3812    QGAP38    0.44299984
+    XP3812    QDSP38    0.23399991
+    XP3812    QRSP38    0.042
+    XP3812    QKJP38    -0.06399995
+    XP3812    QNJP38    -0.01099999
+    XP3812    QPFP38    -0.052
+    XP3812    QLPP38    -0.02999999
+    XP3812    QOTP38    0.1509999
+    XP3813    RCAPP38   1
+    XP3813    QCRP38    1
+    XP3813    QGAP38    0.46499991
+    XP3813    QDSP38    0.20899987
+    XP3813    QRSP38    0.04099999
+    XP3813    QKJP38    -0.06299996
+    XP3813    QNJP38    -0.01699999
+    XP3813    QPFP38    -0.05399999
+    XP3813    QLPP38    -0.03199999
+    XP3813    QOTP38    0.15199995
+    XP3814    RCAPP38   1
+    XP3814    QCRP38    1
+    XP3814    QGAP38    0.48599982
+    XP3814    QDSP38    0.19699991
+    XP3814    QRSP38    0.03899999
+    XP3814    QKJP38    -0.05699999
+    XP3814    QNJP38    -0.01599999
+    XP3814    QPFP38    -0.05499999
+    XP3814    QLPP38    -0.02999999
+    XP3814    QOTP38    0.1469999
+    XP3815    RCAPP38   1
+    XP3815    QCRP38    1
+    XP3815    QGAP38    0.50699997
+    XP3815    QDSP38    0.20599985
+    XP3815    QRSP38    0.04599999
+    XP3815    QKJP38    -0.05299999
+    XP3815    QNJP38    -0.015
+    XP3815    QPFP38    -0.04599999
+    XP3815    QLPP38    -0.03299999
+    XP3815    QOTP38    0.13999993
+    XP3816    RCAPP38   1
+    XP3816    QCRP38    1
+    XP3816    QGAP38    0.5
+    XP3816    QDSP38    0.21499991
+    XP3816    QRSP38    0.04
+    XP3816    QKJP38    -0.04899999
+    XP3816    QNJP38    -0.01199999
+    XP3816    QPFP38    -0.05099999
+    XP3816    QLPP38    -0.029
+    XP3816    QOTP38    0.13699996
+    XP3817    RCAPP38   1
+    XP3817    QCRP38    1
+    XP3817    QGAP38    0.50499988
+    XP3817    QDSP38    0.20699996
+    XP3817    QRSP38    0.03899999
+    XP3817    QKJP38    -0.04799999
+    XP3817    QNJP38    -0.01099999
+    XP3817    QPFP38    -0.05
+    XP3817    QLPP38    -0.03199999
+    XP3817    QOTP38    0.14499998
+    XP3818    RCAPP38   1
+    XP3818    QCRP38    1
+    XP3818    QGAP38    0.49199986
+    XP3818    QDSP38    0.20999992
+    XP3818    QRSP38    0.042
+    XP3818    QKJP38    -0.052
+    XP3818    QNJP38    -0.01099999
+    XP3818    QPFP38    -0.05099999
+    XP3818    QLPP38    -0.027
+    XP3818    QOTP38    0.1469999
+    XP3819    RCAPP38   1
+    XP3819    QCRP38    1
+    XP3819    QGAP38    0.48399991
+    XP3819    QDSP38    0.21599984
+    XP3819    QRSP38    0.04399999
+    XP3819    QKJP38    -0.05299999
+    XP3819    QNJP38    -0.01399999
+    XP3819    QPFP38    -0.04899999
+    XP3819    QLPP38    -0.027
+    XP3819    QOTP38    0.14499998
+    XP3820    RCAPP38   1
+    XP3820    QCRP38    1
+    XP3820    QGAP38    0.46999997
+    XP3820    QDSP38    0.21599984
+    XP3820    QRSP38    0.04799999
+    XP3820    QKJP38    -0.05899999
+    XP3820    QNJP38    -0.01099999
+    XP3820    QPFP38    -0.052
+    XP3820    QLPP38    -0.029
+    XP3820    QOTP38    0.14999998
+    XP3821    RCAPP38   1
+    XP3821    QCRP38    1
+    XP3821    QGAP38    0.46699989
+    XP3821    QDSP38    0.21699989
+    XP3821    QRSP38    0.04899999
+    XP3821    QKJP38    -0.05899999
+    XP3821    QNJP38    -0.01099999
+    XP3821    QPFP38    -0.05399999
+    XP3821    QLPP38    -0.025
+    XP3821    QOTP38    0.1469999
+    XP3822    RCAPP38   1
+    XP3822    QCRP38    1
+    XP3822    QGAP38    0.44499993
+    XP3822    QDSP38    0.23599982
+    XP3822    QRSP38    0.04899999
+    XP3822    QKJP38    -0.05599999
+    XP3822    QNJP38    -0.022
+    XP3822    QPFP38    -0.05399999
+    XP3822    QLPP38    -0.02599999
+    XP3822    QOTP38    0.1419999
+    XP3823    RCAPP38   1
+    XP3823    QCRP38    1
+    XP3823    QGAP38    0.44899988
+    XP3823    QDSP38    0.2349999
+    XP3823    QRSP38    0.05099999
+    XP3823    QKJP38    -0.05999999
+    XP3823    QNJP38    -0.01599999
+    XP3823    QPFP38    -0.05
+    XP3823    QLPP38    -0.029
+    XP3823    QOTP38    0.14399993
+    XP3824    RCAPP38   1
+    XP3824    QCRP38    1
+    XP3824    QGAP38    0.46499991
+    XP3824    QDSP38    0.20299983
+    XP3824    QRSP38    0.05499999
+    XP3824    QKJP38    -0.05699999
+    XP3824    QNJP38    -0.01599999
+    XP3824    QPFP38    -0.05899999
+    XP3824    QLPP38    -0.02799999
+    XP3824    QOTP38    0.14999998
+    XP411     RCAPP41   1
+    XP411     QCRP41    -1
+    XP411     QGAP41    0.50199991
+    XP411     QDSP41    0.22899985
+    XP411     QRSP41    0.06699997
+    XP411     QKJP41    0.02799999
+    XP411     QNJP41    0.03099999
+    XP411     QPFP41    0.003
+    XP411     QLPP41    0.015
+    XP411     QOTP41    0.13399988
+    XP412     RCAPP41   1
+    XP412     QCRP41    -1
+    XP412     QGAP41    0.50099981
+    XP412     QDSP41    0.23599982
+    XP412     QRSP41    0.065
+    XP412     QKJP41    0.029
+    XP412     QNJP41    0.03199999
+    XP412     QPFP41    0.003
+    XP412     QLPP41    0.01299999
+    XP412     QOTP41    0.13399988
+    XP413     RCAPP41   1
+    XP413     QCRP41    -1
+    XP413     QGAP41    0.48999995
+    XP413     QDSP41    0.24199986
+    XP413     QRSP41    0.05599999
+    XP413     QKJP41    0.02399999
+    XP413     QNJP41    0.03199999
+    XP413     QPFP41    0.002
+    XP413     QLPP41    0.015
+    XP413     QOTP41    0.1469999
+    XP414     RCAPP41   1
+    XP414     QCRP41    -1
+    XP414     QGAP41    0.49299979
+    XP414     QDSP41    0.2329998
+    XP414     QRSP41    0.05
+    XP414     QKJP41    0.02999999
+    XP414     QNJP41    0.01899999
+    XP414     QPFP41    0.002
+    XP414     QLPP41    0.015
+    XP414     QOTP41    0.15899992
+    XP415     RCAPP41   1
+    XP415     QCRP41    -1
+    XP415     QGAP41    0.49199986
+    XP415     QDSP41    0.2349999
+    XP415     QRSP41    0.04699999
+    XP415     QKJP41    0.035
+    XP415     QNJP41    0.022
+    XP415     QPFP41    0.002
+    XP415     QLPP41    0.01599999
+    XP415     QOTP41    0.16099983
+    XP416     RCAPP41   1
+    XP416     QCRP41    -1
+    XP416     QGAP41    0.50399989
+    XP416     QDSP41    0.22499996
+    XP416     QRSP41    0.042
+    XP416     QKJP41    0.02999999
+    XP416     QNJP41    0.01799999
+    XP416     QPFP41    0.001
+    XP416     QLPP41    0.015
+    XP416     QOTP41    0.17199993
+    XP417     RCAPP41   1
+    XP417     QCRP41    -1
+    XP417     QGAP41    0.5
+    XP417     QDSP41    0.24399984
+    XP417     QRSP41    0.04299999
+    XP417     QKJP41    0.027
+    XP417     QNJP41    0.02099999
+    XP417     QPFP41    0.002
+    XP417     QLPP41    0.01299999
+    XP417     QOTP41    0.15899992
+    XP418     RCAPP41   1
+    XP418     QCRP41    -1
+    XP418     QGAP41    0.50499988
+    XP418     QDSP41    0.24099988
+    XP418     QRSP41    0.04799999
+    XP418     QKJP41    0.02799999
+    XP418     QNJP41    0.02599999
+    XP418     QPFP41    0.002
+    XP418     QLPP41    0.01199999
+    XP418     QOTP41    0.14899993
+    XP419     RCAPP41   1
+    XP419     QCRP41    -1
+    XP419     QGAP41    0.50399989
+    XP419     QDSP41    0.25299984
+    XP419     QRSP41    0.04799999
+    XP419     QKJP41    0.02299999
+    XP419     QNJP41    0.027
+    XP419     QPFP41    0.001
+    XP419     QLPP41    0.01199999
+    XP419     QOTP41    0.13799989
+    XP4110    RCAPP41   1
+    XP4110    QCRP41    -1
+    XP4110    QGAP41    0.49499995
+    XP4110    QDSP41    0.24499995
+    XP4110    QRSP41    0.07399994
+    XP4110    QKJP41    0.025
+    XP4110    QNJP41    0.02299999
+    XP4110    QPFP41    0.002
+    XP4110    QLPP41    0.01199999
+    XP4110    QOTP41    0.13299996
+    XP4111    RCAPP41   1
+    XP4111    QCRP41    -1
+    XP4111    QGAP41    0.50099981
+    XP4111    QDSP41    0.23399991
+    XP4111    QRSP41    0.079
+    XP4111    QKJP41    0.02299999
+    XP4111    QNJP41    0.01699999
+    XP4111    QPFP41    0.002
+    XP4111    QLPP41    0.01299999
+    XP4111    QOTP41    0.13499993
+    XP4112    RCAPP41   1
+    XP4112    QCRP41    -1
+    XP4112    QGAP41    0.5059998
+    XP4112    QDSP41    0.24399984
+    XP4112    QRSP41    0.07099998
+    XP4112    QKJP41    0.02399999
+    XP4112    QNJP41    0.02099999
+    XP4112    QPFP41    0.001
+    XP4112    QLPP41    0.01099999
+    XP4112    QOTP41    0.12999988
+    XP4113    RCAPP41   1
+    XP4113    QCRP41    -1
+    XP4113    QGAP41    0.50299984
+    XP4113    QDSP41    0.2389999
+    XP4113    QRSP41    0.05799999
+    XP4113    QKJP41    0.03099999
+    XP4113    QNJP41    0.02599999
+    XP4113    QPFP41    0.002
+    XP4113    QLPP41    0.01199999
+    XP4113    QOTP41    0.13899994
+    XP4114    RCAPP41   1
+    XP4114    QCRP41    -1
+    XP4114    QGAP41    0.49299979
+    XP4114    QDSP41    0.24799985
+    XP4114    QRSP41    0.05399999
+    XP4114    QKJP41    0.03699999
+    XP4114    QNJP41    0.022
+    XP4114    QPFP41    0.001
+    XP4114    QLPP41    0.01599999
+    XP4114    QOTP41    0.1469999
+    XP4115    RCAPP41   1
+    XP4115    QCRP41    -1
+    XP4115    QGAP41    0.49499995
+    XP4115    QDSP41    0.27099991
+    XP4115    QRSP41    0.052
+    XP4115    QKJP41    0.02799999
+    XP4115    QNJP41    0.02099999
+    XP4115    QPFP41    0.001
+    XP4115    QLPP41    0.01299999
+    XP4115    QOTP41    0.14599991
+    XP4116    RCAPP41   1
+    XP4116    QCRP41    -1
+    XP4116    QGAP41    0.49499995
+    XP4116    QDSP41    0.26299977
+    XP4116    QRSP41    0.04899999
+    XP4116    QKJP41    0.025
+    XP4116    QNJP41    0.02099999
+    XP4116    QPFP41    0.001
+    XP4116    QLPP41    0.015
+    XP4116    QOTP41    0.15299994
+    XP4117    RCAPP41   1
+    XP4117    QCRP41    -1
+    XP4117    QGAP41    0.49299979
+    XP4117    QDSP41    0.24099988
+    XP4117    QRSP41    0.05
+    XP4117    QKJP41    0.03399999
+    XP4117    QNJP41    0.01699999
+    XP4117    QPFP41    0.001
+    XP4117    QLPP41    0.01599999
+    XP4117    QOTP41    0.15799999
+    XP4118    RCAPP41   1
+    XP4118    QCRP41    -1
+    XP4118    QGAP41    0.49499995
+    XP4118    QDSP41    0.25
+    XP4118    QRSP41    0.04599999
+    XP4118    QKJP41    0.022
+    XP4118    QNJP41    0.01699999
+    XP4118    QPFP41    0.001
+    XP4118    QLPP41    0.01399999
+    XP4118    QOTP41    0.16599989
+    XP4119    RCAPP41   1
+    XP4119    QCRP41    -1
+    XP4119    QGAP41    0.49599987
+    XP4119    QDSP41    0.25499988
+    XP4119    QRSP41    0.05099999
+    XP4119    QKJP41    0.03199999
+    XP4119    QNJP41    0.02299999
+    XP4119    QPFP41    0.002
+    XP4119    QLPP41    0.01399999
+    XP4119    QOTP41    0.1509999
+    XP4120    RCAPP41   1
+    XP4120    QCRP41    -1
+    XP4120    QGAP41    0.49799985
+    XP4120    QDSP41    0.24399984
+    XP4120    QRSP41    0.05999999
+    XP4120    QKJP41    0.029
+    XP4120    QNJP41    0.02099999
+    XP4120    QPFP41    0.001
+    XP4120    QLPP41    0.01199999
+    XP4120    QOTP41    0.14399993
+    XP4121    RCAPP41   1
+    XP4121    QCRP41    -1
+    XP4121    QGAP41    0.50299984
+    XP4121    QDSP41    0.25699997
+    XP4121    QRSP41    0.06599998
+    XP4121    QKJP41    0.025
+    XP4121    QNJP41    0.02599999
+    XP4121    QPFP41    0.001
+    XP4121    QLPP41    0.01199999
+    XP4121    QOTP41    0.125
+    XP4122    RCAPP41   1
+    XP4122    QCRP41    -1
+    XP4122    QGAP41    0.47799987
+    XP4122    QDSP41    0.27099991
+    XP4122    QRSP41    0.07599998
+    XP4122    QKJP41    0.02099999
+    XP4122    QNJP41    0.02
+    XP4122    QPFP41    0.001
+    XP4122    QLPP41    0.01299999
+    XP4122    QOTP41    0.125
+    XP4123    RCAPP41   1
+    XP4123    QCRP41    -1
+    XP4123    QGAP41    0.49599987
+    XP4123    QDSP41    0.27999991
+    XP4123    QRSP41    0.07199997
+    XP4123    QKJP41    0.02799999
+    XP4123    QNJP41    0.01699999
+    XP4123    QPFP41    0.001
+    XP4123    QLPP41    0.00999999
+    XP4123    QOTP41    0.11299992
+    XP4124    RCAPP41   1
+    XP4124    QCRP41    -1
+    XP4124    QGAP41    0.49699992
+    XP4124    QDSP41    0.24899983
+    XP4124    QRSP41    0.07299995
+    XP4124    QKJP41    0.03199999
+    XP4124    QNJP41    0.02299999
+    XP4124    QPFP41    0.001
+    XP4124    QLPP41    0.01099999
+    XP4124    QOTP41    0.11899996
+    XP421     RCAPP42   1
+    XP421     QCRP42    -1
+    XP421     QGAP42    0.50199991
+    XP421     QDSP42    0.22899985
+    XP421     QRSP42    0.06699997
+    XP421     QKJP42    0.02799999
+    XP421     QNJP42    0.03099999
+    XP421     QPFP42    0.003
+    XP421     QLPP42    0.015
+    XP421     QOTP42    0.13399988
+    XP422     RCAPP42   1
+    XP422     QCRP42    -1
+    XP422     QGAP42    0.50099981
+    XP422     QDSP42    0.23599982
+    XP422     QRSP42    0.065
+    XP422     QKJP42    0.029
+    XP422     QNJP42    0.03199999
+    XP422     QPFP42    0.003
+    XP422     QLPP42    0.01299999
+    XP422     QOTP42    0.13399988
+    XP423     RCAPP42   1
+    XP423     QCRP42    -1
+    XP423     QGAP42    0.48999995
+    XP423     QDSP42    0.24199986
+    XP423     QRSP42    0.05599999
+    XP423     QKJP42    0.02399999
+    XP423     QNJP42    0.03199999
+    XP423     QPFP42    0.002
+    XP423     QLPP42    0.015
+    XP423     QOTP42    0.1469999
+    XP424     RCAPP42   1
+    XP424     QCRP42    -1
+    XP424     QGAP42    0.49299979
+    XP424     QDSP42    0.2329998
+    XP424     QRSP42    0.05
+    XP424     QKJP42    0.02999999
+    XP424     QNJP42    0.01899999
+    XP424     QPFP42    0.002
+    XP424     QLPP42    0.015
+    XP424     QOTP42    0.15899992
+    XP425     RCAPP42   1
+    XP425     QCRP42    -1
+    XP425     QGAP42    0.49199986
+    XP425     QDSP42    0.2349999
+    XP425     QRSP42    0.04699999
+    XP425     QKJP42    0.035
+    XP425     QNJP42    0.022
+    XP425     QPFP42    0.002
+    XP425     QLPP42    0.01599999
+    XP425     QOTP42    0.16099983
+    XP426     RCAPP42   1
+    XP426     QCRP42    -1
+    XP426     QGAP42    0.50399989
+    XP426     QDSP42    0.22499996
+    XP426     QRSP42    0.042
+    XP426     QKJP42    0.02999999
+    XP426     QNJP42    0.01799999
+    XP426     QPFP42    0.001
+    XP426     QLPP42    0.015
+    XP426     QOTP42    0.17199993
+    XP427     RCAPP42   1
+    XP427     QCRP42    -1
+    XP427     QGAP42    0.5
+    XP427     QDSP42    0.24399984
+    XP427     QRSP42    0.04299999
+    XP427     QKJP42    0.027
+    XP427     QNJP42    0.02099999
+    XP427     QPFP42    0.002
+    XP427     QLPP42    0.01299999
+    XP427     QOTP42    0.15899992
+    XP428     RCAPP42   1
+    XP428     QCRP42    -1
+    XP428     QGAP42    0.50499988
+    XP428     QDSP42    0.24099988
+    XP428     QRSP42    0.04799999
+    XP428     QKJP42    0.02799999
+    XP428     QNJP42    0.02599999
+    XP428     QPFP42    0.002
+    XP428     QLPP42    0.01199999
+    XP428     QOTP42    0.14899993
+    XP429     RCAPP42   1
+    XP429     QCRP42    -1
+    XP429     QGAP42    0.50399989
+    XP429     QDSP42    0.25299984
+    XP429     QRSP42    0.04799999
+    XP429     QKJP42    0.02299999
+    XP429     QNJP42    0.027
+    XP429     QPFP42    0.001
+    XP429     QLPP42    0.01199999
+    XP429     QOTP42    0.13799989
+    XP4210    RCAPP42   1
+    XP4210    QCRP42    -1
+    XP4210    QGAP42    0.49499995
+    XP4210    QDSP42    0.24499995
+    XP4210    QRSP42    0.07399994
+    XP4210    QKJP42    0.025
+    XP4210    QNJP42    0.02299999
+    XP4210    QPFP42    0.002
+    XP4210    QLPP42    0.01199999
+    XP4210    QOTP42    0.13299996
+    XP4211    RCAPP42   1
+    XP4211    QCRP42    -1
+    XP4211    QGAP42    0.50099981
+    XP4211    QDSP42    0.23399991
+    XP4211    QRSP42    0.079
+    XP4211    QKJP42    0.02299999
+    XP4211    QNJP42    0.01699999
+    XP4211    QPFP42    0.002
+    XP4211    QLPP42    0.01299999
+    XP4211    QOTP42    0.13499993
+    XP4212    RCAPP42   1
+    XP4212    QCRP42    -1
+    XP4212    QGAP42    0.5059998
+    XP4212    QDSP42    0.24399984
+    XP4212    QRSP42    0.07099998
+    XP4212    QKJP42    0.02399999
+    XP4212    QNJP42    0.02099999
+    XP4212    QPFP42    0.001
+    XP4212    QLPP42    0.01099999
+    XP4212    QOTP42    0.12999988
+    XP4213    RCAPP42   1
+    XP4213    QCRP42    -1
+    XP4213    QGAP42    0.50299984
+    XP4213    QDSP42    0.2389999
+    XP4213    QRSP42    0.05799999
+    XP4213    QKJP42    0.03099999
+    XP4213    QNJP42    0.02599999
+    XP4213    QPFP42    0.002
+    XP4213    QLPP42    0.01199999
+    XP4213    QOTP42    0.13899994
+    XP4214    RCAPP42   1
+    XP4214    QCRP42    -1
+    XP4214    QGAP42    0.49299979
+    XP4214    QDSP42    0.24799985
+    XP4214    QRSP42    0.05399999
+    XP4214    QKJP42    0.03699999
+    XP4214    QNJP42    0.022
+    XP4214    QPFP42    0.001
+    XP4214    QLPP42    0.01599999
+    XP4214    QOTP42    0.1469999
+    XP4215    RCAPP42   1
+    XP4215    QCRP42    -1
+    XP4215    QGAP42    0.49499995
+    XP4215    QDSP42    0.27099991
+    XP4215    QRSP42    0.052
+    XP4215    QKJP42    0.02799999
+    XP4215    QNJP42    0.02099999
+    XP4215    QPFP42    0.001
+    XP4215    QLPP42    0.01299999
+    XP4215    QOTP42    0.14599991
+    XP4216    RCAPP42   1
+    XP4216    QCRP42    -1
+    XP4216    QGAP42    0.49499995
+    XP4216    QDSP42    0.26299977
+    XP4216    QRSP42    0.04899999
+    XP4216    QKJP42    0.025
+    XP4216    QNJP42    0.02099999
+    XP4216    QPFP42    0.001
+    XP4216    QLPP42    0.015
+    XP4216    QOTP42    0.15299994
+    XP4217    RCAPP42   1
+    XP4217    QCRP42    -1
+    XP4217    QGAP42    0.49299979
+    XP4217    QDSP42    0.24099988
+    XP4217    QRSP42    0.05
+    XP4217    QKJP42    0.03399999
+    XP4217    QNJP42    0.01699999
+    XP4217    QPFP42    0.001
+    XP4217    QLPP42    0.01599999
+    XP4217    QOTP42    0.15799999
+    XP4218    RCAPP42   1
+    XP4218    QCRP42    -1
+    XP4218    QGAP42    0.49499995
+    XP4218    QDSP42    0.25
+    XP4218    QRSP42    0.04599999
+    XP4218    QKJP42    0.022
+    XP4218    QNJP42    0.01699999
+    XP4218    QPFP42    0.001
+    XP4218    QLPP42    0.01399999
+    XP4218    QOTP42    0.16599989
+    XP4219    RCAPP42   1
+    XP4219    QCRP42    -1
+    XP4219    QGAP42    0.49599987
+    XP4219    QDSP42    0.25499988
+    XP4219    QRSP42    0.05099999
+    XP4219    QKJP42    0.03199999
+    XP4219    QNJP42    0.02299999
+    XP4219    QPFP42    0.002
+    XP4219    QLPP42    0.01399999
+    XP4219    QOTP42    0.1509999
+    XP4220    RCAPP42   1
+    XP4220    QCRP42    -1
+    XP4220    QGAP42    0.49799985
+    XP4220    QDSP42    0.24399984
+    XP4220    QRSP42    0.05999999
+    XP4220    QKJP42    0.029
+    XP4220    QNJP42    0.02099999
+    XP4220    QPFP42    0.001
+    XP4220    QLPP42    0.01199999
+    XP4220    QOTP42    0.14399993
+    XP4221    RCAPP42   1
+    XP4221    QCRP42    -1
+    XP4221    QGAP42    0.50299984
+    XP4221    QDSP42    0.25699997
+    XP4221    QRSP42    0.06599998
+    XP4221    QKJP42    0.025
+    XP4221    QNJP42    0.02599999
+    XP4221    QPFP42    0.001
+    XP4221    QLPP42    0.01199999
+    XP4221    QOTP42    0.125
+    XP4222    RCAPP42   1
+    XP4222    QCRP42    -1
+    XP4222    QGAP42    0.47799987
+    XP4222    QDSP42    0.27099991
+    XP4222    QRSP42    0.07599998
+    XP4222    QKJP42    0.02099999
+    XP4222    QNJP42    0.02
+    XP4222    QPFP42    0.001
+    XP4222    QLPP42    0.01299999
+    XP4222    QOTP42    0.125
+    XP4223    RCAPP42   1
+    XP4223    QCRP42    -1
+    XP4223    QGAP42    0.49599987
+    XP4223    QDSP42    0.27999991
+    XP4223    QRSP42    0.07199997
+    XP4223    QKJP42    0.02799999
+    XP4223    QNJP42    0.01699999
+    XP4223    QPFP42    0.001
+    XP4223    QLPP42    0.00999999
+    XP4223    QOTP42    0.11299992
+    XP4224    RCAPP42   1
+    XP4224    QCRP42    -1
+    XP4224    QGAP42    0.49699992
+    XP4224    QDSP42    0.24899983
+    XP4224    QRSP42    0.07299995
+    XP4224    QKJP42    0.03199999
+    XP4224    QNJP42    0.02299999
+    XP4224    QPFP42    0.001
+    XP4224    QLPP42    0.01099999
+    XP4224    QOTP42    0.11899996
+    XP431     RCAPP43   1
+    XP431     QCRP43    -1
+    XP431     QGAP43    0.50199991
+    XP431     QDSP43    0.22899985
+    XP431     QRSP43    0.06699997
+    XP431     QKJP43    0.02799999
+    XP431     QNJP43    0.03099999
+    XP431     QPFP43    0.003
+    XP431     QLPP43    0.015
+    XP431     QOTP43    0.13399988
+    XP432     RCAPP43   1
+    XP432     QCRP43    -1
+    XP432     QGAP43    0.50099981
+    XP432     QDSP43    0.23599982
+    XP432     QRSP43    0.065
+    XP432     QKJP43    0.029
+    XP432     QNJP43    0.03199999
+    XP432     QPFP43    0.003
+    XP432     QLPP43    0.01299999
+    XP432     QOTP43    0.13399988
+    XP433     RCAPP43   1
+    XP433     QCRP43    -1
+    XP433     QGAP43    0.48999995
+    XP433     QDSP43    0.24199986
+    XP433     QRSP43    0.05599999
+    XP433     QKJP43    0.02399999
+    XP433     QNJP43    0.03199999
+    XP433     QPFP43    0.002
+    XP433     QLPP43    0.015
+    XP433     QOTP43    0.1469999
+    XP434     RCAPP43   1
+    XP434     QCRP43    -1
+    XP434     QGAP43    0.49299979
+    XP434     QDSP43    0.2329998
+    XP434     QRSP43    0.05
+    XP434     QKJP43    0.02999999
+    XP434     QNJP43    0.01899999
+    XP434     QPFP43    0.002
+    XP434     QLPP43    0.015
+    XP434     QOTP43    0.15899992
+    XP435     RCAPP43   1
+    XP435     QCRP43    -1
+    XP435     QGAP43    0.49199986
+    XP435     QDSP43    0.2349999
+    XP435     QRSP43    0.04699999
+    XP435     QKJP43    0.035
+    XP435     QNJP43    0.022
+    XP435     QPFP43    0.002
+    XP435     QLPP43    0.01599999
+    XP435     QOTP43    0.16099983
+    XP436     RCAPP43   1
+    XP436     QCRP43    -1
+    XP436     QGAP43    0.50399989
+    XP436     QDSP43    0.22499996
+    XP436     QRSP43    0.042
+    XP436     QKJP43    0.02999999
+    XP436     QNJP43    0.01799999
+    XP436     QPFP43    0.001
+    XP436     QLPP43    0.015
+    XP436     QOTP43    0.17199993
+    XP437     RCAPP43   1
+    XP437     QCRP43    -1
+    XP437     QGAP43    0.5
+    XP437     QDSP43    0.24399984
+    XP437     QRSP43    0.04299999
+    XP437     QKJP43    0.027
+    XP437     QNJP43    0.02099999
+    XP437     QPFP43    0.002
+    XP437     QLPP43    0.01299999
+    XP437     QOTP43    0.15899992
+    XP438     RCAPP43   1
+    XP438     QCRP43    -1
+    XP438     QGAP43    0.50499988
+    XP438     QDSP43    0.24099988
+    XP438     QRSP43    0.04799999
+    XP438     QKJP43    0.02799999
+    XP438     QNJP43    0.02599999
+    XP438     QPFP43    0.002
+    XP438     QLPP43    0.01199999
+    XP438     QOTP43    0.14899993
+    XP439     RCAPP43   1
+    XP439     QCRP43    -1
+    XP439     QGAP43    0.50399989
+    XP439     QDSP43    0.25299984
+    XP439     QRSP43    0.04799999
+    XP439     QKJP43    0.02299999
+    XP439     QNJP43    0.027
+    XP439     QPFP43    0.001
+    XP439     QLPP43    0.01199999
+    XP439     QOTP43    0.13799989
+    XP4310    RCAPP43   1
+    XP4310    QCRP43    -1
+    XP4310    QGAP43    0.49499995
+    XP4310    QDSP43    0.24499995
+    XP4310    QRSP43    0.07399994
+    XP4310    QKJP43    0.025
+    XP4310    QNJP43    0.02299999
+    XP4310    QPFP43    0.002
+    XP4310    QLPP43    0.01199999
+    XP4310    QOTP43    0.13299996
+    XP4311    RCAPP43   1
+    XP4311    QCRP43    -1
+    XP4311    QGAP43    0.50099981
+    XP4311    QDSP43    0.23399991
+    XP4311    QRSP43    0.079
+    XP4311    QKJP43    0.02299999
+    XP4311    QNJP43    0.01699999
+    XP4311    QPFP43    0.002
+    XP4311    QLPP43    0.01299999
+    XP4311    QOTP43    0.13499993
+    XP4312    RCAPP43   1
+    XP4312    QCRP43    -1
+    XP4312    QGAP43    0.5059998
+    XP4312    QDSP43    0.24399984
+    XP4312    QRSP43    0.07099998
+    XP4312    QKJP43    0.02399999
+    XP4312    QNJP43    0.02099999
+    XP4312    QPFP43    0.001
+    XP4312    QLPP43    0.01099999
+    XP4312    QOTP43    0.12999988
+    XP4313    RCAPP43   1
+    XP4313    QCRP43    -1
+    XP4313    QGAP43    0.50299984
+    XP4313    QDSP43    0.2389999
+    XP4313    QRSP43    0.05799999
+    XP4313    QKJP43    0.03099999
+    XP4313    QNJP43    0.02599999
+    XP4313    QPFP43    0.002
+    XP4313    QLPP43    0.01199999
+    XP4313    QOTP43    0.13899994
+    XP4314    RCAPP43   1
+    XP4314    QCRP43    -1
+    XP4314    QGAP43    0.49299979
+    XP4314    QDSP43    0.24799985
+    XP4314    QRSP43    0.05399999
+    XP4314    QKJP43    0.03699999
+    XP4314    QNJP43    0.022
+    XP4314    QPFP43    0.001
+    XP4314    QLPP43    0.01599999
+    XP4314    QOTP43    0.1469999
+    XP4315    RCAPP43   1
+    XP4315    QCRP43    -1
+    XP4315    QGAP43    0.49499995
+    XP4315    QDSP43    0.27099991
+    XP4315    QRSP43    0.052
+    XP4315    QKJP43    0.02799999
+    XP4315    QNJP43    0.02099999
+    XP4315    QPFP43    0.001
+    XP4315    QLPP43    0.01299999
+    XP4315    QOTP43    0.14599991
+    XP4316    RCAPP43   1
+    XP4316    QCRP43    -1
+    XP4316    QGAP43    0.49499995
+    XP4316    QDSP43    0.26299977
+    XP4316    QRSP43    0.04899999
+    XP4316    QKJP43    0.025
+    XP4316    QNJP43    0.02099999
+    XP4316    QPFP43    0.001
+    XP4316    QLPP43    0.015
+    XP4316    QOTP43    0.15299994
+    XP4317    RCAPP43   1
+    XP4317    QCRP43    -1
+    XP4317    QGAP43    0.49299979
+    XP4317    QDSP43    0.24099988
+    XP4317    QRSP43    0.05
+    XP4317    QKJP43    0.03399999
+    XP4317    QNJP43    0.01699999
+    XP4317    QPFP43    0.001
+    XP4317    QLPP43    0.01599999
+    XP4317    QOTP43    0.15799999
+    XP4318    RCAPP43   1
+    XP4318    QCRP43    -1
+    XP4318    QGAP43    0.49499995
+    XP4318    QDSP43    0.25
+    XP4318    QRSP43    0.04599999
+    XP4318    QKJP43    0.022
+    XP4318    QNJP43    0.01699999
+    XP4318    QPFP43    0.001
+    XP4318    QLPP43    0.01399999
+    XP4318    QOTP43    0.16599989
+    XP4319    RCAPP43   1
+    XP4319    QCRP43    -1
+    XP4319    QGAP43    0.49599987
+    XP4319    QDSP43    0.25499988
+    XP4319    QRSP43    0.05099999
+    XP4319    QKJP43    0.03199999
+    XP4319    QNJP43    0.02299999
+    XP4319    QPFP43    0.002
+    XP4319    QLPP43    0.01399999
+    XP4319    QOTP43    0.1509999
+    XP4320    RCAPP43   1
+    XP4320    QCRP43    -1
+    XP4320    QGAP43    0.49799985
+    XP4320    QDSP43    0.24399984
+    XP4320    QRSP43    0.05999999
+    XP4320    QKJP43    0.029
+    XP4320    QNJP43    0.02099999
+    XP4320    QPFP43    0.001
+    XP4320    QLPP43    0.01199999
+    XP4320    QOTP43    0.14399993
+    XP4321    RCAPP43   1
+    XP4321    QCRP43    -1
+    XP4321    QGAP43    0.50299984
+    XP4321    QDSP43    0.25699997
+    XP4321    QRSP43    0.06599998
+    XP4321    QKJP43    0.025
+    XP4321    QNJP43    0.02599999
+    XP4321    QPFP43    0.001
+    XP4321    QLPP43    0.01199999
+    XP4321    QOTP43    0.125
+    XP4322    RCAPP43   1
+    XP4322    QCRP43    -1
+    XP4322    QGAP43    0.47799987
+    XP4322    QDSP43    0.27099991
+    XP4322    QRSP43    0.07599998
+    XP4322    QKJP43    0.02099999
+    XP4322    QNJP43    0.02
+    XP4322    QPFP43    0.001
+    XP4322    QLPP43    0.01299999
+    XP4322    QOTP43    0.125
+    XP4323    RCAPP43   1
+    XP4323    QCRP43    -1
+    XP4323    QGAP43    0.49599987
+    XP4323    QDSP43    0.27999991
+    XP4323    QRSP43    0.07199997
+    XP4323    QKJP43    0.02799999
+    XP4323    QNJP43    0.01699999
+    XP4323    QPFP43    0.001
+    XP4323    QLPP43    0.00999999
+    XP4323    QOTP43    0.11299992
+    XP4324    RCAPP43   1
+    XP4324    QCRP43    -1
+    XP4324    QGAP43    0.49699992
+    XP4324    QDSP43    0.24899983
+    XP4324    QRSP43    0.07299995
+    XP4324    QKJP43    0.03199999
+    XP4324    QNJP43    0.02299999
+    XP4324    QPFP43    0.001
+    XP4324    QLPP43    0.01099999
+    XP4324    QOTP43    0.11899996
+    XP441     RCAPP44   1
+    XP441     QCRP44    -1
+    XP441     QGAP44    0.50199991
+    XP441     QDSP44    0.22899985
+    XP441     QRSP44    0.06699997
+    XP441     QKJP44    0.02799999
+    XP441     QNJP44    0.03099999
+    XP441     QPFP44    0.003
+    XP441     QLPP44    0.015
+    XP441     QOTP44    0.13399988
+    XP442     RCAPP44   1
+    XP442     QCRP44    -1
+    XP442     QGAP44    0.50099981
+    XP442     QDSP44    0.23599982
+    XP442     QRSP44    0.065
+    XP442     QKJP44    0.029
+    XP442     QNJP44    0.03199999
+    XP442     QPFP44    0.003
+    XP442     QLPP44    0.01299999
+    XP442     QOTP44    0.13399988
+    XP443     RCAPP44   1
+    XP443     QCRP44    -1
+    XP443     QGAP44    0.48999995
+    XP443     QDSP44    0.24199986
+    XP443     QRSP44    0.05599999
+    XP443     QKJP44    0.02399999
+    XP443     QNJP44    0.03199999
+    XP443     QPFP44    0.002
+    XP443     QLPP44    0.015
+    XP443     QOTP44    0.1469999
+    XP444     RCAPP44   1
+    XP444     QCRP44    -1
+    XP444     QGAP44    0.49299979
+    XP444     QDSP44    0.2329998
+    XP444     QRSP44    0.05
+    XP444     QKJP44    0.02999999
+    XP444     QNJP44    0.01899999
+    XP444     QPFP44    0.002
+    XP444     QLPP44    0.015
+    XP444     QOTP44    0.15899992
+    XP445     RCAPP44   1
+    XP445     QCRP44    -1
+    XP445     QGAP44    0.49199986
+    XP445     QDSP44    0.2349999
+    XP445     QRSP44    0.04699999
+    XP445     QKJP44    0.035
+    XP445     QNJP44    0.022
+    XP445     QPFP44    0.002
+    XP445     QLPP44    0.01599999
+    XP445     QOTP44    0.16099983
+    XP446     RCAPP44   1
+    XP446     QCRP44    -1
+    XP446     QGAP44    0.50399989
+    XP446     QDSP44    0.22499996
+    XP446     QRSP44    0.042
+    XP446     QKJP44    0.02999999
+    XP446     QNJP44    0.01799999
+    XP446     QPFP44    0.001
+    XP446     QLPP44    0.015
+    XP446     QOTP44    0.17199993
+    XP447     RCAPP44   1
+    XP447     QCRP44    -1
+    XP447     QGAP44    0.5
+    XP447     QDSP44    0.24399984
+    XP447     QRSP44    0.04299999
+    XP447     QKJP44    0.027
+    XP447     QNJP44    0.02099999
+    XP447     QPFP44    0.002
+    XP447     QLPP44    0.01299999
+    XP447     QOTP44    0.15899992
+    XP448     RCAPP44   1
+    XP448     QCRP44    -1
+    XP448     QGAP44    0.50499988
+    XP448     QDSP44    0.24099988
+    XP448     QRSP44    0.04799999
+    XP448     QKJP44    0.02799999
+    XP448     QNJP44    0.02599999
+    XP448     QPFP44    0.002
+    XP448     QLPP44    0.01199999
+    XP448     QOTP44    0.14899993
+    XP449     RCAPP44   1
+    XP449     QCRP44    -1
+    XP449     QGAP44    0.50399989
+    XP449     QDSP44    0.25299984
+    XP449     QRSP44    0.04799999
+    XP449     QKJP44    0.02299999
+    XP449     QNJP44    0.027
+    XP449     QPFP44    0.001
+    XP449     QLPP44    0.01199999
+    XP449     QOTP44    0.13799989
+    XP4410    RCAPP44   1
+    XP4410    QCRP44    -1
+    XP4410    QGAP44    0.49499995
+    XP4410    QDSP44    0.24499995
+    XP4410    QRSP44    0.07399994
+    XP4410    QKJP44    0.025
+    XP4410    QNJP44    0.02299999
+    XP4410    QPFP44    0.002
+    XP4410    QLPP44    0.01199999
+    XP4410    QOTP44    0.13299996
+    XP4411    RCAPP44   1
+    XP4411    QCRP44    -1
+    XP4411    QGAP44    0.50099981
+    XP4411    QDSP44    0.23399991
+    XP4411    QRSP44    0.079
+    XP4411    QKJP44    0.02299999
+    XP4411    QNJP44    0.01699999
+    XP4411    QPFP44    0.002
+    XP4411    QLPP44    0.01299999
+    XP4411    QOTP44    0.13499993
+    XP4412    RCAPP44   1
+    XP4412    QCRP44    -1
+    XP4412    QGAP44    0.5059998
+    XP4412    QDSP44    0.24399984
+    XP4412    QRSP44    0.07099998
+    XP4412    QKJP44    0.02399999
+    XP4412    QNJP44    0.02099999
+    XP4412    QPFP44    0.001
+    XP4412    QLPP44    0.01099999
+    XP4412    QOTP44    0.12999988
+    XP4413    RCAPP44   1
+    XP4413    QCRP44    -1
+    XP4413    QGAP44    0.50299984
+    XP4413    QDSP44    0.2389999
+    XP4413    QRSP44    0.05799999
+    XP4413    QKJP44    0.03099999
+    XP4413    QNJP44    0.02599999
+    XP4413    QPFP44    0.002
+    XP4413    QLPP44    0.01199999
+    XP4413    QOTP44    0.13899994
+    XP4414    RCAPP44   1
+    XP4414    QCRP44    -1
+    XP4414    QGAP44    0.49299979
+    XP4414    QDSP44    0.24799985
+    XP4414    QRSP44    0.05399999
+    XP4414    QKJP44    0.03699999
+    XP4414    QNJP44    0.022
+    XP4414    QPFP44    0.001
+    XP4414    QLPP44    0.01599999
+    XP4414    QOTP44    0.1469999
+    XP4415    RCAPP44   1
+    XP4415    QCRP44    -1
+    XP4415    QGAP44    0.49499995
+    XP4415    QDSP44    0.27099991
+    XP4415    QRSP44    0.052
+    XP4415    QKJP44    0.02799999
+    XP4415    QNJP44    0.02099999
+    XP4415    QPFP44    0.001
+    XP4415    QLPP44    0.01299999
+    XP4415    QOTP44    0.14599991
+    XP4416    RCAPP44   1
+    XP4416    QCRP44    -1
+    XP4416    QGAP44    0.49499995
+    XP4416    QDSP44    0.26299977
+    XP4416    QRSP44    0.04899999
+    XP4416    QKJP44    0.025
+    XP4416    QNJP44    0.02099999
+    XP4416    QPFP44    0.001
+    XP4416    QLPP44    0.015
+    XP4416    QOTP44    0.15299994
+    XP4417    RCAPP44   1
+    XP4417    QCRP44    -1
+    XP4417    QGAP44    0.49299979
+    XP4417    QDSP44    0.24099988
+    XP4417    QRSP44    0.05
+    XP4417    QKJP44    0.03399999
+    XP4417    QNJP44    0.01699999
+    XP4417    QPFP44    0.001
+    XP4417    QLPP44    0.01599999
+    XP4417    QOTP44    0.15799999
+    XP4418    RCAPP44   1
+    XP4418    QCRP44    -1
+    XP4418    QGAP44    0.49499995
+    XP4418    QDSP44    0.25
+    XP4418    QRSP44    0.04599999
+    XP4418    QKJP44    0.022
+    XP4418    QNJP44    0.01699999
+    XP4418    QPFP44    0.001
+    XP4418    QLPP44    0.01399999
+    XP4418    QOTP44    0.16599989
+    XP4419    RCAPP44   1
+    XP4419    QCRP44    -1
+    XP4419    QGAP44    0.49599987
+    XP4419    QDSP44    0.25499988
+    XP4419    QRSP44    0.05099999
+    XP4419    QKJP44    0.03199999
+    XP4419    QNJP44    0.02299999
+    XP4419    QPFP44    0.002
+    XP4419    QLPP44    0.01399999
+    XP4419    QOTP44    0.1509999
+    XP4420    RCAPP44   1
+    XP4420    QCRP44    -1
+    XP4420    QGAP44    0.49799985
+    XP4420    QDSP44    0.24399984
+    XP4420    QRSP44    0.05999999
+    XP4420    QKJP44    0.029
+    XP4420    QNJP44    0.02099999
+    XP4420    QPFP44    0.001
+    XP4420    QLPP44    0.01199999
+    XP4420    QOTP44    0.14399993
+    XP4421    RCAPP44   1
+    XP4421    QCRP44    -1
+    XP4421    QGAP44    0.50299984
+    XP4421    QDSP44    0.25699997
+    XP4421    QRSP44    0.06599998
+    XP4421    QKJP44    0.025
+    XP4421    QNJP44    0.02599999
+    XP4421    QPFP44    0.001
+    XP4421    QLPP44    0.01199999
+    XP4421    QOTP44    0.125
+    XP4422    RCAPP44   1
+    XP4422    QCRP44    -1
+    XP4422    QGAP44    0.47799987
+    XP4422    QDSP44    0.27099991
+    XP4422    QRSP44    0.07599998
+    XP4422    QKJP44    0.02099999
+    XP4422    QNJP44    0.02
+    XP4422    QPFP44    0.001
+    XP4422    QLPP44    0.01299999
+    XP4422    QOTP44    0.125
+    XP4423    RCAPP44   1
+    XP4423    QCRP44    -1
+    XP4423    QGAP44    0.49599987
+    XP4423    QDSP44    0.27999991
+    XP4423    QRSP44    0.07199997
+    XP4423    QKJP44    0.02799999
+    XP4423    QNJP44    0.01699999
+    XP4423    QPFP44    0.001
+    XP4423    QLPP44    0.00999999
+    XP4423    QOTP44    0.11299992
+    XP4424    RCAPP44   1
+    XP4424    QCRP44    -1
+    XP4424    QGAP44    0.49699992
+    XP4424    QDSP44    0.24899983
+    XP4424    QRSP44    0.07299995
+    XP4424    QKJP44    0.03199999
+    XP4424    QNJP44    0.02299999
+    XP4424    QPFP44    0.001
+    XP4424    QLPP44    0.01099999
+    XP4424    QOTP44    0.11899996
+    XP451     RCAPP45   1
+    XP451     QCRP45    -1
+    XP451     QGAP45    0.50199991
+    XP451     QDSP45    0.22899985
+    XP451     QRSP45    0.06699997
+    XP451     QKJP45    0.02799999
+    XP451     QNJP45    0.03099999
+    XP451     QPFP45    0.003
+    XP451     QLPP45    0.015
+    XP451     QOTP45    0.13399988
+    XP452     RCAPP45   1
+    XP452     QCRP45    -1
+    XP452     QGAP45    0.50099981
+    XP452     QDSP45    0.23599982
+    XP452     QRSP45    0.065
+    XP452     QKJP45    0.029
+    XP452     QNJP45    0.03199999
+    XP452     QPFP45    0.003
+    XP452     QLPP45    0.01299999
+    XP452     QOTP45    0.13399988
+    XP453     RCAPP45   1
+    XP453     QCRP45    -1
+    XP453     QGAP45    0.48999995
+    XP453     QDSP45    0.24199986
+    XP453     QRSP45    0.05599999
+    XP453     QKJP45    0.02399999
+    XP453     QNJP45    0.03199999
+    XP453     QPFP45    0.002
+    XP453     QLPP45    0.015
+    XP453     QOTP45    0.1469999
+    XP454     RCAPP45   1
+    XP454     QCRP45    -1
+    XP454     QGAP45    0.49299979
+    XP454     QDSP45    0.2329998
+    XP454     QRSP45    0.05
+    XP454     QKJP45    0.02999999
+    XP454     QNJP45    0.01899999
+    XP454     QPFP45    0.002
+    XP454     QLPP45    0.015
+    XP454     QOTP45    0.15899992
+    XP455     RCAPP45   1
+    XP455     QCRP45    -1
+    XP455     QGAP45    0.49199986
+    XP455     QDSP45    0.2349999
+    XP455     QRSP45    0.04699999
+    XP455     QKJP45    0.035
+    XP455     QNJP45    0.022
+    XP455     QPFP45    0.002
+    XP455     QLPP45    0.01599999
+    XP455     QOTP45    0.16099983
+    XP456     RCAPP45   1
+    XP456     QCRP45    -1
+    XP456     QGAP45    0.50399989
+    XP456     QDSP45    0.22499996
+    XP456     QRSP45    0.042
+    XP456     QKJP45    0.02999999
+    XP456     QNJP45    0.01799999
+    XP456     QPFP45    0.001
+    XP456     QLPP45    0.015
+    XP456     QOTP45    0.17199993
+    XP457     RCAPP45   1
+    XP457     QCRP45    -1
+    XP457     QGAP45    0.5
+    XP457     QDSP45    0.24399984
+    XP457     QRSP45    0.04299999
+    XP457     QKJP45    0.027
+    XP457     QNJP45    0.02099999
+    XP457     QPFP45    0.002
+    XP457     QLPP45    0.01299999
+    XP457     QOTP45    0.15899992
+    XP458     RCAPP45   1
+    XP458     QCRP45    -1
+    XP458     QGAP45    0.50499988
+    XP458     QDSP45    0.24099988
+    XP458     QRSP45    0.04799999
+    XP458     QKJP45    0.02799999
+    XP458     QNJP45    0.02599999
+    XP458     QPFP45    0.002
+    XP458     QLPP45    0.01199999
+    XP458     QOTP45    0.14899993
+    XP459     RCAPP45   1
+    XP459     QCRP45    -1
+    XP459     QGAP45    0.50399989
+    XP459     QDSP45    0.25299984
+    XP459     QRSP45    0.04799999
+    XP459     QKJP45    0.02299999
+    XP459     QNJP45    0.027
+    XP459     QPFP45    0.001
+    XP459     QLPP45    0.01199999
+    XP459     QOTP45    0.13799989
+    XP4510    RCAPP45   1
+    XP4510    QCRP45    -1
+    XP4510    QGAP45    0.49499995
+    XP4510    QDSP45    0.24499995
+    XP4510    QRSP45    0.07399994
+    XP4510    QKJP45    0.025
+    XP4510    QNJP45    0.02299999
+    XP4510    QPFP45    0.002
+    XP4510    QLPP45    0.01199999
+    XP4510    QOTP45    0.13299996
+    XP4511    RCAPP45   1
+    XP4511    QCRP45    -1
+    XP4511    QGAP45    0.50099981
+    XP4511    QDSP45    0.23399991
+    XP4511    QRSP45    0.079
+    XP4511    QKJP45    0.02299999
+    XP4511    QNJP45    0.01699999
+    XP4511    QPFP45    0.002
+    XP4511    QLPP45    0.01299999
+    XP4511    QOTP45    0.13499993
+    XP4512    RCAPP45   1
+    XP4512    QCRP45    -1
+    XP4512    QGAP45    0.5059998
+    XP4512    QDSP45    0.24399984
+    XP4512    QRSP45    0.07099998
+    XP4512    QKJP45    0.02399999
+    XP4512    QNJP45    0.02099999
+    XP4512    QPFP45    0.001
+    XP4512    QLPP45    0.01099999
+    XP4512    QOTP45    0.12999988
+    XP4513    RCAPP45   1
+    XP4513    QCRP45    -1
+    XP4513    QGAP45    0.50299984
+    XP4513    QDSP45    0.2389999
+    XP4513    QRSP45    0.05799999
+    XP4513    QKJP45    0.03099999
+    XP4513    QNJP45    0.02599999
+    XP4513    QPFP45    0.002
+    XP4513    QLPP45    0.01199999
+    XP4513    QOTP45    0.13899994
+    XP4514    RCAPP45   1
+    XP4514    QCRP45    -1
+    XP4514    QGAP45    0.49299979
+    XP4514    QDSP45    0.24799985
+    XP4514    QRSP45    0.05399999
+    XP4514    QKJP45    0.03699999
+    XP4514    QNJP45    0.022
+    XP4514    QPFP45    0.001
+    XP4514    QLPP45    0.01599999
+    XP4514    QOTP45    0.1469999
+    XP4515    RCAPP45   1
+    XP4515    QCRP45    -1
+    XP4515    QGAP45    0.49499995
+    XP4515    QDSP45    0.27099991
+    XP4515    QRSP45    0.052
+    XP4515    QKJP45    0.02799999
+    XP4515    QNJP45    0.02099999
+    XP4515    QPFP45    0.001
+    XP4515    QLPP45    0.01299999
+    XP4515    QOTP45    0.14599991
+    XP4516    RCAPP45   1
+    XP4516    QCRP45    -1
+    XP4516    QGAP45    0.49499995
+    XP4516    QDSP45    0.26299977
+    XP4516    QRSP45    0.04899999
+    XP4516    QKJP45    0.025
+    XP4516    QNJP45    0.02099999
+    XP4516    QPFP45    0.001
+    XP4516    QLPP45    0.015
+    XP4516    QOTP45    0.15299994
+    XP4517    RCAPP45   1
+    XP4517    QCRP45    -1
+    XP4517    QGAP45    0.49299979
+    XP4517    QDSP45    0.24099988
+    XP4517    QRSP45    0.05
+    XP4517    QKJP45    0.03399999
+    XP4517    QNJP45    0.01699999
+    XP4517    QPFP45    0.001
+    XP4517    QLPP45    0.01599999
+    XP4517    QOTP45    0.15799999
+    XP4518    RCAPP45   1
+    XP4518    QCRP45    -1
+    XP4518    QGAP45    0.49499995
+    XP4518    QDSP45    0.25
+    XP4518    QRSP45    0.04599999
+    XP4518    QKJP45    0.022
+    XP4518    QNJP45    0.01699999
+    XP4518    QPFP45    0.001
+    XP4518    QLPP45    0.01399999
+    XP4518    QOTP45    0.16599989
+    XP4519    RCAPP45   1
+    XP4519    QCRP45    -1
+    XP4519    QGAP45    0.49599987
+    XP4519    QDSP45    0.25499988
+    XP4519    QRSP45    0.05099999
+    XP4519    QKJP45    0.03199999
+    XP4519    QNJP45    0.02299999
+    XP4519    QPFP45    0.002
+    XP4519    QLPP45    0.01399999
+    XP4519    QOTP45    0.1509999
+    XP4520    RCAPP45   1
+    XP4520    QCRP45    -1
+    XP4520    QGAP45    0.49799985
+    XP4520    QDSP45    0.24399984
+    XP4520    QRSP45    0.05999999
+    XP4520    QKJP45    0.029
+    XP4520    QNJP45    0.02099999
+    XP4520    QPFP45    0.001
+    XP4520    QLPP45    0.01199999
+    XP4520    QOTP45    0.14399993
+    XP4521    RCAPP45   1
+    XP4521    QCRP45    -1
+    XP4521    QGAP45    0.50299984
+    XP4521    QDSP45    0.25699997
+    XP4521    QRSP45    0.06599998
+    XP4521    QKJP45    0.025
+    XP4521    QNJP45    0.02599999
+    XP4521    QPFP45    0.001
+    XP4521    QLPP45    0.01199999
+    XP4521    QOTP45    0.125
+    XP4522    RCAPP45   1
+    XP4522    QCRP45    -1
+    XP4522    QGAP45    0.47799987
+    XP4522    QDSP45    0.27099991
+    XP4522    QRSP45    0.07599998
+    XP4522    QKJP45    0.02099999
+    XP4522    QNJP45    0.02
+    XP4522    QPFP45    0.001
+    XP4522    QLPP45    0.01299999
+    XP4522    QOTP45    0.125
+    XP4523    RCAPP45   1
+    XP4523    QCRP45    -1
+    XP4523    QGAP45    0.49599987
+    XP4523    QDSP45    0.27999991
+    XP4523    QRSP45    0.07199997
+    XP4523    QKJP45    0.02799999
+    XP4523    QNJP45    0.01699999
+    XP4523    QPFP45    0.001
+    XP4523    QLPP45    0.00999999
+    XP4523    QOTP45    0.11299992
+    XP4524    RCAPP45   1
+    XP4524    QCRP45    -1
+    XP4524    QGAP45    0.49699992
+    XP4524    QDSP45    0.24899983
+    XP4524    QRSP45    0.07299995
+    XP4524    QKJP45    0.03199999
+    XP4524    QNJP45    0.02299999
+    XP4524    QPFP45    0.001
+    XP4524    QLPP45    0.01099999
+    XP4524    QOTP45    0.11899996
+    XP461     RCAPP46   1
+    XP461     QCRP46    -1
+    XP461     QGAP46    0.50199991
+    XP461     QDSP46    0.22899985
+    XP461     QRSP46    0.06699997
+    XP461     QKJP46    0.02799999
+    XP461     QNJP46    0.03099999
+    XP461     QPFP46    0.003
+    XP461     QLPP46    0.015
+    XP461     QOTP46    0.13399988
+    XP462     RCAPP46   1
+    XP462     QCRP46    -1
+    XP462     QGAP46    0.50099981
+    XP462     QDSP46    0.23599982
+    XP462     QRSP46    0.065
+    XP462     QKJP46    0.029
+    XP462     QNJP46    0.03199999
+    XP462     QPFP46    0.003
+    XP462     QLPP46    0.01299999
+    XP462     QOTP46    0.13399988
+    XP463     RCAPP46   1
+    XP463     QCRP46    -1
+    XP463     QGAP46    0.48999995
+    XP463     QDSP46    0.24199986
+    XP463     QRSP46    0.05599999
+    XP463     QKJP46    0.02399999
+    XP463     QNJP46    0.03199999
+    XP463     QPFP46    0.002
+    XP463     QLPP46    0.015
+    XP463     QOTP46    0.1469999
+    XP464     RCAPP46   1
+    XP464     QCRP46    -1
+    XP464     QGAP46    0.49299979
+    XP464     QDSP46    0.2329998
+    XP464     QRSP46    0.05
+    XP464     QKJP46    0.02999999
+    XP464     QNJP46    0.01899999
+    XP464     QPFP46    0.002
+    XP464     QLPP46    0.015
+    XP464     QOTP46    0.15899992
+    XP465     RCAPP46   1
+    XP465     QCRP46    -1
+    XP465     QGAP46    0.49199986
+    XP465     QDSP46    0.2349999
+    XP465     QRSP46    0.04699999
+    XP465     QKJP46    0.035
+    XP465     QNJP46    0.022
+    XP465     QPFP46    0.002
+    XP465     QLPP46    0.01599999
+    XP465     QOTP46    0.16099983
+    XP466     RCAPP46   1
+    XP466     QCRP46    -1
+    XP466     QGAP46    0.50399989
+    XP466     QDSP46    0.22499996
+    XP466     QRSP46    0.042
+    XP466     QKJP46    0.02999999
+    XP466     QNJP46    0.01799999
+    XP466     QPFP46    0.001
+    XP466     QLPP46    0.015
+    XP466     QOTP46    0.17199993
+    XP467     RCAPP46   1
+    XP467     QCRP46    -1
+    XP467     QGAP46    0.5
+    XP467     QDSP46    0.24399984
+    XP467     QRSP46    0.04299999
+    XP467     QKJP46    0.027
+    XP467     QNJP46    0.02099999
+    XP467     QPFP46    0.002
+    XP467     QLPP46    0.01299999
+    XP467     QOTP46    0.15899992
+    XP468     RCAPP46   1
+    XP468     QCRP46    -1
+    XP468     QGAP46    0.50499988
+    XP468     QDSP46    0.24099988
+    XP468     QRSP46    0.04799999
+    XP468     QKJP46    0.02799999
+    XP468     QNJP46    0.02599999
+    XP468     QPFP46    0.002
+    XP468     QLPP46    0.01199999
+    XP468     QOTP46    0.14899993
+    XP469     RCAPP46   1
+    XP469     QCRP46    -1
+    XP469     QGAP46    0.50399989
+    XP469     QDSP46    0.25299984
+    XP469     QRSP46    0.04799999
+    XP469     QKJP46    0.02299999
+    XP469     QNJP46    0.027
+    XP469     QPFP46    0.001
+    XP469     QLPP46    0.01199999
+    XP469     QOTP46    0.13799989
+    XP4610    RCAPP46   1
+    XP4610    QCRP46    -1
+    XP4610    QGAP46    0.49499995
+    XP4610    QDSP46    0.24499995
+    XP4610    QRSP46    0.07399994
+    XP4610    QKJP46    0.025
+    XP4610    QNJP46    0.02299999
+    XP4610    QPFP46    0.002
+    XP4610    QLPP46    0.01199999
+    XP4610    QOTP46    0.13299996
+    XP4611    RCAPP46   1
+    XP4611    QCRP46    -1
+    XP4611    QGAP46    0.50099981
+    XP4611    QDSP46    0.23399991
+    XP4611    QRSP46    0.079
+    XP4611    QKJP46    0.02299999
+    XP4611    QNJP46    0.01699999
+    XP4611    QPFP46    0.002
+    XP4611    QLPP46    0.01299999
+    XP4611    QOTP46    0.13499993
+    XP4612    RCAPP46   1
+    XP4612    QCRP46    -1
+    XP4612    QGAP46    0.5059998
+    XP4612    QDSP46    0.24399984
+    XP4612    QRSP46    0.07099998
+    XP4612    QKJP46    0.02399999
+    XP4612    QNJP46    0.02099999
+    XP4612    QPFP46    0.001
+    XP4612    QLPP46    0.01099999
+    XP4612    QOTP46    0.12999988
+    XP4613    RCAPP46   1
+    XP4613    QCRP46    -1
+    XP4613    QGAP46    0.50299984
+    XP4613    QDSP46    0.2389999
+    XP4613    QRSP46    0.05799999
+    XP4613    QKJP46    0.03099999
+    XP4613    QNJP46    0.02599999
+    XP4613    QPFP46    0.002
+    XP4613    QLPP46    0.01199999
+    XP4613    QOTP46    0.13899994
+    XP4614    RCAPP46   1
+    XP4614    QCRP46    -1
+    XP4614    QGAP46    0.49299979
+    XP4614    QDSP46    0.24799985
+    XP4614    QRSP46    0.05399999
+    XP4614    QKJP46    0.03699999
+    XP4614    QNJP46    0.022
+    XP4614    QPFP46    0.001
+    XP4614    QLPP46    0.01599999
+    XP4614    QOTP46    0.1469999
+    XP4615    RCAPP46   1
+    XP4615    QCRP46    -1
+    XP4615    QGAP46    0.49499995
+    XP4615    QDSP46    0.27099991
+    XP4615    QRSP46    0.052
+    XP4615    QKJP46    0.02799999
+    XP4615    QNJP46    0.02099999
+    XP4615    QPFP46    0.001
+    XP4615    QLPP46    0.01299999
+    XP4615    QOTP46    0.14599991
+    XP4616    RCAPP46   1
+    XP4616    QCRP46    -1
+    XP4616    QGAP46    0.49499995
+    XP4616    QDSP46    0.26299977
+    XP4616    QRSP46    0.04899999
+    XP4616    QKJP46    0.025
+    XP4616    QNJP46    0.02099999
+    XP4616    QPFP46    0.001
+    XP4616    QLPP46    0.015
+    XP4616    QOTP46    0.15299994
+    XP4617    RCAPP46   1
+    XP4617    QCRP46    -1
+    XP4617    QGAP46    0.49299979
+    XP4617    QDSP46    0.24099988
+    XP4617    QRSP46    0.05
+    XP4617    QKJP46    0.03399999
+    XP4617    QNJP46    0.01699999
+    XP4617    QPFP46    0.001
+    XP4617    QLPP46    0.01599999
+    XP4617    QOTP46    0.15799999
+    XP4618    RCAPP46   1
+    XP4618    QCRP46    -1
+    XP4618    QGAP46    0.49499995
+    XP4618    QDSP46    0.25
+    XP4618    QRSP46    0.04599999
+    XP4618    QKJP46    0.022
+    XP4618    QNJP46    0.01699999
+    XP4618    QPFP46    0.001
+    XP4618    QLPP46    0.01399999
+    XP4618    QOTP46    0.16599989
+    XP4619    RCAPP46   1
+    XP4619    QCRP46    -1
+    XP4619    QGAP46    0.49599987
+    XP4619    QDSP46    0.25499988
+    XP4619    QRSP46    0.05099999
+    XP4619    QKJP46    0.03199999
+    XP4619    QNJP46    0.02299999
+    XP4619    QPFP46    0.002
+    XP4619    QLPP46    0.01399999
+    XP4619    QOTP46    0.1509999
+    XP4620    RCAPP46   1
+    XP4620    QCRP46    -1
+    XP4620    QGAP46    0.49799985
+    XP4620    QDSP46    0.24399984
+    XP4620    QRSP46    0.05999999
+    XP4620    QKJP46    0.029
+    XP4620    QNJP46    0.02099999
+    XP4620    QPFP46    0.001
+    XP4620    QLPP46    0.01199999
+    XP4620    QOTP46    0.14399993
+    XP4621    RCAPP46   1
+    XP4621    QCRP46    -1
+    XP4621    QGAP46    0.50299984
+    XP4621    QDSP46    0.25699997
+    XP4621    QRSP46    0.06599998
+    XP4621    QKJP46    0.025
+    XP4621    QNJP46    0.02599999
+    XP4621    QPFP46    0.001
+    XP4621    QLPP46    0.01199999
+    XP4621    QOTP46    0.125
+    XP4622    RCAPP46   1
+    XP4622    QCRP46    -1
+    XP4622    QGAP46    0.47799987
+    XP4622    QDSP46    0.27099991
+    XP4622    QRSP46    0.07599998
+    XP4622    QKJP46    0.02099999
+    XP4622    QNJP46    0.02
+    XP4622    QPFP46    0.001
+    XP4622    QLPP46    0.01299999
+    XP4622    QOTP46    0.125
+    XP4623    RCAPP46   1
+    XP4623    QCRP46    -1
+    XP4623    QGAP46    0.49599987
+    XP4623    QDSP46    0.27999991
+    XP4623    QRSP46    0.07199997
+    XP4623    QKJP46    0.02799999
+    XP4623    QNJP46    0.01699999
+    XP4623    QPFP46    0.001
+    XP4623    QLPP46    0.00999999
+    XP4623    QOTP46    0.11299992
+    XP4624    RCAPP46   1
+    XP4624    QCRP46    -1
+    XP4624    QGAP46    0.49699992
+    XP4624    QDSP46    0.24899983
+    XP4624    QRSP46    0.07299995
+    XP4624    QKJP46    0.03199999
+    XP4624    QNJP46    0.02299999
+    XP4624    QPFP46    0.001
+    XP4624    QLPP46    0.01099999
+    XP4624    QOTP46    0.11899996
+    XP471     RCAPP47   1
+    XP471     QCRP47    -1
+    XP471     QGAP47    0.50199991
+    XP471     QDSP47    0.22899985
+    XP471     QRSP47    0.06699997
+    XP471     QKJP47    0.02799999
+    XP471     QNJP47    0.03099999
+    XP471     QPFP47    0.003
+    XP471     QLPP47    0.015
+    XP471     QOTP47    0.13399988
+    XP472     RCAPP47   1
+    XP472     QCRP47    -1
+    XP472     QGAP47    0.50099981
+    XP472     QDSP47    0.23599982
+    XP472     QRSP47    0.065
+    XP472     QKJP47    0.029
+    XP472     QNJP47    0.03199999
+    XP472     QPFP47    0.003
+    XP472     QLPP47    0.01299999
+    XP472     QOTP47    0.13399988
+    XP473     RCAPP47   1
+    XP473     QCRP47    -1
+    XP473     QGAP47    0.48999995
+    XP473     QDSP47    0.24199986
+    XP473     QRSP47    0.05599999
+    XP473     QKJP47    0.02399999
+    XP473     QNJP47    0.03199999
+    XP473     QPFP47    0.002
+    XP473     QLPP47    0.015
+    XP473     QOTP47    0.1469999
+    XP474     RCAPP47   1
+    XP474     QCRP47    -1
+    XP474     QGAP47    0.49299979
+    XP474     QDSP47    0.2329998
+    XP474     QRSP47    0.05
+    XP474     QKJP47    0.02999999
+    XP474     QNJP47    0.01899999
+    XP474     QPFP47    0.002
+    XP474     QLPP47    0.015
+    XP474     QOTP47    0.15899992
+    XP475     RCAPP47   1
+    XP475     QCRP47    -1
+    XP475     QGAP47    0.49199986
+    XP475     QDSP47    0.2349999
+    XP475     QRSP47    0.04699999
+    XP475     QKJP47    0.035
+    XP475     QNJP47    0.022
+    XP475     QPFP47    0.002
+    XP475     QLPP47    0.01599999
+    XP475     QOTP47    0.16099983
+    XP476     RCAPP47   1
+    XP476     QCRP47    -1
+    XP476     QGAP47    0.50399989
+    XP476     QDSP47    0.22499996
+    XP476     QRSP47    0.042
+    XP476     QKJP47    0.02999999
+    XP476     QNJP47    0.01799999
+    XP476     QPFP47    0.001
+    XP476     QLPP47    0.015
+    XP476     QOTP47    0.17199993
+    XP477     RCAPP47   1
+    XP477     QCRP47    -1
+    XP477     QGAP47    0.5
+    XP477     QDSP47    0.24399984
+    XP477     QRSP47    0.04299999
+    XP477     QKJP47    0.027
+    XP477     QNJP47    0.02099999
+    XP477     QPFP47    0.002
+    XP477     QLPP47    0.01299999
+    XP477     QOTP47    0.15899992
+    XP478     RCAPP47   1
+    XP478     QCRP47    -1
+    XP478     QGAP47    0.50499988
+    XP478     QDSP47    0.24099988
+    XP478     QRSP47    0.04799999
+    XP478     QKJP47    0.02799999
+    XP478     QNJP47    0.02599999
+    XP478     QPFP47    0.002
+    XP478     QLPP47    0.01199999
+    XP478     QOTP47    0.14899993
+    XP479     RCAPP47   1
+    XP479     QCRP47    -1
+    XP479     QGAP47    0.50399989
+    XP479     QDSP47    0.25299984
+    XP479     QRSP47    0.04799999
+    XP479     QKJP47    0.02299999
+    XP479     QNJP47    0.027
+    XP479     QPFP47    0.001
+    XP479     QLPP47    0.01199999
+    XP479     QOTP47    0.13799989
+    XP4710    RCAPP47   1
+    XP4710    QCRP47    -1
+    XP4710    QGAP47    0.49499995
+    XP4710    QDSP47    0.24499995
+    XP4710    QRSP47    0.07399994
+    XP4710    QKJP47    0.025
+    XP4710    QNJP47    0.02299999
+    XP4710    QPFP47    0.002
+    XP4710    QLPP47    0.01199999
+    XP4710    QOTP47    0.13299996
+    XP4711    RCAPP47   1
+    XP4711    QCRP47    -1
+    XP4711    QGAP47    0.50099981
+    XP4711    QDSP47    0.23399991
+    XP4711    QRSP47    0.079
+    XP4711    QKJP47    0.02299999
+    XP4711    QNJP47    0.01699999
+    XP4711    QPFP47    0.002
+    XP4711    QLPP47    0.01299999
+    XP4711    QOTP47    0.13499993
+    XP4712    RCAPP47   1
+    XP4712    QCRP47    -1
+    XP4712    QGAP47    0.5059998
+    XP4712    QDSP47    0.24399984
+    XP4712    QRSP47    0.07099998
+    XP4712    QKJP47    0.02399999
+    XP4712    QNJP47    0.02099999
+    XP4712    QPFP47    0.001
+    XP4712    QLPP47    0.01099999
+    XP4712    QOTP47    0.12999988
+    XP4713    RCAPP47   1
+    XP4713    QCRP47    -1
+    XP4713    QGAP47    0.50299984
+    XP4713    QDSP47    0.2389999
+    XP4713    QRSP47    0.05799999
+    XP4713    QKJP47    0.03099999
+    XP4713    QNJP47    0.02599999
+    XP4713    QPFP47    0.002
+    XP4713    QLPP47    0.01199999
+    XP4713    QOTP47    0.13899994
+    XP4714    RCAPP47   1
+    XP4714    QCRP47    -1
+    XP4714    QGAP47    0.49299979
+    XP4714    QDSP47    0.24799985
+    XP4714    QRSP47    0.05399999
+    XP4714    QKJP47    0.03699999
+    XP4714    QNJP47    0.022
+    XP4714    QPFP47    0.001
+    XP4714    QLPP47    0.01599999
+    XP4714    QOTP47    0.1469999
+    XP4715    RCAPP47   1
+    XP4715    QCRP47    -1
+    XP4715    QGAP47    0.49499995
+    XP4715    QDSP47    0.27099991
+    XP4715    QRSP47    0.052
+    XP4715    QKJP47    0.02799999
+    XP4715    QNJP47    0.02099999
+    XP4715    QPFP47    0.001
+    XP4715    QLPP47    0.01299999
+    XP4715    QOTP47    0.14599991
+    XP4716    RCAPP47   1
+    XP4716    QCRP47    -1
+    XP4716    QGAP47    0.49499995
+    XP4716    QDSP47    0.26299977
+    XP4716    QRSP47    0.04899999
+    XP4716    QKJP47    0.025
+    XP4716    QNJP47    0.02099999
+    XP4716    QPFP47    0.001
+    XP4716    QLPP47    0.015
+    XP4716    QOTP47    0.15299994
+    XP4717    RCAPP47   1
+    XP4717    QCRP47    -1
+    XP4717    QGAP47    0.49299979
+    XP4717    QDSP47    0.24099988
+    XP4717    QRSP47    0.05
+    XP4717    QKJP47    0.03399999
+    XP4717    QNJP47    0.01699999
+    XP4717    QPFP47    0.001
+    XP4717    QLPP47    0.01599999
+    XP4717    QOTP47    0.15799999
+    XP4718    RCAPP47   1
+    XP4718    QCRP47    -1
+    XP4718    QGAP47    0.49499995
+    XP4718    QDSP47    0.25
+    XP4718    QRSP47    0.04599999
+    XP4718    QKJP47    0.022
+    XP4718    QNJP47    0.01699999
+    XP4718    QPFP47    0.001
+    XP4718    QLPP47    0.01399999
+    XP4718    QOTP47    0.16599989
+    XP4719    RCAPP47   1
+    XP4719    QCRP47    -1
+    XP4719    QGAP47    0.49599987
+    XP4719    QDSP47    0.25499988
+    XP4719    QRSP47    0.05099999
+    XP4719    QKJP47    0.03199999
+    XP4719    QNJP47    0.02299999
+    XP4719    QPFP47    0.002
+    XP4719    QLPP47    0.01399999
+    XP4719    QOTP47    0.1509999
+    XP4720    RCAPP47   1
+    XP4720    QCRP47    -1
+    XP4720    QGAP47    0.49799985
+    XP4720    QDSP47    0.24399984
+    XP4720    QRSP47    0.05999999
+    XP4720    QKJP47    0.029
+    XP4720    QNJP47    0.02099999
+    XP4720    QPFP47    0.001
+    XP4720    QLPP47    0.01199999
+    XP4720    QOTP47    0.14399993
+    XP4721    RCAPP47   1
+    XP4721    QCRP47    -1
+    XP4721    QGAP47    0.50299984
+    XP4721    QDSP47    0.25699997
+    XP4721    QRSP47    0.06599998
+    XP4721    QKJP47    0.025
+    XP4721    QNJP47    0.02599999
+    XP4721    QPFP47    0.001
+    XP4721    QLPP47    0.01199999
+    XP4721    QOTP47    0.125
+    XP4722    RCAPP47   1
+    XP4722    QCRP47    -1
+    XP4722    QGAP47    0.47799987
+    XP4722    QDSP47    0.27099991
+    XP4722    QRSP47    0.07599998
+    XP4722    QKJP47    0.02099999
+    XP4722    QNJP47    0.02
+    XP4722    QPFP47    0.001
+    XP4722    QLPP47    0.01299999
+    XP4722    QOTP47    0.125
+    XP4723    RCAPP47   1
+    XP4723    QCRP47    -1
+    XP4723    QGAP47    0.49599987
+    XP4723    QDSP47    0.27999991
+    XP4723    QRSP47    0.07199997
+    XP4723    QKJP47    0.02799999
+    XP4723    QNJP47    0.01699999
+    XP4723    QPFP47    0.001
+    XP4723    QLPP47    0.00999999
+    XP4723    QOTP47    0.11299992
+    XP4724    RCAPP47   1
+    XP4724    QCRP47    -1
+    XP4724    QGAP47    0.49699992
+    XP4724    QDSP47    0.24899983
+    XP4724    QRSP47    0.07299995
+    XP4724    QKJP47    0.03199999
+    XP4724    QNJP47    0.02299999
+    XP4724    QPFP47    0.001
+    XP4724    QLPP47    0.01099999
+    XP4724    QOTP47    0.11899996
+    XP481     RCAPP48   1
+    XP481     QCRP48    1
+    XP481     QGAP48    0.50199991
+    XP481     QDSP48    0.22899985
+    XP481     QRSP48    0.06699997
+    XP481     QKJP48    -0.02799999
+    XP481     QNJP48    -0.03099999
+    XP481     QPFP48    -0.003
+    XP481     QLPP48    -0.015
+    XP481     QOTP48    0.13399988
+    XP482     RCAPP48   1
+    XP482     QCRP48    1
+    XP482     QGAP48    0.50099981
+    XP482     QDSP48    0.23599982
+    XP482     QRSP48    0.065
+    XP482     QKJP48    -0.029
+    XP482     QNJP48    -0.03199999
+    XP482     QPFP48    -0.003
+    XP482     QLPP48    -0.01299999
+    XP482     QOTP48    0.13399988
+    XP483     RCAPP48   1
+    XP483     QCRP48    1
+    XP483     QGAP48    0.48999995
+    XP483     QDSP48    0.24199986
+    XP483     QRSP48    0.05599999
+    XP483     QKJP48    -0.02399999
+    XP483     QNJP48    -0.03199999
+    XP483     QPFP48    -0.002
+    XP483     QLPP48    -0.015
+    XP483     QOTP48    0.1469999
+    XP484     RCAPP48   1
+    XP484     QCRP48    1
+    XP484     QGAP48    0.49299979
+    XP484     QDSP48    0.2329998
+    XP484     QRSP48    0.05
+    XP484     QKJP48    -0.02999999
+    XP484     QNJP48    -0.01899999
+    XP484     QPFP48    -0.002
+    XP484     QLPP48    -0.015
+    XP484     QOTP48    0.15899992
+    XP485     RCAPP48   1
+    XP485     QCRP48    1
+    XP485     QGAP48    0.49199986
+    XP485     QDSP48    0.2349999
+    XP485     QRSP48    0.04699999
+    XP485     QKJP48    -0.035
+    XP485     QNJP48    -0.022
+    XP485     QPFP48    -0.002
+    XP485     QLPP48    -0.01599999
+    XP485     QOTP48    0.16099983
+    XP486     RCAPP48   1
+    XP486     QCRP48    1
+    XP486     QGAP48    0.50399989
+    XP486     QDSP48    0.22499996
+    XP486     QRSP48    0.042
+    XP486     QKJP48    -0.02999999
+    XP486     QNJP48    -0.01799999
+    XP486     QPFP48    -0.001
+    XP486     QLPP48    -0.015
+    XP486     QOTP48    0.17199993
+    XP487     RCAPP48   1
+    XP487     QCRP48    1
+    XP487     QGAP48    0.5
+    XP487     QDSP48    0.24399984
+    XP487     QRSP48    0.04299999
+    XP487     QKJP48    -0.027
+    XP487     QNJP48    -0.02099999
+    XP487     QPFP48    -0.002
+    XP487     QLPP48    -0.01299999
+    XP487     QOTP48    0.15899992
+    XP488     RCAPP48   1
+    XP488     QCRP48    1
+    XP488     QGAP48    0.50499988
+    XP488     QDSP48    0.24099988
+    XP488     QRSP48    0.04799999
+    XP488     QKJP48    -0.02799999
+    XP488     QNJP48    -0.02599999
+    XP488     QPFP48    -0.002
+    XP488     QLPP48    -0.01199999
+    XP488     QOTP48    0.14899993
+    XP489     RCAPP48   1
+    XP489     QCRP48    1
+    XP489     QGAP48    0.50399989
+    XP489     QDSP48    0.25299984
+    XP489     QRSP48    0.04799999
+    XP489     QKJP48    -0.02299999
+    XP489     QNJP48    -0.027
+    XP489     QPFP48    -0.001
+    XP489     QLPP48    -0.01199999
+    XP489     QOTP48    0.13799989
+    XP4810    RCAPP48   1
+    XP4810    QCRP48    1
+    XP4810    QGAP48    0.49499995
+    XP4810    QDSP48    0.24499995
+    XP4810    QRSP48    0.07399994
+    XP4810    QKJP48    -0.025
+    XP4810    QNJP48    -0.02299999
+    XP4810    QPFP48    -0.002
+    XP4810    QLPP48    -0.01199999
+    XP4810    QOTP48    0.13299996
+    XP4811    RCAPP48   1
+    XP4811    QCRP48    1
+    XP4811    QGAP48    0.50099981
+    XP4811    QDSP48    0.23399991
+    XP4811    QRSP48    0.079
+    XP4811    QKJP48    -0.02299999
+    XP4811    QNJP48    -0.01699999
+    XP4811    QPFP48    -0.002
+    XP4811    QLPP48    -0.01299999
+    XP4811    QOTP48    0.13499993
+    XP4812    RCAPP48   1
+    XP4812    QCRP48    1
+    XP4812    QGAP48    0.5059998
+    XP4812    QDSP48    0.24399984
+    XP4812    QRSP48    0.07099998
+    XP4812    QKJP48    -0.02399999
+    XP4812    QNJP48    -0.02099999
+    XP4812    QPFP48    -0.001
+    XP4812    QLPP48    -0.01099999
+    XP4812    QOTP48    0.12999988
+    XP4813    RCAPP48   1
+    XP4813    QCRP48    1
+    XP4813    QGAP48    0.50299984
+    XP4813    QDSP48    0.2389999
+    XP4813    QRSP48    0.05799999
+    XP4813    QKJP48    -0.03099999
+    XP4813    QNJP48    -0.02599999
+    XP4813    QPFP48    -0.002
+    XP4813    QLPP48    -0.01199999
+    XP4813    QOTP48    0.13899994
+    XP4814    RCAPP48   1
+    XP4814    QCRP48    1
+    XP4814    QGAP48    0.49299979
+    XP4814    QDSP48    0.24799985
+    XP4814    QRSP48    0.05399999
+    XP4814    QKJP48    -0.03699999
+    XP4814    QNJP48    -0.022
+    XP4814    QPFP48    -0.001
+    XP4814    QLPP48    -0.01599999
+    XP4814    QOTP48    0.1469999
+    XP4815    RCAPP48   1
+    XP4815    QCRP48    1
+    XP4815    QGAP48    0.49499995
+    XP4815    QDSP48    0.27099991
+    XP4815    QRSP48    0.052
+    XP4815    QKJP48    -0.02799999
+    XP4815    QNJP48    -0.02099999
+    XP4815    QPFP48    -0.001
+    XP4815    QLPP48    -0.01299999
+    XP4815    QOTP48    0.14599991
+    XP4816    RCAPP48   1
+    XP4816    QCRP48    1
+    XP4816    QGAP48    0.49499995
+    XP4816    QDSP48    0.26299977
+    XP4816    QRSP48    0.04899999
+    XP4816    QKJP48    -0.025
+    XP4816    QNJP48    -0.02099999
+    XP4816    QPFP48    -0.001
+    XP4816    QLPP48    -0.015
+    XP4816    QOTP48    0.15299994
+    XP4817    RCAPP48   1
+    XP4817    QCRP48    1
+    XP4817    QGAP48    0.49299979
+    XP4817    QDSP48    0.24099988
+    XP4817    QRSP48    0.05
+    XP4817    QKJP48    -0.03399999
+    XP4817    QNJP48    -0.01699999
+    XP4817    QPFP48    -0.001
+    XP4817    QLPP48    -0.01599999
+    XP4817    QOTP48    0.15799999
+    XP4818    RCAPP48   1
+    XP4818    QCRP48    1
+    XP4818    QGAP48    0.49499995
+    XP4818    QDSP48    0.25
+    XP4818    QRSP48    0.04599999
+    XP4818    QKJP48    -0.022
+    XP4818    QNJP48    -0.01699999
+    XP4818    QPFP48    -0.001
+    XP4818    QLPP48    -0.01399999
+    XP4818    QOTP48    0.16599989
+    XP4819    RCAPP48   1
+    XP4819    QCRP48    1
+    XP4819    QGAP48    0.49599987
+    XP4819    QDSP48    0.25499988
+    XP4819    QRSP48    0.05099999
+    XP4819    QKJP48    -0.03199999
+    XP4819    QNJP48    -0.02299999
+    XP4819    QPFP48    -0.002
+    XP4819    QLPP48    -0.01399999
+    XP4819    QOTP48    0.1509999
+    XP4820    RCAPP48   1
+    XP4820    QCRP48    1
+    XP4820    QGAP48    0.49799985
+    XP4820    QDSP48    0.24399984
+    XP4820    QRSP48    0.05999999
+    XP4820    QKJP48    -0.029
+    XP4820    QNJP48    -0.02099999
+    XP4820    QPFP48    -0.001
+    XP4820    QLPP48    -0.01199999
+    XP4820    QOTP48    0.14399993
+    XP4821    RCAPP48   1
+    XP4821    QCRP48    1
+    XP4821    QGAP48    0.50299984
+    XP4821    QDSP48    0.25699997
+    XP4821    QRSP48    0.06599998
+    XP4821    QKJP48    -0.025
+    XP4821    QNJP48    -0.02599999
+    XP4821    QPFP48    -0.001
+    XP4821    QLPP48    -0.01199999
+    XP4821    QOTP48    0.125
+    XP4822    RCAPP48   1
+    XP4822    QCRP48    1
+    XP4822    QGAP48    0.47799987
+    XP4822    QDSP48    0.27099991
+    XP4822    QRSP48    0.07599998
+    XP4822    QKJP48    -0.02099999
+    XP4822    QNJP48    -0.02
+    XP4822    QPFP48    -0.001
+    XP4822    QLPP48    -0.01299999
+    XP4822    QOTP48    0.125
+    XP4823    RCAPP48   1
+    XP4823    QCRP48    1
+    XP4823    QGAP48    0.49599987
+    XP4823    QDSP48    0.27999991
+    XP4823    QRSP48    0.07199997
+    XP4823    QKJP48    -0.02799999
+    XP4823    QNJP48    -0.01699999
+    XP4823    QPFP48    -0.001
+    XP4823    QLPP48    -0.00999999
+    XP4823    QOTP48    0.11299992
+    XP4824    RCAPP48   1
+    XP4824    QCRP48    1
+    XP4824    QGAP48    0.49699992
+    XP4824    QDSP48    0.24899983
+    XP4824    QRSP48    0.07299995
+    XP4824    QKJP48    -0.03199999
+    XP4824    QNJP48    -0.02299999
+    XP4824    QPFP48    -0.001
+    XP4824    QLPP48    -0.01099999
+    XP4824    QOTP48    0.11899996
+    XP511     RCAPP51   1
+    XP511     QCRP51    -1
+    XP511     QGAP51    0.42199993
+    XP511     QDSP51    0.11799991
+    XP511     QRSP51    0.18899989
+    XP511     QKJP51    0.09399998
+    XP511     QNJP51    0.03599999
+    XP511     QPFP51    0.008
+    XP511     QLPP51    0.02299999
+    XP511     QOTP51    0.13199997
+    XP512     RCAPP51   1
+    XP512     QCRP51    -1
+    XP512     QGAP51    0.42799985
+    XP512     QDSP51    0.12699991
+    XP512     QRSP51    0.16399992
+    XP512     QKJP51    0.08399999
+    XP512     QNJP51    0.03899999
+    XP512     QPFP51    0.01599999
+    XP512     QLPP51    0.025
+    XP512     QOTP51    0.1469999
+    XP513     RCAPP51   1
+    XP513     QCRP51    -1
+    XP513     QGAP51    0.45899987
+    XP513     QDSP51    0.11799991
+    XP513     QRSP51    0.14999998
+    XP513     QKJP51    0.09099996
+    XP513     QNJP51    0.03799999
+    XP513     QPFP51    0.008
+    XP513     QLPP51    0.02599999
+    XP513     QOTP51    0.14599991
+    XP514     RCAPP51   1
+    XP514     QCRP51    -1
+    XP514     QGAP51    0.46099985
+    XP514     QDSP51    0.125
+    XP514     QRSP51    0.12299991
+    XP514     QKJP51    0.09299994
+    XP514     QNJP51    0.03699999
+    XP514     QPFP51    0.01299999
+    XP514     QLPP51    0.025
+    XP514     QOTP51    0.15199995
+    XP515     RCAPP51   1
+    XP515     QCRP51    -1
+    XP515     QGAP51    0.47399986
+    XP515     QDSP51    0.11199999
+    XP515     QRSP51    0.12699991
+    XP515     QKJP51    0.09299994
+    XP515     QNJP51    0.03799999
+    XP515     QPFP51    0.01199999
+    XP515     QLPP51    0.02399999
+    XP515     QOTP51    0.15699995
+    XP516     RCAPP51   1
+    XP516     QCRP51    -1
+    XP516     QGAP51    0.4709999
+    XP516     QDSP51    0.12199992
+    XP516     QRSP51    0.12699991
+    XP516     QKJP51    0.08199996
+    XP516     QNJP51    0.035
+    XP516     QPFP51    0.01099999
+    XP516     QLPP51    0.02299999
+    XP516     QOTP51    0.16399992
+    XP517     RCAPP51   1
+    XP517     QCRP51    -1
+    XP517     QGAP51    0.45999992
+    XP517     QDSP51    0.11599994
+    XP517     QRSP51    0.13699996
+    XP517     QKJP51    0.08099997
+    XP517     QNJP51    0.04
+    XP517     QPFP51    0.01099999
+    XP517     QLPP51    0.027
+    XP517     QOTP51    0.16299981
+    XP518     RCAPP51   1
+    XP518     QCRP51    -1
+    XP518     QGAP51    0.46199989
+    XP518     QDSP51    0.13499993
+    XP518     QRSP51    0.14599991
+    XP518     QKJP51    0.07099998
+    XP518     QNJP51    0.03599999
+    XP518     QPFP51    0.01199999
+    XP518     QLPP51    0.02299999
+    XP518     QOTP51    0.15299994
+    XP519     RCAPP51   1
+    XP519     QCRP51    -1
+    XP519     QGAP51    0.4339999
+    XP519     QDSP51    0.13499993
+    XP519     QRSP51    0.1679998
+    XP519     QKJP51    0.08599997
+    XP519     QNJP51    0.03299999
+    XP519     QPFP51    0.01399999
+    XP519     QLPP51    0.02
+    XP519     QOTP51    0.14399993
+    XP5110    RCAPP51   1
+    XP5110    QCRP51    -1
+    XP5110    QGAP51    0.42599982
+    XP5110    QDSP51    0.13499993
+    XP5110    QRSP51    0.19199991
+    XP5110    QKJP51    0.08199996
+    XP5110    QNJP51    0.029
+    XP5110    QPFP51    0.01299999
+    XP5110    QLPP51    0.02099999
+    XP5110    QOTP51    0.13099992
+    XP5111    RCAPP51   1
+    XP5111    QCRP51    -1
+    XP5111    QGAP51    0.43299979
+    XP5111    QDSP51    0.13599992
+    XP5111    QRSP51    0.19199991
+    XP5111    QKJP51    0.08199996
+    XP5111    QNJP51    0.03099999
+    XP5111    QPFP51    0.008
+    XP5111    QLPP51    0.01799999
+    XP5111    QOTP51    0.13299996
+    XP5112    RCAPP51   1
+    XP5112    QCRP51    -1
+    XP5112    QGAP51    0.42099988
+    XP5112    QDSP51    0.13699996
+    XP5112    QRSP51    0.19799984
+    XP5112    QKJP51    0.09499997
+    XP5112    QNJP51    0.029
+    XP5112    QPFP51    0.015
+    XP5112    QLPP51    0.01799999
+    XP5112    QOTP51    0.13399988
+    XP5113    RCAPP51   1
+    XP5113    QCRP51    -1
+    XP5113    QGAP51    0.4179998
+    XP5113    QDSP51    0.13199997
+    XP5113    QRSP51    0.19099987
+    XP5113    QKJP51    0.09199995
+    XP5113    QNJP51    0.029
+    XP5113    QPFP51    0.01099999
+    XP5113    QLPP51    0.022
+    XP5113    QOTP51    0.13899994
+    XP5114    RCAPP51   1
+    XP5114    QCRP51    -1
+    XP5114    QGAP51    0.42699993
+    XP5114    QDSP51    0.12699991
+    XP5114    QRSP51    0.16199988
+    XP5114    QKJP51    0.09299994
+    XP5114    QNJP51    0.02999999
+    XP5114    QPFP51    0.01399999
+    XP5114    QLPP51    0.02299999
+    XP5114    QOTP51    0.13999993
+    XP5115    RCAPP51   1
+    XP5115    QCRP51    -1
+    XP5115    QGAP51    0.44699991
+    XP5115    QDSP51    0.11299992
+    XP5115    QRSP51    0.18699986
+    XP5115    QKJP51    0.08999997
+    XP5115    QNJP51    0.02599999
+    XP5115    QPFP51    0.01399999
+    XP5115    QLPP51    0.02299999
+    XP5115    QOTP51    0.13999993
+    XP5116    RCAPP51   1
+    XP5116    QCRP51    -1
+    XP5116    QGAP51    0.44699991
+    XP5116    QDSP51    0.13099992
+    XP5116    QRSP51    0.16999996
+    XP5116    QKJP51    0.08599997
+    XP5116    QNJP51    0.025
+    XP5116    QPFP51    0.01299999
+    XP5116    QLPP51    0.02
+    XP5116    QOTP51    0.15699995
+    XP5117    RCAPP51   1
+    XP5117    QCRP51    -1
+    XP5117    QGAP51    0.4519999
+    XP5117    QDSP51    0.12999988
+    XP5117    QRSP51    0.15299994
+    XP5117    QKJP51    0.08999997
+    XP5117    QNJP51    0.01899999
+    XP5117    QPFP51    0.01199999
+    XP5117    QLPP51    0.025
+    XP5117    QOTP51    0.14999998
+    XP5118    RCAPP51   1
+    XP5118    QCRP51    -1
+    XP5118    QGAP51    0.46199989
+    XP5118    QDSP51    0.13699996
+    XP5118    QRSP51    0.14599991
+    XP5118    QKJP51    0.08899999
+    XP5118    QNJP51    0.02599999
+    XP5118    QPFP51    0.01099999
+    XP5118    QLPP51    0.02799999
+    XP5118    QOTP51    0.15299994
+    XP5119    RCAPP51   1
+    XP5119    QCRP51    -1
+    XP5119    QGAP51    0.44699991
+    XP5119    QDSP51    0.14499998
+    XP5119    QRSP51    0.14899993
+    XP5119    QKJP51    0.08299994
+    XP5119    QNJP51    0.027
+    XP5119    QPFP51    0.015
+    XP5119    QLPP51    0.025
+    XP5119    QOTP51    0.1509999
+    XP5120    RCAPP51   1
+    XP5120    QCRP51    -1
+    XP5120    QGAP51    0.44599986
+    XP5120    QDSP51    0.14799994
+    XP5120    QRSP51    0.1679998
+    XP5120    QKJP51    0.08199996
+    XP5120    QNJP51    0.02599999
+    XP5120    QPFP51    0.01099999
+    XP5120    QLPP51    0.02
+    XP5120    QOTP51    0.1469999
+    XP5121    RCAPP51   1
+    XP5121    QCRP51    -1
+    XP5121    QGAP51    0.42999989
+    XP5121    QDSP51    0.13899994
+    XP5121    QRSP51    0.18699986
+    XP5121    QKJP51    0.08899999
+    XP5121    QNJP51    0.022
+    XP5121    QPFP51    0.01199999
+    XP5121    QLPP51    0.01599999
+    XP5121    QOTP51    0.13899994
+    XP5122    RCAPP51   1
+    XP5122    QCRP51    -1
+    XP5122    QGAP51    0.40699995
+    XP5122    QDSP51    0.14899993
+    XP5122    QRSP51    0.20799977
+    XP5122    QKJP51    0.07799995
+    XP5122    QNJP51    0.029
+    XP5122    QPFP51    0.01199999
+    XP5122    QLPP51    0.01899999
+    XP5122    QOTP51    0.13899994
+    XP5123    RCAPP51   1
+    XP5123    QCRP51    -1
+    XP5123    QGAP51    0.44299984
+    XP5123    QDSP51    0.13799989
+    XP5123    QRSP51    0.19099987
+    XP5123    QKJP51    0.08099997
+    XP5123    QNJP51    0.027
+    XP5123    QPFP51    0.00999999
+    XP5123    QLPP51    0.01799999
+    XP5123    QOTP51    0.13499993
+    XP5124    RCAPP51   1
+    XP5124    QCRP51    -1
+    XP5124    QGAP51    0.43899989
+    XP5124    QDSP51    0.12099987
+    XP5124    QRSP51    0.19399983
+    XP5124    QKJP51    0.08599997
+    XP5124    QNJP51    0.02399999
+    XP5124    QPFP51    0.01199999
+    XP5124    QLPP51    0.022
+    XP5124    QOTP51    0.13899994
+    XP521     RCAPP52   1
+    XP521     QCRP52    -1
+    XP521     QGAP52    0.42199993
+    XP521     QDSP52    0.11799991
+    XP521     QRSP52    0.18899989
+    XP521     QKJP52    0.09399998
+    XP521     QNJP52    0.03599999
+    XP521     QPFP52    0.008
+    XP521     QLPP52    0.02299999
+    XP521     QOTP52    0.13199997
+    XP522     RCAPP52   1
+    XP522     QCRP52    -1
+    XP522     QGAP52    0.42799985
+    XP522     QDSP52    0.12699991
+    XP522     QRSP52    0.16399992
+    XP522     QKJP52    0.08399999
+    XP522     QNJP52    0.03899999
+    XP522     QPFP52    0.01599999
+    XP522     QLPP52    0.025
+    XP522     QOTP52    0.1469999
+    XP523     RCAPP52   1
+    XP523     QCRP52    -1
+    XP523     QGAP52    0.45899987
+    XP523     QDSP52    0.11799991
+    XP523     QRSP52    0.14999998
+    XP523     QKJP52    0.09099996
+    XP523     QNJP52    0.03799999
+    XP523     QPFP52    0.008
+    XP523     QLPP52    0.02599999
+    XP523     QOTP52    0.14599991
+    XP524     RCAPP52   1
+    XP524     QCRP52    -1
+    XP524     QGAP52    0.46099985
+    XP524     QDSP52    0.125
+    XP524     QRSP52    0.12299991
+    XP524     QKJP52    0.09299994
+    XP524     QNJP52    0.03699999
+    XP524     QPFP52    0.01299999
+    XP524     QLPP52    0.025
+    XP524     QOTP52    0.15199995
+    XP525     RCAPP52   1
+    XP525     QCRP52    -1
+    XP525     QGAP52    0.47399986
+    XP525     QDSP52    0.11199999
+    XP525     QRSP52    0.12699991
+    XP525     QKJP52    0.09299994
+    XP525     QNJP52    0.03799999
+    XP525     QPFP52    0.01199999
+    XP525     QLPP52    0.02399999
+    XP525     QOTP52    0.15699995
+    XP526     RCAPP52   1
+    XP526     QCRP52    -1
+    XP526     QGAP52    0.4709999
+    XP526     QDSP52    0.12199992
+    XP526     QRSP52    0.12699991
+    XP526     QKJP52    0.08199996
+    XP526     QNJP52    0.035
+    XP526     QPFP52    0.01099999
+    XP526     QLPP52    0.02299999
+    XP526     QOTP52    0.16399992
+    XP527     RCAPP52   1
+    XP527     QCRP52    -1
+    XP527     QGAP52    0.45999992
+    XP527     QDSP52    0.11599994
+    XP527     QRSP52    0.13699996
+    XP527     QKJP52    0.08099997
+    XP527     QNJP52    0.04
+    XP527     QPFP52    0.01099999
+    XP527     QLPP52    0.027
+    XP527     QOTP52    0.16299981
+    XP528     RCAPP52   1
+    XP528     QCRP52    -1
+    XP528     QGAP52    0.46199989
+    XP528     QDSP52    0.13499993
+    XP528     QRSP52    0.14599991
+    XP528     QKJP52    0.07099998
+    XP528     QNJP52    0.03599999
+    XP528     QPFP52    0.01199999
+    XP528     QLPP52    0.02299999
+    XP528     QOTP52    0.15299994
+    XP529     RCAPP52   1
+    XP529     QCRP52    -1
+    XP529     QGAP52    0.4339999
+    XP529     QDSP52    0.13499993
+    XP529     QRSP52    0.1679998
+    XP529     QKJP52    0.08599997
+    XP529     QNJP52    0.03299999
+    XP529     QPFP52    0.01399999
+    XP529     QLPP52    0.02
+    XP529     QOTP52    0.14399993
+    XP5210    RCAPP52   1
+    XP5210    QCRP52    -1
+    XP5210    QGAP52    0.42599982
+    XP5210    QDSP52    0.13499993
+    XP5210    QRSP52    0.19199991
+    XP5210    QKJP52    0.08199996
+    XP5210    QNJP52    0.029
+    XP5210    QPFP52    0.01299999
+    XP5210    QLPP52    0.02099999
+    XP5210    QOTP52    0.13099992
+    XP5211    RCAPP52   1
+    XP5211    QCRP52    -1
+    XP5211    QGAP52    0.43299979
+    XP5211    QDSP52    0.13599992
+    XP5211    QRSP52    0.19199991
+    XP5211    QKJP52    0.08199996
+    XP5211    QNJP52    0.03099999
+    XP5211    QPFP52    0.008
+    XP5211    QLPP52    0.01799999
+    XP5211    QOTP52    0.13299996
+    XP5212    RCAPP52   1
+    XP5212    QCRP52    -1
+    XP5212    QGAP52    0.42099988
+    XP5212    QDSP52    0.13699996
+    XP5212    QRSP52    0.19799984
+    XP5212    QKJP52    0.09499997
+    XP5212    QNJP52    0.029
+    XP5212    QPFP52    0.015
+    XP5212    QLPP52    0.01799999
+    XP5212    QOTP52    0.13399988
+    XP5213    RCAPP52   1
+    XP5213    QCRP52    -1
+    XP5213    QGAP52    0.4179998
+    XP5213    QDSP52    0.13199997
+    XP5213    QRSP52    0.19099987
+    XP5213    QKJP52    0.09199995
+    XP5213    QNJP52    0.029
+    XP5213    QPFP52    0.01099999
+    XP5213    QLPP52    0.022
+    XP5213    QOTP52    0.13899994
+    XP5214    RCAPP52   1
+    XP5214    QCRP52    -1
+    XP5214    QGAP52    0.42699993
+    XP5214    QDSP52    0.12699991
+    XP5214    QRSP52    0.16199988
+    XP5214    QKJP52    0.09299994
+    XP5214    QNJP52    0.02999999
+    XP5214    QPFP52    0.01399999
+    XP5214    QLPP52    0.02299999
+    XP5214    QOTP52    0.13999993
+    XP5215    RCAPP52   1
+    XP5215    QCRP52    -1
+    XP5215    QGAP52    0.44699991
+    XP5215    QDSP52    0.11299992
+    XP5215    QRSP52    0.18699986
+    XP5215    QKJP52    0.08999997
+    XP5215    QNJP52    0.02599999
+    XP5215    QPFP52    0.01399999
+    XP5215    QLPP52    0.02299999
+    XP5215    QOTP52    0.13999993
+    XP5216    RCAPP52   1
+    XP5216    QCRP52    -1
+    XP5216    QGAP52    0.44699991
+    XP5216    QDSP52    0.13099992
+    XP5216    QRSP52    0.16999996
+    XP5216    QKJP52    0.08599997
+    XP5216    QNJP52    0.025
+    XP5216    QPFP52    0.01299999
+    XP5216    QLPP52    0.02
+    XP5216    QOTP52    0.15699995
+    XP5217    RCAPP52   1
+    XP5217    QCRP52    -1
+    XP5217    QGAP52    0.4519999
+    XP5217    QDSP52    0.12999988
+    XP5217    QRSP52    0.15299994
+    XP5217    QKJP52    0.08999997
+    XP5217    QNJP52    0.01899999
+    XP5217    QPFP52    0.01199999
+    XP5217    QLPP52    0.025
+    XP5217    QOTP52    0.14999998
+    XP5218    RCAPP52   1
+    XP5218    QCRP52    -1
+    XP5218    QGAP52    0.46199989
+    XP5218    QDSP52    0.13699996
+    XP5218    QRSP52    0.14599991
+    XP5218    QKJP52    0.08899999
+    XP5218    QNJP52    0.02599999
+    XP5218    QPFP52    0.01099999
+    XP5218    QLPP52    0.02799999
+    XP5218    QOTP52    0.15299994
+    XP5219    RCAPP52   1
+    XP5219    QCRP52    -1
+    XP5219    QGAP52    0.44699991
+    XP5219    QDSP52    0.14499998
+    XP5219    QRSP52    0.14899993
+    XP5219    QKJP52    0.08299994
+    XP5219    QNJP52    0.027
+    XP5219    QPFP52    0.015
+    XP5219    QLPP52    0.025
+    XP5219    QOTP52    0.1509999
+    XP5220    RCAPP52   1
+    XP5220    QCRP52    -1
+    XP5220    QGAP52    0.44599986
+    XP5220    QDSP52    0.14799994
+    XP5220    QRSP52    0.1679998
+    XP5220    QKJP52    0.08199996
+    XP5220    QNJP52    0.02599999
+    XP5220    QPFP52    0.01099999
+    XP5220    QLPP52    0.02
+    XP5220    QOTP52    0.1469999
+    XP5221    RCAPP52   1
+    XP5221    QCRP52    -1
+    XP5221    QGAP52    0.42999989
+    XP5221    QDSP52    0.13899994
+    XP5221    QRSP52    0.18699986
+    XP5221    QKJP52    0.08899999
+    XP5221    QNJP52    0.022
+    XP5221    QPFP52    0.01199999
+    XP5221    QLPP52    0.01599999
+    XP5221    QOTP52    0.13899994
+    XP5222    RCAPP52   1
+    XP5222    QCRP52    -1
+    XP5222    QGAP52    0.40699995
+    XP5222    QDSP52    0.14899993
+    XP5222    QRSP52    0.20799977
+    XP5222    QKJP52    0.07799995
+    XP5222    QNJP52    0.029
+    XP5222    QPFP52    0.01199999
+    XP5222    QLPP52    0.01899999
+    XP5222    QOTP52    0.13899994
+    XP5223    RCAPP52   1
+    XP5223    QCRP52    -1
+    XP5223    QGAP52    0.44299984
+    XP5223    QDSP52    0.13799989
+    XP5223    QRSP52    0.19099987
+    XP5223    QKJP52    0.08099997
+    XP5223    QNJP52    0.027
+    XP5223    QPFP52    0.00999999
+    XP5223    QLPP52    0.01799999
+    XP5223    QOTP52    0.13499993
+    XP5224    RCAPP52   1
+    XP5224    QCRP52    -1
+    XP5224    QGAP52    0.43899989
+    XP5224    QDSP52    0.12099987
+    XP5224    QRSP52    0.19399983
+    XP5224    QKJP52    0.08599997
+    XP5224    QNJP52    0.02399999
+    XP5224    QPFP52    0.01199999
+    XP5224    QLPP52    0.022
+    XP5224    QOTP52    0.13899994
+    XP531     RCAPP53   1
+    XP531     QCRP53    -1
+    XP531     QGAP53    0.42199993
+    XP531     QDSP53    0.11799991
+    XP531     QRSP53    0.18899989
+    XP531     QKJP53    0.09399998
+    XP531     QNJP53    0.03599999
+    XP531     QPFP53    0.008
+    XP531     QLPP53    0.02299999
+    XP531     QOTP53    0.13199997
+    XP532     RCAPP53   1
+    XP532     QCRP53    -1
+    XP532     QGAP53    0.42799985
+    XP532     QDSP53    0.12699991
+    XP532     QRSP53    0.16399992
+    XP532     QKJP53    0.08399999
+    XP532     QNJP53    0.03899999
+    XP532     QPFP53    0.01599999
+    XP532     QLPP53    0.025
+    XP532     QOTP53    0.1469999
+    XP533     RCAPP53   1
+    XP533     QCRP53    -1
+    XP533     QGAP53    0.45899987
+    XP533     QDSP53    0.11799991
+    XP533     QRSP53    0.14999998
+    XP533     QKJP53    0.09099996
+    XP533     QNJP53    0.03799999
+    XP533     QPFP53    0.008
+    XP533     QLPP53    0.02599999
+    XP533     QOTP53    0.14599991
+    XP534     RCAPP53   1
+    XP534     QCRP53    -1
+    XP534     QGAP53    0.46099985
+    XP534     QDSP53    0.125
+    XP534     QRSP53    0.12299991
+    XP534     QKJP53    0.09299994
+    XP534     QNJP53    0.03699999
+    XP534     QPFP53    0.01299999
+    XP534     QLPP53    0.025
+    XP534     QOTP53    0.15199995
+    XP535     RCAPP53   1
+    XP535     QCRP53    -1
+    XP535     QGAP53    0.47399986
+    XP535     QDSP53    0.11199999
+    XP535     QRSP53    0.12699991
+    XP535     QKJP53    0.09299994
+    XP535     QNJP53    0.03799999
+    XP535     QPFP53    0.01199999
+    XP535     QLPP53    0.02399999
+    XP535     QOTP53    0.15699995
+    XP536     RCAPP53   1
+    XP536     QCRP53    -1
+    XP536     QGAP53    0.4709999
+    XP536     QDSP53    0.12199992
+    XP536     QRSP53    0.12699991
+    XP536     QKJP53    0.08199996
+    XP536     QNJP53    0.035
+    XP536     QPFP53    0.01099999
+    XP536     QLPP53    0.02299999
+    XP536     QOTP53    0.16399992
+    XP537     RCAPP53   1
+    XP537     QCRP53    -1
+    XP537     QGAP53    0.45999992
+    XP537     QDSP53    0.11599994
+    XP537     QRSP53    0.13699996
+    XP537     QKJP53    0.08099997
+    XP537     QNJP53    0.04
+    XP537     QPFP53    0.01099999
+    XP537     QLPP53    0.027
+    XP537     QOTP53    0.16299981
+    XP538     RCAPP53   1
+    XP538     QCRP53    -1
+    XP538     QGAP53    0.46199989
+    XP538     QDSP53    0.13499993
+    XP538     QRSP53    0.14599991
+    XP538     QKJP53    0.07099998
+    XP538     QNJP53    0.03599999
+    XP538     QPFP53    0.01199999
+    XP538     QLPP53    0.02299999
+    XP538     QOTP53    0.15299994
+    XP539     RCAPP53   1
+    XP539     QCRP53    -1
+    XP539     QGAP53    0.4339999
+    XP539     QDSP53    0.13499993
+    XP539     QRSP53    0.1679998
+    XP539     QKJP53    0.08599997
+    XP539     QNJP53    0.03299999
+    XP539     QPFP53    0.01399999
+    XP539     QLPP53    0.02
+    XP539     QOTP53    0.14399993
+    XP5310    RCAPP53   1
+    XP5310    QCRP53    -1
+    XP5310    QGAP53    0.42599982
+    XP5310    QDSP53    0.13499993
+    XP5310    QRSP53    0.19199991
+    XP5310    QKJP53    0.08199996
+    XP5310    QNJP53    0.029
+    XP5310    QPFP53    0.01299999
+    XP5310    QLPP53    0.02099999
+    XP5310    QOTP53    0.13099992
+    XP5311    RCAPP53   1
+    XP5311    QCRP53    -1
+    XP5311    QGAP53    0.43299979
+    XP5311    QDSP53    0.13599992
+    XP5311    QRSP53    0.19199991
+    XP5311    QKJP53    0.08199996
+    XP5311    QNJP53    0.03099999
+    XP5311    QPFP53    0.008
+    XP5311    QLPP53    0.01799999
+    XP5311    QOTP53    0.13299996
+    XP5312    RCAPP53   1
+    XP5312    QCRP53    -1
+    XP5312    QGAP53    0.42099988
+    XP5312    QDSP53    0.13699996
+    XP5312    QRSP53    0.19799984
+    XP5312    QKJP53    0.09499997
+    XP5312    QNJP53    0.029
+    XP5312    QPFP53    0.015
+    XP5312    QLPP53    0.01799999
+    XP5312    QOTP53    0.13399988
+    XP5313    RCAPP53   1
+    XP5313    QCRP53    -1
+    XP5313    QGAP53    0.4179998
+    XP5313    QDSP53    0.13199997
+    XP5313    QRSP53    0.19099987
+    XP5313    QKJP53    0.09199995
+    XP5313    QNJP53    0.029
+    XP5313    QPFP53    0.01099999
+    XP5313    QLPP53    0.022
+    XP5313    QOTP53    0.13899994
+    XP5314    RCAPP53   1
+    XP5314    QCRP53    -1
+    XP5314    QGAP53    0.42699993
+    XP5314    QDSP53    0.12699991
+    XP5314    QRSP53    0.16199988
+    XP5314    QKJP53    0.09299994
+    XP5314    QNJP53    0.02999999
+    XP5314    QPFP53    0.01399999
+    XP5314    QLPP53    0.02299999
+    XP5314    QOTP53    0.13999993
+    XP5315    RCAPP53   1
+    XP5315    QCRP53    -1
+    XP5315    QGAP53    0.44699991
+    XP5315    QDSP53    0.11299992
+    XP5315    QRSP53    0.18699986
+    XP5315    QKJP53    0.08999997
+    XP5315    QNJP53    0.02599999
+    XP5315    QPFP53    0.01399999
+    XP5315    QLPP53    0.02299999
+    XP5315    QOTP53    0.13999993
+    XP5316    RCAPP53   1
+    XP5316    QCRP53    -1
+    XP5316    QGAP53    0.44699991
+    XP5316    QDSP53    0.13099992
+    XP5316    QRSP53    0.16999996
+    XP5316    QKJP53    0.08599997
+    XP5316    QNJP53    0.025
+    XP5316    QPFP53    0.01299999
+    XP5316    QLPP53    0.02
+    XP5316    QOTP53    0.15699995
+    XP5317    RCAPP53   1
+    XP5317    QCRP53    -1
+    XP5317    QGAP53    0.4519999
+    XP5317    QDSP53    0.12999988
+    XP5317    QRSP53    0.15299994
+    XP5317    QKJP53    0.08999997
+    XP5317    QNJP53    0.01899999
+    XP5317    QPFP53    0.01199999
+    XP5317    QLPP53    0.025
+    XP5317    QOTP53    0.14999998
+    XP5318    RCAPP53   1
+    XP5318    QCRP53    -1
+    XP5318    QGAP53    0.46199989
+    XP5318    QDSP53    0.13699996
+    XP5318    QRSP53    0.14599991
+    XP5318    QKJP53    0.08899999
+    XP5318    QNJP53    0.02599999
+    XP5318    QPFP53    0.01099999
+    XP5318    QLPP53    0.02799999
+    XP5318    QOTP53    0.15299994
+    XP5319    RCAPP53   1
+    XP5319    QCRP53    -1
+    XP5319    QGAP53    0.44699991
+    XP5319    QDSP53    0.14499998
+    XP5319    QRSP53    0.14899993
+    XP5319    QKJP53    0.08299994
+    XP5319    QNJP53    0.027
+    XP5319    QPFP53    0.015
+    XP5319    QLPP53    0.025
+    XP5319    QOTP53    0.1509999
+    XP5320    RCAPP53   1
+    XP5320    QCRP53    -1
+    XP5320    QGAP53    0.44599986
+    XP5320    QDSP53    0.14799994
+    XP5320    QRSP53    0.1679998
+    XP5320    QKJP53    0.08199996
+    XP5320    QNJP53    0.02599999
+    XP5320    QPFP53    0.01099999
+    XP5320    QLPP53    0.02
+    XP5320    QOTP53    0.1469999
+    XP5321    RCAPP53   1
+    XP5321    QCRP53    -1
+    XP5321    QGAP53    0.42999989
+    XP5321    QDSP53    0.13899994
+    XP5321    QRSP53    0.18699986
+    XP5321    QKJP53    0.08899999
+    XP5321    QNJP53    0.022
+    XP5321    QPFP53    0.01199999
+    XP5321    QLPP53    0.01599999
+    XP5321    QOTP53    0.13899994
+    XP5322    RCAPP53   1
+    XP5322    QCRP53    -1
+    XP5322    QGAP53    0.40699995
+    XP5322    QDSP53    0.14899993
+    XP5322    QRSP53    0.20799977
+    XP5322    QKJP53    0.07799995
+    XP5322    QNJP53    0.029
+    XP5322    QPFP53    0.01199999
+    XP5322    QLPP53    0.01899999
+    XP5322    QOTP53    0.13899994
+    XP5323    RCAPP53   1
+    XP5323    QCRP53    -1
+    XP5323    QGAP53    0.44299984
+    XP5323    QDSP53    0.13799989
+    XP5323    QRSP53    0.19099987
+    XP5323    QKJP53    0.08099997
+    XP5323    QNJP53    0.027
+    XP5323    QPFP53    0.00999999
+    XP5323    QLPP53    0.01799999
+    XP5323    QOTP53    0.13499993
+    XP5324    RCAPP53   1
+    XP5324    QCRP53    -1
+    XP5324    QGAP53    0.43899989
+    XP5324    QDSP53    0.12099987
+    XP5324    QRSP53    0.19399983
+    XP5324    QKJP53    0.08599997
+    XP5324    QNJP53    0.02399999
+    XP5324    QPFP53    0.01199999
+    XP5324    QLPP53    0.022
+    XP5324    QOTP53    0.13899994
+    XP541     RCAPP54   1
+    XP541     QCRP54    -1
+    XP541     QGAP54    0.42199993
+    XP541     QDSP54    0.11799991
+    XP541     QRSP54    0.18899989
+    XP541     QKJP54    0.09399998
+    XP541     QNJP54    0.03599999
+    XP541     QPFP54    0.008
+    XP541     QLPP54    0.02299999
+    XP541     QOTP54    0.13199997
+    XP542     RCAPP54   1
+    XP542     QCRP54    -1
+    XP542     QGAP54    0.42799985
+    XP542     QDSP54    0.12699991
+    XP542     QRSP54    0.16399992
+    XP542     QKJP54    0.08399999
+    XP542     QNJP54    0.03899999
+    XP542     QPFP54    0.01599999
+    XP542     QLPP54    0.025
+    XP542     QOTP54    0.1469999
+    XP543     RCAPP54   1
+    XP543     QCRP54    -1
+    XP543     QGAP54    0.45899987
+    XP543     QDSP54    0.11799991
+    XP543     QRSP54    0.14999998
+    XP543     QKJP54    0.09099996
+    XP543     QNJP54    0.03799999
+    XP543     QPFP54    0.008
+    XP543     QLPP54    0.02599999
+    XP543     QOTP54    0.14599991
+    XP544     RCAPP54   1
+    XP544     QCRP54    -1
+    XP544     QGAP54    0.46099985
+    XP544     QDSP54    0.125
+    XP544     QRSP54    0.12299991
+    XP544     QKJP54    0.09299994
+    XP544     QNJP54    0.03699999
+    XP544     QPFP54    0.01299999
+    XP544     QLPP54    0.025
+    XP544     QOTP54    0.15199995
+    XP545     RCAPP54   1
+    XP545     QCRP54    -1
+    XP545     QGAP54    0.47399986
+    XP545     QDSP54    0.11199999
+    XP545     QRSP54    0.12699991
+    XP545     QKJP54    0.09299994
+    XP545     QNJP54    0.03799999
+    XP545     QPFP54    0.01199999
+    XP545     QLPP54    0.02399999
+    XP545     QOTP54    0.15699995
+    XP546     RCAPP54   1
+    XP546     QCRP54    -1
+    XP546     QGAP54    0.4709999
+    XP546     QDSP54    0.12199992
+    XP546     QRSP54    0.12699991
+    XP546     QKJP54    0.08199996
+    XP546     QNJP54    0.035
+    XP546     QPFP54    0.01099999
+    XP546     QLPP54    0.02299999
+    XP546     QOTP54    0.16399992
+    XP547     RCAPP54   1
+    XP547     QCRP54    -1
+    XP547     QGAP54    0.45999992
+    XP547     QDSP54    0.11599994
+    XP547     QRSP54    0.13699996
+    XP547     QKJP54    0.08099997
+    XP547     QNJP54    0.04
+    XP547     QPFP54    0.01099999
+    XP547     QLPP54    0.027
+    XP547     QOTP54    0.16299981
+    XP548     RCAPP54   1
+    XP548     QCRP54    -1
+    XP548     QGAP54    0.46199989
+    XP548     QDSP54    0.13499993
+    XP548     QRSP54    0.14599991
+    XP548     QKJP54    0.07099998
+    XP548     QNJP54    0.03599999
+    XP548     QPFP54    0.01199999
+    XP548     QLPP54    0.02299999
+    XP548     QOTP54    0.15299994
+    XP549     RCAPP54   1
+    XP549     QCRP54    -1
+    XP549     QGAP54    0.4339999
+    XP549     QDSP54    0.13499993
+    XP549     QRSP54    0.1679998
+    XP549     QKJP54    0.08599997
+    XP549     QNJP54    0.03299999
+    XP549     QPFP54    0.01399999
+    XP549     QLPP54    0.02
+    XP549     QOTP54    0.14399993
+    XP5410    RCAPP54   1
+    XP5410    QCRP54    -1
+    XP5410    QGAP54    0.42599982
+    XP5410    QDSP54    0.13499993
+    XP5410    QRSP54    0.19199991
+    XP5410    QKJP54    0.08199996
+    XP5410    QNJP54    0.029
+    XP5410    QPFP54    0.01299999
+    XP5410    QLPP54    0.02099999
+    XP5410    QOTP54    0.13099992
+    XP5411    RCAPP54   1
+    XP5411    QCRP54    -1
+    XP5411    QGAP54    0.43299979
+    XP5411    QDSP54    0.13599992
+    XP5411    QRSP54    0.19199991
+    XP5411    QKJP54    0.08199996
+    XP5411    QNJP54    0.03099999
+    XP5411    QPFP54    0.008
+    XP5411    QLPP54    0.01799999
+    XP5411    QOTP54    0.13299996
+    XP5412    RCAPP54   1
+    XP5412    QCRP54    -1
+    XP5412    QGAP54    0.42099988
+    XP5412    QDSP54    0.13699996
+    XP5412    QRSP54    0.19799984
+    XP5412    QKJP54    0.09499997
+    XP5412    QNJP54    0.029
+    XP5412    QPFP54    0.015
+    XP5412    QLPP54    0.01799999
+    XP5412    QOTP54    0.13399988
+    XP5413    RCAPP54   1
+    XP5413    QCRP54    -1
+    XP5413    QGAP54    0.4179998
+    XP5413    QDSP54    0.13199997
+    XP5413    QRSP54    0.19099987
+    XP5413    QKJP54    0.09199995
+    XP5413    QNJP54    0.029
+    XP5413    QPFP54    0.01099999
+    XP5413    QLPP54    0.022
+    XP5413    QOTP54    0.13899994
+    XP5414    RCAPP54   1
+    XP5414    QCRP54    -1
+    XP5414    QGAP54    0.42699993
+    XP5414    QDSP54    0.12699991
+    XP5414    QRSP54    0.16199988
+    XP5414    QKJP54    0.09299994
+    XP5414    QNJP54    0.02999999
+    XP5414    QPFP54    0.01399999
+    XP5414    QLPP54    0.02299999
+    XP5414    QOTP54    0.13999993
+    XP5415    RCAPP54   1
+    XP5415    QCRP54    -1
+    XP5415    QGAP54    0.44699991
+    XP5415    QDSP54    0.11299992
+    XP5415    QRSP54    0.18699986
+    XP5415    QKJP54    0.08999997
+    XP5415    QNJP54    0.02599999
+    XP5415    QPFP54    0.01399999
+    XP5415    QLPP54    0.02299999
+    XP5415    QOTP54    0.13999993
+    XP5416    RCAPP54   1
+    XP5416    QCRP54    -1
+    XP5416    QGAP54    0.44699991
+    XP5416    QDSP54    0.13099992
+    XP5416    QRSP54    0.16999996
+    XP5416    QKJP54    0.08599997
+    XP5416    QNJP54    0.025
+    XP5416    QPFP54    0.01299999
+    XP5416    QLPP54    0.02
+    XP5416    QOTP54    0.15699995
+    XP5417    RCAPP54   1
+    XP5417    QCRP54    -1
+    XP5417    QGAP54    0.4519999
+    XP5417    QDSP54    0.12999988
+    XP5417    QRSP54    0.15299994
+    XP5417    QKJP54    0.08999997
+    XP5417    QNJP54    0.01899999
+    XP5417    QPFP54    0.01199999
+    XP5417    QLPP54    0.025
+    XP5417    QOTP54    0.14999998
+    XP5418    RCAPP54   1
+    XP5418    QCRP54    -1
+    XP5418    QGAP54    0.46199989
+    XP5418    QDSP54    0.13699996
+    XP5418    QRSP54    0.14599991
+    XP5418    QKJP54    0.08899999
+    XP5418    QNJP54    0.02599999
+    XP5418    QPFP54    0.01099999
+    XP5418    QLPP54    0.02799999
+    XP5418    QOTP54    0.15299994
+    XP5419    RCAPP54   1
+    XP5419    QCRP54    -1
+    XP5419    QGAP54    0.44699991
+    XP5419    QDSP54    0.14499998
+    XP5419    QRSP54    0.14899993
+    XP5419    QKJP54    0.08299994
+    XP5419    QNJP54    0.027
+    XP5419    QPFP54    0.015
+    XP5419    QLPP54    0.025
+    XP5419    QOTP54    0.1509999
+    XP5420    RCAPP54   1
+    XP5420    QCRP54    -1
+    XP5420    QGAP54    0.44599986
+    XP5420    QDSP54    0.14799994
+    XP5420    QRSP54    0.1679998
+    XP5420    QKJP54    0.08199996
+    XP5420    QNJP54    0.02599999
+    XP5420    QPFP54    0.01099999
+    XP5420    QLPP54    0.02
+    XP5420    QOTP54    0.1469999
+    XP5421    RCAPP54   1
+    XP5421    QCRP54    -1
+    XP5421    QGAP54    0.42999989
+    XP5421    QDSP54    0.13899994
+    XP5421    QRSP54    0.18699986
+    XP5421    QKJP54    0.08899999
+    XP5421    QNJP54    0.022
+    XP5421    QPFP54    0.01199999
+    XP5421    QLPP54    0.01599999
+    XP5421    QOTP54    0.13899994
+    XP5422    RCAPP54   1
+    XP5422    QCRP54    -1
+    XP5422    QGAP54    0.40699995
+    XP5422    QDSP54    0.14899993
+    XP5422    QRSP54    0.20799977
+    XP5422    QKJP54    0.07799995
+    XP5422    QNJP54    0.029
+    XP5422    QPFP54    0.01199999
+    XP5422    QLPP54    0.01899999
+    XP5422    QOTP54    0.13899994
+    XP5423    RCAPP54   1
+    XP5423    QCRP54    -1
+    XP5423    QGAP54    0.44299984
+    XP5423    QDSP54    0.13799989
+    XP5423    QRSP54    0.19099987
+    XP5423    QKJP54    0.08099997
+    XP5423    QNJP54    0.027
+    XP5423    QPFP54    0.00999999
+    XP5423    QLPP54    0.01799999
+    XP5423    QOTP54    0.13499993
+    XP5424    RCAPP54   1
+    XP5424    QCRP54    -1
+    XP5424    QGAP54    0.43899989
+    XP5424    QDSP54    0.12099987
+    XP5424    QRSP54    0.19399983
+    XP5424    QKJP54    0.08599997
+    XP5424    QNJP54    0.02399999
+    XP5424    QPFP54    0.01199999
+    XP5424    QLPP54    0.022
+    XP5424    QOTP54    0.13899994
+    XP551     RCAPP55   1
+    XP551     QCRP55    -1
+    XP551     QGAP55    0.42199993
+    XP551     QDSP55    0.11799991
+    XP551     QRSP55    0.18899989
+    XP551     QKJP55    0.09399998
+    XP551     QNJP55    0.03599999
+    XP551     QPFP55    0.008
+    XP551     QLPP55    0.02299999
+    XP551     QOTP55    0.13199997
+    XP552     RCAPP55   1
+    XP552     QCRP55    -1
+    XP552     QGAP55    0.42799985
+    XP552     QDSP55    0.12699991
+    XP552     QRSP55    0.16399992
+    XP552     QKJP55    0.08399999
+    XP552     QNJP55    0.03899999
+    XP552     QPFP55    0.01599999
+    XP552     QLPP55    0.025
+    XP552     QOTP55    0.1469999
+    XP553     RCAPP55   1
+    XP553     QCRP55    -1
+    XP553     QGAP55    0.45899987
+    XP553     QDSP55    0.11799991
+    XP553     QRSP55    0.14999998
+    XP553     QKJP55    0.09099996
+    XP553     QNJP55    0.03799999
+    XP553     QPFP55    0.008
+    XP553     QLPP55    0.02599999
+    XP553     QOTP55    0.14599991
+    XP554     RCAPP55   1
+    XP554     QCRP55    -1
+    XP554     QGAP55    0.46099985
+    XP554     QDSP55    0.125
+    XP554     QRSP55    0.12299991
+    XP554     QKJP55    0.09299994
+    XP554     QNJP55    0.03699999
+    XP554     QPFP55    0.01299999
+    XP554     QLPP55    0.025
+    XP554     QOTP55    0.15199995
+    XP555     RCAPP55   1
+    XP555     QCRP55    -1
+    XP555     QGAP55    0.47399986
+    XP555     QDSP55    0.11199999
+    XP555     QRSP55    0.12699991
+    XP555     QKJP55    0.09299994
+    XP555     QNJP55    0.03799999
+    XP555     QPFP55    0.01199999
+    XP555     QLPP55    0.02399999
+    XP555     QOTP55    0.15699995
+    XP556     RCAPP55   1
+    XP556     QCRP55    -1
+    XP556     QGAP55    0.4709999
+    XP556     QDSP55    0.12199992
+    XP556     QRSP55    0.12699991
+    XP556     QKJP55    0.08199996
+    XP556     QNJP55    0.035
+    XP556     QPFP55    0.01099999
+    XP556     QLPP55    0.02299999
+    XP556     QOTP55    0.16399992
+    XP557     RCAPP55   1
+    XP557     QCRP55    -1
+    XP557     QGAP55    0.45999992
+    XP557     QDSP55    0.11599994
+    XP557     QRSP55    0.13699996
+    XP557     QKJP55    0.08099997
+    XP557     QNJP55    0.04
+    XP557     QPFP55    0.01099999
+    XP557     QLPP55    0.027
+    XP557     QOTP55    0.16299981
+    XP558     RCAPP55   1
+    XP558     QCRP55    -1
+    XP558     QGAP55    0.46199989
+    XP558     QDSP55    0.13499993
+    XP558     QRSP55    0.14599991
+    XP558     QKJP55    0.07099998
+    XP558     QNJP55    0.03599999
+    XP558     QPFP55    0.01199999
+    XP558     QLPP55    0.02299999
+    XP558     QOTP55    0.15299994
+    XP559     RCAPP55   1
+    XP559     QCRP55    -1
+    XP559     QGAP55    0.4339999
+    XP559     QDSP55    0.13499993
+    XP559     QRSP55    0.1679998
+    XP559     QKJP55    0.08599997
+    XP559     QNJP55    0.03299999
+    XP559     QPFP55    0.01399999
+    XP559     QLPP55    0.02
+    XP559     QOTP55    0.14399993
+    XP5510    RCAPP55   1
+    XP5510    QCRP55    -1
+    XP5510    QGAP55    0.42599982
+    XP5510    QDSP55    0.13499993
+    XP5510    QRSP55    0.19199991
+    XP5510    QKJP55    0.08199996
+    XP5510    QNJP55    0.029
+    XP5510    QPFP55    0.01299999
+    XP5510    QLPP55    0.02099999
+    XP5510    QOTP55    0.13099992
+    XP5511    RCAPP55   1
+    XP5511    QCRP55    -1
+    XP5511    QGAP55    0.43299979
+    XP5511    QDSP55    0.13599992
+    XP5511    QRSP55    0.19199991
+    XP5511    QKJP55    0.08199996
+    XP5511    QNJP55    0.03099999
+    XP5511    QPFP55    0.008
+    XP5511    QLPP55    0.01799999
+    XP5511    QOTP55    0.13299996
+    XP5512    RCAPP55   1
+    XP5512    QCRP55    -1
+    XP5512    QGAP55    0.42099988
+    XP5512    QDSP55    0.13699996
+    XP5512    QRSP55    0.19799984
+    XP5512    QKJP55    0.09499997
+    XP5512    QNJP55    0.029
+    XP5512    QPFP55    0.015
+    XP5512    QLPP55    0.01799999
+    XP5512    QOTP55    0.13399988
+    XP5513    RCAPP55   1
+    XP5513    QCRP55    -1
+    XP5513    QGAP55    0.4179998
+    XP5513    QDSP55    0.13199997
+    XP5513    QRSP55    0.19099987
+    XP5513    QKJP55    0.09199995
+    XP5513    QNJP55    0.029
+    XP5513    QPFP55    0.01099999
+    XP5513    QLPP55    0.022
+    XP5513    QOTP55    0.13899994
+    XP5514    RCAPP55   1
+    XP5514    QCRP55    -1
+    XP5514    QGAP55    0.42699993
+    XP5514    QDSP55    0.12699991
+    XP5514    QRSP55    0.16199988
+    XP5514    QKJP55    0.09299994
+    XP5514    QNJP55    0.02999999
+    XP5514    QPFP55    0.01399999
+    XP5514    QLPP55    0.02299999
+    XP5514    QOTP55    0.13999993
+    XP5515    RCAPP55   1
+    XP5515    QCRP55    -1
+    XP5515    QGAP55    0.44699991
+    XP5515    QDSP55    0.11299992
+    XP5515    QRSP55    0.18699986
+    XP5515    QKJP55    0.08999997
+    XP5515    QNJP55    0.02599999
+    XP5515    QPFP55    0.01399999
+    XP5515    QLPP55    0.02299999
+    XP5515    QOTP55    0.13999993
+    XP5516    RCAPP55   1
+    XP5516    QCRP55    -1
+    XP5516    QGAP55    0.44699991
+    XP5516    QDSP55    0.13099992
+    XP5516    QRSP55    0.16999996
+    XP5516    QKJP55    0.08599997
+    XP5516    QNJP55    0.025
+    XP5516    QPFP55    0.01299999
+    XP5516    QLPP55    0.02
+    XP5516    QOTP55    0.15699995
+    XP5517    RCAPP55   1
+    XP5517    QCRP55    -1
+    XP5517    QGAP55    0.4519999
+    XP5517    QDSP55    0.12999988
+    XP5517    QRSP55    0.15299994
+    XP5517    QKJP55    0.08999997
+    XP5517    QNJP55    0.01899999
+    XP5517    QPFP55    0.01199999
+    XP5517    QLPP55    0.025
+    XP5517    QOTP55    0.14999998
+    XP5518    RCAPP55   1
+    XP5518    QCRP55    -1
+    XP5518    QGAP55    0.46199989
+    XP5518    QDSP55    0.13699996
+    XP5518    QRSP55    0.14599991
+    XP5518    QKJP55    0.08899999
+    XP5518    QNJP55    0.02599999
+    XP5518    QPFP55    0.01099999
+    XP5518    QLPP55    0.02799999
+    XP5518    QOTP55    0.15299994
+    XP5519    RCAPP55   1
+    XP5519    QCRP55    -1
+    XP5519    QGAP55    0.44699991
+    XP5519    QDSP55    0.14499998
+    XP5519    QRSP55    0.14899993
+    XP5519    QKJP55    0.08299994
+    XP5519    QNJP55    0.027
+    XP5519    QPFP55    0.015
+    XP5519    QLPP55    0.025
+    XP5519    QOTP55    0.1509999
+    XP5520    RCAPP55   1
+    XP5520    QCRP55    -1
+    XP5520    QGAP55    0.44599986
+    XP5520    QDSP55    0.14799994
+    XP5520    QRSP55    0.1679998
+    XP5520    QKJP55    0.08199996
+    XP5520    QNJP55    0.02599999
+    XP5520    QPFP55    0.01099999
+    XP5520    QLPP55    0.02
+    XP5520    QOTP55    0.1469999
+    XP5521    RCAPP55   1
+    XP5521    QCRP55    -1
+    XP5521    QGAP55    0.42999989
+    XP5521    QDSP55    0.13899994
+    XP5521    QRSP55    0.18699986
+    XP5521    QKJP55    0.08899999
+    XP5521    QNJP55    0.022
+    XP5521    QPFP55    0.01199999
+    XP5521    QLPP55    0.01599999
+    XP5521    QOTP55    0.13899994
+    XP5522    RCAPP55   1
+    XP5522    QCRP55    -1
+    XP5522    QGAP55    0.40699995
+    XP5522    QDSP55    0.14899993
+    XP5522    QRSP55    0.20799977
+    XP5522    QKJP55    0.07799995
+    XP5522    QNJP55    0.029
+    XP5522    QPFP55    0.01199999
+    XP5522    QLPP55    0.01899999
+    XP5522    QOTP55    0.13899994
+    XP5523    RCAPP55   1
+    XP5523    QCRP55    -1
+    XP5523    QGAP55    0.44299984
+    XP5523    QDSP55    0.13799989
+    XP5523    QRSP55    0.19099987
+    XP5523    QKJP55    0.08099997
+    XP5523    QNJP55    0.027
+    XP5523    QPFP55    0.00999999
+    XP5523    QLPP55    0.01799999
+    XP5523    QOTP55    0.13499993
+    XP5524    RCAPP55   1
+    XP5524    QCRP55    -1
+    XP5524    QGAP55    0.43899989
+    XP5524    QDSP55    0.12099987
+    XP5524    QRSP55    0.19399983
+    XP5524    QKJP55    0.08599997
+    XP5524    QNJP55    0.02399999
+    XP5524    QPFP55    0.01199999
+    XP5524    QLPP55    0.022
+    XP5524    QOTP55    0.13899994
+    XP561     RCAPP56   1
+    XP561     QCRP56    -1
+    XP561     QGAP56    0.42199993
+    XP561     QDSP56    0.11799991
+    XP561     QRSP56    0.18899989
+    XP561     QKJP56    0.09399998
+    XP561     QNJP56    0.03599999
+    XP561     QPFP56    0.008
+    XP561     QLPP56    0.02299999
+    XP561     QOTP56    0.13199997
+    XP562     RCAPP56   1
+    XP562     QCRP56    -1
+    XP562     QGAP56    0.42799985
+    XP562     QDSP56    0.12699991
+    XP562     QRSP56    0.16399992
+    XP562     QKJP56    0.08399999
+    XP562     QNJP56    0.03899999
+    XP562     QPFP56    0.01599999
+    XP562     QLPP56    0.025
+    XP562     QOTP56    0.1469999
+    XP563     RCAPP56   1
+    XP563     QCRP56    -1
+    XP563     QGAP56    0.45899987
+    XP563     QDSP56    0.11799991
+    XP563     QRSP56    0.14999998
+    XP563     QKJP56    0.09099996
+    XP563     QNJP56    0.03799999
+    XP563     QPFP56    0.008
+    XP563     QLPP56    0.02599999
+    XP563     QOTP56    0.14599991
+    XP564     RCAPP56   1
+    XP564     QCRP56    -1
+    XP564     QGAP56    0.46099985
+    XP564     QDSP56    0.125
+    XP564     QRSP56    0.12299991
+    XP564     QKJP56    0.09299994
+    XP564     QNJP56    0.03699999
+    XP564     QPFP56    0.01299999
+    XP564     QLPP56    0.025
+    XP564     QOTP56    0.15199995
+    XP565     RCAPP56   1
+    XP565     QCRP56    -1
+    XP565     QGAP56    0.47399986
+    XP565     QDSP56    0.11199999
+    XP565     QRSP56    0.12699991
+    XP565     QKJP56    0.09299994
+    XP565     QNJP56    0.03799999
+    XP565     QPFP56    0.01199999
+    XP565     QLPP56    0.02399999
+    XP565     QOTP56    0.15699995
+    XP566     RCAPP56   1
+    XP566     QCRP56    -1
+    XP566     QGAP56    0.4709999
+    XP566     QDSP56    0.12199992
+    XP566     QRSP56    0.12699991
+    XP566     QKJP56    0.08199996
+    XP566     QNJP56    0.035
+    XP566     QPFP56    0.01099999
+    XP566     QLPP56    0.02299999
+    XP566     QOTP56    0.16399992
+    XP567     RCAPP56   1
+    XP567     QCRP56    -1
+    XP567     QGAP56    0.45999992
+    XP567     QDSP56    0.11599994
+    XP567     QRSP56    0.13699996
+    XP567     QKJP56    0.08099997
+    XP567     QNJP56    0.04
+    XP567     QPFP56    0.01099999
+    XP567     QLPP56    0.027
+    XP567     QOTP56    0.16299981
+    XP568     RCAPP56   1
+    XP568     QCRP56    -1
+    XP568     QGAP56    0.46199989
+    XP568     QDSP56    0.13499993
+    XP568     QRSP56    0.14599991
+    XP568     QKJP56    0.07099998
+    XP568     QNJP56    0.03599999
+    XP568     QPFP56    0.01199999
+    XP568     QLPP56    0.02299999
+    XP568     QOTP56    0.15299994
+    XP569     RCAPP56   1
+    XP569     QCRP56    -1
+    XP569     QGAP56    0.4339999
+    XP569     QDSP56    0.13499993
+    XP569     QRSP56    0.1679998
+    XP569     QKJP56    0.08599997
+    XP569     QNJP56    0.03299999
+    XP569     QPFP56    0.01399999
+    XP569     QLPP56    0.02
+    XP569     QOTP56    0.14399993
+    XP5610    RCAPP56   1
+    XP5610    QCRP56    -1
+    XP5610    QGAP56    0.42599982
+    XP5610    QDSP56    0.13499993
+    XP5610    QRSP56    0.19199991
+    XP5610    QKJP56    0.08199996
+    XP5610    QNJP56    0.029
+    XP5610    QPFP56    0.01299999
+    XP5610    QLPP56    0.02099999
+    XP5610    QOTP56    0.13099992
+    XP5611    RCAPP56   1
+    XP5611    QCRP56    -1
+    XP5611    QGAP56    0.43299979
+    XP5611    QDSP56    0.13599992
+    XP5611    QRSP56    0.19199991
+    XP5611    QKJP56    0.08199996
+    XP5611    QNJP56    0.03099999
+    XP5611    QPFP56    0.008
+    XP5611    QLPP56    0.01799999
+    XP5611    QOTP56    0.13299996
+    XP5612    RCAPP56   1
+    XP5612    QCRP56    -1
+    XP5612    QGAP56    0.42099988
+    XP5612    QDSP56    0.13699996
+    XP5612    QRSP56    0.19799984
+    XP5612    QKJP56    0.09499997
+    XP5612    QNJP56    0.029
+    XP5612    QPFP56    0.015
+    XP5612    QLPP56    0.01799999
+    XP5612    QOTP56    0.13399988
+    XP5613    RCAPP56   1
+    XP5613    QCRP56    -1
+    XP5613    QGAP56    0.4179998
+    XP5613    QDSP56    0.13199997
+    XP5613    QRSP56    0.19099987
+    XP5613    QKJP56    0.09199995
+    XP5613    QNJP56    0.029
+    XP5613    QPFP56    0.01099999
+    XP5613    QLPP56    0.022
+    XP5613    QOTP56    0.13899994
+    XP5614    RCAPP56   1
+    XP5614    QCRP56    -1
+    XP5614    QGAP56    0.42699993
+    XP5614    QDSP56    0.12699991
+    XP5614    QRSP56    0.16199988
+    XP5614    QKJP56    0.09299994
+    XP5614    QNJP56    0.02999999
+    XP5614    QPFP56    0.01399999
+    XP5614    QLPP56    0.02299999
+    XP5614    QOTP56    0.13999993
+    XP5615    RCAPP56   1
+    XP5615    QCRP56    -1
+    XP5615    QGAP56    0.44699991
+    XP5615    QDSP56    0.11299992
+    XP5615    QRSP56    0.18699986
+    XP5615    QKJP56    0.08999997
+    XP5615    QNJP56    0.02599999
+    XP5615    QPFP56    0.01399999
+    XP5615    QLPP56    0.02299999
+    XP5615    QOTP56    0.13999993
+    XP5616    RCAPP56   1
+    XP5616    QCRP56    -1
+    XP5616    QGAP56    0.44699991
+    XP5616    QDSP56    0.13099992
+    XP5616    QRSP56    0.16999996
+    XP5616    QKJP56    0.08599997
+    XP5616    QNJP56    0.025
+    XP5616    QPFP56    0.01299999
+    XP5616    QLPP56    0.02
+    XP5616    QOTP56    0.15699995
+    XP5617    RCAPP56   1
+    XP5617    QCRP56    -1
+    XP5617    QGAP56    0.4519999
+    XP5617    QDSP56    0.12999988
+    XP5617    QRSP56    0.15299994
+    XP5617    QKJP56    0.08999997
+    XP5617    QNJP56    0.01899999
+    XP5617    QPFP56    0.01199999
+    XP5617    QLPP56    0.025
+    XP5617    QOTP56    0.14999998
+    XP5618    RCAPP56   1
+    XP5618    QCRP56    -1
+    XP5618    QGAP56    0.46199989
+    XP5618    QDSP56    0.13699996
+    XP5618    QRSP56    0.14599991
+    XP5618    QKJP56    0.08899999
+    XP5618    QNJP56    0.02599999
+    XP5618    QPFP56    0.01099999
+    XP5618    QLPP56    0.02799999
+    XP5618    QOTP56    0.15299994
+    XP5619    RCAPP56   1
+    XP5619    QCRP56    -1
+    XP5619    QGAP56    0.44699991
+    XP5619    QDSP56    0.14499998
+    XP5619    QRSP56    0.14899993
+    XP5619    QKJP56    0.08299994
+    XP5619    QNJP56    0.027
+    XP5619    QPFP56    0.015
+    XP5619    QLPP56    0.025
+    XP5619    QOTP56    0.1509999
+    XP5620    RCAPP56   1
+    XP5620    QCRP56    -1
+    XP5620    QGAP56    0.44599986
+    XP5620    QDSP56    0.14799994
+    XP5620    QRSP56    0.1679998
+    XP5620    QKJP56    0.08199996
+    XP5620    QNJP56    0.02599999
+    XP5620    QPFP56    0.01099999
+    XP5620    QLPP56    0.02
+    XP5620    QOTP56    0.1469999
+    XP5621    RCAPP56   1
+    XP5621    QCRP56    -1
+    XP5621    QGAP56    0.42999989
+    XP5621    QDSP56    0.13899994
+    XP5621    QRSP56    0.18699986
+    XP5621    QKJP56    0.08899999
+    XP5621    QNJP56    0.022
+    XP5621    QPFP56    0.01199999
+    XP5621    QLPP56    0.01599999
+    XP5621    QOTP56    0.13899994
+    XP5622    RCAPP56   1
+    XP5622    QCRP56    -1
+    XP5622    QGAP56    0.40699995
+    XP5622    QDSP56    0.14899993
+    XP5622    QRSP56    0.20799977
+    XP5622    QKJP56    0.07799995
+    XP5622    QNJP56    0.029
+    XP5622    QPFP56    0.01199999
+    XP5622    QLPP56    0.01899999
+    XP5622    QOTP56    0.13899994
+    XP5623    RCAPP56   1
+    XP5623    QCRP56    -1
+    XP5623    QGAP56    0.44299984
+    XP5623    QDSP56    0.13799989
+    XP5623    QRSP56    0.19099987
+    XP5623    QKJP56    0.08099997
+    XP5623    QNJP56    0.027
+    XP5623    QPFP56    0.00999999
+    XP5623    QLPP56    0.01799999
+    XP5623    QOTP56    0.13499993
+    XP5624    RCAPP56   1
+    XP5624    QCRP56    -1
+    XP5624    QGAP56    0.43899989
+    XP5624    QDSP56    0.12099987
+    XP5624    QRSP56    0.19399983
+    XP5624    QKJP56    0.08599997
+    XP5624    QNJP56    0.02399999
+    XP5624    QPFP56    0.01199999
+    XP5624    QLPP56    0.022
+    XP5624    QOTP56    0.13899994
+    XP571     RCAPP57   1
+    XP571     QCRP57    -1
+    XP571     QGAP57    0.42199993
+    XP571     QDSP57    0.11799991
+    XP571     QRSP57    0.18899989
+    XP571     QKJP57    0.09399998
+    XP571     QNJP57    0.03599999
+    XP571     QPFP57    0.008
+    XP571     QLPP57    0.02299999
+    XP571     QOTP57    0.13199997
+    XP572     RCAPP57   1
+    XP572     QCRP57    -1
+    XP572     QGAP57    0.42799985
+    XP572     QDSP57    0.12699991
+    XP572     QRSP57    0.16399992
+    XP572     QKJP57    0.08399999
+    XP572     QNJP57    0.03899999
+    XP572     QPFP57    0.01599999
+    XP572     QLPP57    0.025
+    XP572     QOTP57    0.1469999
+    XP573     RCAPP57   1
+    XP573     QCRP57    -1
+    XP573     QGAP57    0.45899987
+    XP573     QDSP57    0.11799991
+    XP573     QRSP57    0.14999998
+    XP573     QKJP57    0.09099996
+    XP573     QNJP57    0.03799999
+    XP573     QPFP57    0.008
+    XP573     QLPP57    0.02599999
+    XP573     QOTP57    0.14599991
+    XP574     RCAPP57   1
+    XP574     QCRP57    -1
+    XP574     QGAP57    0.46099985
+    XP574     QDSP57    0.125
+    XP574     QRSP57    0.12299991
+    XP574     QKJP57    0.09299994
+    XP574     QNJP57    0.03699999
+    XP574     QPFP57    0.01299999
+    XP574     QLPP57    0.025
+    XP574     QOTP57    0.15199995
+    XP575     RCAPP57   1
+    XP575     QCRP57    -1
+    XP575     QGAP57    0.47399986
+    XP575     QDSP57    0.11199999
+    XP575     QRSP57    0.12699991
+    XP575     QKJP57    0.09299994
+    XP575     QNJP57    0.03799999
+    XP575     QPFP57    0.01199999
+    XP575     QLPP57    0.02399999
+    XP575     QOTP57    0.15699995
+    XP576     RCAPP57   1
+    XP576     QCRP57    -1
+    XP576     QGAP57    0.4709999
+    XP576     QDSP57    0.12199992
+    XP576     QRSP57    0.12699991
+    XP576     QKJP57    0.08199996
+    XP576     QNJP57    0.035
+    XP576     QPFP57    0.01099999
+    XP576     QLPP57    0.02299999
+    XP576     QOTP57    0.16399992
+    XP577     RCAPP57   1
+    XP577     QCRP57    -1
+    XP577     QGAP57    0.45999992
+    XP577     QDSP57    0.11599994
+    XP577     QRSP57    0.13699996
+    XP577     QKJP57    0.08099997
+    XP577     QNJP57    0.04
+    XP577     QPFP57    0.01099999
+    XP577     QLPP57    0.027
+    XP577     QOTP57    0.16299981
+    XP578     RCAPP57   1
+    XP578     QCRP57    -1
+    XP578     QGAP57    0.46199989
+    XP578     QDSP57    0.13499993
+    XP578     QRSP57    0.14599991
+    XP578     QKJP57    0.07099998
+    XP578     QNJP57    0.03599999
+    XP578     QPFP57    0.01199999
+    XP578     QLPP57    0.02299999
+    XP578     QOTP57    0.15299994
+    XP579     RCAPP57   1
+    XP579     QCRP57    -1
+    XP579     QGAP57    0.4339999
+    XP579     QDSP57    0.13499993
+    XP579     QRSP57    0.1679998
+    XP579     QKJP57    0.08599997
+    XP579     QNJP57    0.03299999
+    XP579     QPFP57    0.01399999
+    XP579     QLPP57    0.02
+    XP579     QOTP57    0.14399993
+    XP5710    RCAPP57   1
+    XP5710    QCRP57    -1
+    XP5710    QGAP57    0.42599982
+    XP5710    QDSP57    0.13499993
+    XP5710    QRSP57    0.19199991
+    XP5710    QKJP57    0.08199996
+    XP5710    QNJP57    0.029
+    XP5710    QPFP57    0.01299999
+    XP5710    QLPP57    0.02099999
+    XP5710    QOTP57    0.13099992
+    XP5711    RCAPP57   1
+    XP5711    QCRP57    -1
+    XP5711    QGAP57    0.43299979
+    XP5711    QDSP57    0.13599992
+    XP5711    QRSP57    0.19199991
+    XP5711    QKJP57    0.08199996
+    XP5711    QNJP57    0.03099999
+    XP5711    QPFP57    0.008
+    XP5711    QLPP57    0.01799999
+    XP5711    QOTP57    0.13299996
+    XP5712    RCAPP57   1
+    XP5712    QCRP57    -1
+    XP5712    QGAP57    0.42099988
+    XP5712    QDSP57    0.13699996
+    XP5712    QRSP57    0.19799984
+    XP5712    QKJP57    0.09499997
+    XP5712    QNJP57    0.029
+    XP5712    QPFP57    0.015
+    XP5712    QLPP57    0.01799999
+    XP5712    QOTP57    0.13399988
+    XP5713    RCAPP57   1
+    XP5713    QCRP57    -1
+    XP5713    QGAP57    0.4179998
+    XP5713    QDSP57    0.13199997
+    XP5713    QRSP57    0.19099987
+    XP5713    QKJP57    0.09199995
+    XP5713    QNJP57    0.029
+    XP5713    QPFP57    0.01099999
+    XP5713    QLPP57    0.022
+    XP5713    QOTP57    0.13899994
+    XP5714    RCAPP57   1
+    XP5714    QCRP57    -1
+    XP5714    QGAP57    0.42699993
+    XP5714    QDSP57    0.12699991
+    XP5714    QRSP57    0.16199988
+    XP5714    QKJP57    0.09299994
+    XP5714    QNJP57    0.02999999
+    XP5714    QPFP57    0.01399999
+    XP5714    QLPP57    0.02299999
+    XP5714    QOTP57    0.13999993
+    XP5715    RCAPP57   1
+    XP5715    QCRP57    -1
+    XP5715    QGAP57    0.44699991
+    XP5715    QDSP57    0.11299992
+    XP5715    QRSP57    0.18699986
+    XP5715    QKJP57    0.08999997
+    XP5715    QNJP57    0.02599999
+    XP5715    QPFP57    0.01399999
+    XP5715    QLPP57    0.02299999
+    XP5715    QOTP57    0.13999993
+    XP5716    RCAPP57   1
+    XP5716    QCRP57    -1
+    XP5716    QGAP57    0.44699991
+    XP5716    QDSP57    0.13099992
+    XP5716    QRSP57    0.16999996
+    XP5716    QKJP57    0.08599997
+    XP5716    QNJP57    0.025
+    XP5716    QPFP57    0.01299999
+    XP5716    QLPP57    0.02
+    XP5716    QOTP57    0.15699995
+    XP5717    RCAPP57   1
+    XP5717    QCRP57    -1
+    XP5717    QGAP57    0.4519999
+    XP5717    QDSP57    0.12999988
+    XP5717    QRSP57    0.15299994
+    XP5717    QKJP57    0.08999997
+    XP5717    QNJP57    0.01899999
+    XP5717    QPFP57    0.01199999
+    XP5717    QLPP57    0.025
+    XP5717    QOTP57    0.14999998
+    XP5718    RCAPP57   1
+    XP5718    QCRP57    -1
+    XP5718    QGAP57    0.46199989
+    XP5718    QDSP57    0.13699996
+    XP5718    QRSP57    0.14599991
+    XP5718    QKJP57    0.08899999
+    XP5718    QNJP57    0.02599999
+    XP5718    QPFP57    0.01099999
+    XP5718    QLPP57    0.02799999
+    XP5718    QOTP57    0.15299994
+    XP5719    RCAPP57   1
+    XP5719    QCRP57    -1
+    XP5719    QGAP57    0.44699991
+    XP5719    QDSP57    0.14499998
+    XP5719    QRSP57    0.14899993
+    XP5719    QKJP57    0.08299994
+    XP5719    QNJP57    0.027
+    XP5719    QPFP57    0.015
+    XP5719    QLPP57    0.025
+    XP5719    QOTP57    0.1509999
+    XP5720    RCAPP57   1
+    XP5720    QCRP57    -1
+    XP5720    QGAP57    0.44599986
+    XP5720    QDSP57    0.14799994
+    XP5720    QRSP57    0.1679998
+    XP5720    QKJP57    0.08199996
+    XP5720    QNJP57    0.02599999
+    XP5720    QPFP57    0.01099999
+    XP5720    QLPP57    0.02
+    XP5720    QOTP57    0.1469999
+    XP5721    RCAPP57   1
+    XP5721    QCRP57    -1
+    XP5721    QGAP57    0.42999989
+    XP5721    QDSP57    0.13899994
+    XP5721    QRSP57    0.18699986
+    XP5721    QKJP57    0.08899999
+    XP5721    QNJP57    0.022
+    XP5721    QPFP57    0.01199999
+    XP5721    QLPP57    0.01599999
+    XP5721    QOTP57    0.13899994
+    XP5722    RCAPP57   1
+    XP5722    QCRP57    -1
+    XP5722    QGAP57    0.40699995
+    XP5722    QDSP57    0.14899993
+    XP5722    QRSP57    0.20799977
+    XP5722    QKJP57    0.07799995
+    XP5722    QNJP57    0.029
+    XP5722    QPFP57    0.01199999
+    XP5722    QLPP57    0.01899999
+    XP5722    QOTP57    0.13899994
+    XP5723    RCAPP57   1
+    XP5723    QCRP57    -1
+    XP5723    QGAP57    0.44299984
+    XP5723    QDSP57    0.13799989
+    XP5723    QRSP57    0.19099987
+    XP5723    QKJP57    0.08099997
+    XP5723    QNJP57    0.027
+    XP5723    QPFP57    0.00999999
+    XP5723    QLPP57    0.01799999
+    XP5723    QOTP57    0.13499993
+    XP5724    RCAPP57   1
+    XP5724    QCRP57    -1
+    XP5724    QGAP57    0.43899989
+    XP5724    QDSP57    0.12099987
+    XP5724    QRSP57    0.19399983
+    XP5724    QKJP57    0.08599997
+    XP5724    QNJP57    0.02399999
+    XP5724    QPFP57    0.01199999
+    XP5724    QLPP57    0.022
+    XP5724    QOTP57    0.13899994
+    XP581     RCAPP58   1
+    XP581     QCRP58    1
+    XP581     QGAP58    0.42199993
+    XP581     QDSP58    0.11799991
+    XP581     QRSP58    0.18899989
+    XP581     QKJP58    -0.09399998
+    XP581     QNJP58    -0.03599999
+    XP581     QPFP58    -0.008
+    XP581     QLPP58    -0.02299999
+    XP581     QOTP58    0.13199997
+    XP582     RCAPP58   1
+    XP582     QCRP58    1
+    XP582     QGAP58    0.42799985
+    XP582     QDSP58    0.12699991
+    XP582     QRSP58    0.16399992
+    XP582     QKJP58    -0.08399999
+    XP582     QNJP58    -0.03899999
+    XP582     QPFP58    -0.01599999
+    XP582     QLPP58    -0.025
+    XP582     QOTP58    0.1469999
+    XP583     RCAPP58   1
+    XP583     QCRP58    1
+    XP583     QGAP58    0.45899987
+    XP583     QDSP58    0.11799991
+    XP583     QRSP58    0.14999998
+    XP583     QKJP58    -0.09099996
+    XP583     QNJP58    -0.03799999
+    XP583     QPFP58    -0.008
+    XP583     QLPP58    -0.02599999
+    XP583     QOTP58    0.14599991
+    XP584     RCAPP58   1
+    XP584     QCRP58    1
+    XP584     QGAP58    0.46099985
+    XP584     QDSP58    0.125
+    XP584     QRSP58    0.12299991
+    XP584     QKJP58    -0.09299994
+    XP584     QNJP58    -0.03699999
+    XP584     QPFP58    -0.01299999
+    XP584     QLPP58    -0.025
+    XP584     QOTP58    0.15199995
+    XP585     RCAPP58   1
+    XP585     QCRP58    1
+    XP585     QGAP58    0.47399986
+    XP585     QDSP58    0.11199999
+    XP585     QRSP58    0.12699991
+    XP585     QKJP58    -0.09299994
+    XP585     QNJP58    -0.03799999
+    XP585     QPFP58    -0.01199999
+    XP585     QLPP58    -0.02399999
+    XP585     QOTP58    0.15699995
+    XP586     RCAPP58   1
+    XP586     QCRP58    1
+    XP586     QGAP58    0.4709999
+    XP586     QDSP58    0.12199992
+    XP586     QRSP58    0.12699991
+    XP586     QKJP58    -0.08199996
+    XP586     QNJP58    -0.035
+    XP586     QPFP58    -0.01099999
+    XP586     QLPP58    -0.02299999
+    XP586     QOTP58    0.16399992
+    XP587     RCAPP58   1
+    XP587     QCRP58    1
+    XP587     QGAP58    0.45999992
+    XP587     QDSP58    0.11599994
+    XP587     QRSP58    0.13699996
+    XP587     QKJP58    -0.08099997
+    XP587     QNJP58    -0.04
+    XP587     QPFP58    -0.01099999
+    XP587     QLPP58    -0.027
+    XP587     QOTP58    0.16299981
+    XP588     RCAPP58   1
+    XP588     QCRP58    1
+    XP588     QGAP58    0.46199989
+    XP588     QDSP58    0.13499993
+    XP588     QRSP58    0.14599991
+    XP588     QKJP58    -0.07099998
+    XP588     QNJP58    -0.03599999
+    XP588     QPFP58    -0.01199999
+    XP588     QLPP58    -0.02299999
+    XP588     QOTP58    0.15299994
+    XP589     RCAPP58   1
+    XP589     QCRP58    1
+    XP589     QGAP58    0.4339999
+    XP589     QDSP58    0.13499993
+    XP589     QRSP58    0.1679998
+    XP589     QKJP58    -0.08599997
+    XP589     QNJP58    -0.03299999
+    XP589     QPFP58    -0.01399999
+    XP589     QLPP58    -0.02
+    XP589     QOTP58    0.14399993
+    XP5810    RCAPP58   1
+    XP5810    QCRP58    1
+    XP5810    QGAP58    0.42599982
+    XP5810    QDSP58    0.13499993
+    XP5810    QRSP58    0.19199991
+    XP5810    QKJP58    -0.08199996
+    XP5810    QNJP58    -0.029
+    XP5810    QPFP58    -0.01299999
+    XP5810    QLPP58    -0.02099999
+    XP5810    QOTP58    0.13099992
+    XP5811    RCAPP58   1
+    XP5811    QCRP58    1
+    XP5811    QGAP58    0.43299979
+    XP5811    QDSP58    0.13599992
+    XP5811    QRSP58    0.19199991
+    XP5811    QKJP58    -0.08199996
+    XP5811    QNJP58    -0.03099999
+    XP5811    QPFP58    -0.008
+    XP5811    QLPP58    -0.01799999
+    XP5811    QOTP58    0.13299996
+    XP5812    RCAPP58   1
+    XP5812    QCRP58    1
+    XP5812    QGAP58    0.42099988
+    XP5812    QDSP58    0.13699996
+    XP5812    QRSP58    0.19799984
+    XP5812    QKJP58    -0.09499997
+    XP5812    QNJP58    -0.029
+    XP5812    QPFP58    -0.015
+    XP5812    QLPP58    -0.01799999
+    XP5812    QOTP58    0.13399988
+    XP5813    RCAPP58   1
+    XP5813    QCRP58    1
+    XP5813    QGAP58    0.4179998
+    XP5813    QDSP58    0.13199997
+    XP5813    QRSP58    0.19099987
+    XP5813    QKJP58    -0.09199995
+    XP5813    QNJP58    -0.029
+    XP5813    QPFP58    -0.01099999
+    XP5813    QLPP58    -0.022
+    XP5813    QOTP58    0.13899994
+    XP5814    RCAPP58   1
+    XP5814    QCRP58    1
+    XP5814    QGAP58    0.42699993
+    XP5814    QDSP58    0.12699991
+    XP5814    QRSP58    0.16199988
+    XP5814    QKJP58    -0.09299994
+    XP5814    QNJP58    -0.02999999
+    XP5814    QPFP58    -0.01399999
+    XP5814    QLPP58    -0.02299999
+    XP5814    QOTP58    0.13999993
+    XP5815    RCAPP58   1
+    XP5815    QCRP58    1
+    XP5815    QGAP58    0.44699991
+    XP5815    QDSP58    0.11299992
+    XP5815    QRSP58    0.18699986
+    XP5815    QKJP58    -0.08999997
+    XP5815    QNJP58    -0.02599999
+    XP5815    QPFP58    -0.01399999
+    XP5815    QLPP58    -0.02299999
+    XP5815    QOTP58    0.13999993
+    XP5816    RCAPP58   1
+    XP5816    QCRP58    1
+    XP5816    QGAP58    0.44699991
+    XP5816    QDSP58    0.13099992
+    XP5816    QRSP58    0.16999996
+    XP5816    QKJP58    -0.08599997
+    XP5816    QNJP58    -0.025
+    XP5816    QPFP58    -0.01299999
+    XP5816    QLPP58    -0.02
+    XP5816    QOTP58    0.15699995
+    XP5817    RCAPP58   1
+    XP5817    QCRP58    1
+    XP5817    QGAP58    0.4519999
+    XP5817    QDSP58    0.12999988
+    XP5817    QRSP58    0.15299994
+    XP5817    QKJP58    -0.08999997
+    XP5817    QNJP58    -0.01899999
+    XP5817    QPFP58    -0.01199999
+    XP5817    QLPP58    -0.025
+    XP5817    QOTP58    0.14999998
+    XP5818    RCAPP58   1
+    XP5818    QCRP58    1
+    XP5818    QGAP58    0.46199989
+    XP5818    QDSP58    0.13699996
+    XP5818    QRSP58    0.14599991
+    XP5818    QKJP58    -0.08899999
+    XP5818    QNJP58    -0.02599999
+    XP5818    QPFP58    -0.01099999
+    XP5818    QLPP58    -0.02799999
+    XP5818    QOTP58    0.15299994
+    XP5819    RCAPP58   1
+    XP5819    QCRP58    1
+    XP5819    QGAP58    0.44699991
+    XP5819    QDSP58    0.14499998
+    XP5819    QRSP58    0.14899993
+    XP5819    QKJP58    -0.08299994
+    XP5819    QNJP58    -0.027
+    XP5819    QPFP58    -0.015
+    XP5819    QLPP58    -0.025
+    XP5819    QOTP58    0.1509999
+    XP5820    RCAPP58   1
+    XP5820    QCRP58    1
+    XP5820    QGAP58    0.44599986
+    XP5820    QDSP58    0.14799994
+    XP5820    QRSP58    0.1679998
+    XP5820    QKJP58    -0.08199996
+    XP5820    QNJP58    -0.02599999
+    XP5820    QPFP58    -0.01099999
+    XP5820    QLPP58    -0.02
+    XP5820    QOTP58    0.1469999
+    XP5821    RCAPP58   1
+    XP5821    QCRP58    1
+    XP5821    QGAP58    0.42999989
+    XP5821    QDSP58    0.13899994
+    XP5821    QRSP58    0.18699986
+    XP5821    QKJP58    -0.08899999
+    XP5821    QNJP58    -0.022
+    XP5821    QPFP58    -0.01199999
+    XP5821    QLPP58    -0.01599999
+    XP5821    QOTP58    0.13899994
+    XP5822    RCAPP58   1
+    XP5822    QCRP58    1
+    XP5822    QGAP58    0.40699995
+    XP5822    QDSP58    0.14899993
+    XP5822    QRSP58    0.20799977
+    XP5822    QKJP58    -0.07799995
+    XP5822    QNJP58    -0.029
+    XP5822    QPFP58    -0.01199999
+    XP5822    QLPP58    -0.01899999
+    XP5822    QOTP58    0.13899994
+    XP5823    RCAPP58   1
+    XP5823    QCRP58    1
+    XP5823    QGAP58    0.44299984
+    XP5823    QDSP58    0.13799989
+    XP5823    QRSP58    0.19099987
+    XP5823    QKJP58    -0.08099997
+    XP5823    QNJP58    -0.027
+    XP5823    QPFP58    -0.00999999
+    XP5823    QLPP58    -0.01799999
+    XP5823    QOTP58    0.13499993
+    XP5824    RCAPP58   1
+    XP5824    QCRP58    1
+    XP5824    QGAP58    0.43899989
+    XP5824    QDSP58    0.12099987
+    XP5824    QRSP58    0.19399983
+    XP5824    QKJP58    -0.08599997
+    XP5824    QNJP58    -0.02399999
+    XP5824    QPFP58    -0.01199999
+    XP5824    QLPP58    -0.022
+    XP5824    QOTP58    0.13899994
+    BP11GL    QGLP11    -1
+    BP11GL    QGAP11    0.28059977
+    BP11GL    QLPP11    0.52779961
+    BP11GL    QOTP11    0.19159985
+    BP12GL    QGLP12    -1
+    BP12GL    QGAP12    0.28059977
+    BP12GL    QLPP12    0.52779961
+    BP12GL    QOTP12    0.19159985
+    BP13GL    QGLP13    -1
+    BP13GL    QGAP13    0.28059977
+    BP13GL    QLPP13    0.52779961
+    BP13GL    QOTP13    0.19159985
+    BP14GL    QGLP14    -1
+    BP14GL    QGAP14    0.28059977
+    BP14GL    QLPP14    0.52779961
+    BP14GL    QOTP14    0.19159985
+    BP15GL    QGLP15    -1
+    BP15GL    QGAP15    0.28059977
+    BP15GL    QLPP15    0.52779961
+    BP15GL    QOTP15    0.19159985
+    BP16GL    QGLP16    -1
+    BP16GL    QGAP16    0.28059977
+    BP16GL    QLPP16    0.52779961
+    BP16GL    QOTP16    0.19159985
+    BP17GL    QGLP17    -1
+    BP17GL    QGAP17    0.28059977
+    BP17GL    QLPP17    0.52779961
+    BP17GL    QOTP17    0.19159985
+    BP18GL    QGLP18    -1
+    BP18GL    QGAP18    0.28059977
+    BP18GL    QLPP18    -0.52779961
+    BP18GL    QOTP18    0.19159985
+    BP21GL    QGLP21    -1
+    BP21GL    QGAP21    0.63579965
+    BP21GL    QLPP21    0.25449991
+    BP21GL    QOTP21    0.1096999
+    BP22GL    QGLP22    -1
+    BP22GL    QGAP22    0.63579965
+    BP22GL    QLPP22    0.25449991
+    BP22GL    QOTP22    0.1096999
+    BP23GL    QGLP23    -1
+    BP23GL    QGAP23    0.63579965
+    BP23GL    QLPP23    0.25449991
+    BP23GL    QOTP23    0.1096999
+    BP24GL    QGLP24    -1
+    BP24GL    QGAP24    0.63579965
+    BP24GL    QLPP24    0.25449991
+    BP24GL    QOTP24    0.1096999
+    BP25GL    QGLP25    -1
+    BP25GL    QGAP25    0.63579965
+    BP25GL    QLPP25    0.25449991
+    BP25GL    QOTP25    0.1096999
+    BP26GL    QGLP26    -1
+    BP26GL    QGAP26    0.63579965
+    BP26GL    QLPP26    0.25449991
+    BP26GL    QOTP26    0.1096999
+    BP27GL    QGLP27    -1
+    BP27GL    QGAP27    0.63579965
+    BP27GL    QLPP27    0.25449991
+    BP27GL    QOTP27    0.1096999
+    BP28GL    QGLP28    -1
+    BP28GL    QGAP28    0.63579965
+    BP28GL    QLPP28    -0.25449991
+    BP28GL    QOTP28    0.1096999
+    BP31GL    QGLP31    -1
+    BP31GL    QGAP31    0.38589972
+    BP31GL    QDSP31    0.0019
+    BP31GL    QLPP31    0.42929971
+    BP31GL    QOTP31    0.18289983
+    BP32GL    QGLP32    -1
+    BP32GL    QGAP32    0.38589972
+    BP32GL    QDSP32    0.0019
+    BP32GL    QLPP32    0.42929971
+    BP32GL    QOTP32    0.18289983
+    BP33GL    QGLP33    -1
+    BP33GL    QGAP33    0.38589972
+    BP33GL    QDSP33    0.0019
+    BP33GL    QLPP33    0.42929971
+    BP33GL    QOTP33    0.18289983
+    BP34GL    QGLP34    -1
+    BP34GL    QGAP34    0.38589972
+    BP34GL    QDSP34    0.0019
+    BP34GL    QLPP34    0.42929971
+    BP34GL    QOTP34    0.18289983
+    BP35GL    QGLP35    -1
+    BP35GL    QGAP35    0.38589972
+    BP35GL    QDSP35    0.0019
+    BP35GL    QLPP35    0.42929971
+    BP35GL    QOTP35    0.18289983
+    BP36GL    QGLP36    -1
+    BP36GL    QGAP36    0.38589972
+    BP36GL    QDSP36    0.0019
+    BP36GL    QLPP36    0.42929971
+    BP36GL    QOTP36    0.18289983
+    BP37GL    QGLP37    -1
+    BP37GL    QGAP37    0.38589972
+    BP37GL    QDSP37    0.0019
+    BP37GL    QLPP37    0.42929971
+    BP37GL    QOTP37    0.18289983
+    BP38GL    QGLP38    -1
+    BP38GL    QGAP38    0.38589972
+    BP38GL    QDSP38    0.0019
+    BP38GL    QLPP38    -0.42929971
+    BP38GL    QOTP38    0.18289983
+    BP41GL    QGLP41    -1
+    BP41GL    QGAP41    0.67799985
+    BP41GL    QLPP41    0.32199991
+    BP42GL    QGLP42    -1
+    BP42GL    QGAP42    0.67799985
+    BP42GL    QLPP42    0.32199991
+    BP43GL    QGLP43    -1
+    BP43GL    QGAP43    0.67799985
+    BP43GL    QLPP43    0.32199991
+    BP44GL    QGLP44    -1
+    BP44GL    QGAP44    0.67799985
+    BP44GL    QLPP44    0.32199991
+    BP45GL    QGLP45    -1
+    BP45GL    QGAP45    0.67799985
+    BP45GL    QLPP45    0.32199991
+    BP46GL    QGLP46    -1
+    BP46GL    QGAP46    0.67799985
+    BP46GL    QLPP46    0.32199991
+    BP47GL    QGLP47    -1
+    BP47GL    QGAP47    0.67799985
+    BP47GL    QLPP47    0.32199991
+    BP48GL    QGLP48    -1
+    BP48GL    QGAP48    0.67799985
+    BP48GL    QLPP48    -0.32199991
+    BP52GL    QGLP52    -1
+    BP52GL    QGAP52    1.087
+    BP52GL    QLPP52    -0.08699995
+    BP53GL    QGLP53    -1
+    BP53GL    QGAP53    1.087
+    BP53GL    QLPP53    -0.08699995
+    BP54GL    QGLP54    -1
+    BP54GL    QGAP54    1.087
+    BP54GL    QLPP54    -0.08699995
+    BP55GL    QGLP55    -1
+    BP55GL    QGAP55    1.087
+    BP55GL    QLPP55    -0.08699995
+    BP56GL    QGLP56    -1
+    BP56GL    QGAP56    1.087
+    BP56GL    QLPP56    -0.08699995
+    BP57GL    QGLP57    -1
+    BP57GL    QGAP57    1.087
+    BP57GL    QLPP57    -0.08699995
+    BP58GL    QGLP58    -1
+    BP58GL    QGAP58    1.087
+    BP58GL    QLPP58    0.08699995
+    RCRP1P21  QCRP11    1
+    RCRP1P21  QCRP21    -1
+    RCRP1P22  QCRP12    1
+    RCRP1P22  QCRP22    -1
+    RCRP1P23  QCRP13    1
+    RCRP1P23  QCRP23    -1
+    RCRP1P24  QCRP14    1
+    RCRP1P24  QCRP24    -1
+    RCRP1P28  QCRP18    -1
+    RCRP1P28  QCRP28    1
+    RCRP1P33  QCRP13    1
+    RCRP1P33  QCRP33    -1
+    RCRP1P41  QCRP11    1
+    RCRP1P41  QCRP41    -1
+    RCRP1P42  QCRP12    1
+    RCRP1P42  QCRP42    -1
+    RCRP1P43  QCRP13    1
+    RCRP1P43  QCRP43    -1
+    RCRP1P44  QCRP14    1
+    RCRP1P44  QCRP44    -1
+    RCRP1P45  QCRP15    1
+    RCRP1P45  QCRP45    -1
+    RCRP1P46  QCRP16    1
+    RCRP1P46  QCRP46    -1
+    RCRP1P47  QCRP17    1
+    RCRP1P47  QCRP47    -1
+    RCRP1P48  QCRP18    -1
+    RCRP1P48  QCRP48    1
+    RCRP2P15  QCRP25    1
+    RCRP2P15  QCRP15    -1
+    RCRP2P16  QCRP26    1
+    RCRP2P16  QCRP16    -1
+    RCRP2P17  QCRP27    1
+    RCRP2P17  QCRP17    -1
+    RCRP2P31  QCRP21    1
+    RCRP2P31  QCRP31    -1
+    RCRP2P35  QCRP25    1
+    RCRP2P35  QCRP35    -1
+    RCRP2P41  QCRP21    1
+    RCRP2P41  QCRP41    -1
+    RCRP2P42  QCRP22    1
+    RCRP2P42  QCRP42    -1
+    RCRP2P43  QCRP23    1
+    RCRP2P43  QCRP43    -1
+    RCRP3P11  QCRP31    1
+    RCRP3P11  QCRP11    -1
+    RCRP3P12  QCRP32    1
+    RCRP3P12  QCRP12    -1
+    RCRP3P14  QCRP34    1
+    RCRP3P14  QCRP14    -1
+    RCRP3P22  QCRP32    1
+    RCRP3P22  QCRP22    -1
+    RCRP3P24  QCRP34    1
+    RCRP3P24  QCRP24    -1
+    RCRP3P27  QCRP37    1
+    RCRP3P27  QCRP27    -1
+    RCRP3P44  QCRP34    1
+    RCRP3P44  QCRP44    -1
+    RCRP3P47  QCRP37    1
+    RCRP3P47  QCRP47    -1
+    RCRP4P24  QCRP44    1
+    RCRP4P24  QCRP24    -1
+    RCRP4P25  QCRP45    1
+    RCRP4P25  QCRP25    -1
+    RCRP4P26  QCRP46    1
+    RCRP4P26  QCRP26    -1
+    RCRP4P27  QCRP47    1
+    RCRP4P27  QCRP27    -1
+    RCRP4P28  QCRP48    -1
+    RCRP4P28  QCRP28    1
+    RCRP4P31  QCRP41    1
+    RCRP4P31  QCRP31    -1
+    RCRP4P32  QCRP42    1
+    RCRP4P32  QCRP32    -1
+    RCRP4P33  QCRP43    1
+    RCRP4P33  QCRP33    -1
+    RCRP4P35  QCRP45    1
+    RCRP4P35  QCRP35    -1
+    RCRP4P36  QCRP46    1
+    RCRP4P36  QCRP36    -1
+    RCRP4P38  QCRP48    -1
+    RCRP4P38  QCRP38    1
+    RCRP4P53  QCRP43    1
+    RCRP4P53  QCRP53    -1
+    RCRP4P54  QCRP44    1
+    RCRP4P54  QCRP54    -1
+    RCRP4P57  QCRP47    1
+    RCRP4P57  QCRP57    -1
+    RCRP4P58  QCRP48    -1
+    RCRP4P58  QCRP58    1
+    RCRP5P34  QCRP54    1
+    RCRP5P34  QCRP34    -1
+    RCRP5P37  QCRP57    1
+    RCRP5P37  QCRP37    -1
+    RCRP5P38  QCRP58    -1
+    RCRP5P38  QCRP38    1
+    RCRP5P41  QCRP51    1
+    RCRP5P41  QCRP41    -1
+    RCRP5P42  QCRP52    1
+    RCRP5P42  QCRP42    -1
+    RCRP5P45  QCRP55    1
+    RCRP5P45  QCRP45    -1
+    RCRP5P46  QCRP56    1
+    RCRP5P46  QCRP46    -1
+    RGLP1P21  QGLP11    1
+    RGLP1P21  QGLP21    -1
+    RGLP1P22  QGLP12    1
+    RGLP1P22  QGLP22    -1
+    RGLP1P23  QGLP13    1
+    RGLP1P23  QGLP23    -1
+    RGLP1P24  QGLP14    1
+    RGLP1P24  QGLP24    -1
+    RGLP1P25  QGLP15    1
+    RGLP1P25  QGLP25    -1
+    RGLP1P26  QGLP16    1
+    RGLP1P26  QGLP26    -1
+    RGLP1P27  QGLP17    1
+    RGLP1P27  QGLP27    -1
+    RGLP1P28  QGLP18    1
+    RGLP1P28  QGLP28    -1
+    RGLP1P31  QGLP11    1
+    RGLP1P31  QGLP31    -1
+    RGLP1P32  QGLP12    1
+    RGLP1P32  QGLP32    -1
+    RGLP1P33  QGLP13    1
+    RGLP1P33  QGLP33    -1
+    RGLP1P34  QGLP14    1
+    RGLP1P34  QGLP34    -1
+    RGLP1P35  QGLP15    1
+    RGLP1P35  QGLP35    -1
+    RGLP1P36  QGLP16    1
+    RGLP1P36  QGLP36    -1
+    RGLP1P37  QGLP17    1
+    RGLP1P37  QGLP37    -1
+    RGLP1P38  QGLP18    1
+    RGLP1P38  QGLP38    -1
+    RGLP2P34  QGLP24    1
+    RGLP2P34  QGLP34    -1
+    RGLP2P35  QGLP25    1
+    RGLP2P35  QGLP35    -1
+    RGLP2P36  QGLP26    1
+    RGLP2P36  QGLP36    -1
+    RGLP2P41  QGLP21    1
+    RGLP2P41  QGLP41    -1
+    RGLP2P42  QGLP22    1
+    RGLP2P42  QGLP42    -1
+    RGLP2P43  QGLP23    1
+    RGLP2P43  QGLP43    -1
+    RGLP2P44  QGLP24    1
+    RGLP2P44  QGLP44    -1
+    RGLP2P45  QGLP25    1
+    RGLP2P45  QGLP45    -1
+    RGLP2P46  QGLP26    1
+    RGLP2P46  QGLP46    -1
+    RGLP2P47  QGLP27    1
+    RGLP2P47  QGLP47    -1
+    RGLP2P48  QGLP28    1
+    RGLP2P48  QGLP48    -1
+    RGLP3P21  QGLP31    1
+    RGLP3P21  QGLP21    -1
+    RGLP3P22  QGLP32    1
+    RGLP3P22  QGLP22    -1
+    RGLP3P23  QGLP33    1
+    RGLP3P23  QGLP23    -1
+    RGLP3P27  QGLP37    1
+    RGLP3P27  QGLP27    -1
+    RGLP3P28  QGLP38    1
+    RGLP3P28  QGLP28    -1
+    RGLP3P41  QGLP31    1
+    RGLP3P41  QGLP41    -1
+    RGLP3P42  QGLP32    1
+    RGLP3P42  QGLP42    -1
+    RGLP3P43  QGLP33    1
+    RGLP3P43  QGLP43    -1
+    RGLP3P44  QGLP34    1
+    RGLP3P44  QGLP44    -1
+    RGLP3P47  QGLP37    1
+    RGLP3P47  QGLP47    -1
+    RGLP4P35  QGLP45    1
+    RGLP4P35  QGLP35    -1
+    RGLP4P36  QGLP46    1
+    RGLP4P36  QGLP36    -1
+    RGLP4P38  QGLP48    1
+    RGLP4P38  QGLP38    -1
+    RUNP1P35  QCRP35    -1
+    RUNP1P35  QCRP15    1
+    RUNP1P36  QCRP36    -1
+    RUNP1P36  QCRP16    1
+    RUNP1P37  QCRP37    -1
+    RUNP1P37  QCRP17    1
+    RUNP1P38  QCRP38    1
+    RUNP1P38  QCRP18    -1
+    RUNP2P33  QCRP33    -1
+    RUNP2P33  QCRP23    1
+    RUNP2P36  QCRP36    -1
+    RUNP2P36  QCRP26    1
+    RUNP2P38  QCRP38    1
+    RUNP2P38  QCRP28    -1
+    RUNP5P31  QCRP51    1
+    RUNP5P31  QCRP31    -1
+    RUNP5P32  QCRP52    1
+    RUNP5P32  QCRP32    -1
+    RUNP5P33  QCRP53    1
+    RUNP5P33  QCRP33    -1
+    RUNP5P35  QCRP55    1
+    RUNP5P35  QCRP35    -1
+    RUNP5P36  QCRP56    1
+    RUNP5P36  QCRP36    -1
+    RGAP1P21  AP1P21    1
+    RGAP1P21  QGAP11    1
+    RGAP1P21  QGAP21    -1
+    RGAP1P22  AP1P22    1
+    RGAP1P22  QGAP12    1
+    RGAP1P22  QGAP22    -1
+    RGAP1P23  AP1P23    1
+    RGAP1P23  QGAP13    1
+    RGAP1P23  QGAP23    -1
+    RGAP1P24  AP1P24    1
+    RGAP1P24  QGAP14    1
+    RGAP1P24  QGAP24    -1
+    RGAP1P25  AP1P25    1
+    RGAP1P25  QGAP15    1
+    RGAP1P25  QGAP25    -1
+    RGAP1P26  AP1P26    1
+    RGAP1P26  QGAP16    1
+    RGAP1P26  QGAP26    -1
+    RGAP1P27  AP1P27    1
+    RGAP1P27  QGAP17    1
+    RGAP1P27  QGAP27    -1
+    RGAP1P28  AP1P28    1
+    RGAP1P28  QGAP18    1
+    RGAP1P28  QGAP28    -1
+    RGAP1P31  AP1P31    1
+    RGAP1P31  QGAP11    1
+    RGAP1P31  QGAP31    -1
+    RGAP1P32  AP1P32    1
+    RGAP1P32  QGAP12    1
+    RGAP1P32  QGAP32    -1
+    RGAP1P33  AP1P33    1
+    RGAP1P33  QGAP13    1
+    RGAP1P33  QGAP33    -1
+    RGAP1P34  AP1P34    1
+    RGAP1P34  QGAP14    1
+    RGAP1P34  QGAP34    -1
+    RGAP1P35  AP1P35    1
+    RGAP1P35  QGAP15    1
+    RGAP1P35  QGAP35    -1
+    RGAP1P36  AP1P36    1
+    RGAP1P36  QGAP16    1
+    RGAP1P36  QGAP36    -1
+    RGAP1P37  AP1P37    1
+    RGAP1P37  QGAP17    1
+    RGAP1P37  QGAP37    -1
+    RGAP1P38  AP1P38    1
+    RGAP1P38  QGAP18    1
+    RGAP1P38  QGAP38    -1
+    RGAP2P11  AP2P11    1
+    RGAP2P11  QGAP21    1
+    RGAP2P11  QGAP11    -1
+    RGAP2P12  AP2P12    1
+    RGAP2P12  QGAP22    1
+    RGAP2P12  QGAP12    -1
+    RGAP2P13  AP2P13    1
+    RGAP2P13  QGAP23    1
+    RGAP2P13  QGAP13    -1
+    RGAP2P14  AP2P14    1
+    RGAP2P14  QGAP24    1
+    RGAP2P14  QGAP14    -1
+    RGAP2P15  AP2P15    1
+    RGAP2P15  QGAP25    1
+    RGAP2P15  QGAP15    -1
+    RGAP2P16  AP2P16    1
+    RGAP2P16  QGAP26    1
+    RGAP2P16  QGAP16    -1
+    RGAP2P17  AP2P17    1
+    RGAP2P17  QGAP27    1
+    RGAP2P17  QGAP17    -1
+    RGAP2P18  AP2P18    1
+    RGAP2P18  QGAP28    1
+    RGAP2P18  QGAP18    -1
+    RGAP2P31  AP2P31    1
+    RGAP2P31  QGAP21    1
+    RGAP2P31  QGAP31    -1
+    RGAP2P32  AP2P32    1
+    RGAP2P32  QGAP22    1
+    RGAP2P32  QGAP32    -1
+    RGAP2P33  AP2P33    1
+    RGAP2P33  QGAP23    1
+    RGAP2P33  QGAP33    -1
+    RGAP2P34  AP2P34    1
+    RGAP2P34  QGAP24    1
+    RGAP2P34  QGAP34    -1
+    RGAP2P35  AP2P35    1
+    RGAP2P35  QGAP25    1
+    RGAP2P35  QGAP35    -1
+    RGAP2P36  AP2P36    1
+    RGAP2P36  QGAP26    1
+    RGAP2P36  QGAP36    -1
+    RGAP2P37  AP2P37    1
+    RGAP2P37  QGAP27    1
+    RGAP2P37  QGAP37    -1
+    RGAP2P38  AP2P38    1
+    RGAP2P38  QGAP28    1
+    RGAP2P38  QGAP38    -1
+    RGAP2P41  AP2P41    1
+    RGAP2P41  QGAP21    1
+    RGAP2P41  QGAP41    -1
+    RGAP2P42  AP2P42    1
+    RGAP2P42  QGAP22    1
+    RGAP2P42  QGAP42    -1
+    RGAP2P43  AP2P43    1
+    RGAP2P43  QGAP23    1
+    RGAP2P43  QGAP43    -1
+    RGAP2P44  AP2P44    1
+    RGAP2P44  QGAP24    1
+    RGAP2P44  QGAP44    -1
+    RGAP2P45  AP2P45    1
+    RGAP2P45  QGAP25    1
+    RGAP2P45  QGAP45    -1
+    RGAP2P46  AP2P46    1
+    RGAP2P46  QGAP26    1
+    RGAP2P46  QGAP46    -1
+    RGAP2P47  AP2P47    1
+    RGAP2P47  QGAP27    1
+    RGAP2P47  QGAP47    -1
+    RGAP2P48  AP2P48    1
+    RGAP2P48  QGAP28    1
+    RGAP2P48  QGAP48    -1
+    RGAP3P21  AP3P21    1
+    RGAP3P21  QGAP31    1
+    RGAP3P21  QGAP21    -1
+    RGAP3P22  AP3P22    1
+    RGAP3P22  QGAP32    1
+    RGAP3P22  QGAP22    -1
+    RGAP3P23  AP3P23    1
+    RGAP3P23  QGAP33    1
+    RGAP3P23  QGAP23    -1
+    RGAP3P24  AP3P24    1
+    RGAP3P24  QGAP34    1
+    RGAP3P24  QGAP24    -1
+    RGAP3P25  AP3P25    1
+    RGAP3P25  QGAP35    1
+    RGAP3P25  QGAP25    -1
+    RGAP3P26  AP3P26    1
+    RGAP3P26  QGAP36    1
+    RGAP3P26  QGAP26    -1
+    RGAP3P27  AP3P27    1
+    RGAP3P27  QGAP37    1
+    RGAP3P27  QGAP27    -1
+    RGAP3P28  AP3P28    1
+    RGAP3P28  QGAP38    1
+    RGAP3P28  QGAP28    -1
+    RGAP4P21  AP4P21    1
+    RGAP4P21  QGAP41    1
+    RGAP4P21  QGAP21    -1
+    RGAP4P22  AP4P22    1
+    RGAP4P22  QGAP42    1
+    RGAP4P22  QGAP22    -1
+    RGAP4P23  AP4P23    1
+    RGAP4P23  QGAP43    1
+    RGAP4P23  QGAP23    -1
+    RGAP4P24  AP4P24    1
+    RGAP4P24  QGAP44    1
+    RGAP4P24  QGAP24    -1
+    RGAP4P25  AP4P25    1
+    RGAP4P25  QGAP45    1
+    RGAP4P25  QGAP25    -1
+    RGAP4P26  AP4P26    1
+    RGAP4P26  QGAP46    1
+    RGAP4P26  QGAP26    -1
+    RGAP4P27  AP4P27    1
+    RGAP4P27  QGAP47    1
+    RGAP4P27  QGAP27    -1
+    RGAP4P28  AP4P28    1
+    RGAP4P28  QGAP48    1
+    RGAP4P28  QGAP28    -1
+    RGAP4P31  AP4P31    1
+    RGAP4P31  QGAP41    1
+    RGAP4P31  QGAP31    -1
+    RGAP4P32  AP4P32    1
+    RGAP4P32  QGAP42    1
+    RGAP4P32  QGAP32    -1
+    RGAP4P33  AP4P33    1
+    RGAP4P33  QGAP43    1
+    RGAP4P33  QGAP33    -1
+    RGAP4P34  AP4P34    1
+    RGAP4P34  QGAP44    1
+    RGAP4P34  QGAP34    -1
+    RGAP4P35  AP4P35    1
+    RGAP4P35  QGAP45    1
+    RGAP4P35  QGAP35    -1
+    RGAP4P36  AP4P36    1
+    RGAP4P36  QGAP46    1
+    RGAP4P36  QGAP36    -1
+    RGAP4P37  AP4P37    1
+    RGAP4P37  QGAP47    1
+    RGAP4P37  QGAP37    -1
+    RGAP4P38  AP4P38    1
+    RGAP4P38  QGAP48    1
+    RGAP4P38  QGAP38    -1
+    RGAP5P31  AP5P31    1
+    RGAP5P31  QGAP51    1
+    RGAP5P31  QGAP31    -1
+    RGAP5P32  AP5P32    1
+    RGAP5P32  QGAP52    1
+    RGAP5P32  QGAP32    -1
+    RGAP5P33  AP5P33    1
+    RGAP5P33  QGAP53    1
+    RGAP5P33  QGAP33    -1
+    RGAP5P34  AP5P34    1
+    RGAP5P34  QGAP54    1
+    RGAP5P34  QGAP34    -1
+    RGAP5P35  AP5P35    1
+    RGAP5P35  QGAP55    1
+    RGAP5P35  QGAP35    -1
+    RGAP5P36  AP5P36    1
+    RGAP5P36  QGAP56    1
+    RGAP5P36  QGAP36    -1
+    RGAP5P37  AP5P37    1
+    RGAP5P37  QGAP57    1
+    RGAP5P37  QGAP37    -1
+    RGAP5P38  AP5P38    1
+    RGAP5P38  QGAP58    1
+    RGAP5P38  QGAP38    -1
+    RGAP5P41  AP5P41    1
+    RGAP5P41  QGAP51    1
+    RGAP5P41  QGAP41    -1
+    RGAP5P42  AP5P42    1
+    RGAP5P42  QGAP52    1
+    RGAP5P42  QGAP42    -1
+    RGAP5P43  AP5P43    1
+    RGAP5P43  QGAP53    1
+    RGAP5P43  QGAP43    -1
+    RGAP5P44  AP5P44    1
+    RGAP5P44  QGAP54    1
+    RGAP5P44  QGAP44    -1
+    RGAP5P45  AP5P45    1
+    RGAP5P45  QGAP55    1
+    RGAP5P45  QGAP45    -1
+    RGAP5P46  AP5P46    1
+    RGAP5P46  QGAP56    1
+    RGAP5P46  QGAP46    -1
+    RGAP5P47  AP5P47    1
+    RGAP5P47  QGAP57    1
+    RGAP5P47  QGAP47    -1
+    RGAP5P48  AP5P48    1
+    RGAP5P48  QGAP58    1
+    RGAP5P48  QGAP48    -1
+    RDSP1P21  AP1P21    1
+    RDSP1P21  QDSP11    1
+    RDSP1P21  QDSP21    -1
+    RDSP1P22  AP1P22    1
+    RDSP1P22  QDSP12    1
+    RDSP1P22  QDSP22    -1
+    RDSP1P23  AP1P23    1
+    RDSP1P23  QDSP13    1
+    RDSP1P23  QDSP23    -1
+    RDSP1P24  AP1P24    1
+    RDSP1P24  QDSP14    1
+    RDSP1P24  QDSP24    -1
+    RDSP1P25  AP1P25    1
+    RDSP1P25  QDSP15    1
+    RDSP1P25  QDSP25    -1
+    RDSP1P26  AP1P26    1
+    RDSP1P26  QDSP16    1
+    RDSP1P26  QDSP26    -1
+    RDSP1P27  AP1P27    1
+    RDSP1P27  QDSP17    1
+    RDSP1P27  QDSP27    -1
+    RDSP1P28  AP1P28    1
+    RDSP1P28  QDSP18    1
+    RDSP1P28  QDSP28    -1
+    RDSP1P31  AP1P31    1
+    RDSP1P31  QDSP11    1
+    RDSP1P31  QDSP31    -1
+    RDSP1P32  AP1P32    1
+    RDSP1P32  QDSP12    1
+    RDSP1P32  QDSP32    -1
+    RDSP1P33  AP1P33    1
+    RDSP1P33  QDSP13    1
+    RDSP1P33  QDSP33    -1
+    RDSP1P34  AP1P34    1
+    RDSP1P34  QDSP14    1
+    RDSP1P34  QDSP34    -1
+    RDSP1P35  AP1P35    1
+    RDSP1P35  QDSP15    1
+    RDSP1P35  QDSP35    -1
+    RDSP1P36  AP1P36    1
+    RDSP1P36  QDSP16    1
+    RDSP1P36  QDSP36    -1
+    RDSP1P37  AP1P37    1
+    RDSP1P37  QDSP17    1
+    RDSP1P37  QDSP37    -1
+    RDSP1P38  AP1P38    1
+    RDSP1P38  QDSP18    1
+    RDSP1P38  QDSP38    -1
+    RDSP2P11  AP2P11    1
+    RDSP2P11  QDSP21    1
+    RDSP2P11  QDSP11    -1
+    RDSP2P12  AP2P12    1
+    RDSP2P12  QDSP22    1
+    RDSP2P12  QDSP12    -1
+    RDSP2P13  AP2P13    1
+    RDSP2P13  QDSP23    1
+    RDSP2P13  QDSP13    -1
+    RDSP2P14  AP2P14    1
+    RDSP2P14  QDSP24    1
+    RDSP2P14  QDSP14    -1
+    RDSP2P15  AP2P15    1
+    RDSP2P15  QDSP25    1
+    RDSP2P15  QDSP15    -1
+    RDSP2P16  AP2P16    1
+    RDSP2P16  QDSP26    1
+    RDSP2P16  QDSP16    -1
+    RDSP2P17  AP2P17    1
+    RDSP2P17  QDSP27    1
+    RDSP2P17  QDSP17    -1
+    RDSP2P18  AP2P18    1
+    RDSP2P18  QDSP28    1
+    RDSP2P18  QDSP18    -1
+    RDSP2P31  AP2P31    1
+    RDSP2P31  QDSP21    1
+    RDSP2P31  QDSP31    -1
+    RDSP2P32  AP2P32    1
+    RDSP2P32  QDSP22    1
+    RDSP2P32  QDSP32    -1
+    RDSP2P33  AP2P33    1
+    RDSP2P33  QDSP23    1
+    RDSP2P33  QDSP33    -1
+    RDSP2P34  AP2P34    1
+    RDSP2P34  QDSP24    1
+    RDSP2P34  QDSP34    -1
+    RDSP2P35  AP2P35    1
+    RDSP2P35  QDSP25    1
+    RDSP2P35  QDSP35    -1
+    RDSP2P36  AP2P36    1
+    RDSP2P36  QDSP26    1
+    RDSP2P36  QDSP36    -1
+    RDSP2P37  AP2P37    1
+    RDSP2P37  QDSP27    1
+    RDSP2P37  QDSP37    -1
+    RDSP2P38  AP2P38    1
+    RDSP2P38  QDSP28    1
+    RDSP2P38  QDSP38    -1
+    RDSP2P41  AP2P41    1
+    RDSP2P41  QDSP21    1
+    RDSP2P41  QDSP41    -1
+    RDSP2P42  AP2P42    1
+    RDSP2P42  QDSP22    1
+    RDSP2P42  QDSP42    -1
+    RDSP2P43  AP2P43    1
+    RDSP2P43  QDSP23    1
+    RDSP2P43  QDSP43    -1
+    RDSP2P44  AP2P44    1
+    RDSP2P44  QDSP24    1
+    RDSP2P44  QDSP44    -1
+    RDSP2P45  AP2P45    1
+    RDSP2P45  QDSP25    1
+    RDSP2P45  QDSP45    -1
+    RDSP2P46  AP2P46    1
+    RDSP2P46  QDSP26    1
+    RDSP2P46  QDSP46    -1
+    RDSP2P47  AP2P47    1
+    RDSP2P47  QDSP27    1
+    RDSP2P47  QDSP47    -1
+    RDSP2P48  AP2P48    1
+    RDSP2P48  QDSP28    1
+    RDSP2P48  QDSP48    -1
+    RDSP3P21  AP3P21    1
+    RDSP3P21  QDSP31    1
+    RDSP3P21  QDSP21    -1
+    RDSP3P22  AP3P22    1
+    RDSP3P22  QDSP32    1
+    RDSP3P22  QDSP22    -1
+    RDSP3P23  AP3P23    1
+    RDSP3P23  QDSP33    1
+    RDSP3P23  QDSP23    -1
+    RDSP3P24  AP3P24    1
+    RDSP3P24  QDSP34    1
+    RDSP3P24  QDSP24    -1
+    RDSP3P25  AP3P25    1
+    RDSP3P25  QDSP35    1
+    RDSP3P25  QDSP25    -1
+    RDSP3P26  AP3P26    1
+    RDSP3P26  QDSP36    1
+    RDSP3P26  QDSP26    -1
+    RDSP3P27  AP3P27    1
+    RDSP3P27  QDSP37    1
+    RDSP3P27  QDSP27    -1
+    RDSP3P28  AP3P28    1
+    RDSP3P28  QDSP38    1
+    RDSP3P28  QDSP28    -1
+    RDSP4P21  AP4P21    1
+    RDSP4P21  QDSP41    1
+    RDSP4P21  QDSP21    -1
+    RDSP4P22  AP4P22    1
+    RDSP4P22  QDSP42    1
+    RDSP4P22  QDSP22    -1
+    RDSP4P23  AP4P23    1
+    RDSP4P23  QDSP43    1
+    RDSP4P23  QDSP23    -1
+    RDSP4P24  AP4P24    1
+    RDSP4P24  QDSP44    1
+    RDSP4P24  QDSP24    -1
+    RDSP4P25  AP4P25    1
+    RDSP4P25  QDSP45    1
+    RDSP4P25  QDSP25    -1
+    RDSP4P26  AP4P26    1
+    RDSP4P26  QDSP46    1
+    RDSP4P26  QDSP26    -1
+    RDSP4P27  AP4P27    1
+    RDSP4P27  QDSP47    1
+    RDSP4P27  QDSP27    -1
+    RDSP4P28  AP4P28    1
+    RDSP4P28  QDSP48    1
+    RDSP4P28  QDSP28    -1
+    RDSP4P31  AP4P31    1
+    RDSP4P31  QDSP41    1
+    RDSP4P31  QDSP31    -1
+    RDSP4P32  AP4P32    1
+    RDSP4P32  QDSP42    1
+    RDSP4P32  QDSP32    -1
+    RDSP4P33  AP4P33    1
+    RDSP4P33  QDSP43    1
+    RDSP4P33  QDSP33    -1
+    RDSP4P34  AP4P34    1
+    RDSP4P34  QDSP44    1
+    RDSP4P34  QDSP34    -1
+    RDSP4P35  AP4P35    1
+    RDSP4P35  QDSP45    1
+    RDSP4P35  QDSP35    -1
+    RDSP4P36  AP4P36    1
+    RDSP4P36  QDSP46    1
+    RDSP4P36  QDSP36    -1
+    RDSP4P37  AP4P37    1
+    RDSP4P37  QDSP47    1
+    RDSP4P37  QDSP37    -1
+    RDSP4P38  AP4P38    1
+    RDSP4P38  QDSP48    1
+    RDSP4P38  QDSP38    -1
+    RDSP5P31  AP5P31    1
+    RDSP5P31  QDSP51    1
+    RDSP5P31  QDSP31    -1
+    RDSP5P32  AP5P32    1
+    RDSP5P32  QDSP52    1
+    RDSP5P32  QDSP32    -1
+    RDSP5P33  AP5P33    1
+    RDSP5P33  QDSP53    1
+    RDSP5P33  QDSP33    -1
+    RDSP5P34  AP5P34    1
+    RDSP5P34  QDSP54    1
+    RDSP5P34  QDSP34    -1
+    RDSP5P35  AP5P35    1
+    RDSP5P35  QDSP55    1
+    RDSP5P35  QDSP35    -1
+    RDSP5P36  AP5P36    1
+    RDSP5P36  QDSP56    1
+    RDSP5P36  QDSP36    -1
+    RDSP5P37  AP5P37    1
+    RDSP5P37  QDSP57    1
+    RDSP5P37  QDSP37    -1
+    RDSP5P38  AP5P38    1
+    RDSP5P38  QDSP58    1
+    RDSP5P38  QDSP38    -1
+    RDSP5P41  AP5P41    1
+    RDSP5P41  QDSP51    1
+    RDSP5P41  QDSP41    -1
+    RDSP5P42  AP5P42    1
+    RDSP5P42  QDSP52    1
+    RDSP5P42  QDSP42    -1
+    RDSP5P43  AP5P43    1
+    RDSP5P43  QDSP53    1
+    RDSP5P43  QDSP43    -1
+    RDSP5P44  AP5P44    1
+    RDSP5P44  QDSP54    1
+    RDSP5P44  QDSP44    -1
+    RDSP5P45  AP5P45    1
+    RDSP5P45  QDSP55    1
+    RDSP5P45  QDSP45    -1
+    RDSP5P46  AP5P46    1
+    RDSP5P46  QDSP56    1
+    RDSP5P46  QDSP46    -1
+    RDSP5P47  AP5P47    1
+    RDSP5P47  QDSP57    1
+    RDSP5P47  QDSP47    -1
+    RDSP5P48  AP5P48    1
+    RDSP5P48  QDSP58    1
+    RDSP5P48  QDSP48    -1
+    RRSP1P31  QRSP11    1
+    RRSP1P31  QRSP31    -1
+    RRSP1P32  QRSP12    1
+    RRSP1P32  QRSP32    -1
+    RRSP1P33  QRSP13    1
+    RRSP1P33  QRSP33    -1
+    RRSP1P34  QRSP14    1
+    RRSP1P34  QRSP34    -1
+    RRSP1P35  QRSP15    1
+    RRSP1P35  QRSP35    -1
+    RRSP1P36  QRSP16    1
+    RRSP1P36  QRSP36    -1
+    RRSP1P37  QRSP17    1
+    RRSP1P37  QRSP37    -1
+    RRSP1P38  QRSP18    1
+    RRSP1P38  QRSP38    -1
+    RRSP2P31  QRSP21    1
+    RRSP2P31  QRSP31    -1
+    RRSP2P32  QRSP22    1
+    RRSP2P32  QRSP32    -1
+    RRSP2P33  QRSP23    1
+    RRSP2P33  QRSP33    -1
+    RRSP2P34  QRSP24    1
+    RRSP2P34  QRSP34    -1
+    RRSP2P35  QRSP25    1
+    RRSP2P35  QRSP35    -1
+    RRSP2P36  QRSP26    1
+    RRSP2P36  QRSP36    -1
+    RRSP2P37  QRSP27    1
+    RRSP2P37  QRSP37    -1
+    RRSP2P38  QRSP28    1
+    RRSP2P38  QRSP38    -1
+    RRSP5P31  QRSP51    1
+    RRSP5P31  QRSP31    -1
+    RRSP5P32  QRSP52    1
+    RRSP5P32  QRSP32    -1
+    RRSP5P33  QRSP53    1
+    RRSP5P33  QRSP33    -1
+    RRSP5P34  QRSP54    1
+    RRSP5P34  QRSP34    -1
+    RRSP5P35  QRSP55    1
+    RRSP5P35  QRSP35    -1
+    RRSP5P36  QRSP56    1
+    RRSP5P36  QRSP36    -1
+    RRSP5P37  QRSP57    1
+    RRSP5P37  QRSP37    -1
+    RRSP5P38  QRSP58    1
+    RRSP5P38  QRSP38    -1
+    RKJP1P31  AP1P31    1
+    RKJP1P31  QKJP11    1
+    RKJP1P31  QKJP31    -1
+    RKJP1P32  AP1P32    1
+    RKJP1P32  QKJP12    1
+    RKJP1P32  QKJP32    -1
+    RKJP1P33  AP1P33    1
+    RKJP1P33  QKJP13    1
+    RKJP1P33  QKJP33    -1
+    RKJP1P34  AP1P34    1
+    RKJP1P34  QKJP14    1
+    RKJP1P34  QKJP34    -1
+    RKJP1P35  AP1P35    1
+    RKJP1P35  QKJP15    1
+    RKJP1P35  QKJP35    -1
+    RKJP1P36  AP1P36    1
+    RKJP1P36  QKJP16    1
+    RKJP1P36  QKJP36    -1
+    RKJP1P37  AP1P37    1
+    RKJP1P37  QKJP17    1
+    RKJP1P37  QKJP37    -1
+    RKJP1P38  AP1P38    1
+    RKJP1P38  QKJP18    -1
+    RKJP1P38  QKJP38    1
+    RKJP2P11  AP2P11    1
+    RKJP2P11  QKJP21    1
+    RKJP2P11  QKJP11    -1
+    RKJP2P12  AP2P12    1
+    RKJP2P12  QKJP22    1
+    RKJP2P12  QKJP12    -1
+    RKJP2P13  AP2P13    1
+    RKJP2P13  QKJP23    1
+    RKJP2P13  QKJP13    -1
+    RKJP2P14  AP2P14    1
+    RKJP2P14  QKJP24    1
+    RKJP2P14  QKJP14    -1
+    RKJP2P15  AP2P15    1
+    RKJP2P15  QKJP25    1
+    RKJP2P15  QKJP15    -1
+    RKJP2P16  AP2P16    1
+    RKJP2P16  QKJP26    1
+    RKJP2P16  QKJP16    -1
+    RKJP2P17  AP2P17    1
+    RKJP2P17  QKJP27    1
+    RKJP2P17  QKJP17    -1
+    RKJP2P18  AP2P18    1
+    RKJP2P18  QKJP28    -1
+    RKJP2P18  QKJP18    1
+    RKJP2P31  AP2P31    1
+    RKJP2P31  QKJP21    1
+    RKJP2P31  QKJP31    -1
+    RKJP2P32  AP2P32    1
+    RKJP2P32  QKJP22    1
+    RKJP2P32  QKJP32    -1
+    RKJP2P33  AP2P33    1
+    RKJP2P33  QKJP23    1
+    RKJP2P33  QKJP33    -1
+    RKJP2P34  AP2P34    1
+    RKJP2P34  QKJP24    1
+    RKJP2P34  QKJP34    -1
+    RKJP2P35  AP2P35    1
+    RKJP2P35  QKJP25    1
+    RKJP2P35  QKJP35    -1
+    RKJP2P36  AP2P36    1
+    RKJP2P36  QKJP26    1
+    RKJP2P36  QKJP36    -1
+    RKJP2P37  AP2P37    1
+    RKJP2P37  QKJP27    1
+    RKJP2P37  QKJP37    -1
+    RKJP2P38  AP2P38    1
+    RKJP2P38  QKJP28    -1
+    RKJP2P38  QKJP38    1
+    RKJP2P41  AP2P41    1
+    RKJP2P41  QKJP21    1
+    RKJP2P41  QKJP41    -1
+    RKJP2P42  AP2P42    1
+    RKJP2P42  QKJP22    1
+    RKJP2P42  QKJP42    -1
+    RKJP2P43  AP2P43    1
+    RKJP2P43  QKJP23    1
+    RKJP2P43  QKJP43    -1
+    RKJP2P44  AP2P44    1
+    RKJP2P44  QKJP24    1
+    RKJP2P44  QKJP44    -1
+    RKJP2P45  AP2P45    1
+    RKJP2P45  QKJP25    1
+    RKJP2P45  QKJP45    -1
+    RKJP2P46  AP2P46    1
+    RKJP2P46  QKJP26    1
+    RKJP2P46  QKJP46    -1
+    RKJP2P47  AP2P47    1
+    RKJP2P47  QKJP27    1
+    RKJP2P47  QKJP47    -1
+    RKJP2P48  AP2P48    1
+    RKJP2P48  QKJP28    -1
+    RKJP2P48  QKJP48    1
+    RKJP3P21  AP3P21    1
+    RKJP3P21  QKJP31    1
+    RKJP3P21  QKJP21    -1
+    RKJP3P22  AP3P22    1
+    RKJP3P22  QKJP32    1
+    RKJP3P22  QKJP22    -1
+    RKJP3P23  AP3P23    1
+    RKJP3P23  QKJP33    1
+    RKJP3P23  QKJP23    -1
+    RKJP3P24  AP3P24    1
+    RKJP3P24  QKJP34    1
+    RKJP3P24  QKJP24    -1
+    RKJP3P25  AP3P25    1
+    RKJP3P25  QKJP35    1
+    RKJP3P25  QKJP25    -1
+    RKJP3P26  AP3P26    1
+    RKJP3P26  QKJP36    1
+    RKJP3P26  QKJP26    -1
+    RKJP3P27  AP3P27    1
+    RKJP3P27  QKJP37    1
+    RKJP3P27  QKJP27    -1
+    RKJP3P28  AP3P28    1
+    RKJP3P28  QKJP38    -1
+    RKJP3P28  QKJP28    1
+    RKJP4P31  AP4P31    1
+    RKJP4P31  QKJP41    1
+    RKJP4P31  QKJP31    -1
+    RKJP4P32  AP4P32    1
+    RKJP4P32  QKJP42    1
+    RKJP4P32  QKJP32    -1
+    RKJP4P33  AP4P33    1
+    RKJP4P33  QKJP43    1
+    RKJP4P33  QKJP33    -1
+    RKJP4P34  AP4P34    1
+    RKJP4P34  QKJP44    1
+    RKJP4P34  QKJP34    -1
+    RKJP4P35  AP4P35    1
+    RKJP4P35  QKJP45    1
+    RKJP4P35  QKJP35    -1
+    RKJP4P36  AP4P36    1
+    RKJP4P36  QKJP46    1
+    RKJP4P36  QKJP36    -1
+    RKJP4P37  AP4P37    1
+    RKJP4P37  QKJP47    1
+    RKJP4P37  QKJP37    -1
+    RKJP4P38  AP4P38    1
+    RKJP4P38  QKJP48    -1
+    RKJP4P38  QKJP38    1
+    RKJP5P31  AP5P31    1
+    RKJP5P31  QKJP51    1
+    RKJP5P31  QKJP31    -1
+    RKJP5P32  AP5P32    1
+    RKJP5P32  QKJP52    1
+    RKJP5P32  QKJP32    -1
+    RKJP5P33  AP5P33    1
+    RKJP5P33  QKJP53    1
+    RKJP5P33  QKJP33    -1
+    RKJP5P34  AP5P34    1
+    RKJP5P34  QKJP54    1
+    RKJP5P34  QKJP34    -1
+    RKJP5P35  AP5P35    1
+    RKJP5P35  QKJP55    1
+    RKJP5P35  QKJP35    -1
+    RKJP5P36  AP5P36    1
+    RKJP5P36  QKJP56    1
+    RKJP5P36  QKJP36    -1
+    RKJP5P37  AP5P37    1
+    RKJP5P37  QKJP57    1
+    RKJP5P37  QKJP37    -1
+    RKJP5P38  AP5P38    1
+    RKJP5P38  QKJP58    -1
+    RKJP5P38  QKJP38    1
+    RKJP5P41  AP5P41    1
+    RKJP5P41  QKJP51    1
+    RKJP5P41  QKJP41    -1
+    RKJP5P42  AP5P42    1
+    RKJP5P42  QKJP52    1
+    RKJP5P42  QKJP42    -1
+    RKJP5P43  AP5P43    1
+    RKJP5P43  QKJP53    1
+    RKJP5P43  QKJP43    -1
+    RKJP5P44  AP5P44    1
+    RKJP5P44  QKJP54    1
+    RKJP5P44  QKJP44    -1
+    RKJP5P45  AP5P45    1
+    RKJP5P45  QKJP55    1
+    RKJP5P45  QKJP45    -1
+    RKJP5P46  AP5P46    1
+    RKJP5P46  QKJP56    1
+    RKJP5P46  QKJP46    -1
+    RKJP5P47  AP5P47    1
+    RKJP5P47  QKJP57    1
+    RKJP5P47  QKJP47    -1
+    RKJP5P48  AP5P48    1
+    RKJP5P48  QKJP58    -1
+    RKJP5P48  QKJP48    1
+    RNJP1P21  AP1P21    1
+    RNJP1P21  QNJP11    1
+    RNJP1P21  QNJP21    -1
+    RNJP1P22  AP1P22    1
+    RNJP1P22  QNJP12    1
+    RNJP1P22  QNJP22    -1
+    RNJP1P23  AP1P23    1
+    RNJP1P23  QNJP13    1
+    RNJP1P23  QNJP23    -1
+    RNJP1P24  AP1P24    1
+    RNJP1P24  QNJP14    1
+    RNJP1P24  QNJP24    -1
+    RNJP1P25  AP1P25    1
+    RNJP1P25  QNJP15    1
+    RNJP1P25  QNJP25    -1
+    RNJP1P26  AP1P26    1
+    RNJP1P26  QNJP16    1
+    RNJP1P26  QNJP26    -1
+    RNJP1P27  AP1P27    1
+    RNJP1P27  QNJP17    1
+    RNJP1P27  QNJP27    -1
+    RNJP1P28  AP1P28    1
+    RNJP1P28  QNJP18    -1
+    RNJP1P28  QNJP28    1
+    RNJP1P31  AP1P31    1
+    RNJP1P31  QNJP11    1
+    RNJP1P31  QNJP31    -1
+    RNJP1P32  AP1P32    1
+    RNJP1P32  QNJP12    1
+    RNJP1P32  QNJP32    -1
+    RNJP1P33  AP1P33    1
+    RNJP1P33  QNJP13    1
+    RNJP1P33  QNJP33    -1
+    RNJP1P34  AP1P34    1
+    RNJP1P34  QNJP14    1
+    RNJP1P34  QNJP34    -1
+    RNJP1P35  AP1P35    1
+    RNJP1P35  QNJP15    1
+    RNJP1P35  QNJP35    -1
+    RNJP1P36  AP1P36    1
+    RNJP1P36  QNJP16    1
+    RNJP1P36  QNJP36    -1
+    RNJP1P37  AP1P37    1
+    RNJP1P37  QNJP17    1
+    RNJP1P37  QNJP37    -1
+    RNJP1P38  AP1P38    1
+    RNJP1P38  QNJP18    -1
+    RNJP1P38  QNJP38    1
+    RNJP2P11  AP2P11    1
+    RNJP2P11  QNJP21    1
+    RNJP2P11  QNJP11    -1
+    RNJP2P12  AP2P12    1
+    RNJP2P12  QNJP22    1
+    RNJP2P12  QNJP12    -1
+    RNJP2P13  AP2P13    1
+    RNJP2P13  QNJP23    1
+    RNJP2P13  QNJP13    -1
+    RNJP2P14  AP2P14    1
+    RNJP2P14  QNJP24    1
+    RNJP2P14  QNJP14    -1
+    RNJP2P15  AP2P15    1
+    RNJP2P15  QNJP25    1
+    RNJP2P15  QNJP15    -1
+    RNJP2P16  AP2P16    1
+    RNJP2P16  QNJP26    1
+    RNJP2P16  QNJP16    -1
+    RNJP2P17  AP2P17    1
+    RNJP2P17  QNJP27    1
+    RNJP2P17  QNJP17    -1
+    RNJP2P18  AP2P18    1
+    RNJP2P18  QNJP28    -1
+    RNJP2P18  QNJP18    1
+    RNJP2P31  AP2P31    1
+    RNJP2P31  QNJP21    1
+    RNJP2P31  QNJP31    -1
+    RNJP2P32  AP2P32    1
+    RNJP2P32  QNJP22    1
+    RNJP2P32  QNJP32    -1
+    RNJP2P33  AP2P33    1
+    RNJP2P33  QNJP23    1
+    RNJP2P33  QNJP33    -1
+    RNJP2P34  AP2P34    1
+    RNJP2P34  QNJP24    1
+    RNJP2P34  QNJP34    -1
+    RNJP2P35  AP2P35    1
+    RNJP2P35  QNJP25    1
+    RNJP2P35  QNJP35    -1
+    RNJP2P36  AP2P36    1
+    RNJP2P36  QNJP26    1
+    RNJP2P36  QNJP36    -1
+    RNJP2P37  AP2P37    1
+    RNJP2P37  QNJP27    1
+    RNJP2P37  QNJP37    -1
+    RNJP2P38  AP2P38    1
+    RNJP2P38  QNJP28    -1
+    RNJP2P38  QNJP38    1
+    RNJP2P41  AP2P41    1
+    RNJP2P41  QNJP21    1
+    RNJP2P41  QNJP41    -1
+    RNJP2P42  AP2P42    1
+    RNJP2P42  QNJP22    1
+    RNJP2P42  QNJP42    -1
+    RNJP2P43  AP2P43    1
+    RNJP2P43  QNJP23    1
+    RNJP2P43  QNJP43    -1
+    RNJP2P44  AP2P44    1
+    RNJP2P44  QNJP24    1
+    RNJP2P44  QNJP44    -1
+    RNJP2P45  AP2P45    1
+    RNJP2P45  QNJP25    1
+    RNJP2P45  QNJP45    -1
+    RNJP2P46  AP2P46    1
+    RNJP2P46  QNJP26    1
+    RNJP2P46  QNJP46    -1
+    RNJP2P47  AP2P47    1
+    RNJP2P47  QNJP27    1
+    RNJP2P47  QNJP47    -1
+    RNJP2P48  AP2P48    1
+    RNJP2P48  QNJP28    -1
+    RNJP2P48  QNJP48    1
+    RNJP3P21  AP3P21    1
+    RNJP3P21  QNJP31    1
+    RNJP3P21  QNJP21    -1
+    RNJP3P22  AP3P22    1
+    RNJP3P22  QNJP32    1
+    RNJP3P22  QNJP22    -1
+    RNJP3P23  AP3P23    1
+    RNJP3P23  QNJP33    1
+    RNJP3P23  QNJP23    -1
+    RNJP3P24  AP3P24    1
+    RNJP3P24  QNJP34    1
+    RNJP3P24  QNJP24    -1
+    RNJP3P25  AP3P25    1
+    RNJP3P25  QNJP35    1
+    RNJP3P25  QNJP25    -1
+    RNJP3P26  AP3P26    1
+    RNJP3P26  QNJP36    1
+    RNJP3P26  QNJP26    -1
+    RNJP3P27  AP3P27    1
+    RNJP3P27  QNJP37    1
+    RNJP3P27  QNJP27    -1
+    RNJP3P28  AP3P28    1
+    RNJP3P28  QNJP38    -1
+    RNJP3P28  QNJP28    1
+    RNJP5P31  AP5P31    1
+    RNJP5P31  QNJP51    1
+    RNJP5P31  QNJP31    -1
+    RNJP5P32  AP5P32    1
+    RNJP5P32  QNJP52    1
+    RNJP5P32  QNJP32    -1
+    RNJP5P33  AP5P33    1
+    RNJP5P33  QNJP53    1
+    RNJP5P33  QNJP33    -1
+    RNJP5P34  AP5P34    1
+    RNJP5P34  QNJP54    1
+    RNJP5P34  QNJP34    -1
+    RNJP5P35  AP5P35    1
+    RNJP5P35  QNJP55    1
+    RNJP5P35  QNJP35    -1
+    RNJP5P36  AP5P36    1
+    RNJP5P36  QNJP56    1
+    RNJP5P36  QNJP36    -1
+    RNJP5P37  AP5P37    1
+    RNJP5P37  QNJP57    1
+    RNJP5P37  QNJP37    -1
+    RNJP5P38  AP5P38    1
+    RNJP5P38  QNJP58    -1
+    RNJP5P38  QNJP38    1
+    RNJP5P41  AP5P41    1
+    RNJP5P41  QNJP51    1
+    RNJP5P41  QNJP41    -1
+    RNJP5P42  AP5P42    1
+    RNJP5P42  QNJP52    1
+    RNJP5P42  QNJP42    -1
+    RNJP5P43  AP5P43    1
+    RNJP5P43  QNJP53    1
+    RNJP5P43  QNJP43    -1
+    RNJP5P44  AP5P44    1
+    RNJP5P44  QNJP54    1
+    RNJP5P44  QNJP44    -1
+    RNJP5P45  AP5P45    1
+    RNJP5P45  QNJP55    1
+    RNJP5P45  QNJP45    -1
+    RNJP5P46  AP5P46    1
+    RNJP5P46  QNJP56    1
+    RNJP5P46  QNJP46    -1
+    RNJP5P47  AP5P47    1
+    RNJP5P47  QNJP57    1
+    RNJP5P47  QNJP47    -1
+    RNJP5P48  AP5P48    1
+    RNJP5P48  QNJP58    -1
+    RNJP5P48  QNJP48    1
+    RPFP1P31  AP1P31    1
+    RPFP1P31  QPFP11    1
+    RPFP1P31  QPFP31    -1
+    RPFP1P32  AP1P32    1
+    RPFP1P32  QPFP12    1
+    RPFP1P32  QPFP32    -1
+    RPFP1P33  AP1P33    1
+    RPFP1P33  QPFP13    1
+    RPFP1P33  QPFP33    -1
+    RPFP1P34  AP1P34    1
+    RPFP1P34  QPFP14    1
+    RPFP1P34  QPFP34    -1
+    RPFP1P35  AP1P35    1
+    RPFP1P35  QPFP15    1
+    RPFP1P35  QPFP35    -1
+    RPFP1P36  AP1P36    1
+    RPFP1P36  QPFP16    1
+    RPFP1P36  QPFP36    -1
+    RPFP1P37  AP1P37    1
+    RPFP1P37  QPFP17    1
+    RPFP1P37  QPFP37    -1
+    RPFP1P38  AP1P38    1
+    RPFP1P38  QPFP18    -1
+    RPFP1P38  QPFP38    1
+    RPFP2P31  AP2P31    1
+    RPFP2P31  QPFP21    1
+    RPFP2P31  QPFP31    -1
+    RPFP2P32  AP2P32    1
+    RPFP2P32  QPFP22    1
+    RPFP2P32  QPFP32    -1
+    RPFP2P33  AP2P33    1
+    RPFP2P33  QPFP23    1
+    RPFP2P33  QPFP33    -1
+    RPFP2P34  AP2P34    1
+    RPFP2P34  QPFP24    1
+    RPFP2P34  QPFP34    -1
+    RPFP2P35  AP2P35    1
+    RPFP2P35  QPFP25    1
+    RPFP2P35  QPFP35    -1
+    RPFP2P36  AP2P36    1
+    RPFP2P36  QPFP26    1
+    RPFP2P36  QPFP36    -1
+    RPFP2P37  AP2P37    1
+    RPFP2P37  QPFP27    1
+    RPFP2P37  QPFP37    -1
+    RPFP2P38  AP2P38    1
+    RPFP2P38  QPFP28    -1
+    RPFP2P38  QPFP38    1
+    RPFP5P31  AP5P31    1
+    RPFP5P31  QPFP51    1
+    RPFP5P31  QPFP31    -1
+    RPFP5P32  AP5P32    1
+    RPFP5P32  QPFP52    1
+    RPFP5P32  QPFP32    -1
+    RPFP5P33  AP5P33    1
+    RPFP5P33  QPFP53    1
+    RPFP5P33  QPFP33    -1
+    RPFP5P34  AP5P34    1
+    RPFP5P34  QPFP54    1
+    RPFP5P34  QPFP34    -1
+    RPFP5P35  AP5P35    1
+    RPFP5P35  QPFP55    1
+    RPFP5P35  QPFP35    -1
+    RPFP5P36  AP5P36    1
+    RPFP5P36  QPFP56    1
+    RPFP5P36  QPFP36    -1
+    RPFP5P37  AP5P37    1
+    RPFP5P37  QPFP57    1
+    RPFP5P37  QPFP37    -1
+    RPFP5P38  AP5P38    1
+    RPFP5P38  QPFP58    -1
+    RPFP5P38  QPFP38    1
+    RLPP1P31  AP1P31    1
+    RLPP1P31  QLPP11    1
+    RLPP1P31  QLPP31    -1
+    RLPP1P32  AP1P32    1
+    RLPP1P32  QLPP12    1
+    RLPP1P32  QLPP32    -1
+    RLPP1P33  AP1P33    1
+    RLPP1P33  QLPP13    1
+    RLPP1P33  QLPP33    -1
+    RLPP1P34  AP1P34    1
+    RLPP1P34  QLPP14    1
+    RLPP1P34  QLPP34    -1
+    RLPP1P35  AP1P35    1
+    RLPP1P35  QLPP15    1
+    RLPP1P35  QLPP35    -1
+    RLPP1P36  AP1P36    1
+    RLPP1P36  QLPP16    1
+    RLPP1P36  QLPP36    -1
+    RLPP1P37  AP1P37    1
+    RLPP1P37  QLPP17    1
+    RLPP1P37  QLPP37    -1
+    RLPP1P38  AP1P38    1
+    RLPP1P38  QLPP18    -1
+    RLPP1P38  QLPP38    1
+    RLPP2P31  AP2P31    1
+    RLPP2P31  QLPP21    1
+    RLPP2P31  QLPP31    -1
+    RLPP2P32  AP2P32    1
+    RLPP2P32  QLPP22    1
+    RLPP2P32  QLPP32    -1
+    RLPP2P33  AP2P33    1
+    RLPP2P33  QLPP23    1
+    RLPP2P33  QLPP33    -1
+    RLPP2P34  AP2P34    1
+    RLPP2P34  QLPP24    1
+    RLPP2P34  QLPP34    -1
+    RLPP2P35  AP2P35    1
+    RLPP2P35  QLPP25    1
+    RLPP2P35  QLPP35    -1
+    RLPP2P36  AP2P36    1
+    RLPP2P36  QLPP26    1
+    RLPP2P36  QLPP36    -1
+    RLPP2P37  AP2P37    1
+    RLPP2P37  QLPP27    1
+    RLPP2P37  QLPP37    -1
+    RLPP2P38  AP2P38    1
+    RLPP2P38  QLPP28    -1
+    RLPP2P38  QLPP38    1
+    ROTP1P21  AP1P21    1
+    ROTP1P21  QOTP11    1
+    ROTP1P21  QOTP21    -1
+    ROTP1P22  AP1P22    1
+    ROTP1P22  QOTP12    1
+    ROTP1P22  QOTP22    -1
+    ROTP1P23  AP1P23    1
+    ROTP1P23  QOTP13    1
+    ROTP1P23  QOTP23    -1
+    ROTP1P24  AP1P24    1
+    ROTP1P24  QOTP14    1
+    ROTP1P24  QOTP24    -1
+    ROTP1P25  AP1P25    1
+    ROTP1P25  QOTP15    1
+    ROTP1P25  QOTP25    -1
+    ROTP1P26  AP1P26    1
+    ROTP1P26  QOTP16    1
+    ROTP1P26  QOTP26    -1
+    ROTP1P27  AP1P27    1
+    ROTP1P27  QOTP17    1
+    ROTP1P27  QOTP27    -1
+    ROTP1P28  AP1P28    1
+    ROTP1P28  QOTP18    1
+    ROTP1P28  QOTP28    -1
+    ROTP1P31  AP1P31    1
+    ROTP1P31  QOTP11    1
+    ROTP1P31  QOTP31    -1
+    ROTP1P32  AP1P32    1
+    ROTP1P32  QOTP12    1
+    ROTP1P32  QOTP32    -1
+    ROTP1P33  AP1P33    1
+    ROTP1P33  QOTP13    1
+    ROTP1P33  QOTP33    -1
+    ROTP1P34  AP1P34    1
+    ROTP1P34  QOTP14    1
+    ROTP1P34  QOTP34    -1
+    ROTP1P35  AP1P35    1
+    ROTP1P35  QOTP15    1
+    ROTP1P35  QOTP35    -1
+    ROTP1P36  AP1P36    1
+    ROTP1P36  QOTP16    1
+    ROTP1P36  QOTP36    -1
+    ROTP1P37  AP1P37    1
+    ROTP1P37  QOTP17    1
+    ROTP1P37  QOTP37    -1
+    ROTP1P38  AP1P38    1
+    ROTP1P38  QOTP18    1
+    ROTP1P38  QOTP38    -1
+    ROTP1P51  QOTP11    1
+    ROTP1P51  QOTP51    -1
+    ROTP1P52  QOTP12    1
+    ROTP1P52  QOTP52    -1
+    ROTP1P53  QOTP13    1
+    ROTP1P53  QOTP53    -1
+    ROTP1P54  QOTP14    1
+    ROTP1P54  QOTP54    -1
+    ROTP1P55  QOTP15    1
+    ROTP1P55  QOTP55    -1
+    ROTP1P56  QOTP16    1
+    ROTP1P56  QOTP56    -1
+    ROTP1P57  QOTP17    1
+    ROTP1P57  QOTP57    -1
+    ROTP1P58  QOTP18    1
+    ROTP1P58  QOTP58    -1
+    ROTP2P11  AP2P11    1
+    ROTP2P11  QOTP21    1
+    ROTP2P11  QOTP11    -1
+    ROTP2P12  AP2P12    1
+    ROTP2P12  QOTP22    1
+    ROTP2P12  QOTP12    -1
+    ROTP2P13  AP2P13    1
+    ROTP2P13  QOTP23    1
+    ROTP2P13  QOTP13    -1
+    ROTP2P14  AP2P14    1
+    ROTP2P14  QOTP24    1
+    ROTP2P14  QOTP14    -1
+    ROTP2P15  AP2P15    1
+    ROTP2P15  QOTP25    1
+    ROTP2P15  QOTP15    -1
+    ROTP2P16  AP2P16    1
+    ROTP2P16  QOTP26    1
+    ROTP2P16  QOTP16    -1
+    ROTP2P17  AP2P17    1
+    ROTP2P17  QOTP27    1
+    ROTP2P17  QOTP17    -1
+    ROTP2P18  AP2P18    1
+    ROTP2P18  QOTP28    1
+    ROTP2P18  QOTP18    -1
+    ROTP2P31  AP2P31    1
+    ROTP2P31  QOTP21    1
+    ROTP2P31  QOTP31    -1
+    ROTP2P32  AP2P32    1
+    ROTP2P32  QOTP22    1
+    ROTP2P32  QOTP32    -1
+    ROTP2P33  AP2P33    1
+    ROTP2P33  QOTP23    1
+    ROTP2P33  QOTP33    -1
+    ROTP2P34  AP2P34    1
+    ROTP2P34  QOTP24    1
+    ROTP2P34  QOTP34    -1
+    ROTP2P35  AP2P35    1
+    ROTP2P35  QOTP25    1
+    ROTP2P35  QOTP35    -1
+    ROTP2P36  AP2P36    1
+    ROTP2P36  QOTP26    1
+    ROTP2P36  QOTP36    -1
+    ROTP2P37  AP2P37    1
+    ROTP2P37  QOTP27    1
+    ROTP2P37  QOTP37    -1
+    ROTP2P38  AP2P38    1
+    ROTP2P38  QOTP28    1
+    ROTP2P38  QOTP38    -1
+    ROTP2P41  AP2P41    1
+    ROTP2P41  QOTP21    1
+    ROTP2P41  QOTP41    -1
+    ROTP2P42  AP2P42    1
+    ROTP2P42  QOTP22    1
+    ROTP2P42  QOTP42    -1
+    ROTP2P43  AP2P43    1
+    ROTP2P43  QOTP23    1
+    ROTP2P43  QOTP43    -1
+    ROTP2P44  AP2P44    1
+    ROTP2P44  QOTP24    1
+    ROTP2P44  QOTP44    -1
+    ROTP2P45  AP2P45    1
+    ROTP2P45  QOTP25    1
+    ROTP2P45  QOTP45    -1
+    ROTP2P46  AP2P46    1
+    ROTP2P46  QOTP26    1
+    ROTP2P46  QOTP46    -1
+    ROTP2P47  AP2P47    1
+    ROTP2P47  QOTP27    1
+    ROTP2P47  QOTP47    -1
+    ROTP2P48  AP2P48    1
+    ROTP2P48  QOTP28    1
+    ROTP2P48  QOTP48    -1
+    ROTP4P31  AP4P31    1
+    ROTP4P31  QOTP41    1
+    ROTP4P31  QOTP31    -1
+    ROTP4P32  AP4P32    1
+    ROTP4P32  QOTP42    1
+    ROTP4P32  QOTP32    -1
+    ROTP4P33  AP4P33    1
+    ROTP4P33  QOTP43    1
+    ROTP4P33  QOTP33    -1
+    ROTP4P34  AP4P34    1
+    ROTP4P34  QOTP44    1
+    ROTP4P34  QOTP34    -1
+    ROTP4P35  AP4P35    1
+    ROTP4P35  QOTP45    1
+    ROTP4P35  QOTP35    -1
+    ROTP4P36  AP4P36    1
+    ROTP4P36  QOTP46    1
+    ROTP4P36  QOTP36    -1
+    ROTP4P37  AP4P37    1
+    ROTP4P37  QOTP47    1
+    ROTP4P37  QOTP37    -1
+    ROTP4P38  AP4P38    1
+    ROTP4P38  QOTP48    1
+    ROTP4P38  QOTP38    -1
+    ROTP5P31  AP5P31    1
+    ROTP5P31  QOTP51    1
+    ROTP5P31  QOTP31    -1
+    ROTP5P32  AP5P32    1
+    ROTP5P32  QOTP52    1
+    ROTP5P32  QOTP32    -1
+    ROTP5P33  AP5P33    1
+    ROTP5P33  QOTP53    1
+    ROTP5P33  QOTP33    -1
+    ROTP5P34  AP5P34    1
+    ROTP5P34  QOTP54    1
+    ROTP5P34  QOTP34    -1
+    ROTP5P35  AP5P35    1
+    ROTP5P35  QOTP55    1
+    ROTP5P35  QOTP35    -1
+    ROTP5P36  AP5P36    1
+    ROTP5P36  QOTP56    1
+    ROTP5P36  QOTP36    -1
+    ROTP5P37  AP5P37    1
+    ROTP5P37  QOTP57    1
+    ROTP5P37  QOTP37    -1
+    ROTP5P38  AP5P38    1
+    ROTP5P38  QOTP58    1
+    ROTP5P38  QOTP38    -1
+    MPS_RgAP1P21  AP1P21    1
+    MPS_RgAP1P22  AP1P22    1
+    MPS_RgAP1P23  AP1P23    1
+    MPS_RgAP1P24  AP1P24    1
+    MPS_RgAP1P25  AP1P25    1
+    MPS_RgAP1P26  AP1P26    1
+    MPS_RgAP1P27  AP1P27    1
+    MPS_RgAP1P28  AP1P28    1
+    MPS_RgAP1P31  AP1P31    1
+    MPS_RgAP1P32  AP1P32    1
+    MPS_RgAP1P33  AP1P33    1
+    MPS_RgAP1P34  AP1P34    1
+    MPS_RgAP1P35  AP1P35    1
+    MPS_RgAP1P36  AP1P36    1
+    MPS_RgAP1P37  AP1P37    1
+    MPS_RgAP1P38  AP1P38    1
+    MPS_RgAP2P11  AP2P11    1
+    MPS_RgAP2P12  AP2P12    1
+    MPS_RgAP2P13  AP2P13    1
+    MPS_RgAP2P14  AP2P14    1
+    MPS_RgAP2P15  AP2P15    1
+    MPS_RgAP2P16  AP2P16    1
+    MPS_RgAP2P17  AP2P17    1
+    MPS_RgAP2P18  AP2P18    1
+    MPS_RgAP2P31  AP2P31    1
+    MPS_RgAP2P32  AP2P32    1
+    MPS_RgAP2P33  AP2P33    1
+    MPS_RgAP2P34  AP2P34    1
+    MPS_RgAP2P35  AP2P35    1
+    MPS_RgAP2P36  AP2P36    1
+    MPS_RgAP2P37  AP2P37    1
+    MPS_RgAP2P38  AP2P38    1
+    MPS_RgAP2P41  AP2P41    1
+    MPS_RgAP2P42  AP2P42    1
+    MPS_RgAP2P43  AP2P43    1
+    MPS_RgAP2P44  AP2P44    1
+    MPS_RgAP2P45  AP2P45    1
+    MPS_RgAP2P46  AP2P46    1
+    MPS_RgAP2P47  AP2P47    1
+    MPS_RgAP2P48  AP2P48    1
+    MPS_RgAP3P21  AP3P21    1
+    MPS_RgAP3P22  AP3P22    1
+    MPS_RgAP3P23  AP3P23    1
+    MPS_RgAP3P24  AP3P24    1
+    MPS_RgAP3P25  AP3P25    1
+    MPS_RgAP3P26  AP3P26    1
+    MPS_RgAP3P27  AP3P27    1
+    MPS_RgAP3P28  AP3P28    1
+    MPS_RgAP4P21  AP4P21    1
+    MPS_RgAP4P22  AP4P22    1
+    MPS_RgAP4P23  AP4P23    1
+    MPS_RgAP4P24  AP4P24    1
+    MPS_RgAP4P25  AP4P25    1
+    MPS_RgAP4P26  AP4P26    1
+    MPS_RgAP4P27  AP4P27    1
+    MPS_RgAP4P28  AP4P28    1
+    MPS_RgAP4P31  AP4P31    1
+    MPS_RgAP4P32  AP4P32    1
+    MPS_RgAP4P33  AP4P33    1
+    MPS_RgAP4P34  AP4P34    1
+    MPS_RgAP4P35  AP4P35    1
+    MPS_RgAP4P36  AP4P36    1
+    MPS_RgAP4P37  AP4P37    1
+    MPS_RgAP4P38  AP4P38    1
+    MPS_RgAP5P31  AP5P31    1
+    MPS_RgAP5P32  AP5P32    1
+    MPS_RgAP5P33  AP5P33    1
+    MPS_RgAP5P34  AP5P34    1
+    MPS_RgAP5P35  AP5P35    1
+    MPS_RgAP5P36  AP5P36    1
+    MPS_RgAP5P37  AP5P37    1
+    MPS_RgAP5P38  AP5P38    1
+    MPS_RgAP5P41  AP5P41    1
+    MPS_RgAP5P42  AP5P42    1
+    MPS_RgAP5P43  AP5P43    1
+    MPS_RgAP5P44  AP5P44    1
+    MPS_RgAP5P45  AP5P45    1
+    MPS_RgAP5P46  AP5P46    1
+    MPS_RgAP5P47  AP5P47    1
+    MPS_RgAP5P48  AP5P48    1
+    C2661     ERCPP48L  1
+    C2662     ERCPP47L  1
+    C2663     ERCPP46L  1
+    C2664     ERCPP45L  1
+    C2665     ERCPP44L  1
+    C2666     ERCPP43L  1
+    C2667     ERCPP42L  1
+    C2668     ERCPP41L  1
+    C2669     ERCPP38L  1
+    C2670     ERCPP37L  1
+    C2671     ERCPP36L  1
+    C2672     ERCPP35L  1
+    C2673     ERCPP34L  1
+    C2674     ERCPP58G  1
+    C2675     TRCP7L    1
+    C2676     ERCPP33L  1
+    C2677     ERCPP57G  1
+    C2678     TRCP6L    1
+    C2679     ERCPP32L  1
+    C2680     ERCPP56G  1
+    C2681     TRCP5L    1
+    C2682     ERCPP31L  1
+    C2683     ERCPP55G  1
+    C2684     TRCP4L    1
+    C2685     ERCPP28L  1
+    C2686     ERCPP54G  1
+    C2687     TRCP3L    1
+    C2688     ERCPP27L  1
+    C2689     ERCPP53G  1
+    C2690     TRCP2L    1
+    C2691     ERCPP26L  1
+    C2692     ERCPP52G  1
+    C2693     TRCP1L    1
+    C2694     ERCPP25L  1
+    C2695     ERCPP51G  1
+    C2696     ERCPP24L  1
+    C2697     ERCPP23L  1
+    C2698     ERCPP22L  1
+    C2699     ERCPP21L  1
+    C2700     ERCPP18L  1
+    C2701     ERCPP17L  1
+    C2702     ERCPP16L  1
+    C2703     ERCPP15L  1
+    C2704     ERCPP14L  1
+    C2705     ERCPP13L  1
+    C2706     ERCPP12L  1
+    C2707     ERCPP11L  1
+RHS
+    RHS1      RCAPP11   1650.7498
+    RHS1      RCAPP12   1650.7498
+    RHS1      RCAPP13   1650.7498
+    RHS1      RCAPP14   1650.7498
+    RHS1      RCAPP15   1650.7498
+    RHS1      RCAPP16   1650.7498
+    RHS1      RCAPP17   1650.7498
+    RHS1      RCAPP18   1650.7498
+    RHS1      RCAPP21   3814.8594
+    RHS1      RCAPP22   3814.8594
+    RHS1      RCAPP23   3814.8594
+    RHS1      RCAPP24   3814.8594
+    RHS1      RCAPP25   3814.8594
+    RHS1      RCAPP26   3814.8594
+    RHS1      RCAPP27   3814.8594
+    RHS1      RCAPP28   3814.8594
+    RHS1      RCAPP31   5786.457
+    RHS1      RCAPP32   5786.457
+    RHS1      RCAPP33   5786.457
+    RHS1      RCAPP34   5786.457
+    RHS1      RCAPP35   5786.457
+    RHS1      RCAPP36   5786.457
+    RHS1      RCAPP37   5786.457
+    RHS1      RCAPP38   5786.457
+    RHS1      RCAPP41   513.359863
+    RHS1      RCAPP42   513.359863
+    RHS1      RCAPP43   513.359863
+    RHS1      RCAPP44   513.359863
+    RHS1      RCAPP45   513.359863
+    RHS1      RCAPP46   513.359863
+    RHS1      RCAPP47   513.359863
+    RHS1      RCAPP48   513.359863
+    RHS1      RCAPP51   2209.6797
+    RHS1      RCAPP52   2209.6797
+    RHS1      RCAPP53   2209.6797
+    RHS1      RCAPP54   2209.6797
+    RHS1      RCAPP55   2209.6797
+    RHS1      RCAPP56   2209.6797
+    RHS1      RCAPP57   2209.6797
+    RHS1      RCAPP58   2209.6797
+    RHS1      ERCPP11L  10
+    RHS1      ERCPP12L  10
+    RHS1      ERCPP13L  10
+    RHS1      ERCPP14L  10
+    RHS1      ERCPP15L  10
+    RHS1      ERCPP16L  10
+    RHS1      ERCPP17L  10
+    RHS1      ERCPP18L  10
+    RHS1      ERCPP21L  10
+    RHS1      ERCPP22L  10
+    RHS1      ERCPP23L  10
+    RHS1      ERCPP24L  10
+    RHS1      ERCPP25L  10
+    RHS1      ERCPP26L  10
+    RHS1      ERCPP27L  10
+    RHS1      ERCPP28L  10
+    RHS1      ERCPP31L  10
+    RHS1      ERCPP32L  10
+    RHS1      ERCPP33L  10
+    RHS1      ERCPP34L  10
+    RHS1      ERCPP35L  10
+    RHS1      ERCPP36L  10
+    RHS1      ERCPP37L  10
+    RHS1      ERCPP38L  10
+    RHS1      ERCPP41L  10
+    RHS1      ERCPP42L  10
+    RHS1      ERCPP43L  10
+    RHS1      ERCPP44L  10
+    RHS1      ERCPP45L  10
+    RHS1      ERCPP46L  10
+    RHS1      ERCPP47L  10
+    RHS1      ERCPP48L  10
+    RHS1      ERCPP51G  10
+    RHS1      ERCPP52G  10
+    RHS1      ERCPP53G  10
+    RHS1      ERCPP54G  10
+    RHS1      ERCPP55G  10
+    RHS1      ERCPP56G  10
+    RHS1      ERCPP57G  10
+    RHS1      ERCPP58G  10
+    RHS1      TRCP1L    20
+    RHS1      TRCP2L    20
+    RHS1      TRCP3L    20
+    RHS1      TRCP4L    20
+    RHS1      TRCP5L    20
+    RHS1      TRCP6L    20
+    RHS1      TRCP7L    20
+    RHS1      QCRP11    -722.245514903856
+    RHS1      QCRP12    -1.3607976315899901e+02
+    RHS1      QCRP13    -1.1372808082009304e+02
+    RHS1      QCRP14    -5.7111253539615987e+01
+    RHS1      QCRP15    -1.0549570049715001e+02
+    RHS1      QCRP16    -1.1145390373684599e+02
+    RHS1      QCRP17    -8.6804922315488980e+01
+    RHS1      QCRP18    -5.4700630657804979e+01
+    RHS1      QCRP21    -3.6956577864724168e+03
+    RHS1      QCRP22    -884.199925293558
+    RHS1      QCRP23    -8.6470376238281506e+02
+    RHS1      QCRP24    -8.4844057656022392e+02
+    RHS1      QCRP25    -8.4306220680495994e+02
+    RHS1      QCRP26    -873.76182308591
+    RHS1      QCRP27    -813.787866569651
+    RHS1      QCRP28    121.515845490105
+    RHS1      QCRP31    -1.0050227711740959e+04
+    RHS1      QCRP32    -5.7495929411107891e+03
+    RHS1      QCRP33    -5.7601241090395424e+03
+    RHS1      QCRP34    -5696.917734014
+    RHS1      QCRP35    -5.6663972151320249e+03
+    RHS1      QCRP36    -5.6687840142880959e+03
+    RHS1      QCRP37    -5.6276966120558473e+03
+    RHS1      QCRP38    4.5390723874932091e+03
+    RHS1      QCRP41    -1.3080471952627840e+03
+    RHS1      QCRP42    -675.197068558218
+    RHS1      QCRP43    -674.088514238885
+    RHS1      QCRP44    -687.365443532336
+    RHS1      QCRP45    -669.883543449195
+    RHS1      QCRP46    -6.5170726304162406e+02
+    RHS1      QCRP47    -659.77625582382
+    RHS1      QCRP48    527.84462863091
+    RHS1      QCRP51    -2.5718220231803361e+03
+    RHS1      QCRP52    -1.0200901054021051e+03
+    RHS1      QCRP53    -1.0907677151308048e+03
+    RHS1      QCRP54    -1.0151435717036960e+03
+    RHS1      QCRP55    -1069.14459948556
+    RHS1      QCRP56    -1.0454172022173411e+03
+    RHS1      QCRP57    -9.9160880875168482e+02
+    RHS1      QCRP58    627.910753810385
+    RHS1      QGLP11    -157.461696642144
+    RHS1      QGLP12    -21.705582
+    RHS1      QGLP13    -21.868774
+    RHS1      QGLP14    -21.705582
+    RHS1      QGLP15    -21.251816
+    RHS1      QGLP16    -21.647964
+    RHS1      QGLP17    -21.811966
+    RHS1      QGLP18    -21.867233
+    RHS1      QGLP21    -1.5036734346076641e+03
+    RHS1      QGLP22    -230.111954
+    RHS1      QGLP23    -222.11499
+    RHS1      QGLP24    -232.723099
+    RHS1      QGLP25    -231.741394
+    RHS1      QGLP26    -238.064758
+    RHS1      QGLP27    -231.239838
+    RHS1      QGLP28    -229.387711
+    RHS1      QGLP31    -3.3164612801330559e+03
+    RHS1      QGLP32    -1308.374
+    RHS1      QGLP33    -1316.8604
+    RHS1      QGLP34    -1306.9048
+    RHS1      QGLP35    -1319.0317
+    RHS1      QGLP36    -1307.4109
+    RHS1      QGLP37    -1314.5706
+    RHS1      QGLP38    -1317.1792
+    RHS1      QGLP41    -5.2725968077867520e+01
+    RHS1      QGLP42    -42.431976
+    RHS1      QGLP43    -42.758362
+    RHS1      QGLP44    -42.431976
+    RHS1      QGLP45    -42.826889
+    RHS1      QGLP46    -42.420074
+    RHS1      QGLP47    -42.639969
+    RHS1      QGLP48    -42.750473
+    RHS1      QGLP52    -29.212784
+    RHS1      QGLP53    -28.559982
+    RHS1      QGLP54    -28.233566
+    RHS1      QGLP55    -28.200607
+    RHS1      QGLP56    -30.511154
+    RHS1      QGLP57    -29.680344
+    RHS1      QGLP58    -28.814041
+    RHS1      QGAP11    4.7125019737060825e+02
+    RHS1      QGAP12    2409.5618
+    RHS1      QGAP13    2438.3157
+    RHS1      QGAP14    2199.0244
+    RHS1      QGAP15    2240.6504
+    RHS1      QGAP16    2186.6475
+    RHS1      QGAP17    2313.1814
+    RHS1      QGAP18    2382.8364
+    RHS1      QGAP21    1.4223689867732810e+02
+    RHS1      QGAP22    2453.1509
+    RHS1      QGAP23    2385.4805
+    RHS1      QGAP24    2360.1423
+    RHS1      QGAP25    2332.7847
+    RHS1      QGAP26    2207.6646
+    RHS1      QGAP27    2311.7725
+    RHS1      QGAP28    2434.4788
+    RHS1      QGAP31    -790.62574424536
+    RHS1      QGAP32    907.823975
+    RHS1      QGAP33    884.968994
+    RHS1      QGAP34    931.526123
+    RHS1      QGAP35    904.190674
+    RHS1      QGAP36    848.376465
+    RHS1      QGAP37    986.21582
+    RHS1      QGAP38    921.450928
+    RHS1      QGAP41    -2.9300952600000016e+01
+    RHS1      QGAP42    238.725479
+    RHS1      QGAP43    242.268051
+    RHS1      QGAP44    216.75174
+    RHS1      QGAP45    192.061203
+    RHS1      QGAP46    174.294144
+    RHS1      QGAP47    214.863129
+    RHS1      QGAP48    235.932617
+    RHS1      QGAP51    2.4816294438025596e+02
+    RHS1      QGAP52    1025.7305
+    RHS1      QGAP53    1031.9609
+    RHS1      QGAP54    1003.5488
+    RHS1      QGAP55    970.30542
+    RHS1      QGAP56    911.011963
+    RHS1      QGAP57    1022.9658
+    RHS1      QGAP58    1035.2925
+    RHS1      QDSP11    -615.233724538736
+    RHS1      QDSP12    821.000244
+    RHS1      QDSP13    807.084229
+    RHS1      QDSP14    951.501221
+    RHS1      QDSP15    1765.6492
+    RHS1      QDSP16    1954.3228
+    RHS1      QDSP17    1045.0823
+    RHS1      QDSP18    792.543213
+    RHS1      QDSP21    -7.7078268114136006e+02
+    RHS1      QDSP22    693.627197
+    RHS1      QDSP23    688.807617
+    RHS1      QDSP24    777.331299
+    RHS1      QDSP25    1039.3423
+    RHS1      QDSP26    1024.626
+    RHS1      QDSP27    742.390625
+    RHS1      QDSP28    664.186523
+    RHS1      QDSP31    -737.093154906736
+    RHS1      QDSP32    310.20874
+    RHS1      QDSP33    357.296631
+    RHS1      QDSP34    271.512451
+    RHS1      QDSP35    246.157944
+    RHS1      QDSP36    287.843994
+    RHS1      QDSP37    264.251221
+    RHS1      QDSP38    290.950439
+    RHS1      QDSP41    -2.9431348792000009e+01
+    RHS1      QDSP42    87.899811
+    RHS1      QDSP43    86.472961
+    RHS1      QDSP44    102.558868
+    RHS1      QDSP45    104.885483
+    RHS1      QDSP46    79.025803
+    RHS1      QDSP47    86.376877
+    RHS1      QDSP48    85.070374
+    RHS1      QDSP51    -6.4557025711999984e+01
+    RHS1      QDSP52    303.261475
+    RHS1      QDSP53    266.336426
+    RHS1      QDSP54    277.098389
+    RHS1      QDSP55    324.961426
+    RHS1      QDSP56    288.179443
+    RHS1      QDSP57    260.897461
+    RHS1      QDSP58    261.247559
+    RHS1      QRSP11    598.668706074624
+    RHS1      QRSP12    1462.6626
+    RHS1      QRSP13    1491.2029
+    RHS1      QRSP14    1522.5916
+    RHS1      QRSP15    1785.261
+    RHS1      QRSP16    2016.8257
+    RHS1      QRSP17    1651.0869
+    RHS1      QRSP18    1701.7551
+    RHS1      QRSP21    -7.9906094890672023e+01
+    RHS1      QRSP22    137.975739
+    RHS1      QRSP23    138.166229
+    RHS1      QRSP24    149.921982
+    RHS1      QRSP25    219.558243
+    RHS1      QRSP26    277.031738
+    RHS1      QRSP27    166.149963
+    RHS1      QRSP28    161.908005
+    RHS1      QRSP31    -1.4248928472267204e+02
+    RHS1      QRSP32    94.584244
+    RHS1      QRSP33    97.31987
+    RHS1      QRSP34    64.744064
+    RHS1      QRSP35    84.984665
+    RHS1      QRSP36    121.751724
+    RHS1      QRSP37    116.901535
+    RHS1      QRSP38    97.90329
+    RHS1      QRSP41    -2.3645315973336025e+00
+    RHS1      QRSP42    17.555679
+    RHS1      QRSP43    17.681641
+    RHS1      QRSP44    21.381485
+    RHS1      QRSP45    28.804001
+    RHS1      QRSP46    28.50441
+    RHS1      QRSP47    21.653717
+    RHS1      QRSP48    21.492981
+    RHS1      QRSP51    -148.008362368
+    RHS1      QRSP52    258.222412
+    RHS1      QRSP53    279.627441
+    RHS1      QRSP54    253.358826
+    RHS1      QRSP55    352.390869
+    RHS1      QRSP56    390.882813
+    RHS1      QRSP57    315.456543
+    RHS1      QRSP58    300.938721
+    RHS1      QKJP11    1.5435906440532798e+02
+    RHS1      QKJP12    359.661865
+    RHS1      QKJP13    340.031006
+    RHS1      QKJP14    325.185547
+    RHS1      QKJP15    370.646484
+    RHS1      QKJP16    329.319092
+    RHS1      QKJP17    333.424561
+    RHS1      QKJP18    -387.315080344355
+    RHS1      QKJP21    -1.1156937303999996e+01
+    RHS1      QKJP22    166.597092
+    RHS1      QKJP23    184.574829
+    RHS1      QKJP24    173.583984
+    RHS1      QKJP25    183.297913
+    RHS1      QKJP26    160.483566
+    RHS1      QKJP27    168.445313
+    RHS1      QKJP28    -235.76390412451
+    RHS1      QKJP31    -1.7044385596800004e+02
+    RHS1      QKJP32    35.34436
+    RHS1      QKJP33    64.410385
+    RHS1      QKJP34    66.927536
+    RHS1      QKJP35    34.905869
+    RHS1      QKJP36    42.806305
+    RHS1      QKJP37    65.891815
+    RHS1      QKJP38    -114.306642487485
+    RHS1      QKJP41    12.7173089466664
+    RHS1      QKJP42    24.631882
+    RHS1      QKJP43    26.123871
+    RHS1      QKJP44    24.135834
+    RHS1      QKJP45    23.679626
+    RHS1      QKJP46    19.909576
+    RHS1      QKJP47    21.920731
+    RHS1      QKJP48    -2.9021216383972103e+01
+    RHS1      QKJP51    6.4923550175999964e+01
+    RHS1      QKJP52    249.764893
+    RHS1      QKJP53    234.859161
+    RHS1      QKJP54    251.166061
+    RHS1      QKJP55    251.469116
+    RHS1      QKJP56    227.480179
+    RHS1      QKJP57    230.316727
+    RHS1      QKJP58    -297.8639534699
+    RHS1      QNJP11    6.5741889573333111e+01
+    RHS1      QNJP12    66.774643
+    RHS1      QNJP13    72.182785
+    RHS1      QNJP14    76.916443
+    RHS1      QNJP15    73.391464
+    RHS1      QNJP16    52.51236
+    RHS1      QNJP17    63.110077
+    RHS1      QNJP18    -69.8604808606773
+    RHS1      QNJP21    -1.8975877472000008e+01
+    RHS1      QNJP22    39.944595
+    RHS1      QNJP23    50.985016
+    RHS1      QNJP24    49.780502
+    RHS1      QNJP25    46.916931
+    RHS1      QNJP26    34.671082
+    RHS1      QNJP27    44.780411
+    RHS1      QNJP28    -5.7062469079654996e+01
+    RHS1      QNJP31    -2.3079664072000007e+01
+    RHS1      QNJP32    32.754608
+    RHS1      QNJP33    51.255585
+    RHS1      QNJP34    39.356964
+    RHS1      QNJP35    51.237732
+    RHS1      QNJP36    34.538086
+    RHS1      QNJP37    43.162613
+    RHS1      QNJP38    -59.924509654055
+    RHS1      QNJP41    -1.3625409760001617e+00
+    RHS1      QNJP42    6.309752
+    RHS1      QNJP43    7.99948
+    RHS1      QNJP44    7.867579
+    RHS1      QNJP45    6.778787
+    RHS1      QNJP46    6.129068
+    RHS1      QNJP47    7.030066
+    RHS1      QNJP48    -9.2930811473954513e+00
+    RHS1      QNJP51    1.6742395935999994e+01
+    RHS1      QNJP52    66.216202
+    RHS1      QNJP53    65.576813
+    RHS1      QNJP54    91.078323
+    RHS1      QNJP55    95.674774
+    RHS1      QNJP56    72.14917
+    RHS1      QNJP57    73.91626
+    RHS1      QNJP58    -8.7565593410175012e+01
+    RHS1      QPFP11    2.3205520424687681e+01
+    RHS1      QPFP12    24.955856
+    RHS1      QPFP13    25.882187
+    RHS1      QPFP14    27.432922
+    RHS1      QPFP15    24.285355
+    RHS1      QPFP16    22.110168
+    RHS1      QPFP17    20.099365
+    RHS1      QPFP18    -2.1511971759128350e+01
+    RHS1      QPFP21    2.6549884926162719e+01
+    RHS1      QPFP22    42.39502
+    RHS1      QPFP23    38.702026
+    RHS1      QPFP24    40.262268
+    RHS1      QPFP25    41.472641
+    RHS1      QPFP26    30.938339
+    RHS1      QPFP27    32.589432
+    RHS1      QPFP28    -3.7214716029089452e+01
+    RHS1      QPFP31    2.0161457009771203e+02
+    RHS1      QPFP32    257.088135
+    RHS1      QPFP33    254.167679
+    RHS1      QPFP34    245.710724
+    RHS1      QPFP35    266.727539
+    RHS1      QPFP36    213.200943
+    RHS1      QPFP37    209.654633
+    RHS1      QPFP38    -226.21980679694
+    RHS1      QPFP41    0.7363500263136
+    RHS1      QPFP42    0.77623868
+    RHS1      QPFP43    0.55590332
+    RHS1      QPFP44    1.069831
+    RHS1      QPFP45    1.003999
+    RHS1      QPFP46    0.61150444
+    RHS1      QPFP47    0.57109255
+    RHS1      QPFP48    -7.7749006668185006e-01
+    RHS1      QPFP51    1.3759628449775677e+01
+    RHS1      QPFP52    21.784622
+    RHS1      QPFP53    24.691956
+    RHS1      QPFP54    31.524033
+    RHS1      QPFP55    23.51004
+    RHS1      QPFP56    17.138657
+    RHS1      QPFP57    22.085098
+    RHS1      QPFP58    -2.5479568721041549e+01
+    RHS1      QLPP11    51.108932
+    RHS1      QLPP12    39.671005
+    RHS1      QLPP13    61.847305
+    RHS1      QLPP14    52.352951
+    RHS1      QLPP15    92.616241
+    RHS1      QLPP16    115.967285
+    RHS1      QLPP17    55.943115
+    RHS1      QLPP18    -47.113327
+    RHS1      QLPP21    72.114728714128
+    RHS1      QLPP22    105.008316
+    RHS1      QLPP23    146.013306
+    RHS1      QLPP24    198.559006
+    RHS1      QLPP25    330.311523
+    RHS1      QLPP26    330.656494
+    RHS1      QLPP27    132.247696
+    RHS1      QLPP28    -147.236694258935
+    RHS1      QLPP31    5.8609868899038406e+02
+    RHS1      QLPP32    671.301025
+    RHS1      QLPP33    708.720215
+    RHS1      QLPP34    706.325195
+    RHS1      QLPP35    889.79834
+    RHS1      QLPP36    844.227783
+    RHS1      QLPP37    678.141602
+    RHS1      QLPP38    -673.715848736805
+    RHS1      QLPP41    3.5514395986132641e+01
+    RHS1      QLPP42    36.47052
+    RHS1      QLPP43    35.190247
+    RHS1      QLPP44    37.320923
+    RHS1      QLPP45    44.067932
+    RHS1      QLPP46    49.050919
+    RHS1      QLPP47    41.526245
+    RHS1      QLPP48    -3.4961903342956553e+01
+    RHS1      QLPP51    6.1374233662321487e+01
+    RHS1      QLPP52    63.54834
+    RHS1      QLPP53    60.229141
+    RHS1      QLPP54    63.440781
+    RHS1      QLPP55    83.203278
+    RHS1      QLPP56    74.095795
+    RHS1      QLPP57    68.140228
+    RHS1      QLPP58    -5.8298408707804349e+01
+    RHS1      QOTP11    -3.3939281836800006e+02
+    RHS1      QOTP12    504.032227
+    RHS1      QOTP13    575.973877
+    RHS1      QOTP14    567.272461
+    RHS1      QOTP15    574.926514
+    RHS1      QOTP16    503.333252
+    RHS1      QOTP17    461.212891
+    RHS1      QOTP18    515.841553
+    RHS1      QOTP21    -1.9734509450382404e+02
+    RHS1      QOTP22    716.281982
+    RHS1      QOTP23    744.021484
+    RHS1      QOTP24    757.934814
+    RHS1      QOTP25    600.689941
+    RHS1      QOTP26    528.244141
+    RHS1      QOTP27    579.60376
+    RHS1      QOTP28    694.925049
+    RHS1      QOTP31    -2.6024783933920048e+01
+    RHS1      QOTP32    692.159668
+    RHS1      QOTP33    643.010742
+    RHS1      QOTP34    671.126465
+    RHS1      QOTP35    638.509766
+    RHS1      QOTP36    614.355469
+    RHS1      QOTP37    614.669189
+    RHS1      QOTP38    628.909668
+    RHS1      QOTP41    -1.0735200970899203e+02
+    RHS1      QOTP42    108.816818
+    RHS1      QOTP43    115.964767
+    RHS1      QOTP44    100.822281
+    RHS1      QOTP45    63.011841
+    RHS1      QOTP46    48.899475
+    RHS1      QOTP47    75.042664
+    RHS1      QOTP48    102.087631
+    RHS1      QOTP51    5.2178913077072025e+01
+    RHS1      QOTP52    372.707031
+    RHS1      QOTP53    367.026611
+    RHS1      QOTP54    312.843994
+    RHS1      QOTP55    333.859619
+    RHS1      QOTP56    283.165039
+    RHS1      QOTP57    326.468018
+    RHS1      QOTP58    330.233398
+    RHS1      AP1P21    58.799988
+    RHS1      AP1P22    58.799988
+    RHS1      AP1P23    58.799988
+    RHS1      AP1P24    58.799988
+    RHS1      AP1P25    58.799988
+    RHS1      AP1P26    58.799988
+    RHS1      AP1P27    58.799988
+    RHS1      AP1P28    58.799988
+    RHS1      AP1P31    3027
+    RHS1      AP1P32    3027
+    RHS1      AP1P33    3027
+    RHS1      AP1P34    3027
+    RHS1      AP1P35    3027
+    RHS1      AP1P36    3027
+    RHS1      AP1P37    3027
+    RHS1      AP1P38    3027
+    RHS1      AP2P11    185.5
+    RHS1      AP2P12    185.5
+    RHS1      AP2P13    185.5
+    RHS1      AP2P14    185.5
+    RHS1      AP2P15    185.5
+    RHS1      AP2P16    185.5
+    RHS1      AP2P17    185.5
+    RHS1      AP2P18    185.5
+    RHS1      AP2P31    553.5
+    RHS1      AP2P32    553.5
+    RHS1      AP2P33    553.5
+    RHS1      AP2P34    553.5
+    RHS1      AP2P35    553.5
+    RHS1      AP2P36    553.5
+    RHS1      AP2P37    553.5
+    RHS1      AP2P38    553.5
+    RHS1      AP2P41    29
+    RHS1      AP2P42    29
+    RHS1      AP2P43    29
+    RHS1      AP2P44    29
+    RHS1      AP2P45    29
+    RHS1      AP2P46    29
+    RHS1      AP2P47    29
+    RHS1      AP2P48    29
+    RHS1      AP3P21    117
+    RHS1      AP3P22    117
+    RHS1      AP3P23    117
+    RHS1      AP3P24    117
+    RHS1      AP3P25    117
+    RHS1      AP3P26    117
+    RHS1      AP3P27    117
+    RHS1      AP3P28    117
+    RHS1      AP4P21    12.599999
+    RHS1      AP4P22    12.599999
+    RHS1      AP4P23    12.599999
+    RHS1      AP4P24    12.599999
+    RHS1      AP4P25    12.599999
+    RHS1      AP4P26    12.599999
+    RHS1      AP4P27    12.599999
+    RHS1      AP4P28    12.599999
+    RHS1      AP4P31    35.899994
+    RHS1      AP4P32    35.899994
+    RHS1      AP4P33    35.899994
+    RHS1      AP4P34    35.899994
+    RHS1      AP4P35    35.899994
+    RHS1      AP4P36    35.899994
+    RHS1      AP4P37    35.899994
+    RHS1      AP4P38    35.899994
+    RHS1      AP5P31    118
+    RHS1      AP5P32    118
+    RHS1      AP5P33    118
+    RHS1      AP5P34    118
+    RHS1      AP5P35    118
+    RHS1      AP5P36    118
+    RHS1      AP5P37    118
+    RHS1      AP5P38    118
+    RHS1      AP5P41    51.699997
+    RHS1      AP5P42    51.699997
+    RHS1      AP5P43    51.699997
+    RHS1      AP5P44    51.699997
+    RHS1      AP5P45    51.699997
+    RHS1      AP5P46    51.699997
+    RHS1      AP5P47    51.699997
+    RHS1      AP5P48    51.699997
+BOUNDS
+ UP BND1      ICRP11    1373.3989
+ UP BND1      ICRP12    1532.9988
+ UP BND1      ICRP13    1532.9988
+ UP BND1      ICRP14    1532.9988
+ UP BND1      ICRP15    1531.9482
+ UP BND1      ICRP16    1243.1982
+ UP BND1      ICRP17    1373.3987
+ UP BND1      ICRP18    1532.9983
+ UP BND1      IGLP11    5.249996
+ UP BND1      IGLP12    5.249996
+ UP BND1      IGLP13    5.249996
+ UP BND1      IGLP14    5.249996
+ UP BND1      IGLP15    5.249995
+ UP BND1      IGLP16    5.249994
+ UP BND1      IGLP17    5.249994
+ UP BND1      IGLP18    5.249995
+ UP BND1      IUNP11    97.649918
+ UP BND1      IUNP12    113.399918
+ UP BND1      IUNP13    113.399918
+ UP BND1      IUNP14    113.399918
+ UP BND1      IUNP15    137.549866
+ UP BND1      IUNP16    106.049866
+ UP BND1      IUNP17    97.649902
+ UP BND1      IUNP18    113.399887
+ UP BND1      IGAP11    165.899872
+ UP BND1      IGAP12    144.899887
+ UP BND1      IGAP13    144.899887
+ UP BND1      IGAP14    144.899887
+ UP BND1      IGAP15    193.199829
+ UP BND1      IGAP16    167.999832
+ UP BND1      IGAP17    165.899857
+ UP BND1      IGAP18    144.899857
+ UP BND1      IDSP11    235.199829
+ UP BND1      IDSP12    275.099609
+ UP BND1      IDSP13    275.099609
+ UP BND1      IDSP14    275.099609
+ UP BND1      IDSP15    451.499268
+ UP BND1      IDSP16    675.14917
+ UP BND1      IDSP17    235.199783
+ UP BND1      IDSP18    275.099365
+ UP BND1      IRSP11    1.6530872412811625e+03
+ UP BND1      IRSP12    1786.0486
+ UP BND1      IRSP13    1786.0486
+ UP BND1      IRSP14    1786.0486
+ UP BND1      IRSP15    1.8700710861822629e+03
+ UP BND1      IRSP16    2.1098685978209492e+03
+ UP BND1      IRSP17    1760.8484
+ UP BND1      IRSP18    1786.0481
+ UP BND1      IKJP11    121.799911
+ UP BND1      IKJP12    122.849899
+ UP BND1      IKJP13    122.849899
+ UP BND1      IKJP14    122.849899
+ UP BND1      IKJP15    119.69986
+ UP BND1      IKJP16    96.599884
+ UP BND1      IKJP17    121.799881
+ UP BND1      IKJP18    122.849869
+ UP BND1      INJP11    35.699966
+ UP BND1      INJP12    58.799957
+ UP BND1      INJP13    58.799957
+ UP BND1      INJP14    58.799957
+ UP BND1      INJP15    48.299942
+ UP BND1      INJP16    31.499939
+ UP BND1      INJP17    35.699951
+ UP BND1      INJP18    58.799927
+ UP BND1      IPFP11    2.099998
+ UP BND1      IPFP15    5.249995
+ UP BND1      IPFP16    3.149996
+ UP BND1      IPFP17    2.099998
+ UP BND1      ILPP11    15.749989
+ UP BND1      ILPP12    18.899979
+ UP BND1      ILPP13    18.899979
+ UP BND1      ILPP14    18.899979
+ UP BND1      ILPP15    37.799957
+ UP BND1      ILPP16    52.499939
+ UP BND1      ILPP17    15.749986
+ UP BND1      ILPP18    18.899963
+ UP BND1      IOTP11    46.199966
+ UP BND1      IOTP12    55.649948
+ UP BND1      IOTP13    55.649948
+ UP BND1      IOTP14    55.649948
+ UP BND1      IOTP15    52.499939
+ UP BND1      IOTP16    66.149933
+ UP BND1      IOTP17    46.199936
+ UP BND1      IOTP18    55.649918
+ UP BND1      ICRP21    804.299316
+ UP BND1      ICRP22    806.399414
+ UP BND1      ICRP23    806.399414
+ UP BND1      ICRP24    806.399414
+ UP BND1      ICRP25    752.848877
+ UP BND1      ICRP26    808.498779
+ UP BND1      ICRP27    804.299072
+ UP BND1      ICRP28    806.39917
+ UP BND1      IGLP21    68.249939
+ UP BND1      IGLP22    68.249939
+ UP BND1      IGLP23    68.249939
+ UP BND1      IGLP24    68.249939
+ UP BND1      IGLP25    68.249908
+ UP BND1      IGLP26    68.249908
+ UP BND1      IGLP27    68.249908
+ UP BND1      IGLP28    68.249908
+ UP BND1      IUNP21    6.299995
+ UP BND1      IUNP22    6.299995
+ UP BND1      IUNP23    6.299995
+ UP BND1      IUNP24    6.299995
+ UP BND1      IUNP25    7.349994
+ UP BND1      IUNP26    7.349992
+ UP BND1      IUNP27    6.299993
+ UP BND1      IUNP28    6.299994
+ UP BND1      IGAP21    6.299995
+ UP BND1      IGAP22    4.199997
+ UP BND1      IGAP23    4.199997
+ UP BND1      IGAP26    3.149996
+ UP BND1      IDSP21    12.599991
+ UP BND1      IDSP22    17.849976
+ UP BND1      IDSP23    17.849976
+ UP BND1      IDSP24    17.849976
+ UP BND1      IDSP25    4.199995
+ UP BND1      IDSP26    7.349992
+ UP BND1      IDSP27    12.599988
+ UP BND1      IDSP28    17.84996
+ UP BND1      IRSP21    23.099976
+ UP BND1      IRSP22    31.499969
+ UP BND1      IRSP23    31.499969
+ UP BND1      IRSP24    31.499969
+ UP BND1      IRSP25    33.599945
+ UP BND1      IRSP26    20.999969
+ UP BND1      IRSP27    23.09996
+ UP BND1      IRSP28    31.499954
+ UP BND1      IKJP21    12.599991
+ UP BND1      IKJP22    13.64999
+ UP BND1      IKJP23    13.64999
+ UP BND1      IKJP24    13.64999
+ UP BND1      IKJP25    10.49999
+ UP BND1      IKJP26    8.399993
+ UP BND1      IKJP27    12.599988
+ UP BND1      IKJP28    13.649987
+ UP BND1      ILPP21    45.149963
+ UP BND1      ILPP22    39.899963
+ UP BND1      ILPP23    39.899963
+ UP BND1      ILPP24    39.899963
+ UP BND1      ILPP25    71.399918
+ UP BND1      ILPP26    92.399918
+ UP BND1      ILPP27    45.149948
+ UP BND1      ILPP28    39.899948
+ UP BND1      IOTP22    1.049999
+ UP BND1      IOTP23    1.049999
+ UP BND1      IOTP24    1.049999
+ UP BND1      IOTP25    2.099997
+ UP BND1      IOTP26    6.299994
+ UP BND1      IOTP27    1.049998
+ UP BND1      ICRP31    439.949463
+ UP BND1      ICRP32    549.149414
+ UP BND1      ICRP33    549.149414
+ UP BND1      ICRP34    549.149414
+ UP BND1      ICRP35    676.198975
+ UP BND1      ICRP36    286.649414
+ UP BND1      ICRP37    439.949219
+ UP BND1      ICRP38    549.14917
+ UP BND1      IUNP31    50.399963
+ UP BND1      IUNP32    62.999954
+ UP BND1      IUNP33    62.999954
+ UP BND1      IUNP34    62.999954
+ UP BND1      IUNP35    64.049911
+ UP BND1      IUNP36    53.549927
+ UP BND1      IUNP37    50.399918
+ UP BND1      IUNP38    62.999939
+ UP BND1      IGAP31    14.699989
+ UP BND1      IGAP32    30.449966
+ UP BND1      IGAP33    30.449966
+ UP BND1      IGAP34    30.449966
+ UP BND1      IGAP35    18.899963
+ UP BND1      IGAP36    18.899963
+ UP BND1      IGAP37    14.699986
+ UP BND1      IGAP38    30.449936
+ UP BND1      IDSP31    38.84996
+ UP BND1      IDSP32    77.699936
+ UP BND1      IDSP33    77.699936
+ UP BND1      IDSP34    77.699936
+ UP BND1      IDSP35    53.549911
+ UP BND1      IDSP36    31.499939
+ UP BND1      IDSP37    38.849945
+ UP BND1      IDSP38    77.699905
+ UP BND1      IRSP31    48.299957
+ UP BND1      IRSP32    48.299957
+ UP BND1      IRSP33    48.299957
+ UP BND1      IRSP34    48.299957
+ UP BND1      IRSP35    67.199921
+ UP BND1      IRSP36    52.499939
+ UP BND1      IRSP37    48.299927
+ UP BND1      IRSP38    48.299942
+ UP BND1      IKJP31    43.049957
+ UP BND1      IKJP32    19.949982
+ UP BND1      IKJP33    19.949982
+ UP BND1      IKJP34    19.949982
+ UP BND1      IKJP35    23.09996
+ UP BND1      IKJP36    23.09996
+ UP BND1      IKJP37    43.049942
+ UP BND1      IKJP38    19.949966
+ UP BND1      IPFP31    20.999985
+ UP BND1      IPFP32    28.349976
+ UP BND1      IPFP33    28.349976
+ UP BND1      IPFP34    28.349976
+ UP BND1      IPFP35    19.949966
+ UP BND1      IPFP36    23.09996
+ UP BND1      IPFP37    20.999969
+ UP BND1      IPFP38    28.34996
+ UP BND1      ILPP31    44.09996
+ UP BND1      ILPP32    64.049942
+ UP BND1      ILPP33    64.049942
+ UP BND1      ILPP34    64.049942
+ UP BND1      ILPP35    45.149948
+ UP BND1      ILPP36    58.799927
+ UP BND1      ILPP37    44.099945
+ UP BND1      ILPP38    64.049911
+ UP BND1      IOTP31    7.349995
+ UP BND1      IOTP32    9.449993
+ UP BND1      IOTP33    9.449993
+ UP BND1      IOTP34    9.449993
+ UP BND1      IOTP35    8.399992
+ UP BND1      IOTP36    11.549991
+ UP BND1      IOTP37    7.349993
+ UP BND1      IOTP38    9.449992
+ UP BND1      ICRP41    57.749954
+ UP BND1      ICRP42    55.649948
+ UP BND1      ICRP43    55.649948
+ UP BND1      ICRP44    55.649948
+ UP BND1      ICRP45    71.399918
+ UP BND1      ICRP46    60.899918
+ UP BND1      ICRP47    57.749924
+ UP BND1      ICRP48    55.649918
+ UP BND1      IGLP41    31.499969
+ UP BND1      IGLP42    31.499969
+ UP BND1      IGLP43    31.499969
+ UP BND1      IGLP44    31.499969
+ UP BND1      IGLP45    31.499939
+ UP BND1      IGLP46    31.499939
+ UP BND1      IGLP47    31.499954
+ UP BND1      IGLP48    31.499954
+ UP BND1      IGAP41    2.099998
+ UP BND1      IGAP42    3.149998
+ UP BND1      IGAP43    3.149998
+ UP BND1      IGAP44    3.149998
+ UP BND1      IGAP45    3.149997
+ UP BND1      IGAP46    3.149996
+ UP BND1      IGAP47    2.099998
+ UP BND1      IGAP48    3.149997
+ UP BND1      IDSP45    2.099997
+ UP BND1      IDSP46    1.049998
+ UP BND1      IRSP46    1.049998
+ UP BND1      ILPP41    13.64999
+ UP BND1      ILPP42    13.64999
+ UP BND1      ILPP43    13.64999
+ UP BND1      ILPP44    13.64999
+ UP BND1      ILPP45    26.249954
+ UP BND1      ILPP46    35.699951
+ UP BND1      ILPP47    13.649988
+ UP BND1      ILPP48    13.649987
+ UP BND1      IOTP41    2.099998
+ UP BND1      IOTP47    2.099998
+ UP BND1      ICRP51    867.299316
+ UP BND1      ICRP52    1052.0991
+ UP BND1      ICRP53    1052.0991
+ UP BND1      ICRP54    1052.0991
+ UP BND1      ICRP55    934.498779
+ UP BND1      ICRP56    965.998535
+ UP BND1      ICRP57    867.298584
+ UP BND1      ICRP58    1052.0986
+ UP BND1      IGLP51    10.499992
+ UP BND1      IGLP52    10.499992
+ UP BND1      IGLP53    10.499992
+ UP BND1      IGLP54    10.499992
+ UP BND1      IGLP55    10.49999
+ UP BND1      IGLP56    10.49999
+ UP BND1      IGLP57    10.49999
+ UP BND1      IGLP58    10.49999
+ UP BND1      IUNP51    70.349945
+ UP BND1      IUNP52    57.749954
+ UP BND1      IUNP53    57.749954
+ UP BND1      IUNP54    57.749954
+ UP BND1      IUNP55    49.349945
+ UP BND1      IUNP56    89.249893
+ UP BND1      IUNP57    70.349915
+ UP BND1      IUNP58    57.749924
+ UP BND1      IGAP51    3.149998
+ UP BND1      IGAP52    9.449993
+ UP BND1      IGAP53    9.449993
+ UP BND1      IGAP54    9.449993
+ UP BND1      IGAP56    7.349992
+ UP BND1      IDSP51    8.399994
+ UP BND1      IDSP52    36.749969
+ UP BND1      IDSP53    36.749969
+ UP BND1      IDSP54    36.749969
+ UP BND1      IDSP55    23.09996
+ UP BND1      IDSP56    9.449991
+ UP BND1      IDSP57    8.399992
+ UP BND1      IDSP58    36.749954
+ UP BND1      IRSP51    44.09996
+ UP BND1      IRSP52    122.849899
+ UP BND1      IRSP53    122.849899
+ UP BND1      IRSP54    122.849899
+ UP BND1      IRSP55    55.649918
+ UP BND1      IRSP56    113.399902
+ UP BND1      IRSP57    44.099945
+ UP BND1      IRSP58    122.849869
+ UP BND1      IKJP51    94.499924
+ UP BND1      IKJP52    65.099945
+ UP BND1      IKJP53    65.099945
+ UP BND1      IKJP54    65.099945
+ UP BND1      IKJP55    121.799866
+ UP BND1      IKJP56    113.399902
+ UP BND1      IKJP57    94.499893
+ UP BND1      IKJP58    65.099915
+ UP BND1      INJP51    34.649963
+ UP BND1      INJP52    14.699989
+ UP BND1      INJP53    14.699989
+ UP BND1      INJP54    14.699989
+ UP BND1      INJP55    35.699951
+ UP BND1      INJP56    25.199951
+ UP BND1      INJP57    34.649933
+ UP BND1      INJP58    14.699987
+ UP BND1      ILPP51    14.699989
+ UP BND1      ILPP52    15.749989
+ UP BND1      ILPP53    15.749989
+ UP BND1      ILPP54    15.749989
+ UP BND1      ILPP55    48.299942
+ UP BND1      ILPP56    41.999954
+ UP BND1      ILPP57    14.699986
+ UP BND1      ILPP58    15.749986
+ UP BND1      IOTP51    3.149998
+ UP BND1      IOTP56    1.049998
+ UP BND1      IOTP57    3.149995
+ UP BND1      SGAP11    1.6058865164221143e+03
+ UP BND1      SGAP12    1.6857156362497028e+03
+ UP BND1      SGAP13    1.6948514242229239e+03
+ UP BND1      SGAP14    1.5428273913064843e+03
+ UP BND1      SGAP15    1.2883376011939633e+03
+ UP BND1      SGAP16    1.2699827415579716e+03
+ UP BND1      SGAP17    1406.39851752537
+ UP BND1      SGAP18    1.4499577105436235e+03
+ UP BND1      SDSP11    943.898926
+ UP BND1      SDSP12    821.000244
+ UP BND1      SDSP13    807.084229
+ UP BND1      SDSP14    951.501221
+ UP BND1      SDSP15    1.4618831189595521e+03
+ UP BND1      SDSP16    1.4539398269124292e+03
+ UP BND1      SDSP17    7.7308089564172042e+02
+ UP BND1      SDSP18    7.2846191689852481e+02
+ UP BND1      SRSP12    1462.6626
+ UP BND1      SRSP13    1491.2029
+ UP BND1      SRSP14    1522.5916
+ UP BND1      SRSP17    1651.0869
+ UP BND1      SKJP11    344.392334
+ UP BND1      SKJP12    359.661865
+ UP BND1      SKJP13    340.031006
+ UP BND1      SKJP14    325.185547
+ UP BND1      SKJP15    370.646484
+ UP BND1      SKJP16    329.319092
+ UP BND1      SKJP17    333.424561
+ UP BND1      SKJP18    332.793701
+ UP BND1      SNJP11    71.408554
+ UP BND1      SNJP12    66.774643
+ UP BND1      SNJP13    72.182785
+ UP BND1      SNJP14    76.916443
+ UP BND1      SNJP15    73.391464
+ UP BND1      SNJP16    52.51236
+ UP BND1      SNJP17    63.110077
+ UP BND1      SNJP18    67.242172
+ UP BND1      SPFP11    25.859818
+ UP BND1      SPFP12    24.955856
+ UP BND1      SPFP13    25.882187
+ UP BND1      SPFP14    27.432922
+ UP BND1      SPFP15    24.285355
+ UP BND1      SPFP16    22.110168
+ UP BND1      SPFP17    20.099365
+ UP BND1      SPFP18    21.424911
+ UP BND1      SLPP11    51.108932
+ UP BND1      SLPP12    39.671005
+ UP BND1      SLPP13    61.847305
+ UP BND1      SLPP14    52.352951
+ UP BND1      SLPP15    92.616241
+ UP BND1      SLPP16    115.967285
+ UP BND1      SLPP17    55.943115
+ UP BND1      SLPP18    47.113327
+ UP BND1      SOTP11    4.1887288236872689e+02
+ UP BND1      SOTP12    4.5841325852553496e+02
+ UP BND1      SOTP13    5.1806988602358342e+02
+ UP BND1      SOTP14    567.272461
+ UP BND1      SOTP15    4.8421996385548465e+02
+ UP BND1      SOTP16    4.1136587385690694e+02
+ UP BND1      SOTP17    3.7630458032168121e+02
+ UP BND1      SOTP18    4.1590420041121382e+02
+ UP BND1      SGAP21    2419.54787214117
+ UP BND1      SGAP22    2453.1509
+ UP BND1      SGAP23    2.3695503040654944e+03
+ UP BND1      SGAP24    2.3232643298799908e+03
+ UP BND1      SGAP25    2.0995571871576185e+03
+ UP BND1      SGAP26    2.0872579368983897e+03
+ UP BND1      SGAP27    2045.97835267758
+ UP BND1      SGAP28    2.2015157995501509e+03
+ UP BND1      SDSP21    738.750244
+ UP BND1      SDSP22    693.627197
+ UP BND1      SDSP23    688.807617
+ UP BND1      SDSP24    777.331299
+ UP BND1      SDSP25    1039.3423
+ UP BND1      SDSP26    1024.626
+ UP BND1      SDSP27    742.390625
+ UP BND1      SDSP28    664.186523
+ UP BND1      SRSP21    135.360504
+ UP BND1      SRSP22    137.975739
+ UP BND1      SRSP23    138.166229
+ UP BND1      SRSP24    149.921982
+ UP BND1      SRSP25    219.558243
+ UP BND1      SRSP26    277.031738
+ UP BND1      SRSP27    166.149963
+ UP BND1      SRSP28    161.908005
+ UP BND1      SKJP21    170.276367
+ UP BND1      SKJP22    166.597092
+ UP BND1      SKJP23    184.574829
+ UP BND1      SKJP24    173.583984
+ UP BND1      SKJP25    183.297913
+ UP BND1      SKJP26    160.483566
+ UP BND1      SKJP27    168.445313
+ UP BND1      SKJP28    170.250275
+ UP BND1      SNJP21    46.824112
+ UP BND1      SNJP22    39.944595
+ UP BND1      SNJP23    50.985016
+ UP BND1      SNJP24    49.780502
+ UP BND1      SNJP25    46.916931
+ UP BND1      SNJP26    34.671082
+ UP BND1      SNJP27    44.780411
+ UP BND1      SNJP28    43.653915
+ UP BND1      SPFP21    42.755066
+ UP BND1      SPFP22    42.39502
+ UP BND1      SPFP23    38.702026
+ UP BND1      SPFP24    40.262268
+ UP BND1      SPFP25    41.472641
+ UP BND1      SPFP26    30.938339
+ UP BND1      SPFP27    32.589432
+ UP BND1      SPFP28    33.234406
+ UP BND1      SLPP21    105.74469
+ UP BND1      SLPP22    105.008316
+ UP BND1      SLPP23    146.013306
+ UP BND1      SLPP24    198.559006
+ UP BND1      SLPP25    330.311523
+ UP BND1      SLPP26    330.656494
+ UP BND1      SLPP27    132.247696
+ UP BND1      SLPP28    136.270401
+ UP BND1      SOTP21    6.8497162216668914e+02
+ UP BND1      SOTP22    716.281982
+ UP BND1      SOTP23    744.021484
+ UP BND1      SOTP24    757.934814
+ UP BND1      SOTP25    600.689941
+ UP BND1      SOTP26    528.244141
+ UP BND1      SOTP27    5.7339008215391937e+02
+ UP BND1      SOTP28    6.5752852574122528e+02
+ UP BND1      SGAP31    1016.1738
+ UP BND1      SGAP32    907.823975
+ UP BND1      SGAP33    884.968994
+ UP BND1      SGAP34    931.526123
+ UP BND1      SGAP35    904.190674
+ UP BND1      SGAP36    848.376465
+ UP BND1      SGAP37    986.21582
+ UP BND1      SGAP38    921.450928
+ UP BND1      SDSP31    273.90625
+ UP BND1      SDSP32    310.20874
+ UP BND1      SDSP33    357.296631
+ UP BND1      SDSP34    271.512451
+ UP BND1      SDSP35    246.157944
+ UP BND1      SDSP36    287.843994
+ UP BND1      SDSP37    264.251221
+ UP BND1      SDSP38    290.950439
+ UP BND1      SRSP31    121.743973
+ UP BND1      SRSP32    94.584244
+ UP BND1      SRSP33    97.31987
+ UP BND1      SRSP34    64.744064
+ UP BND1      SRSP35    84.984665
+ UP BND1      SRSP36    121.751724
+ UP BND1      SRSP37    116.901535
+ UP BND1      SRSP38    97.90329
+ UP BND1      SKJP31    79.756104
+ UP BND1      SKJP32    35.34436
+ UP BND1      SKJP33    64.410385
+ UP BND1      SKJP34    66.927536
+ UP BND1      SKJP35    34.905869
+ UP BND1      SKJP36    42.806305
+ UP BND1      SKJP37    65.891815
+ UP BND1      SKJP38    53.898285
+ UP BND1      SNJP31    36.886993
+ UP BND1      SNJP32    32.754608
+ UP BND1      SNJP33    51.255585
+ UP BND1      SNJP34    39.356964
+ UP BND1      SNJP35    51.237732
+ UP BND1      SNJP36    34.538086
+ UP BND1      SNJP37    43.162613
+ UP BND1      SNJP38    38.279434
+ UP BND1      SPFP31    260.558594
+ UP BND1      SPFP32    257.088135
+ UP BND1      SPFP33    254.167679
+ UP BND1      SPFP34    245.710724
+ UP BND1      SPFP35    266.727539
+ UP BND1      SPFP36    213.200943
+ UP BND1      SPFP37    209.654633
+ UP BND1      SPFP38    207.371155
+ UP BND1      SLPP31    679.788574
+ UP BND1      SLPP32    671.301025
+ UP BND1      SLPP33    708.720215
+ UP BND1      SLPP34    706.325195
+ UP BND1      SLPP35    889.79834
+ UP BND1      SLPP36    844.227783
+ UP BND1      SLPP37    678.141602
+ UP BND1      SLPP38    643.164795
+ UP BND1      SOTP31    682.721436
+ UP BND1      SOTP32    692.159668
+ UP BND1      SOTP33    643.010742
+ UP BND1      SOTP34    671.126465
+ UP BND1      SOTP35    638.509766
+ UP BND1      SOTP36    614.355469
+ UP BND1      SOTP37    614.669189
+ UP BND1      SOTP38    628.909668
+ UP BND1      SGAP41    235.699005
+ UP BND1      SGAP42    238.725479
+ UP BND1      SGAP43    242.268051
+ UP BND1      SGAP44    216.75174
+ UP BND1      SGAP45    192.061203
+ UP BND1      SGAP46    174.294144
+ UP BND1      SGAP47    214.863129
+ UP BND1      SGAP48    235.932617
+ UP BND1      SDSP41    92.701965
+ UP BND1      SDSP42    87.899811
+ UP BND1      SDSP43    86.472961
+ UP BND1      SDSP44    102.558868
+ UP BND1      SDSP45    104.885483
+ UP BND1      SDSP46    79.025803
+ UP BND1      SDSP47    86.376877
+ UP BND1      SDSP48    85.070374
+ UP BND1      SRSP41    18.90213
+ UP BND1      SRSP42    17.555679
+ UP BND1      SRSP43    17.681641
+ UP BND1      SRSP44    21.381485
+ UP BND1      SRSP45    28.804001
+ UP BND1      SRSP46    28.50441
+ UP BND1      SRSP47    21.653717
+ UP BND1      SRSP48    21.492981
+ UP BND1      SKJP41    24.883972
+ UP BND1      SKJP42    24.631882
+ UP BND1      SKJP43    26.123871
+ UP BND1      SKJP44    24.135834
+ UP BND1      SKJP45    23.679626
+ UP BND1      SKJP46    19.909576
+ UP BND1      SKJP47    21.920731
+ UP BND1      SKJP48    24.306778
+ UP BND1      SNJP41    9.204123
+ UP BND1      SNJP42    6.309752
+ UP BND1      SNJP43    7.99948
+ UP BND1      SNJP44    7.867579
+ UP BND1      SNJP45    6.778787
+ UP BND1      SNJP46    6.129068
+ UP BND1      SNJP47    7.030066
+ UP BND1      SNJP48    6.880245
+ UP BND1      SPFP41    0.75497669
+ UP BND1      SPFP42    0.77623868
+ UP BND1      SPFP43    0.55590332
+ UP BND1      SPFP44    1.069831
+ UP BND1      SPFP45    1.003999
+ UP BND1      SPFP46    0.61150444
+ UP BND1      SPFP47    0.57109255
+ UP BND1      SPFP48    0.65506083
+ UP BND1      SLPP41    39.594391
+ UP BND1      SLPP42    36.47052
+ UP BND1      SLPP43    35.190247
+ UP BND1      SLPP44    37.320923
+ UP BND1      SLPP45    44.067932
+ UP BND1      SLPP46    49.050919
+ UP BND1      SLPP47    41.526245
+ UP BND1      SLPP48    33.63147
+ UP BND1      SOTP41    104.883423
+ UP BND1      SOTP42    108.816818
+ UP BND1      SOTP43    115.964767
+ UP BND1      SOTP44    100.822281
+ UP BND1      SOTP45    63.011841
+ UP BND1      SOTP46    48.899475
+ UP BND1      SOTP47    75.042664
+ UP BND1      SOTP48    102.087631
+ UP BND1      SGAP51    1032.6682
+ UP BND1      SGAP52    1025.7305
+ UP BND1      SGAP53    1031.9609
+ UP BND1      SGAP54    9.9728721494672584e+02
+ UP BND1      SGAP55    9.3611177444331634e+02
+ UP BND1      SGAP56    8.8906084021228014e+02
+ UP BND1      SGAP57    9.7563707058335660e+02
+ UP BND1      SGAP58    9.9564586335304682e+02
+ UP BND1      SDSP51    274.74292
+ UP BND1      SDSP52    303.261475
+ UP BND1      SDSP53    266.336426
+ UP BND1      SDSP54    277.098389
+ UP BND1      SDSP55    324.961426
+ UP BND1      SDSP56    288.179443
+ UP BND1      SDSP57    260.897461
+ UP BND1      SDSP58    261.247559
+ UP BND1      SRSP51    283.024902
+ UP BND1      SRSP52    258.222412
+ UP BND1      SRSP53    279.627441
+ UP BND1      SRSP54    253.358826
+ UP BND1      SRSP55    352.390869
+ UP BND1      SRSP56    390.882813
+ UP BND1      SRSP57    315.456543
+ UP BND1      SRSP58    300.938721
+ UP BND1      SKJP51    257.690186
+ UP BND1      SKJP52    249.764893
+ UP BND1      SKJP53    234.859161
+ UP BND1      SKJP54    251.166061
+ UP BND1      SKJP55    251.469116
+ UP BND1      SKJP56    227.480179
+ UP BND1      SKJP57    230.316727
+ UP BND1      SKJP58    238.750259
+ UP BND1      SNJP51    74.67572
+ UP BND1      SNJP52    66.216202
+ UP BND1      SNJP53    65.576813
+ UP BND1      SNJP54    91.078323
+ UP BND1      SNJP55    95.674774
+ UP BND1      SNJP56    72.14917
+ UP BND1      SNJP57    73.91626
+ UP BND1      SNJP58    68.943909
+ UP BND1      SPFP51    29.070724
+ UP BND1      SPFP52    21.784622
+ UP BND1      SPFP53    24.691956
+ UP BND1      SPFP54    31.524033
+ UP BND1      SPFP55    23.51004
+ UP BND1      SPFP56    17.138657
+ UP BND1      SPFP57    22.085098
+ UP BND1      SPFP58    21.314255
+ UP BND1      SLPP51    58.761902
+ UP BND1      SLPP52    63.54834
+ UP BND1      SLPP53    60.229141
+ UP BND1      SLPP54    63.440781
+ UP BND1      SLPP55    83.203278
+ UP BND1      SLPP56    74.095795
+ UP BND1      SLPP57    68.140228
+ UP BND1      SLPP58    57.819061
+ UP BND1      SOTP51    367.243896
+ UP BND1      SOTP52    372.707031
+ UP BND1      SOTP53    367.026611
+ UP BND1      SOTP54    312.843994
+ UP BND1      SOTP55    333.859619
+ UP BND1      SOTP56    283.165039
+ UP BND1      SOTP57    326.468018
+ UP BND1      SOTP58    330.233398
+ UP BND1      XSP11     532.499756
+ UP BND1      XSP12     532.499756
+ UP BND1      XSP13     532.499756
+ UP BND1      XSP14     532.499756
+ UP BND1      XSP15     532.499756
+ UP BND1      XSP16     532.499756
+ UP BND1      XSP17     532.499756
+ UP BND1      XSP18     532.499756
+ UP BND1      XSP21     1230.5996
+ UP BND1      XSP22     1230.5996
+ UP BND1      XSP23     1230.5996
+ UP BND1      XSP24     1230.5996
+ UP BND1      XSP25     1230.5996
+ UP BND1      XSP26     1230.5996
+ UP BND1      XSP27     1230.5996
+ UP BND1      XSP28     1230.5996
+ UP BND1      XSP31     1866.5996
+ UP BND1      XSP32     1866.5996
+ UP BND1      XSP33     1866.5996
+ UP BND1      XSP34     1866.5996
+ UP BND1      XSP35     1866.5996
+ UP BND1      XSP36     1866.5996
+ UP BND1      XSP37     1866.5996
+ UP BND1      XSP38     1866.5996
+ UP BND1      XSP41     165.59996
+ UP BND1      XSP42     165.59996
+ UP BND1      XSP43     165.59996
+ UP BND1      XSP44     165.59996
+ UP BND1      XSP45     165.59996
+ UP BND1      XSP46     165.59996
+ UP BND1      XSP47     165.59996
+ UP BND1      XSP48     165.59996
+ UP BND1      XSP51     712.799805
+ UP BND1      XSP52     712.799805
+ UP BND1      XSP53     712.799805
+ UP BND1      XSP54     712.799805
+ UP BND1      XSP55     712.799805
+ UP BND1      XSP56     712.799805
+ UP BND1      XSP57     712.799805
+ UP BND1      XSP58     712.799805
+ LO BND1      STKCRP11  15.333887
+ UP BND1      STKCRP11  80.9276988057049
+ LO BND1      STKCRP12  14.883583
+ UP BND1      STKCRP12  1.5180393067705313e+02
+ LO BND1      STKCRP13  15.52349
+ UP BND1      STKCRP13  2.2198656733213514e+02
+ LO BND1      STKCRP14  15.09689
+ UP BND1      STKCRP14  2.8820503941275553e+02
+ LO BND1      STKCRP15  15.736797
+ UP BND1      STKCRP15  4.9785807780708484e+02
+ LO BND1      STKCRP16  13.817093
+ UP BND1      STKCRP16  6.7660312044264072e+02
+ LO BND1      STKCRP17  15.333887
+ UP BND1      STKCRP17  8.6419779532747009e+02
+ LO BND1      STKCRP21  67.189468
+ UP BND1      STKCRP21  1.9754509575625957e+02
+ LO BND1      STKCRP22  66.881363
+ UP BND1      STKCRP22  3.1449680854431659e+02
+ LO BND1      STKCRP23  66.194031
+ UP BND1      STKCRP23  4.3084353576012865e+02
+ LO BND1      STKCRP24  67.592346
+ UP BND1      STKCRP24  5.4294875097544423e+02
+ LO BND1      STKCRP25  65.411942
+ UP BND1      STKCRP25  8.8140784502563724e+02
+ LO BND1      STKCRP26  66.97612
+ UP BND1      STKCRP26  1.2240536926289308e+03
+ LO BND1      STKCRP27  67.189468
+ UP BND1      STKCRP27  1.5607582515958970e+03
+ LO BND1      STKCRP31  102.881622
+ UP BND1      STKCRP31  279.066147919905
+ LO BND1      STKCRP32  104.659103
+ UP BND1      STKCRP32  4.3776003470682184e+02
+ LO BND1      STKCRP33  104.564362
+ UP BND1      STKCRP33  5.9678071424187851e+02
+ LO BND1      STKCRP34  104.256241
+ UP BND1      STKCRP34  7.4877359545734021e+02
+ LO BND1      STKCRP35  105.27533
+ UP BND1      STKCRP35  1.2238712779623129e+03
+ LO BND1      STKCRP36  104.398453
+ UP BND1      STKCRP36  1.6575813482086155e+03
+ LO BND1      STKCRP37  102.881622
+ UP BND1      STKCRP37  2.1012260209556816e+03
+ LO BND1      STKCRP41  14.788795
+ UP BND1      STKCRP41  3.3218304116138853e+01
+ LO BND1      STKCRP42  13.745997
+ UP BND1      STKCRP42  4.7839712049720724e+01
+ LO BND1      STKCRP43  12.584696
+ UP BND1      STKCRP43  6.2426720426204277e+01
+ LO BND1      STKCRP44  12.916498
+ UP BND1      STKCRP44  7.6941885365355517e+01
+ LO BND1      STKCRP45  13.129797
+ UP BND1      STKCRP45  1.2129555470516848e+02
+ LO BND1      STKCRP46  13.888195
+ UP BND1      STKCRP46  1.6255496696616498e+02
+ LO BND1      STKCRP47  14.788795
+ UP BND1      STKCRP47  2.0426245574478250e+02
+ LO BND1      STKCRP51  36.829788
+ UP BND1      STKCRP51  1.0784989682966899e+02
+ LO BND1      STKCRP52  36.829788
+ UP BND1      STKCRP52  1.7648549368407680e+02
+ LO BND1      STKCRP53  38.13327
+ UP BND1      STKCRP53  2.4731428795699085e+02
+ LO BND1      STKCRP54  37.137863
+ UP BND1      STKCRP54  3.1358728402046222e+02
+ LO BND1      STKCRP55  37.445984
+ UP BND1      STKCRP55  5.1019388362275038e+02
+ LO BND1      STKCRP56  37.919968
+ UP BND1      STKCRP56  7.0900596897279320e+02
+ LO BND1      STKCRP57  36.829788
+ UP BND1      STKCRP57  8.9220429883673069e+02
+ LO BND1      STKGLP11  4.067098
+ UP BND1      STKGLP11  4.970895
+ LO BND1      STKGLP12  4.067098
+ UP BND1      STKGLP12  4.970895
+ LO BND1      STKGLP13  4.067098
+ UP BND1      STKGLP13  4.970895
+ LO BND1      STKGLP14  4.067098
+ UP BND1      STKGLP14  4.970895
+ LO BND1      STKGLP15  4.067098
+ UP BND1      STKGLP15  4.970895
+ LO BND1      STKGLP16  4.067098
+ UP BND1      STKGLP16  4.970895
+ LO BND1      STKGLP17  4.067098
+ UP BND1      STKGLP17  4.970895
+ LO BND1      STKGLP18  4.067098
+ UP BND1      STKGLP18  4.970895
+ LO BND1      STKGLP21  38.073563
+ UP BND1      STKGLP21  46.534332
+ LO BND1      STKGLP22  38.073563
+ UP BND1      STKGLP22  46.534332
+ LO BND1      STKGLP23  38.073563
+ UP BND1      STKGLP23  46.534332
+ LO BND1      STKGLP24  38.073563
+ UP BND1      STKGLP24  46.534332
+ LO BND1      STKGLP25  38.073563
+ UP BND1      STKGLP25  46.534332
+ LO BND1      STKGLP26  38.073563
+ UP BND1      STKGLP26  46.534332
+ LO BND1      STKGLP27  38.073563
+ UP BND1      STKGLP27  46.534332
+ LO BND1      STKGLP28  38.073563
+ UP BND1      STKGLP28  46.534332
+ LO BND1      STKGLP31  59.975052
+ UP BND1      STKGLP31  73.302811
+ LO BND1      STKGLP32  59.975052
+ UP BND1      STKGLP32  73.302811
+ LO BND1      STKGLP33  59.975052
+ UP BND1      STKGLP33  73.302811
+ LO BND1      STKGLP34  59.975052
+ UP BND1      STKGLP34  73.302811
+ LO BND1      STKGLP35  59.975052
+ UP BND1      STKGLP35  73.302811
+ LO BND1      STKGLP36  59.975052
+ UP BND1      STKGLP36  73.302811
+ LO BND1      STKGLP37  59.975052
+ UP BND1      STKGLP37  73.302811
+ LO BND1      STKGLP38  59.975052
+ UP BND1      STKGLP38  73.302811
+ LO BND1      STKGLP41  0.29789984
+ UP BND1      STKGLP41  0.36409962
+ LO BND1      STKGLP42  0.29789984
+ UP BND1      STKGLP42  0.36409962
+ LO BND1      STKGLP43  0.29789984
+ UP BND1      STKGLP43  0.36409962
+ LO BND1      STKGLP44  0.29789984
+ UP BND1      STKGLP44  0.36409962
+ LO BND1      STKGLP45  0.29789984
+ UP BND1      STKGLP45  0.36409962
+ LO BND1      STKGLP46  0.29789984
+ UP BND1      STKGLP46  0.36409962
+ LO BND1      STKGLP47  0.29789984
+ UP BND1      STKGLP47  0.36409962
+ LO BND1      STKGLP48  0.29789984
+ UP BND1      STKGLP48  0.36409962
+ LO BND1      STKGLP51  0.5237999
+ UP BND1      STKGLP51  0.6401996
+ LO BND1      STKGLP52  0.5237999
+ UP BND1      STKGLP52  0.6401996
+ LO BND1      STKGLP53  0.5237999
+ UP BND1      STKGLP53  0.6401996
+ LO BND1      STKGLP54  0.5237999
+ UP BND1      STKGLP54  0.6401996
+ LO BND1      STKGLP55  0.5237999
+ UP BND1      STKGLP55  0.6401996
+ LO BND1      STKGLP56  0.5237999
+ UP BND1      STKGLP56  0.6401996
+ LO BND1      STKGLP57  0.5237999
+ UP BND1      STKGLP57  0.6401996
+ LO BND1      STKGLP58  0.5237999
+ UP BND1      STKGLP58  0.6401996
+ LO BND1      STKGAP11  53.618607
+ UP BND1      STKGAP11  64.949997
+ LO BND1      STKGAP12  54.225632
+ UP BND1      STKGAP12  63.125
+ LO BND1      STKGAP13  51.899689
+ UP BND1      STKGAP13  63.125
+ LO BND1      STKGAP14  52.812546
+ UP BND1      STKGAP14  63.125
+ LO BND1      STKGAP15  56.010437
+ UP BND1      STKGAP15  60.529968
+ LO BND1      STKGAP16  53.172424
+ UP BND1      STKGAP16  66.896973
+ LO BND1      STKGAP17  53.618607
+ UP BND1      STKGAP17  64.949997
+ LO BND1      STKGAP18  52.812546
+ UP BND1      STKGAP18  63.125
+ LO BND1      STKGAP21  58.806885
+ UP BND1      STKGAP21  73.655945
+ LO BND1      STKGAP22  59.618668
+ UP BND1      STKGAP22  64.574997
+ LO BND1      STKGAP23  60.376785
+ UP BND1      STKGAP23  64.574997
+ LO BND1      STKGAP24  59.507126
+ UP BND1      STKGAP24  64.574997
+ LO BND1      STKGAP25  63.84697
+ UP BND1      STKGAP25  65.397949
+ LO BND1      STKGAP26  70.875336
+ UP BND1      STKGAP26  80.248962
+ LO BND1      STKGAP27  58.806885
+ UP BND1      STKGAP27  73.655945
+ LO BND1      STKGAP28  59.507126
+ UP BND1      STKGAP28  64.574997
+ LO BND1      STKGAP31  54.32077
+ UP BND1      STKGAP31  61.838959
+ LO BND1      STKGAP32  55.386902
+ UP BND1      STKGAP32  61.746964
+ LO BND1      STKGAP33  59.279739
+ UP BND1      STKGAP33  61.746964
+ LO BND1      STKGAP34  55.905365
+ UP BND1      STKGAP34  61.746964
+ LO BND1      STKGAP35  55.824875
+ UP BND1      STKGAP35  63.13295
+ LO BND1      STKGAP36  55.93187
+ UP BND1      STKGAP36  69.634979
+ LO BND1      STKGAP37  54.32077
+ UP BND1      STKGAP37  61.838959
+ LO BND1      STKGAP38  55.905365
+ UP BND1      STKGAP38  61.746964
+ LO BND1      STKGAP41  6.651126
+ UP BND1      STKGAP41  9.839999
+ LO BND1      STKGAP42  5.786694
+ UP BND1      STKGAP42  6.431999
+ LO BND1      STKGAP43  5.166036
+ UP BND1      STKGAP43  6.431999
+ LO BND1      STKGAP44  4.991551
+ UP BND1      STKGAP44  6.431999
+ LO BND1      STKGAP45  6.537308
+ UP BND1      STKGAP45  7.879998
+ LO BND1      STKGAP46  8.957596
+ UP BND1      STKGAP46  10.039999
+ LO BND1      STKGAP47  6.651126
+ UP BND1      STKGAP47  9.839999
+ LO BND1      STKGAP48  4.991551
+ UP BND1      STKGAP48  6.431999
+ LO BND1      STKGAP51  21.650284
+ UP BND1      STKGAP51  25.599991
+ LO BND1      STKGAP52  21.80835
+ UP BND1      STKGAP52  24.566986
+ LO BND1      STKGAP53  22.718582
+ UP BND1      STKGAP53  24.566986
+ LO BND1      STKGAP54  22.530487
+ UP BND1      STKGAP54  24.566986
+ LO BND1      STKGAP55  24.004486
+ UP BND1      STKGAP55  25.89299
+ LO BND1      STKGAP56  23.327927
+ UP BND1      STKGAP56  28.675964
+ LO BND1      STKGAP57  21.650284
+ UP BND1      STKGAP57  25.599991
+ LO BND1      STKGAP58  22.530487
+ UP BND1      STKGAP58  24.566986
+ LO BND1      STKDSP11  48.998108
+ UP BND1      STKDSP11  64.534973
+ LO BND1      STKDSP12  60.248779
+ UP BND1      STKDSP12  95.309982
+ LO BND1      STKDSP13  66.930695
+ UP BND1      STKDSP13  95.309982
+ LO BND1      STKDSP14  76.635513
+ UP BND1      STKDSP14  95.309982
+ LO BND1      STKDSP15  66.785919
+ UP BND1      STKDSP15  100.828979
+ LO BND1      STKDSP16  37.651276
+ UP BND1      STKDSP16  72.824997
+ LO BND1      STKDSP17  48.998108
+ UP BND1      STKDSP17  64.534973
+ LO BND1      STKDSP18  76.635513
+ UP BND1      STKDSP18  95.309982
+ LO BND1      STKDSP21  36.542023
+ UP BND1      STKDSP21  48.225967
+ LO BND1      STKDSP22  42.846832
+ UP BND1      STKDSP22  72.589981
+ LO BND1      STKDSP23  49.941849
+ UP BND1      STKDSP23  72.589981
+ LO BND1      STKDSP24  52.430099
+ UP BND1      STKDSP24  72.589981
+ LO BND1      STKDSP25  47.498291
+ UP BND1      STKDSP25  64.055954
+ LO BND1      STKDSP26  32.589752
+ UP BND1      STKDSP26  56.876968
+ LO BND1      STKDSP27  36.542023
+ UP BND1      STKDSP27  48.225967
+ LO BND1      STKDSP28  52.430099
+ UP BND1      STKDSP28  72.589981
+ LO BND1      STKDSP31  27.766418
+ UP BND1      STKDSP31  34.213989
+ LO BND1      STKDSP32  31.743317
+ UP BND1      STKDSP32  41.409973
+ LO BND1      STKDSP33  33.961105
+ UP BND1      STKDSP33  41.409973
+ LO BND1      STKDSP34  34.298401
+ UP BND1      STKDSP34  41.409973
+ LO BND1      STKDSP35  32.032623
+ UP BND1      STKDSP35  43.165955
+ LO BND1      STKDSP36  18.705597
+ UP BND1      STKDSP36  34.916992
+ LO BND1      STKDSP37  27.766418
+ UP BND1      STKDSP37  34.213989
+ LO BND1      STKDSP38  34.298401
+ UP BND1      STKDSP38  41.409973
+ LO BND1      STKDSP41  2.666477
+ UP BND1      STKDSP41  3.538998
+ LO BND1      STKDSP42  3.075272
+ UP BND1      STKDSP42  4.629998
+ LO BND1      STKDSP43  3.321743
+ UP BND1      STKDSP43  4.629998
+ LO BND1      STKDSP44  3.215474
+ UP BND1      STKDSP44  4.629998
+ LO BND1      STKDSP45  3.060751
+ UP BND1      STKDSP45  4.15
+ LO BND1      STKDSP46  2.850855
+ UP BND1      STKDSP46  4.189999
+ LO BND1      STKDSP47  2.666477
+ UP BND1      STKDSP47  3.538998
+ LO BND1      STKDSP48  3.215474
+ UP BND1      STKDSP48  4.629998
+ LO BND1      STKDSP51  9.213745
+ UP BND1      STKDSP51  12.500998
+ LO BND1      STKDSP52  9.935498
+ UP BND1      STKDSP52  16.559998
+ LO BND1      STKDSP53  11.122062
+ UP BND1      STKDSP53  16.559998
+ LO BND1      STKDSP54  12.058038
+ UP BND1      STKDSP54  16.559998
+ LO BND1      STKDSP55  12.583089
+ UP BND1      STKDSP55  14.290997
+ LO BND1      STKDSP56  8.242473
+ UP BND1      STKDSP56  13.807997
+ LO BND1      STKDSP57  9.213745
+ UP BND1      STKDSP57  12.500998
+ LO BND1      STKDSP58  12.058038
+ UP BND1      STKDSP58  16.559998
+ LO BND1      STKRSP11  21.123932
+ UP BND1      STKRSP11  32.299988
+ LO BND1      STKRSP12  22.314774
+ UP BND1      STKRSP12  32.299988
+ LO BND1      STKRSP13  22.13913
+ UP BND1      STKRSP13  32.299988
+ LO BND1      STKRSP14  22.470627
+ UP BND1      STKRSP14  32.299988
+ LO BND1      STKRSP15  21.850082
+ UP BND1      STKRSP15  32.299988
+ LO BND1      STKRSP16  17.677094
+ UP BND1      STKRSP16  32.299988
+ LO BND1      STKRSP17  21.123932
+ UP BND1      STKRSP17  32.299988
+ LO BND1      STKRSP18  22.470627
+ UP BND1      STKRSP18  32.299988
+ LO BND1      STKRSP21  5.439043
+ UP BND1      STKRSP21  10.2
+ LO BND1      STKRSP22  6.135618
+ UP BND1      STKRSP22  10.2
+ LO BND1      STKRSP23  6.27769
+ UP BND1      STKRSP23  10.2
+ LO BND1      STKRSP24  6.993389
+ UP BND1      STKRSP24  10.2
+ LO BND1      STKRSP25  7.189477
+ UP BND1      STKRSP25  10.2
+ LO BND1      STKRSP26  5.172318
+ UP BND1      STKRSP26  10.2
+ LO BND1      STKRSP27  5.439043
+ UP BND1      STKRSP27  10.2
+ LO BND1      STKRSP28  6.993389
+ UP BND1      STKRSP28  10.2
+ LO BND1      STKRSP31  6.927717
+ UP BND1      STKRSP31  8.5
+ LO BND1      STKRSP32  6.720867
+ UP BND1      STKRSP32  8.5
+ LO BND1      STKRSP33  6.9991
+ UP BND1      STKRSP33  8.5
+ LO BND1      STKRSP34  5.991511
+ UP BND1      STKRSP34  8.5
+ LO BND1      STKRSP35  5.776402
+ UP BND1      STKRSP35  8.5
+ LO BND1      STKRSP36  5.972367
+ UP BND1      STKRSP36  8.5
+ LO BND1      STKRSP37  6.927717
+ UP BND1      STKRSP37  8.5
+ LO BND1      STKRSP38  5.991511
+ UP BND1      STKRSP38  8.5
+ LO BND1      STKRSP41  0.62327051
+ UP BND1      STKRSP41  1.099999
+ LO BND1      STKRSP42  0.68907738
+ UP BND1      STKRSP42  1.099999
+ LO BND1      STKRSP43  0.76918411
+ UP BND1      STKRSP43  1.099999
+ LO BND1      STKRSP44  0.67614263
+ UP BND1      STKRSP44  1.099999
+ LO BND1      STKRSP45  0.55854452
+ UP BND1      STKRSP45  1.099999
+ LO BND1      STKRSP46  0.43602687
+ UP BND1      STKRSP46  1.099999
+ LO BND1      STKRSP47  0.62327051
+ UP BND1      STKRSP47  1.099999
+ LO BND1      STKRSP48  0.67614263
+ UP BND1      STKRSP48  1.099999
+ LO BND1      STKRSP51  10.730116
+ UP BND1      STKRSP51  29.299988
+ LO BND1      STKRSP52  11.341463
+ UP BND1      STKRSP52  29.299988
+ LO BND1      STKRSP53  11.590321
+ UP BND1      STKRSP53  29.299988
+ LO BND1      STKRSP54  13.226729
+ UP BND1      STKRSP54  29.299988
+ LO BND1      STKRSP55  12.364371
+ UP BND1      STKRSP55  29.299988
+ LO BND1      STKRSP56  10.740665
+ UP BND1      STKRSP56  29.299988
+ LO BND1      STKRSP57  10.730116
+ UP BND1      STKRSP57  29.299988
+ LO BND1      STKRSP58  13.226729
+ UP BND1      STKRSP58  29.299988
+ LO BND1      STKKJP11  4.876926
+ UP BND1      STKKJP11  4.2790852034707690e+01
+ LO BND1      STKKJP12  4.703438
+ UP BND1      STKKJP12  8.1142694120798410e+01
+ LO BND1      STKKJP13  4.911963
+ UP BND1      STKKJP13  1.1949453620688907e+02
+ LO BND1      STKKJP14  5.015967
+ UP BND1      STKKJP14  1.5660921938728166e+02
+ LO BND1      STKKJP15  4.31189
+ UP BND1      STKKJP15  2.7013747180852505e+02
+ LO BND1      STKKJP16  5.077291
+ UP BND1      STKKJP16  3.8032751921616830e+02
+ LO BND1      STKKJP17  4.876926
+ UP BND1      STKKJP17  4.9281305954824256e+02
+ LO BND1      STKKJP21  5.279727
+ UP BND1      STKKJP21  1.0267950039544780e+02
+ LO BND1      STKKJP22  5.422893
+ UP BND1      STKKJP22  2.0842521142933103e+02
+ LO BND1      STKKJP23  5.663961
+ UP BND1      STKKJP23  3.1259320802352329e+02
+ LO BND1      STKKJP24  6.027254
+ UP BND1      STKKJP24  4.1420901474813417e+02
+ LO BND1      STKKJP25  5.318192
+ UP BND1      STKKJP25  7.1882875000660545e+02
+ LO BND1      STKKJP26  5.073084
+ UP BND1      STKKJP26  1.0288005096551956e+03
+ LO BND1      STKKJP27  5.279727
+ UP BND1      STKKJP27  1.3140816576588152e+03
+ LO BND1      STKKJP31  6.05068
+ UP BND1      STKKJP31  2.3895320586128705e+02
+ LO BND1      STKKJP32  6.645964
+ UP BND1      STKKJP32  4.7749621328883745e+02
+ LO BND1      STKKJP33  6.447951
+ UP BND1      STKKJP33  7.1594596602286379e+02
+ LO BND1      STKKJP34  5.557569
+ UP BND1      STKKJP34  9.4470583463946366e+02
+ LO BND1      STKKJP35  5.318192
+ UP BND1      STKKJP35  1.6271880018717691e+03
+ LO BND1      STKKJP36  6.139001
+ UP BND1      STKKJP36  2.3102019778660915e+03
+ LO BND1      STKKJP37  6.05068
+ UP BND1      STKKJP37  3.0021031732962847e+03
+ LO BND1      STKKJP41  0.35299212
+ UP BND1      STKKJP41  1.0107641971219389e+01
+ LO BND1      STKKJP42  0.39794862
+ UP BND1      STKKJP42  2.0806978829874524e+01
+ LO BND1      STKKJP43  0.35199761
+ UP BND1      STKKJP43  3.1314676725567132e+01
+ LO BND1      STKKJP44  0.43372834
+ UP BND1      STKKJP44  4.1629830276033850e+01
+ LO BND1      STKKJP45  0.34278613
+ UP BND1      STKKJP45  7.2839472531721356e+01
+ LO BND1      STKKJP46  0.33848578
+ UP BND1      STKKJP46  1.0239790488796893e+02
+ LO BND1      STKKJP47  0.35299212
+ UP BND1      STKKJP47  1.3154697921249064e+02
+ LO BND1      STKKJP51  5.097817
+ UP BND1      STKKJP51  1.4703182843681108e+02
+ LO BND1      STKKJP52  5.312726
+ UP BND1      STKKJP52  2.9206964174829255e+02
+ LO BND1      STKKJP53  5.481104
+ UP BND1      STKKJP53  4.3710745505977383e+02
+ LO BND1      STKKJP54  5.43846
+ UP BND1      STKKJP54  5.7631351585903212e+02
+ LO BND1      STKKJP55  4.7529
+ UP BND1      STKKJP55  993.450842910061
+ LO BND1      STKKJP56  4.396111
+ UP BND1      STKKJP56  1.3840253310369917e+03
+ LO BND1      STKKJP57  5.097817
+ UP BND1      STKKJP57  1.7981275955461474e+03
+ LO BND1      STKNJP11  0.23397148
+ UP BND1      STKNJP11  8.0669199341299951e+00
+ LO BND1      STKNJP12  0.22424644
+ UP BND1      STKNJP12  1.6942678157447670e+01
+ LO BND1      STKNJP13  0.19896466
+ UP BND1      STKNJP13  2.5818436380765345e+01
+ LO BND1      STKNJP14  0.24088442
+ UP BND1      STKNJP14  3.4407879195656214e+01
+ LO BND1      STKNJP15  0.4026795
+ UP BND1      STKNJP15  5.9781866072867992e+01
+ LO BND1      STKNJP16  0.41878796
+ UP BND1      STKNJP16  8.3349719146088177e+01
+ LO BND1      STKNJP17  0.23397148
+ UP BND1      STKNJP17  1.0730015551201775e+02
+ LO BND1      STKNJP21  1.308351
+ UP BND1      STKNJP21  2.9291849671282826e+01
+ LO BND1      STKNJP22  1.382936
+ UP BND1      STKNJP22  5.8813996040673587e+01
+ LO BND1      STKNJP23  1.335057
+ UP BND1      STKNJP23  8.7994976815485259e+01
+ LO BND1      STKNJP24  1.233587
+ UP BND1      STKNJP24  1.1640836146073602e+02
+ LO BND1      STKNJP25  1.584441
+ UP BND1      STKNJP25  2.0202013073343153e+02
+ LO BND1      STKNJP26  1.585733
+ UP BND1      STKNJP26  2.8855923971375029e+02
+ LO BND1      STKNJP27  1.308351
+ UP BND1      STKNJP27  3.6903200649932262e+02
+ LO BND1      STKNJP31  1.975641
+ UP BND1      STKNJP31  6.0955016550215205e+01
+ LO BND1      STKNJP32  1.877494
+ UP BND1      STKNJP32  1.2210990222762746e+02
+ LO BND1      STKNJP33  1.915236
+ UP BND1      STKNJP33  1.8323982386867098e+02
+ LO BND1      STKNJP34  1.991347
+ UP BND1      STKNJP34  2.4187317246089731e+02
+ LO BND1      STKNJP35  2.508699
+ UP BND1      STKNJP35  4.1681274587510183e+02
+ LO BND1      STKNJP36  2.606649
+ UP BND1      STKNJP36  5.9195965511890449e+02
+ LO BND1      STKNJP37  1.975641
+ UP BND1      STKNJP37  7.6892379234975260e+02
+ LO BND1      STKNJP41  0.20197088
+ UP BND1      STKNJP41  7.8986737403436074e+00
+ LO BND1      STKNJP42  0.20197368
+ UP BND1      STKNJP42  1.6235901088936263e+01
+ LO BND1      STKNJP43  0.23347342
+ UP BND1      STKNJP43  2.4400086872184445e+01
+ LO BND1      STKNJP44  0.22198093
+ UP BND1      STKNJP44  3.2432815423666383e+01
+ LO BND1      STKNJP45  0.28640825
+ UP BND1      STKNJP45  56.7431349588385
+ LO BND1      STKNJP46  0.30814058
+ UP BND1      STKNJP46  7.9743009544296825e+01
+ LO BND1      STKNJP47  0.20197088
+ UP BND1      STKNJP47  1.0230894783791712e+02
+ LO BND1      STKNJP51  1.526585
+ UP BND1      STKNJP51  5.1852573213669245e+01
+ LO BND1      STKNJP52  1.37585
+ UP BND1      STKNJP52  1.0301573892712770e+02
+ LO BND1      STKNJP53  1.709263
+ UP BND1      STKNJP53  1.5417890464058613e+02
+ LO BND1      STKNJP54  1.713195
+ UP BND1      STKNJP54  2.0321598425306806e+02
+ LO BND1      STKNJP55  1.786767
+ UP BND1      STKNJP55  3.5016498835124094e+02
+ LO BND1      STKNJP56  1.513684
+ UP BND1      STKNJP56  4.8705805431993082e+02
+ LO BND1      STKNJP57  1.526585
+ UP BND1      STKNJP57  6.3388736812825027e+02
+ LO BND1      STKPFP11  0.10156643
+ UP BND1      STKPFP11  1.5275017693996825e+01
+ LO BND1      STKPFP12  0.05339165
+ UP BND1      STKPFP12  3.0910639882925068e+01
+ LO BND1      STKPFP13  0.07205749
+ UP BND1      STKPFP13  4.6546262071853334e+01
+ LO BND1      STKPFP14  0.00800959
+ UP BND1      STKPFP14  6.1677508246880095e+01
+ LO BND1      STKPFP15  0.01629739
+ UP BND1      STKPFP15  1.0856347256982332e+02
+ LO BND1      STKPFP16  0.13707709
+ UP BND1      STKPFP16  1.5474851486315731e+02
+ LO BND1      STKPFP17  0.10156643
+ UP BND1      STKPFP17  2.0083791178876891e+02
+ LO BND1      STKPFP21  0.40967971
+ UP BND1      STKPFP21  2.6634492654643459e+01
+ LO BND1      STKPFP22  0.36381429
+ UP BND1      STKPFP22  5.5046927979795626e+01
+ LO BND1      STKPFP23  0.31311321
+ UP BND1      STKPFP23  8.3021208518494532e+01
+ LO BND1      STKPFP24  0.36618853
+ UP BND1      STKPFP24  1.1031621457582121e+02
+ LO BND1      STKPFP25  0.57805824
+ UP BND1      STKPFP25  1.9219021823928134e+02
+ LO BND1      STKPFP26  0.37666899
+ UP BND1      STKPFP26  2.7567680811652417e+02
+ LO BND1      STKPFP27  0.40967971
+ UP BND1      STKPFP27  3.5218521788733290e+02
+ LO BND1      STKPFP31  1.80572
+ UP BND1      STKPFP31  2.1278992463376639e+02
+ LO BND1      STKPFP32  1.650044
+ UP BND1      STKPFP32  4.3118103315662279e+02
+ LO BND1      STKPFP33  1.701905
+ UP BND1      STKPFP33  6.4948659393205219e+02
+ LO BND1      STKPFP34  1.734076
+ UP BND1      STKPFP34  8.5882622781321220e+02
+ LO BND1      STKPFP35  2.252366
+ UP BND1      STKPFP35  1.4823524596291397e+03
+ LO BND1      STKPFP36  1.915857
+ UP BND1      STKPFP36  2.1068954973434084e+03
+ LO BND1      STKPFP37  1.80572
+ UP BND1      STKPFP37  2.7376568041667852e+03
+ LO BND1      STKPFP41  0.00398299
+ UP BND1      STKPFP41  5.2210953730188470e-01
+ LO BND1      STKPFP42  0.0016098
+ UP BND1      STKPFP42  1.0897750212146258e+00
+ UP BND1      STKPFP43  1.6449638850892541e+00
+ LO BND1      STKPFP44  0.01126349
+ UP BND1      STKPFP44  2.1916667690545761e+00
+ LO BND1      STKPFP45  0.000665199
+ UP BND1      STKPFP45  3.8473576674679912e+00
+ LO BND1      STKPFP46  0.0005858
+ UP BND1      STKPFP46  5.4189841234543321e+00
+ LO BND1      STKPFP47  0.00398299
+ UP BND1      STKPFP47  6.9587646506977139e+00
+ LO BND1      STKPFP51  0.52404845
+ UP BND1      STKPFP51  1.9595530965835227e+01
+ LO BND1      STKPFP52  0.61440647
+ UP BND1      STKPFP52  3.9368095725224407e+01
+ LO BND1      STKPFP53  0.50492114
+ UP BND1      STKPFP53  5.9140660484613605e+01
+ LO BND1      STKPFP54  0.38320887
+ UP BND1      STKPFP54  7.8123812186243171e+01
+ LO BND1      STKPFP55  0.47894365
+ UP BND1      STKPFP55  1.3427119574505872e+02
+ LO BND1      STKPFP56  0.4991011
+ UP BND1      STKPFP56  1.8682966593629428e+02
+ LO BND1      STKPFP57  0.52404845
+ UP BND1      STKPFP57  2.4285651944828797e+02
+ UP BND1      STKLPP11  4.3510160391135251e+01
+ UP BND1      STKLPP12  8.9041827839653081e+01
+ UP BND1      STKLPP13  1.3457616807179912e+02
+ UP BND1      STKLPP14  1.7865447212066104e+02
+ UP BND1      STKLPP15  3.1455956526805136e+02
+ UP BND1      STKLPP16  4.5035069848730882e+02
+ UP BND1      STKLPP17  5.8280212659559959e+02
+ LO BND1      STKLPP21  1.008899
+ UP BND1      STKLPP21  6.2805256345859327e+01
+ LO BND1      STKLPP22  1.008899
+ UP BND1      STKLPP22  1.3164506277905414e+02
+ LO BND1      STKLPP23  1.008899
+ UP BND1      STKLPP23  1.9948739606273745e+02
+ LO BND1      STKLPP24  1.008899
+ UP BND1      STKLPP24  2.6576963327925040e+02
+ LO BND1      STKLPP25  1.008899
+ UP BND1      STKLPP25  4.6346678913554911e+02
+ LO BND1      STKLPP26  1.008899
+ UP BND1      STKLPP26  6.6631137967967754e+02
+ LO BND1      STKLPP27  1.008899
+ UP BND1      STKLPP27  8.4989361419961142e+02
+ LO BND1      STKLPP31  2.810697
+ UP BND1      STKLPP31  1.4130322283673917e+02
+ LO BND1      STKLPP32  2.810697
+ UP BND1      STKLPP32  2.9068812067483265e+02
+ LO BND1      STKLPP33  2.810697
+ UP BND1      STKLPP33  4.4012683865236710e+02
+ LO BND1      STKLPP34  2.810697
+ UP BND1      STKLPP34  5.8373269903399955e+02
+ LO BND1      STKLPP35  2.810697
+ UP BND1      STKLPP35  1.0004438692826910e+03
+ LO BND1      STKLPP36  2.810697
+ UP BND1      STKLPP36  1.4175626094273291e+03
+ LO BND1      STKLPP37  2.810697
+ UP BND1      STKLPP37  1.8374872884292165e+03
+ LO BND1      STKLPP41  0.12239987
+ UP BND1      STKLPP41  5.7072730029788925e+00
+ LO BND1      STKLPP42  0.12239987
+ UP BND1      STKLPP42  1.1798956000813437e+01
+ LO BND1      STKLPP43  0.12239987
+ UP BND1      STKLPP43  1.7804251069319776e+01
+ LO BND1      STKLPP44  0.12239987
+ UP BND1      STKLPP44  2.3681761126409818e+01
+ LO BND1      STKLPP45  0.12239987
+ UP BND1      STKLPP45  4.2630147658050056e+01
+ LO BND1      STKLPP46  0.12239987
+ UP BND1      STKLPP46  6.1590742304369130e+01
+ LO BND1      STKLPP47  0.12239987
+ UP BND1      STKLPP47  7.8359010142905035e+01
+ LO BND1      STKLPP51  0.04409999
+ UP BND1      STKLPP51  3.5854209680825363e+01
+ LO BND1      STKLPP52  0.04409999
+ UP BND1      STKLPP52  7.2889834683223739e+01
+ LO BND1      STKLPP53  0.04409999
+ UP BND1      STKLPP53  1.0992722205262085e+02
+ LO BND1      STKLPP54  0.04409999
+ UP BND1      STKLPP54  1.4543999902410161e+02
+ LO BND1      STKLPP55  0.04409999
+ UP BND1      STKLPP55  2.5324594778417787e+02
+ LO BND1      STKLPP56  0.04409999
+ UP BND1      STKLPP56  3.5384048591414222e+02
+ LO BND1      STKLPP57  0.04409999
+ UP BND1      STKLPP57  4.5867403546505074e+02
+ LO BND1      STKOTP11  24.036987
+ UP BND1      STKOTP11  26.399994
+ LO BND1      STKOTP12  24.418701
+ UP BND1      STKOTP12  26.399994
+ LO BND1      STKOTP13  20.572418
+ UP BND1      STKOTP13  26.399994
+ LO BND1      STKOTP14  23.20488
+ UP BND1      STKOTP14  26.399994
+ LO BND1      STKOTP15  23.342697
+ UP BND1      STKOTP15  26.399994
+ LO BND1      STKOTP16  22.694275
+ UP BND1      STKOTP16  26.399994
+ LO BND1      STKOTP17  24.036987
+ UP BND1      STKOTP17  26.399994
+ LO BND1      STKOTP18  23.20488
+ UP BND1      STKOTP18  26.399994
+ LO BND1      STKOTP21  25.911758
+ UP BND1      STKOTP21  27.5
+ LO BND1      STKOTP22  25.144089
+ UP BND1      STKOTP22  27.5
+ LO BND1      STKOTP23  18.804413
+ UP BND1      STKOTP23  27.5
+ LO BND1      STKOTP24  21.118423
+ UP BND1      STKOTP24  27.5
+ LO BND1      STKOTP25  21.447189
+ UP BND1      STKOTP25  27.5
+ LO BND1      STKOTP26  23.075333
+ UP BND1      STKOTP26  27.5
+ LO BND1      STKOTP27  25.911758
+ UP BND1      STKOTP27  27.5
+ LO BND1      STKOTP28  21.118423
+ UP BND1      STKOTP28  27.5
+ LO BND1      STKOTP31  21.104385
+ UP BND1      STKOTP31  23.899994
+ LO BND1      STKOTP32  22.434784
+ UP BND1      STKOTP32  23.899994
+ LO BND1      STKOTP33  19.249954
+ UP BND1      STKOTP33  23.899994
+ LO BND1      STKOTP34  21.261215
+ UP BND1      STKOTP34  23.899994
+ LO BND1      STKOTP35  21.148758
+ UP BND1      STKOTP35  23.899994
+ LO BND1      STKOTP36  19.751053
+ UP BND1      STKOTP36  23.899994
+ LO BND1      STKOTP37  21.104385
+ UP BND1      STKOTP37  23.899994
+ LO BND1      STKOTP38  21.261215
+ UP BND1      STKOTP38  23.899994
+ LO BND1      STKOTP41  5.718995
+ UP BND1      STKOTP41  7
+ LO BND1      STKOTP42  5.497266
+ UP BND1      STKOTP42  7
+ LO BND1      STKOTP43  4.080542
+ UP BND1      STKOTP43  7
+ LO BND1      STKOTP44  4.061848
+ UP BND1      STKOTP44  7
+ LO BND1      STKOTP45  4.589495
+ UP BND1      STKOTP45  7
+ LO BND1      STKOTP46  5.926944
+ UP BND1      STKOTP46  7
+ LO BND1      STKOTP47  5.718995
+ UP BND1      STKOTP47  7
+ LO BND1      STKOTP48  4.061848
+ UP BND1      STKOTP48  7
+ LO BND1      STKOTP51  9.227788
+ UP BND1      STKOTP51  11.099999
+ LO BND1      STKOTP52  9.90207
+ UP BND1      STKOTP52  11.099999
+ LO BND1      STKOTP53  8.02671
+ UP BND1      STKOTP53  11.099999
+ LO BND1      STKOTP54  9.694483
+ UP BND1      STKOTP54  11.099999
+ LO BND1      STKOTP55  10.122696
+ UP BND1      STKOTP55  11.099999
+ LO BND1      STKOTP56  9.632296
+ UP BND1      STKOTP56  11.099999
+ LO BND1      STKOTP57  9.227788
+ UP BND1      STKOTP57  11.099999
+ LO BND1      STKOTP58  9.694483
+ UP BND1      STKOTP58  11.099999
+ UP BND1      XP111     1652.4015498
+ UP BND1      XP112     1652.4015498
+ UP BND1      XP113     1652.4015498
+ UP BND1      XP114     1652.4015498
+ UP BND1      XP115     1652.4015498
+ UP BND1      XP116     1652.4015498
+ UP BND1      XP117     1652.4015498
+ UP BND1      XP118     1652.4015498
+ UP BND1      XP119     1652.4015498
+ UP BND1      XP1110    1652.4015498
+ UP BND1      XP1111    1652.4015498
+ UP BND1      XP1112    1652.4015498
+ UP BND1      XP1113    1652.4015498
+ UP BND1      XP1114    1652.4015498
+ UP BND1      XP1115    1652.4015498
+ UP BND1      XP1116    1652.4015498
+ UP BND1      XP1117    1652.4015498
+ UP BND1      XP1118    1652.4015498
+ UP BND1      XP1119    1652.4015498
+ UP BND1      XP1120    1652.4015498
+ UP BND1      XP1121    1652.4015498
+ UP BND1      XP1122    1652.4015498
+ UP BND1      XP1123    1652.4015498
+ UP BND1      XP1124    1652.4015498
+ UP BND1      XP121     1652.4015498
+ UP BND1      XP122     1652.4015498
+ UP BND1      XP123     1652.4015498
+ UP BND1      XP124     1652.4015498
+ UP BND1      XP125     1652.4015498
+ UP BND1      XP126     1652.4015498
+ UP BND1      XP127     1652.4015498
+ UP BND1      XP128     1652.4015498
+ UP BND1      XP129     1652.4015498
+ UP BND1      XP1210    1652.4015498
+ UP BND1      XP1211    1652.4015498
+ UP BND1      XP1212    1652.4015498
+ UP BND1      XP1213    1652.4015498
+ UP BND1      XP1214    1652.4015498
+ UP BND1      XP1215    1652.4015498
+ UP BND1      XP1216    1652.4015498
+ UP BND1      XP1217    1652.4015498
+ UP BND1      XP1218    1652.4015498
+ UP BND1      XP1219    1652.4015498
+ UP BND1      XP1220    1652.4015498
+ UP BND1      XP1221    1652.4015498
+ UP BND1      XP1222    1652.4015498
+ UP BND1      XP1223    1652.4015498
+ UP BND1      XP1224    1652.4015498
+ UP BND1      XP131     1652.4015498
+ UP BND1      XP132     1652.4015498
+ UP BND1      XP133     1652.4015498
+ UP BND1      XP134     1652.4015498
+ UP BND1      XP135     1652.4015498
+ UP BND1      XP136     1652.4015498
+ UP BND1      XP137     1652.4015498
+ UP BND1      XP138     1652.4015498
+ UP BND1      XP139     1652.4015498
+ UP BND1      XP1310    1652.4015498
+ UP BND1      XP1311    1652.4015498
+ UP BND1      XP1312    1652.4015498
+ UP BND1      XP1313    1652.4015498
+ UP BND1      XP1314    1652.4015498
+ UP BND1      XP1315    1652.4015498
+ UP BND1      XP1316    1652.4015498
+ UP BND1      XP1317    1652.4015498
+ UP BND1      XP1318    1652.4015498
+ UP BND1      XP1319    1652.4015498
+ UP BND1      XP1320    1652.4015498
+ UP BND1      XP1321    1652.4015498
+ UP BND1      XP1322    1652.4015498
+ UP BND1      XP1323    1652.4015498
+ UP BND1      XP1324    1652.4015498
+ UP BND1      XP141     1652.4015498
+ UP BND1      XP142     1652.4015498
+ UP BND1      XP143     1652.4015498
+ UP BND1      XP144     1652.4015498
+ UP BND1      XP145     1652.4015498
+ UP BND1      XP146     1652.4015498
+ UP BND1      XP147     1652.4015498
+ UP BND1      XP148     1652.4015498
+ UP BND1      XP149     1652.4015498
+ UP BND1      XP1410    1652.4015498
+ UP BND1      XP1411    1652.4015498
+ UP BND1      XP1412    1652.4015498
+ UP BND1      XP1413    1652.4015498
+ UP BND1      XP1414    1652.4015498
+ UP BND1      XP1415    1652.4015498
+ UP BND1      XP1416    1652.4015498
+ UP BND1      XP1417    1652.4015498
+ UP BND1      XP1418    1652.4015498
+ UP BND1      XP1419    1652.4015498
+ UP BND1      XP1420    1652.4015498
+ UP BND1      XP1421    1652.4015498
+ UP BND1      XP1422    1652.4015498
+ UP BND1      XP1423    1652.4015498
+ UP BND1      XP1424    1652.4015498
+ UP BND1      XP151     1652.4015498
+ UP BND1      XP152     1652.4015498
+ UP BND1      XP153     1652.4015498
+ UP BND1      XP154     1652.4015498
+ UP BND1      XP155     1652.4015498
+ UP BND1      XP156     1652.4015498
+ UP BND1      XP157     1652.4015498
+ UP BND1      XP158     1652.4015498
+ UP BND1      XP159     1652.4015498
+ UP BND1      XP1510    1652.4015498
+ UP BND1      XP1511    1652.4015498
+ UP BND1      XP1512    1652.4015498
+ UP BND1      XP1513    1652.4015498
+ UP BND1      XP1514    1652.4015498
+ UP BND1      XP1515    1652.4015498
+ UP BND1      XP1516    1652.4015498
+ UP BND1      XP1517    1652.4015498
+ UP BND1      XP1518    1652.4015498
+ UP BND1      XP1519    1652.4015498
+ UP BND1      XP1520    1652.4015498
+ UP BND1      XP1521    1652.4015498
+ UP BND1      XP1522    1652.4015498
+ UP BND1      XP1523    1652.4015498
+ UP BND1      XP1524    1652.4015498
+ UP BND1      XP161     1652.4015498
+ UP BND1      XP162     1652.4015498
+ UP BND1      XP163     1652.4015498
+ UP BND1      XP164     1652.4015498
+ UP BND1      XP165     1652.4015498
+ UP BND1      XP166     1652.4015498
+ UP BND1      XP167     1652.4015498
+ UP BND1      XP168     1652.4015498
+ UP BND1      XP169     1652.4015498
+ UP BND1      XP1610    1652.4015498
+ UP BND1      XP1611    1652.4015498
+ UP BND1      XP1612    1652.4015498
+ UP BND1      XP1613    1652.4015498
+ UP BND1      XP1614    1652.4015498
+ UP BND1      XP1615    1652.4015498
+ UP BND1      XP1616    1652.4015498
+ UP BND1      XP1617    1652.4015498
+ UP BND1      XP1618    1652.4015498
+ UP BND1      XP1619    1652.4015498
+ UP BND1      XP1620    1652.4015498
+ UP BND1      XP1621    1652.4015498
+ UP BND1      XP1622    1652.4015498
+ UP BND1      XP1623    1652.4015498
+ UP BND1      XP1624    1652.4015498
+ UP BND1      XP171     1652.4015498
+ UP BND1      XP172     1652.4015498
+ UP BND1      XP173     1652.4015498
+ UP BND1      XP174     1652.4015498
+ UP BND1      XP175     1652.4015498
+ UP BND1      XP176     1652.4015498
+ UP BND1      XP177     1652.4015498
+ UP BND1      XP178     1652.4015498
+ UP BND1      XP179     1652.4015498
+ UP BND1      XP1710    1652.4015498
+ UP BND1      XP1711    1652.4015498
+ UP BND1      XP1712    1652.4015498
+ UP BND1      XP1713    1652.4015498
+ UP BND1      XP1714    1652.4015498
+ UP BND1      XP1715    1652.4015498
+ UP BND1      XP1716    1652.4015498
+ UP BND1      XP1717    1652.4015498
+ UP BND1      XP1718    1652.4015498
+ UP BND1      XP1719    1652.4015498
+ UP BND1      XP1720    1652.4015498
+ UP BND1      XP1721    1652.4015498
+ UP BND1      XP1722    1652.4015498
+ UP BND1      XP1723    1652.4015498
+ UP BND1      XP1724    1652.4015498
+ UP BND1      XP181     1652.4015498
+ UP BND1      XP182     1652.4015498
+ UP BND1      XP183     1652.4015498
+ UP BND1      XP184     1652.4015498
+ UP BND1      XP185     1652.4015498
+ UP BND1      XP186     1652.4015498
+ UP BND1      XP187     1652.4015498
+ UP BND1      XP188     1652.4015498
+ UP BND1      XP189     1652.4015498
+ UP BND1      XP1810    1652.4015498
+ UP BND1      XP1811    1652.4015498
+ UP BND1      XP1812    1652.4015498
+ UP BND1      XP1813    1652.4015498
+ UP BND1      XP1814    1652.4015498
+ UP BND1      XP1815    1652.4015498
+ UP BND1      XP1816    1652.4015498
+ UP BND1      XP1817    1652.4015498
+ UP BND1      XP1818    1652.4015498
+ UP BND1      XP1819    1652.4015498
+ UP BND1      XP1820    1652.4015498
+ UP BND1      XP1821    1652.4015498
+ UP BND1      XP1822    1652.4015498
+ UP BND1      XP1823    1652.4015498
+ UP BND1      XP1824    1652.4015498
+ UP BND1      XP211     3.6020141696340256e+03
+ UP BND1      XP212     3.7198365639079075e+03
+ UP BND1      XP213     3.6349099460048183e+03
+ UP BND1      XP214     3818.6752594
+ UP BND1      XP215     3737.30251644167
+ UP BND1      XP216     3818.6752594
+ UP BND1      XP217     3737.30251644167
+ UP BND1      XP218     3.6684109254050441e+03
+ UP BND1      XP219     3.6349099460048183e+03
+ UP BND1      XP2110    2.9510225444775756e+03
+ UP BND1      XP2111    3.0257308300257887e+03
+ UP BND1      XP2112    3.4147537245652084e+03
+ UP BND1      XP2113    3.5223246685080812e+03
+ UP BND1      XP2114    3.7906907787761193e+03
+ UP BND1      XP2115    3818.6752594
+ UP BND1      XP2116    3.8088289685906157e+03
+ UP BND1      XP2117    3818.6752594
+ UP BND1      XP2118    3.7727266691784507e+03
+ UP BND1      XP2119    3685.39516643921
+ UP BND1      XP2120    3.5857892008215617e+03
+ UP BND1      XP2121    3.2624808044449651e+03
+ UP BND1      XP2122    3.1340360198096650e+03
+ UP BND1      XP2123    3.2491630928404384e+03
+ UP BND1      XP2124    3.8088289685906157e+03
+ UP BND1      XP221     3818.6752594
+ UP BND1      XP222     3818.6752594
+ UP BND1      XP223     3818.6752594
+ UP BND1      XP224     3818.6752594
+ UP BND1      XP225     3818.6752594
+ UP BND1      XP226     3818.6752594
+ UP BND1      XP227     3818.6752594
+ UP BND1      XP228     3818.6752594
+ UP BND1      XP229     3818.6752594
+ UP BND1      XP2210    3339.81986973328
+ UP BND1      XP2211    3.4243709778965772e+03
+ UP BND1      XP2212    3818.6752594
+ UP BND1      XP2213    3818.6752594
+ UP BND1      XP2214    3818.6752594
+ UP BND1      XP2215    3818.6752594
+ UP BND1      XP2216    3818.6752594
+ UP BND1      XP2217    3818.6752594
+ UP BND1      XP2218    3818.6752594
+ UP BND1      XP2219    3818.6752594
+ UP BND1      XP2220    3818.6752594
+ UP BND1      XP2221    3818.6752594
+ UP BND1      XP2222    3.8102165557484605e+03
+ UP BND1      XP2223    3.7058285828110788e+03
+ UP BND1      XP2224    3818.6752594
+ UP BND1      XP231     3818.6752594
+ UP BND1      XP232     3818.6752594
+ UP BND1      XP233     3818.6752594
+ UP BND1      XP234     3818.6752594
+ UP BND1      XP235     3818.6752594
+ UP BND1      XP236     3818.6752594
+ UP BND1      XP237     3818.6752594
+ UP BND1      XP238     3818.6752594
+ UP BND1      XP239     3818.6752594
+ UP BND1      XP2310    3.0644871045380610e+03
+ UP BND1      XP2311    3.1420678675063268e+03
+ UP BND1      XP2312    3.5460483999067687e+03
+ UP BND1      XP2313    3818.6752594
+ UP BND1      XP2314    3818.6752594
+ UP BND1      XP2315    3818.6752594
+ UP BND1      XP2316    3818.6752594
+ UP BND1      XP2317    3818.6752594
+ UP BND1      XP2318    3818.6752594
+ UP BND1      XP2319    3818.6752594
+ UP BND1      XP2320    3818.6752594
+ UP BND1      XP2321    3818.6752594
+ UP BND1      XP2322    3.4961045557052239e+03
+ UP BND1      XP2323    3.4003222677953863e+03
+ UP BND1      XP2324    3818.6752594
+ UP BND1      XP241     3818.6752594
+ UP BND1      XP242     3818.6752594
+ UP BND1      XP243     3818.6752594
+ UP BND1      XP244     3818.6752594
+ UP BND1      XP245     3818.6752594
+ UP BND1      XP246     3818.6752594
+ UP BND1      XP247     3818.6752594
+ UP BND1      XP248     3818.6752594
+ UP BND1      XP249     3818.6752594
+ UP BND1      XP2410    3.2052491672206506e+03
+ UP BND1      XP2411    3.2863934732585781e+03
+ UP BND1      XP2412    3.7089301782388497e+03
+ UP BND1      XP2413    3818.6752594
+ UP BND1      XP2414    3818.6752594
+ UP BND1      XP2415    3818.6752594
+ UP BND1      XP2416    3818.6752594
+ UP BND1      XP2417    3818.6752594
+ UP BND1      XP2418    3818.6752594
+ UP BND1      XP2419    3818.6752594
+ UP BND1      XP2420    3818.6752594
+ UP BND1      XP2421    3818.6752594
+ UP BND1      XP2422    3.6566922467782056e+03
+ UP BND1      XP2423    3.5565103590807626e+03
+ UP BND1      XP2424    3818.6752594
+ UP BND1      XP251     3818.6752594
+ UP BND1      XP252     3818.6752594
+ UP BND1      XP253     3818.6752594
+ UP BND1      XP254     3.8035452996480421e+03
+ UP BND1      XP255     3.8173762327752361e+03
+ UP BND1      XP256     3.8173762327752361e+03
+ UP BND1      XP257     3810.4490454415
+ UP BND1      XP258     3818.6752594
+ UP BND1      XP259     3810.4490454415
+ UP BND1      XP2510    2.8808148375348683e+03
+ UP BND1      XP2511    2.9537457394418889e+03
+ UP BND1      XP2512    3.3335133964433312e+03
+ UP BND1      XP2513    3818.6752594
+ UP BND1      XP2514    3810.4490454415
+ UP BND1      XP2515    3.7425262650372606e+03
+ UP BND1      XP2516    3.7626479127481543e+03
+ UP BND1      XP2517    3.7829858707855028e+03
+ UP BND1      XP2518    3.7966678293989926e+03
+ UP BND1      XP2519    3818.6752594
+ UP BND1      XP2520    3818.6752594
+ UP BND1      XP2521    3818.6752594
+ UP BND1      XP2522    3.2865629739035026e+03
+ UP BND1      XP2523    3.1965214690675707e+03
+ UP BND1      XP2524    3749.20887876802
+ UP BND1      XP261     3818.6752594
+ UP BND1      XP262     3818.6752594
+ UP BND1      XP263     3.6676106093825879e+03
+ UP BND1      XP264     3.5704553236007405e+03
+ UP BND1      XP265     3.5942564513559228e+03
+ UP BND1      XP266     3.4340036593529453e+03
+ UP BND1      XP267     3.5237817663080091e+03
+ UP BND1      XP268     3.7181963116012803e+03
+ UP BND1      XP269     3.7881273498387163e+03
+ UP BND1      XP2610    3.5691780599805870e+03
+ UP BND1      XP2611    3.6595356175077945e+03
+ UP BND1      XP2612    3818.6752594
+ UP BND1      XP2613    3818.6752594
+ UP BND1      XP2614    3.7881273498387163e+03
+ UP BND1      XP2615    3.6676106093825879e+03
+ UP BND1      XP2616    3.6428284620805889e+03
+ UP BND1      XP2617    3.5942564513559228e+03
+ UP BND1      XP2618    3.4122685945630087e+03
+ UP BND1      XP2619    3.5008991547807955e+03
+ UP BND1      XP2620    3.5704553236007405e+03
+ UP BND1      XP2621    3818.6752594
+ UP BND1      XP2622    3818.6752594
+ UP BND1      XP2623    3818.6752594
+ UP BND1      XP2624    3.7272459295233671e+03
+ UP BND1      XP271     3.6418076081521931e+03
+ UP BND1      XP272     3.8171241372920026e+03
+ UP BND1      XP273     3.8171241372920026e+03
+ UP BND1      XP274     3.7064821813972153e+03
+ UP BND1      XP275     3.7199601612282513e+03
+ UP BND1      XP276     3.6521619220507355e+03
+ UP BND1      XP277     3.7132097496463789e+03
+ UP BND1      XP278     3.7403622696578955e+03
+ UP BND1      XP279     3.3383236735588539e+03
+ UP BND1      XP2710    2472.83311376874
+ UP BND1      XP2711    2.5354355193709430e+03
+ UP BND1      XP2712    2.8614203663499738e+03
+ UP BND1      XP2713    3.5140248977288334e+03
+ UP BND1      XP2714    3.7132097496463789e+03
+ UP BND1      XP2715    3.6470202990910680e+03
+ UP BND1      XP2716    3.6666284599809078e+03
+ UP BND1      XP2717    3.6864474111471804e+03
+ UP BND1      XP2718    3.6290460534453791e+03
+ UP BND1      XP2719    3.7233072118184650e+03
+ UP BND1      XP2720    3.7972822045168205e+03
+ UP BND1      XP2721    3.5140248977288334e+03
+ UP BND1      XP2722    2.8211190767981134e+03
+ UP BND1      XP2723    2.7438292770098406e+03
+ UP BND1      XP2724    3.2835970633813963e+03
+ UP BND1      XP281     3.5009090205701618e+03
+ UP BND1      XP282     3.7028838100438215e+03
+ UP BND1      XP283     3818.6752594
+ UP BND1      XP284     3818.6752594
+ UP BND1      XP285     3818.6752594
+ UP BND1      XP286     3818.6752594
+ UP BND1      XP287     3818.6752594
+ UP BND1      XP288     3818.6752594
+ UP BND1      XP289     3.2091666368989177e+03
+ UP BND1      XP2810    2.3771612152726561e+03
+ UP BND1      XP2811    2.4373415838263127e+03
+ UP BND1      XP2812    2750.71433756303
+ UP BND1      XP2813    3.3780701211047353e+03
+ UP BND1      XP2814    3.7028838100438215e+03
+ UP BND1      XP2815    3818.6752594
+ UP BND1      XP2816    3818.6752594
+ UP BND1      XP2817    3818.6752594
+ UP BND1      XP2818    3818.6752594
+ UP BND1      XP2819    3818.6752594
+ UP BND1      XP2820    3818.6752594
+ UP BND1      XP2821    3.3780701211047353e+03
+ UP BND1      XP2822    2.7119722727000585e+03
+ UP BND1      XP2823    2.6376727535050190e+03
+ UP BND1      XP2824    3.1565573555383980e+03
+ UP BND1      XP311     5.7922444570000007e+03
+ UP BND1      XP312     5.7922444570000007e+03
+ UP BND1      XP313     5.7922444570000007e+03
+ UP BND1      XP314     5.7922444570000007e+03
+ UP BND1      XP315     5.7922444570000007e+03
+ UP BND1      XP316     5.7922444570000007e+03
+ UP BND1      XP317     5.7922444570000007e+03
+ UP BND1      XP318     5.7922444570000007e+03
+ UP BND1      XP319     5.7922444570000007e+03
+ UP BND1      XP3110    5.7922444570000007e+03
+ UP BND1      XP3111    5.7922444570000007e+03
+ UP BND1      XP3112    5.7922444570000007e+03
+ UP BND1      XP3113    5.7922444570000007e+03
+ UP BND1      XP3114    5.7922444570000007e+03
+ UP BND1      XP3115    5.7922444570000007e+03
+ UP BND1      XP3116    5.7922444570000007e+03
+ UP BND1      XP3117    5.7922444570000007e+03
+ UP BND1      XP3118    5.7922444570000007e+03
+ UP BND1      XP3119    5.7922444570000007e+03
+ UP BND1      XP3120    5.7922444570000007e+03
+ UP BND1      XP3121    5.7922444570000007e+03
+ UP BND1      XP3122    5.7922444570000007e+03
+ UP BND1      XP3123    5.7922444570000007e+03
+ UP BND1      XP3124    5.7319828472258869e+03
+ UP BND1      XP321     5.7922444570000007e+03
+ UP BND1      XP322     5.7922444570000007e+03
+ UP BND1      XP323     5.7922444570000007e+03
+ UP BND1      XP324     5.7922444570000007e+03
+ UP BND1      XP325     5.7922444570000007e+03
+ UP BND1      XP326     5.7922444570000007e+03
+ UP BND1      XP327     5.7922444570000007e+03
+ UP BND1      XP328     5.7922444570000007e+03
+ UP BND1      XP329     5.7922444570000007e+03
+ UP BND1      XP3210    5.7922444570000007e+03
+ UP BND1      XP3211    5.7922444570000007e+03
+ UP BND1      XP3212    5.7922444570000007e+03
+ UP BND1      XP3213    5.7922444570000007e+03
+ UP BND1      XP3214    5.7922444570000007e+03
+ UP BND1      XP3215    5.7922444570000007e+03
+ UP BND1      XP3216    5.7922444570000007e+03
+ UP BND1      XP3217    5.7922444570000007e+03
+ UP BND1      XP3218    5.7922444570000007e+03
+ UP BND1      XP3219    5.7922444570000007e+03
+ UP BND1      XP3220    5.7922444570000007e+03
+ UP BND1      XP3221    5.7922444570000007e+03
+ UP BND1      XP3222    5.7922444570000007e+03
+ UP BND1      XP3223    5.7922444570000007e+03
+ UP BND1      XP3224    5.7922444570000007e+03
+ UP BND1      XP331     5.7922444570000007e+03
+ UP BND1      XP332     5.7922444570000007e+03
+ UP BND1      XP333     5.7922444570000007e+03
+ UP BND1      XP334     5.7922444570000007e+03
+ UP BND1      XP335     5.7922444570000007e+03
+ UP BND1      XP336     5.7922444570000007e+03
+ UP BND1      XP337     5.7922444570000007e+03
+ UP BND1      XP338     5.7922444570000007e+03
+ UP BND1      XP339     5.7922444570000007e+03
+ UP BND1      XP3310    5.7922444570000007e+03
+ UP BND1      XP3311    5.7922444570000007e+03
+ UP BND1      XP3312    5.7922444570000007e+03
+ UP BND1      XP3313    5.7922444570000007e+03
+ UP BND1      XP3314    5.7922444570000007e+03
+ UP BND1      XP3315    5.7516341102167416e+03
+ UP BND1      XP3316    5.7922444570000007e+03
+ UP BND1      XP3317    5.7744138856642394e+03
+ UP BND1      XP3318    5.7922444570000007e+03
+ UP BND1      XP3319    5.7922444570000007e+03
+ UP BND1      XP3320    5.7922444570000007e+03
+ UP BND1      XP3321    5.7922444570000007e+03
+ UP BND1      XP3322    5.7922444570000007e+03
+ UP BND1      XP3323    5.7922444570000007e+03
+ UP BND1      XP3324    5.7922444570000007e+03
+ UP BND1      XP341     5.7922444570000007e+03
+ UP BND1      XP342     5.7922444570000007e+03
+ UP BND1      XP343     5.7922444570000007e+03
+ UP BND1      XP344     5.7922444570000007e+03
+ UP BND1      XP345     5.6980364035436378e+03
+ UP BND1      XP346     5.7789440331640080e+03
+ UP BND1      XP347     5.7209218030320071e+03
+ UP BND1      XP348     5.7789440331640080e+03
+ UP BND1      XP349     5.7922444570000007e+03
+ UP BND1      XP3410    5.7922444570000007e+03
+ UP BND1      XP3411    5.7922444570000007e+03
+ UP BND1      XP3412    5.7922444570000007e+03
+ UP BND1      XP3413    5.7922444570000007e+03
+ UP BND1      XP3414    5.7922444570000007e+03
+ UP BND1      XP3415    5.6193656358042563e+03
+ UP BND1      XP3416    5.6980364035436378e+03
+ UP BND1      XP3417    5.6416215520124470e+03
+ UP BND1      XP3418    5.7906890334718364e+03
+ UP BND1      XP3419    5.7922444570000007e+03
+ UP BND1      XP3420    5.7922444570000007e+03
+ UP BND1      XP3421    5.7922444570000007e+03
+ UP BND1      XP3422    5.7922444570000007e+03
+ UP BND1      XP3423    5.6698634264082239e+03
+ UP BND1      XP3424    5.2575097204233161e+03
+ UP BND1      XP351     5.6041315785259767e+03
+ UP BND1      XP352     5.6083938296297292e+03
+ UP BND1      XP353     5.6435924880586035e+03
+ UP BND1      XP354     5.6041315785259767e+03
+ UP BND1      XP355     5.3952729952502377e+03
+ UP BND1      XP356     5.4160734170716059e+03
+ UP BND1      XP357     5.3799644574524618e+03
+ UP BND1      XP358     5.4718816221502020e+03
+ UP BND1      XP359     5.4897626326174386e+03
+ UP BND1      XP3510    5.3799644574524618e+03
+ UP BND1      XP3511    5.5273633868576362e+03
+ UP BND1      XP3512    5.3443383871015822e+03
+ UP BND1      XP3513    5.3091765031406267e+03
+ UP BND1      XP3514    5.4897626326174386e+03
+ UP BND1      XP3515    5.3207823752437089e+03
+ UP BND1      XP3516    5.3952729952502377e+03
+ UP BND1      XP3517    5.3418557299954191e+03
+ UP BND1      XP3518    5483.0025553767
+ UP BND1      XP3519    5.5654804643323414e+03
+ UP BND1      XP3520    5.3799644574524618e+03
+ UP BND1      XP3521    5.4897626326174386e+03
+ UP BND1      XP3522    5683.06423468256
+ UP BND1      XP3523    5.6041315785259767e+03
+ UP BND1      XP3524    5.2115873490797412e+03
+ UP BND1      XP361     5.4638058740162533e+03
+ UP BND1      XP362     5.5020158574379975e+03
+ UP BND1      XP363     5.5407620807613193e+03
+ UP BND1      XP364     5.4638058740162533e+03
+ UP BND1      XP365     5.4402844945387624e+03
+ UP BND1      XP366     5.2804566310328428e+03
+ UP BND1      XP367     5.2452518286467721e+03
+ UP BND1      XP368     5.4638058740162533e+03
+ UP BND1      XP369     5.3523006913059080e+03
+ UP BND1      XP3610    5.2452518286467721e+03
+ UP BND1      XP3611    5.3889599342349538e+03
+ UP BND1      XP3612    5.2105178241303429e+03
+ UP BND1      XP3613    5.1762363829195292e+03
+ UP BND1      XP3614    5.3523006913059080e+03
+ UP BND1      XP3615    5.3651724166164176e+03
+ UP BND1      XP3616    5.4402844945387624e+03
+ UP BND1      XP3617    5.3864215814650515e+03
+ UP BND1      XP3618    5.3523006913059080e+03
+ UP BND1      XP3619    5426.12257182366
+ UP BND1      XP3620    5.2452518286467721e+03
+ UP BND1      XP3621    5.3523006913059080e+03
+ UP BND1      XP3622    5.5407620807613193e+03
+ UP BND1      XP3623    5.4638058740162533e+03
+ UP BND1      XP3624    5.2452518286467721e+03
+ UP BND1      XP371     5.5636529455711561e+03
+ UP BND1      XP372     5.6025611887288887e+03
+ UP BND1      XP373     5.6420154711835030e+03
+ UP BND1      XP374     5.5636529455711561e+03
+ UP BND1      XP375     5.5368411747718765e+03
+ UP BND1      XP376     5376.95312814268
+ UP BND1      XP377     5.3411049835245994e+03
+ UP BND1      XP378     5.5636529455711561e+03
+ UP BND1      XP379     5.4501100865137350e+03
+ UP BND1      XP3710    5.3411049835245994e+03
+ UP BND1      XP3711    5487.43925052091
+ UP BND1      XP3712    5305.73624026579
+ UP BND1      XP3713    5.2708283305787945e+03
+ UP BND1      XP3714    5.4501100865137350e+03
+ UP BND1      XP3715    5.4603959727767015e+03
+ UP BND1      XP3716    5.5368411747718765e+03
+ UP BND1      XP3717    5.4820222776801820e+03
+ UP BND1      XP3718    5.4501100865137350e+03
+ UP BND1      XP3719    5.5252810083600725e+03
+ UP BND1      XP3720    5.3411049835245994e+03
+ UP BND1      XP3721    5.4501100865137350e+03
+ UP BND1      XP3722    5.6420154711835030e+03
+ UP BND1      XP3723    5.5636529455711561e+03
+ UP BND1      XP3724    5.3411049835245994e+03
+ UP BND1      XP381     5.5516026725177526e+03
+ UP BND1      XP382     5.5904266445962248e+03
+ UP BND1      XP383     5.6297954733090592e+03
+ UP BND1      XP384     5.5516026725177526e+03
+ UP BND1      XP385     5.4355811164363413e+03
+ UP BND1      XP386     5.3653072268582227e+03
+ UP BND1      XP387     5.3295367254743578e+03
+ UP BND1      XP388     5.5127620870141964e+03
+ UP BND1      XP389     5.4383057351082507e+03
+ UP BND1      XP3810    5.3295367254743578e+03
+ UP BND1      XP3811    5.4755540481521466e+03
+ UP BND1      XP3812    5.2942445871178670e+03
+ UP BND1      XP3813    5.2594122842171273e+03
+ UP BND1      XP3814    5.4383057351082507e+03
+ UP BND1      XP3815    5.3605339763987386e+03
+ UP BND1      XP3816    5.4355811164363413e+03
+ UP BND1      XP3817    5.3817647703560860e+03
+ UP BND1      XP3818    5.4383057351082507e+03
+ UP BND1      XP3819    5.5133138448048012e+03
+ UP BND1      XP3820    5.3295367254743578e+03
+ UP BND1      XP3821    5.4383057351082507e+03
+ UP BND1      XP3822    5.6297954733090592e+03
+ UP BND1      XP3823    5.5516026725177526e+03
+ UP BND1      XP3824    5.2615003672937373e+03
+ UP BND1      XP411     5.0196669393703689e+02
+ UP BND1      XP412     4.8707793343464135e+02
+ UP BND1      XP413     4.7500155833390710e+02
+ UP BND1      XP414     4.9334935745235549e+02
+ UP BND1      XP415     4.8915043630498286e+02
+ UP BND1      XP416     5.1089028467688325e+02
+ UP BND1      XP417     4.7110814751586457e+02
+ UP BND1      XP418     4.7697247656972837e+02
+ UP BND1      XP419     4.5434938463426442e+02
+ UP BND1      XP4110    4.6400675412909436e+02
+ UP BND1      XP4111    4.3463894892668020e+02
+ UP BND1      XP4112    4.7110814751586457e+02
+ UP BND1      XP4113    4.8096383143519034e+02
+ UP BND1      XP4114    4.6350962154443778e+02
+ UP BND1      XP4115    4.2417113576398361e+02
+ UP BND1      XP4116    437.073886477153
+ UP BND1      XP4117    4.7697247656972837e+02
+ UP BND1      XP4118    4.5980127446690938e+02
+ UP BND1      XP4119    4.5078579494471660e+02
+ UP BND1      XP4120    4.7110814751586457e+02
+ UP BND1      XP4121    4.4727758379387103e+02
+ UP BND1      XP4122    4.2417113576398361e+02
+ UP BND1      XP4123    4.1053709130348415e+02
+ UP BND1      XP4124    4.6164817709537130e+02
+ UP BND1      XP421     4.9204521759812530e+02
+ UP BND1      XP422     5.0718481258073649e+02
+ UP BND1      XP423     513.874222863
+ UP BND1      XP424     513.874222863
+ UP BND1      XP425     513.874222863
+ UP BND1      XP426     5.0990781659899227e+02
+ UP BND1      XP427     513.874222863
+ UP BND1      XP428     5.0889810998771389e+02
+ UP BND1      XP429     5.0990781659899227e+02
+ UP BND1      XP4210    4.4550065605036804e+02
+ UP BND1      XP4211    4.1730413693351733e+02
+ UP BND1      XP4212    4.6432433949598106e+02
+ UP BND1      XP4213    5.1092159885375372e+02
+ UP BND1      XP4214    513.874222863
+ UP BND1      XP4215    513.874222863
+ UP BND1      XP4216    513.874222863
+ UP BND1      XP4217    513.874222863
+ UP BND1      XP4218    513.874222863
+ UP BND1      XP4219    513.874222863
+ UP BND1      XP4220    513.874222863
+ UP BND1      XP4221    4.9950036072325884e+02
+ UP BND1      XP4222    4.3377674333240446e+02
+ UP BND1      XP4223    4.5787546602752576e+02
+ UP BND1      XP4224    4.5160333421732309e+02
+ UP BND1      XP431     4.6221182210235060e+02
+ UP BND1      XP432     4.7643348022358197e+02
+ UP BND1      XP433     513.874222863
+ UP BND1      XP434     513.874222863
+ UP BND1      XP435     513.874222863
+ UP BND1      XP436     513.874222863
+ UP BND1      XP437     513.874222863
+ UP BND1      XP438     513.874222863
+ UP BND1      XP439     513.874222863
+ UP BND1      XP4310    4.1848932870043990e+02
+ UP BND1      XP4311    3.9200240777889655e+02
+ UP BND1      XP4312    4.3617170335136473e+02
+ UP BND1      XP4313    513.874222863
+ UP BND1      XP4314    513.874222863
+ UP BND1      XP4315    513.874222863
+ UP BND1      XP4316    513.874222863
+ UP BND1      XP4317    513.874222863
+ UP BND1      XP4318    513.874222863
+ UP BND1      XP4319    513.874222863
+ UP BND1      XP4320    513.874222863
+ UP BND1      XP4321    4.6921494846684544e+02
+ UP BND1      XP4322    4.0747625478997276e+02
+ UP BND1      XP4323    4.3011383497108170e+02
+ UP BND1      XP4324    4.2422199213126629e+02
+ UP BND1      XP441     4.8419606578718719e+02
+ UP BND1      XP442     4.9909415202907030e+02
+ UP BND1      XP443     513.874222863
+ UP BND1      XP444     513.874222863
+ UP BND1      XP445     513.874222863
+ UP BND1      XP446     513.874222863
+ UP BND1      XP447     513.874222863
+ UP BND1      XP448     513.874222863
+ UP BND1      XP449     513.874222863
+ UP BND1      XP4410    4.3839398899282310e+02
+ UP BND1      XP4411    4.1064726432771607e+02
+ UP BND1      XP4412    4.5691739465095014e+02
+ UP BND1      XP4413    513.874222863
+ UP BND1      XP4414    513.874222863
+ UP BND1      XP4415    513.874222863
+ UP BND1      XP4416    513.874222863
+ UP BND1      XP4417    513.874222863
+ UP BND1      XP4418    513.874222863
+ UP BND1      XP4419    513.874222863
+ UP BND1      XP4420    513.874222863
+ UP BND1      XP4421    4.9153228352295827e+02
+ UP BND1      XP4422    4.2685709761857271e+02
+ UP BND1      XP4423    4.5057139443057514e+02
+ UP BND1      XP4424    4.4439931646308764e+02
+ UP BND1      XP451     4.9314114784173319e+02
+ UP BND1      XP452     4.9412555831856844e+02
+ UP BND1      XP453     5.0521801039752495e+02
+ UP BND1      XP454     5.0214383019052951e+02
+ UP BND1      XP455     5.0316437454636008e+02
+ UP BND1      XP456     4.9118426163511015e+02
+ UP BND1      XP457     4.9511361966787348e+02
+ UP BND1      XP458     4.9021163100834150e+02
+ UP BND1      XP459     4.9118426163511015e+02
+ UP BND1      XP4510    4.5195469752655788e+02
+ UP BND1      XP4511    423.34968987017
+ UP BND1      XP4512    471.051083390776
+ UP BND1      XP4513    4.9216081824951817e+02
+ UP BND1      XP4514    5.0214383019052951e+02
+ UP BND1      XP4515    5.0011480775682242e+02
+ UP BND1      XP4516    5.0011480775682242e+02
+ UP BND1      XP4517    5.0214383019052951e+02
+ UP BND1      XP4518    5.0011480775682242e+02
+ UP BND1      XP4519    4.9910659418883864e+02
+ UP BND1      XP4520    4.9710217349219425e+02
+ UP BND1      XP4521    4.9216081824951817e+02
+ UP BND1      XP4522    4.4006093817029205e+02
+ UP BND1      XP4523    4.6450878381912423e+02
+ UP BND1      XP4524    458.145786397024
+ UP BND1      XP461     4.7242138165626943e+02
+ UP BND1      XP462     4.7336443116300359e+02
+ UP BND1      XP463     4.8399082300633478e+02
+ UP BND1      XP464     4.7474305950226608e+02
+ UP BND1      XP465     4.6884590177098659e+02
+ UP BND1      XP466     4.3886135001000025e+02
+ UP BND1      XP467     4.7431097814722580e+02
+ UP BND1      XP468     4.6961495134116251e+02
+ UP BND1      XP469     4.6582286718565410e+02
+ UP BND1      XP4610    4.6606777918868579e+02
+ UP BND1      XP4611    4.3656952779691142e+02
+ UP BND1      XP4612    4.6868693440869521e+02
+ UP BND1      XP4613    4.7148224157179231e+02
+ UP BND1      XP4614    4.7521442398582792e+02
+ UP BND1      XP4615    4.3488253876682734e+02
+ UP BND1      XP4616    4.4811111761140216e+02
+ UP BND1      XP4617    4.7774754594279113e+02
+ UP BND1      XP4618    454.723888560321
+ UP BND1      XP4619    4.6216928755555381e+02
+ UP BND1      XP4620    4.7621598093546191e+02
+ UP BND1      XP4621    4.5857248491679479e+02
+ UP BND1      XP4622    4.3488253876682734e+02
+ UP BND1      XP4623    4.2090419909914152e+02
+ UP BND1      XP4624    4.7245219614405215e+02
+ UP BND1      XP471     4.3252453925387863e+02
+ UP BND1      XP472     4.4583275622005675e+02
+ UP BND1      XP473     4.9735305605333639e+02
+ UP BND1      XP474     5.0465058040650882e+02
+ UP BND1      XP475     5.0567621942790180e+02
+ UP BND1      XP476     4.9363630052357149e+02
+ UP BND1      XP477     4.9327643794954770e+02
+ UP BND1      XP478     4.9265881442165295e+02
+ UP BND1      XP479     4.7572907925736070e+02
+ UP BND1      XP4710    3.9161029257920603e+02
+ UP BND1      XP4711    3.6682459688992014e+02
+ UP BND1      XP4712    4.0815694813271347e+02
+ UP BND1      XP4713    4.9461773221207579e+02
+ UP BND1      XP4714    4.8532035779646469e+02
+ UP BND1      XP4715    4.4413077087564187e+02
+ UP BND1      XP4716    4.5764066993438649e+02
+ UP BND1      XP4717    4.9941671728425581e+02
+ UP BND1      XP4718    4.8143751174247825e+02
+ UP BND1      XP4719    4.7199780225582680e+02
+ UP BND1      XP4720    4.8298548306914205e+02
+ UP BND1      XP4721    4.3907786266425677e+02
+ UP BND1      XP4722    3.8130457605756862e+02
+ UP BND1      XP4723    4.0248816984609431e+02
+ UP BND1      XP4724    3.9697475346563522e+02
+ UP BND1      XP481     3.9853083697927411e+02
+ UP BND1      XP482     4.1079310956486552e+02
+ UP BND1      XP483     4.7681335517571091e+02
+ UP BND1      XP484     513.874222863
+ UP BND1      XP485     513.874222863
+ UP BND1      XP486     5.1133385273458208e+02
+ UP BND1      XP487     513.874222863
+ UP BND1      XP488     5.1032132231693913e+02
+ UP BND1      XP489     5.1133385273458208e+02
+ UP BND1      XP4810    3.6083219961605727e+02
+ UP BND1      XP4811    3.3799450786982607e+02
+ UP BND1      XP4812    3.7607838934174708e+02
+ UP BND1      XP4813    4.6037154699002980e+02
+ UP BND1      XP4814    4.9447307530438917e+02
+ UP BND1      XP4815    4.9020672435818659e+02
+ UP BND1      XP4816    5.0511819908558607e+02
+ UP BND1      XP4817    513.874222863
+ UP BND1      XP4818    513.874222863
+ UP BND1      XP4819    513.874222863
+ UP BND1      XP4820    4.4502585953274757e+02
+ UP BND1      XP4821    4.0456910928906734e+02
+ UP BND1      XP4822    3.5133644932138480e+02
+ UP BND1      XP4823    3.7085514232417404e+02
+ UP BND1      XP4824    365.775046718063
+ UP BND1      XP511     2.2118903797000003e+03
+ UP BND1      XP512     2.2118903797000003e+03
+ UP BND1      XP513     2.2118903797000003e+03
+ UP BND1      XP514     2.2118903797000003e+03
+ UP BND1      XP515     2.2118903797000003e+03
+ UP BND1      XP516     2.2118903797000003e+03
+ UP BND1      XP517     2.2118903797000003e+03
+ UP BND1      XP518     2.2118903797000003e+03
+ UP BND1      XP519     2.2118903797000003e+03
+ UP BND1      XP5110    2.2118903797000003e+03
+ UP BND1      XP5111    2.2118903797000003e+03
+ UP BND1      XP5112    2.2118903797000003e+03
+ UP BND1      XP5113    2.2118903797000003e+03
+ UP BND1      XP5114    2.2118903797000003e+03
+ UP BND1      XP5115    2.2118903797000003e+03
+ UP BND1      XP5116    2.2118903797000003e+03
+ UP BND1      XP5117    2.2118903797000003e+03
+ UP BND1      XP5118    2.2118903797000003e+03
+ UP BND1      XP5119    2.2118903797000003e+03
+ UP BND1      XP5120    2.2118903797000003e+03
+ UP BND1      XP5121    2.2118903797000003e+03
+ UP BND1      XP5122    2.2118903797000003e+03
+ UP BND1      XP5123    2.2118903797000003e+03
+ UP BND1      XP5124    2.2118903797000003e+03
+ UP BND1      XP521     2.2118903797000003e+03
+ UP BND1      XP522     2.2118903797000003e+03
+ UP BND1      XP523     2.2118903797000003e+03
+ UP BND1      XP524     2.2118903797000003e+03
+ UP BND1      XP525     2.2118903797000003e+03
+ UP BND1      XP526     2.2118903797000003e+03
+ UP BND1      XP527     2.2118903797000003e+03
+ UP BND1      XP528     2.2118903797000003e+03
+ UP BND1      XP529     2.2118903797000003e+03
+ UP BND1      XP5210    2.2118903797000003e+03
+ UP BND1      XP5211    2.2118903797000003e+03
+ UP BND1      XP5212    2.2118903797000003e+03
+ UP BND1      XP5213    2.2118903797000003e+03
+ UP BND1      XP5214    2.2118903797000003e+03
+ UP BND1      XP5215    2.2118903797000003e+03
+ UP BND1      XP5216    2.2118903797000003e+03
+ UP BND1      XP5217    2.2118903797000003e+03
+ UP BND1      XP5218    2.2118903797000003e+03
+ UP BND1      XP5219    2.2118903797000003e+03
+ UP BND1      XP5220    2.2118903797000003e+03
+ UP BND1      XP5221    2.2118903797000003e+03
+ UP BND1      XP5222    2.2118903797000003e+03
+ UP BND1      XP5223    2.2118903797000003e+03
+ UP BND1      XP5224    2.2118903797000003e+03
+ UP BND1      XP531     2.2118903797000003e+03
+ UP BND1      XP532     2.2118903797000003e+03
+ UP BND1      XP533     2.2118903797000003e+03
+ UP BND1      XP534     2.2118903797000003e+03
+ UP BND1      XP535     2.2118903797000003e+03
+ UP BND1      XP536     2.2118903797000003e+03
+ UP BND1      XP537     2.2118903797000003e+03
+ UP BND1      XP538     2.2118903797000003e+03
+ UP BND1      XP539     2.2118903797000003e+03
+ UP BND1      XP5310    2.2118903797000003e+03
+ UP BND1      XP5311    2.2118903797000003e+03
+ UP BND1      XP5312    2.2118903797000003e+03
+ UP BND1      XP5313    2.2118903797000003e+03
+ UP BND1      XP5314    2.2118903797000003e+03
+ UP BND1      XP5315    2.2118903797000003e+03
+ UP BND1      XP5316    2.2118903797000003e+03
+ UP BND1      XP5317    2.2118903797000003e+03
+ UP BND1      XP5318    2.2118903797000003e+03
+ UP BND1      XP5319    2.2118903797000003e+03
+ UP BND1      XP5320    2.2118903797000003e+03
+ UP BND1      XP5321    2.2118903797000003e+03
+ UP BND1      XP5322    2.2118903797000003e+03
+ UP BND1      XP5323    2.2118903797000003e+03
+ UP BND1      XP5324    2.2118903797000003e+03
+ UP BND1      XP541     2.2118903797000003e+03
+ UP BND1      XP542     2.2118903797000003e+03
+ UP BND1      XP543     2.1727384671080536e+03
+ UP BND1      XP544     2.1633123653870516e+03
+ UP BND1      XP545     2.1039809778563772e+03
+ UP BND1      XP546     2.1173819483754155e+03
+ UP BND1      XP547     2.1680148877996453e+03
+ UP BND1      XP548     2.1586296848395696e+03
+ UP BND1      XP549     2.2118903797000003e+03
+ UP BND1      XP5410    2.2118903797000003e+03
+ UP BND1      XP5411    2.2118903797000003e+03
+ UP BND1      XP5412    2.2118903797000003e+03
+ UP BND1      XP5413    2.2118903797000003e+03
+ UP BND1      XP5414    2.2118903797000003e+03
+ UP BND1      XP5415    2.2118903797000003e+03
+ UP BND1      XP5416    2.2118903797000003e+03
+ UP BND1      XP5417    2.2063869194365434e+03
+ UP BND1      XP5418    2.1586296848395696e+03
+ UP BND1      XP5419    2.2118903797000003e+03
+ UP BND1      XP5420    2.2118903797000003e+03
+ UP BND1      XP5421    2.2118903797000003e+03
+ UP BND1      XP5422    2.2118903797000003e+03
+ UP BND1      XP5423    2.2118903797000003e+03
+ UP BND1      XP5424    2.2118903797000003e+03
+ UP BND1      XP551     2.2118903797000003e+03
+ UP BND1      XP552     2.1871764731767230e+03
+ UP BND1      XP553     2039.45860255513
+ UP BND1      XP554     2.0306107159105720e+03
+ UP BND1      XP555     1.9749188289700685e+03
+ UP BND1      XP556     1.9874977583715331e+03
+ UP BND1      XP557     2.0350247766200403e+03
+ UP BND1      XP558     2.0262152799283272e+03
+ UP BND1      XP559     2.1569387652928408e+03
+ UP BND1      XP5510    2.1974450609935384e+03
+ UP BND1      XP5511    2.1619206961811838e+03
+ UP BND1      XP5512    2.2118903797000003e+03
+ UP BND1      XP5513    2.2118903797000003e+03
+ UP BND1      XP5514    2.1922982550447869e+03
+ UP BND1      XP5515    2.0942089707428049e+03
+ UP BND1      XP5516    2.0942089707428049e+03
+ UP BND1      XP5517    2071.04299457415
+ UP BND1      XP5518    2.0262152799283272e+03
+ UP BND1      XP5519    2.0942089707428049e+03
+ UP BND1      XP5520    2.0989047405601796e+03
+ UP BND1      XP5521    2.1770033579385486e+03
+ UP BND1      XP5522    2.2118903797000003e+03
+ UP BND1      XP5523    2113.1186355353
+ UP BND1      XP5524    2.1323723189160851e+03
+ UP BND1      XP561     2.1067782220063636e+03
+ UP BND1      XP562     2.0326767776620964e+03
+ UP BND1      XP563     1.9369510915376734e+03
+ UP BND1      XP564     1.9285479186427719e+03
+ UP BND1      XP565     1.8756552253246236e+03
+ UP BND1      XP566     1.8219722305271268e+03
+ UP BND1      XP567     1.8331512107195731e+03
+ UP BND1      XP568     1.9243734066953350e+03
+ UP BND1      XP569     2.0485264494581220e+03
+ UP BND1      XP5610    2.0869968119049913e+03
+ UP BND1      XP5611    2.0532579778204281e+03
+ UP BND1      XP5612    2.1045856324077322e+03
+ UP BND1      XP5613    2.1269394344496818e+03
+ UP BND1      XP5614    2.0821086954562497e+03
+ UP BND1      XP5615    1.9889495888538102e+03
+ UP BND1      XP5616    1.9032062943249368e+03
+ UP BND1      XP5617    1.9669479843074746e+03
+ UP BND1      XP5618    1.9243734066953350e+03
+ UP BND1      XP5619    1.9788310260380993e+03
+ UP BND1      XP5620    1.9481640226098334e+03
+ UP BND1      XP5621    2.0675825526656995e+03
+ UP BND1      XP5622    1.9350892276016775e+03
+ UP BND1      XP5623    2.0069088133578562e+03
+ UP BND1      XP5624    2.0251947653384836e+03
+ UP BND1      XP571     2.2118903797000003e+03
+ UP BND1      XP572     2.2118903797000003e+03
+ UP BND1      XP573     2.1255703832404715e+03
+ UP BND1      XP574     2.1163489133092053e+03
+ UP BND1      XP575     2.0583055543164432e+03
+ UP BND1      XP576     2.0714156023881460e+03
+ UP BND1      XP577     2.1209493483896181e+03
+ UP BND1      XP578     2.1117678893457023e+03
+ UP BND1      XP579     2.1806579344728088e+03
+ UP BND1      XP5710    2.1806579344728088e+03
+ UP BND1      XP5711    2.1646238432181713e+03
+ UP BND1      XP5712    2.1488230398593096e+03
+ UP BND1      XP5713    2.2118903797000003e+03
+ UP BND1      XP5714    2.2118903797000003e+03
+ UP BND1      XP5715    2.1826324698438229e+03
+ UP BND1      XP5716    2.1826324698438229e+03
+ UP BND1      XP5717    2.1584883593630366e+03
+ UP BND1      XP5718    2.1117678893457023e+03
+ UP BND1      XP5719    2.0302670283666507e+03
+ UP BND1      XP5720    1.9891135192878039e+03
+ UP BND1      XP5721    2.1179050329646461e+03
+ UP BND1      XP5722    1.9757638980620582e+03
+ UP BND1      XP5723    2.1332529432286783e+03
+ UP BND1      XP5724    2.2118903797000003e+03
+ UP BND1      XP581     2.2118903797000003e+03
+ UP BND1      XP582     2.2118903797000003e+03
+ UP BND1      XP583     2.1691625366972694e+03
+ UP BND1      XP584     2.1597519486240544e+03
+ UP BND1      XP585     2.1005182097583465e+03
+ UP BND1      XP586     2.1138971247190220e+03
+ UP BND1      XP587     2.1644467315406637e+03
+ UP BND1      XP588     2.1550769749164588e+03
+ UP BND1      XP589     2.2118903797000003e+03
+ UP BND1      XP5810    2.2118903797000003e+03
+ UP BND1      XP5811    2.2118903797000003e+03
+ UP BND1      XP5812    2.2118903797000003e+03
+ UP BND1      XP5813    2.2118903797000003e+03
+ UP BND1      XP5814    2.2118903797000003e+03
+ UP BND1      XP5815    2.2118903797000003e+03
+ UP BND1      XP5816    2.2118903797000003e+03
+ UP BND1      XP5817    2.2027556097975835e+03
+ UP BND1      XP5818    2.1550769749164588e+03
+ UP BND1      XP5819    2.2118903797000003e+03
+ UP BND1      XP5820    2.2118903797000003e+03
+ UP BND1      XP5821    2.2118903797000003e+03
+ UP BND1      XP5822    2.2001740579567054e+03
+ UP BND1      XP5823    2.2118903797000003e+03
+ UP BND1      XP5824    2.2118903797000003e+03
+ LO BND1      BP11GL    2.3740445942430416e+01
+ UP BND1      BP11GL    161.20380176
+ LO BND1      BP12GL    24.5252840227134
+ UP BND1      BP12GL    1.9020130243457146e+02
+ LO BND1      BP13GL    2.4688312830713411e+01
+ UP BND1      BP13GL    1.9036465762657144e+02
+ LO BND1      BP14GL    2.3554429145430412e+01
+ UP BND1      BP14GL    1.9117410096526243e+02
+ LO BND1      BP15GL    43.3834958379333
+ UP BND1      BP15GL    1.7039689590854331e+02
+ LO BND1      BP16GL    4.3671400708407766e+01
+ UP BND1      BP16GL    1.7090150194694175e+02
+ LO BND1      BP17GL    4.3835238706407765e+01
+ UP BND1      BP17GL    1.7106566794894178e+02
+ LO BND1      BP18GL    43.9982974209333
+ UP BND1      BP18GL    1.7101292832554330e+02
+ LO BND1      BP21GL    4.0387866494977310e+01
+ UP BND1      BP21GL    5.8158681580099017e+02
+ LO BND1      BP22GL    4.5037914335832710e+01
+ UP BND1      BP22GL    850.340352518489
+ LO BND1      BP23GL    3.7048947299832776e+01
+ UP BND1      BP23GL    842.335391554489
+ LO BND1      BP24GL    3.8557926266977312e+01
+ UP BND1      BP24GL    8.6206082582643091e+02
+ LO BND1      BP25GL    2.2744785187611055e+02
+ UP BND1      BP25GL    6.7082733776707062e+02
+ LO BND1      BP26GL    2.3275529810315052e+02
+ UP BND1      BP26GL    6.7816864075005844e+02
+ LO BND1      BP27GL    2.2593720302315049e+02
+ UP BND1      BP27GL    6.7133689583005844e+02
+ LO BND1      BP28GL    2.2509652255911050e+02
+ UP BND1      BP28GL    6.6847130108407043e+02
+ LO BND1      BP31GL    4.8954361110229968e+02
+ UP BND1      BP31GL    1182.57560426105
+ LO BND1      BP32GL    4.9494995209724078e+02
+ UP BND1      BP32GL    1.6040050221748174e+03
+ LO BND1      BP33GL    503.427865697241
+ UP BND1      BP33GL    1.6124999085748177e+03
+ LO BND1      BP34GL    4.7916559950229987e+02
+ UP BND1      BP34GL    1.6168796366752540e+03
+ LO BND1      BP35GL    7.9037260047991958e+02
+ UP BND1      BP35GL    1.3293276524586402e+03
+ LO BND1      BP36GL    7.7717306572590724e+02
+ UP BND1      BP36GL    1.3192887711076555e+03
+ LO BND1      BP37GL    7.8432560602590718e+02
+ UP BND1      BP37GL    1.3264556308076556e+03
+ LO BND1      BP38GL    7.8852195297991966e+02
+ UP BND1      BP38GL    1.3274732999586402e+03
+ LO BND1      BP41GL    2.8759526663752428e+01
+ UP BND1      BP41GL    73.069939944
+ LO BND1      BP42GL    2.8467003183689169e+01
+ UP BND1      BP42GL    7.4843188697904083e+01
+ LO BND1      BP43GL    2.8793062797689167e+01
+ UP BND1      BP43GL    7.5169901083904080e+01
+ LO BND1      BP44GL    2.8395891662752426e+01
+ UP BND1      BP44GL    7.4914442584248121e+01
+ LO BND1      BP45GL    3.0276018822155994e+01
+ UP BND1      BP45GL    73.8211372025074
+ LO BND1      BP46GL    2.9861711245533037e+01
+ UP BND1      BP46GL    7.3421830593728188e+01
+ LO BND1      BP47GL    3.0081386350533037e+01
+ UP BND1      BP47GL    7.3641960503728185e+01
+ LO BND1      BP48GL    3.0199679238155991e+01
+ UP BND1      BP48GL    73.7446598015074
+ LO BND1      BP52GL    2.5431497886774483e+01
+ UP BND1      BP52GL    4.3512071761540284e+01
+ LO BND1      BP53GL    2.4779348688774480e+01
+ UP BND1      BP53GL    4.2858616959540292e+01
+ LO BND1      BP54GL    24.3282230441776
+ UP BND1      BP54GL    4.2657160926580808e+01
+ LO BND1      BP55GL    2.6907457501974637e+01
+ UP BND1      BP55GL    4.0006776916235637e+01
+ LO BND1      BP56GL    2.9201804379886994e+01
+ UP BND1      BP56GL    42.3335518452804
+ LO BND1      BP57GL    2.8371825189886994e+01
+ UP BND1      BP57GL    4.1501911035280393e+01
+ LO BND1      BP58GL    2.7520278067974633e+01
+ UP BND1      BP58GL    4.0620824350235637e+01
+ LO BND1      RCRP1P21  24.63298812
+ UP BND1      RCRP1P21  41.96700001
+ LO BND1      RCRP1P22  24.63298812
+ UP BND1      RCRP1P22  41.96700001
+ LO BND1      RCRP1P23  24.63298812
+ UP BND1      RCRP1P23  41.96700001
+ LO BND1      RCRP1P24  24.63298812
+ UP BND1      RCRP1P24  41.96700001
+ LO BND1      RCRP1P28  24.63298812
+ UP BND1      RCRP1P28  41.96700001
+ LO BND1      RCRP1P33  1.5899993999999996e+01
+ UP BND1      RCRP1P33  454.200001
+ UP BND1      RCRP1P41  5.4
+ UP BND1      RCRP1P42  5.4
+ UP BND1      RCRP1P43  5.4
+ UP BND1      RCRP1P44  5.4
+ UP BND1      RCRP1P45  5.4
+ UP BND1      RCRP1P46  5.4
+ UP BND1      RCRP1P47  5.4
+ UP BND1      RCRP1P48  5.4
+ LO BND1      RCRP2P15  -41.96700001
+ UP BND1      RCRP2P15  -24.63298812
+ LO BND1      RCRP2P16  -41.96700001
+ UP BND1      RCRP2P16  -24.63298812
+ LO BND1      RCRP2P17  -41.96700001
+ UP BND1      RCRP2P17  -24.63298812
+ LO BND1      RCRP2P31  1262.199903
+ UP BND1      RCRP2P31  1775.80000004
+ LO BND1      RCRP2P35  1262.199903
+ UP BND1      RCRP2P35  1775.80000004
+ LO BND1      RCRP2P41  238.73000002
+ UP BND1      RCRP2P41  320.799805
+ LO BND1      RCRP2P42  238.73000002
+ UP BND1      RCRP2P42  320.799805
+ LO BND1      RCRP2P43  238.73000002
+ UP BND1      RCRP2P43  320.799805
+ LO BND1      RCRP3P11  -454.200001
+ UP BND1      RCRP3P11  -1.5899993999999996e+01
+ LO BND1      RCRP3P12  -454.200001
+ UP BND1      RCRP3P12  -1.5899993999999996e+01
+ LO BND1      RCRP3P14  -454.200001
+ UP BND1      RCRP3P14  -1.5899993999999996e+01
+ LO BND1      RCRP3P22  -1775.80000004
+ UP BND1      RCRP3P22  -1262.199903
+ LO BND1      RCRP3P24  -1775.80000004
+ UP BND1      RCRP3P24  -1262.199903
+ LO BND1      RCRP3P27  -1775.80000004
+ UP BND1      RCRP3P27  -1262.199903
+ LO BND1      RCRP3P44  4.2299990099999993e+00
+ UP BND1      RCRP3P44  31.099991
+ LO BND1      RCRP3P47  4.2299990099999993e+00
+ UP BND1      RCRP3P47  31.099991
+ LO BND1      RCRP4P24  -320.799805
+ UP BND1      RCRP4P24  -238.73000002
+ LO BND1      RCRP4P25  -320.799805
+ UP BND1      RCRP4P25  -238.73000002
+ LO BND1      RCRP4P26  -320.799805
+ UP BND1      RCRP4P26  -238.73000002
+ LO BND1      RCRP4P27  -320.799805
+ UP BND1      RCRP4P27  -238.73000002
+ LO BND1      RCRP4P28  -320.799805
+ UP BND1      RCRP4P28  -238.73000002
+ LO BND1      RCRP4P31  -31.099991
+ UP BND1      RCRP4P31  -4.2299990099999993e+00
+ LO BND1      RCRP4P32  -31.099991
+ UP BND1      RCRP4P32  -4.2299990099999993e+00
+ LO BND1      RCRP4P33  -31.099991
+ UP BND1      RCRP4P33  -4.2299990099999993e+00
+ LO BND1      RCRP4P35  -31.099991
+ UP BND1      RCRP4P35  -4.2299990099999993e+00
+ LO BND1      RCRP4P36  -31.099991
+ UP BND1      RCRP4P36  -4.2299990099999993e+00
+ LO BND1      RCRP4P38  -31.099991
+ UP BND1      RCRP4P38  -4.2299990099999993e+00
+ LO BND1      RCRP4P53  -47.699997
+ UP BND1      RCRP4P53  -16.69999401
+ LO BND1      RCRP4P54  -47.699997
+ UP BND1      RCRP4P54  -16.69999401
+ LO BND1      RCRP4P57  -47.699997
+ UP BND1      RCRP4P57  -16.69999401
+ LO BND1      RCRP4P58  -47.699997
+ UP BND1      RCRP4P58  -16.69999401
+ LO BND1      RCRP5P34  0.69999999
+ UP BND1      RCRP5P34  34.2
+ LO BND1      RCRP5P37  0.69999999
+ UP BND1      RCRP5P37  34.2
+ LO BND1      RCRP5P38  0.69999999
+ UP BND1      RCRP5P38  34.2
+ LO BND1      RCRP5P41  16.69999401
+ UP BND1      RCRP5P41  47.699997
+ LO BND1      RCRP5P42  16.69999401
+ UP BND1      RCRP5P42  47.699997
+ LO BND1      RCRP5P45  16.69999401
+ UP BND1      RCRP5P45  47.699997
+ LO BND1      RCRP5P46  16.69999401
+ UP BND1      RCRP5P46  47.699997
+ LO BND1      RGLP1P21  15.2
+ UP BND1      RGLP1P21  42.799988
+ LO BND1      RGLP1P22  15.2
+ UP BND1      RGLP1P22  42.799988
+ LO BND1      RGLP1P23  15.2
+ UP BND1      RGLP1P23  42.799988
+ LO BND1      RGLP1P24  15.2
+ UP BND1      RGLP1P24  42.799988
+ LO BND1      RGLP1P25  15.2
+ UP BND1      RGLP1P25  42.799988
+ LO BND1      RGLP1P26  15.2
+ UP BND1      RGLP1P26  42.799988
+ LO BND1      RGLP1P27  15.2
+ UP BND1      RGLP1P27  42.799988
+ LO BND1      RGLP1P28  15.2
+ UP BND1      RGLP1P28  42.799988
+ LO BND1      RGLP1P31  16.799988
+ UP BND1      RGLP1P31  91.099991
+ LO BND1      RGLP1P32  16.799988
+ UP BND1      RGLP1P32  91.099991
+ LO BND1      RGLP1P33  16.799988
+ UP BND1      RGLP1P33  91.099991
+ LO BND1      RGLP1P34  16.799988
+ UP BND1      RGLP1P34  91.099991
+ LO BND1      RGLP1P35  16.799988
+ UP BND1      RGLP1P35  91.099991
+ LO BND1      RGLP1P36  16.799988
+ UP BND1      RGLP1P36  91.099991
+ LO BND1      RGLP1P37  16.799988
+ UP BND1      RGLP1P37  91.099991
+ LO BND1      RGLP1P38  16.799988
+ UP BND1      RGLP1P38  91.099991
+ LO BND1      RGLP2P34  130.700001
+ UP BND1      RGLP2P34  293.200001
+ LO BND1      RGLP2P35  130.700001
+ UP BND1      RGLP2P35  293.200001
+ LO BND1      RGLP2P36  130.700001
+ UP BND1      RGLP2P36  293.200001
+ UP BND1      RGLP2P41  0.19999999
+ UP BND1      RGLP2P42  0.19999999
+ UP BND1      RGLP2P43  0.19999999
+ UP BND1      RGLP2P44  0.19999999
+ UP BND1      RGLP2P45  0.19999999
+ UP BND1      RGLP2P46  0.19999999
+ UP BND1      RGLP2P47  0.19999999
+ UP BND1      RGLP2P48  0.19999999
+ LO BND1      RGLP3P21  -293.200001
+ UP BND1      RGLP3P21  -130.700001
+ LO BND1      RGLP3P22  -293.200001
+ UP BND1      RGLP3P22  -130.700001
+ LO BND1      RGLP3P23  -293.200001
+ UP BND1      RGLP3P23  -130.700001
+ LO BND1      RGLP3P27  -293.200001
+ UP BND1      RGLP3P27  -130.700001
+ LO BND1      RGLP3P28  -293.200001
+ UP BND1      RGLP3P28  -130.700001
+ LO BND1      RGLP3P41  1.3000000000000007e+00
+ UP BND1      RGLP3P41  11.60000005
+ LO BND1      RGLP3P42  1.3000000000000007e+00
+ UP BND1      RGLP3P42  11.60000005
+ LO BND1      RGLP3P43  1.3000000000000007e+00
+ UP BND1      RGLP3P43  11.60000005
+ LO BND1      RGLP3P44  1.3000000000000007e+00
+ UP BND1      RGLP3P44  11.60000005
+ LO BND1      RGLP3P47  1.3000000000000007e+00
+ UP BND1      RGLP3P47  11.60000005
+ LO BND1      RGLP4P35  -11.60000005
+ UP BND1      RGLP4P35  -1.3000000000000007e+00
+ LO BND1      RGLP4P36  -11.60000005
+ UP BND1      RGLP4P36  -1.3000000000000007e+00
+ LO BND1      RGLP4P38  -11.60000005
+ UP BND1      RGLP4P38  -1.3000000000000007e+00
+ LO BND1      RUNP1P35  1.5899993999999996e+01
+ UP BND1      RUNP1P35  454.200001
+ LO BND1      RUNP1P36  1.5899993999999996e+01
+ UP BND1      RUNP1P36  454.200001
+ LO BND1      RUNP1P37  1.5899993999999996e+01
+ UP BND1      RUNP1P37  454.200001
+ LO BND1      RUNP1P38  1.5899993999999996e+01
+ UP BND1      RUNP1P38  454.200001
+ LO BND1      RUNP2P33  1262.199903
+ UP BND1      RUNP2P33  1775.80000004
+ LO BND1      RUNP2P36  1262.199903
+ UP BND1      RUNP2P36  1775.80000004
+ LO BND1      RUNP2P38  1262.199903
+ UP BND1      RUNP2P38  1775.80000004
+ LO BND1      RUNP5P31  0.69999999
+ UP BND1      RUNP5P31  34.2
+ LO BND1      RUNP5P32  0.69999999
+ UP BND1      RUNP5P32  34.2
+ LO BND1      RUNP5P33  0.69999999
+ UP BND1      RUNP5P33  34.2
+ LO BND1      RUNP5P35  0.69999999
+ UP BND1      RUNP5P35  34.2
+ LO BND1      RUNP5P36  0.69999999
+ UP BND1      RUNP5P36  34.2
+ LO BND1      RGAP1P21  22.5
+ UP BND1      RGAP1P21  55.199997
+ LO BND1      RGAP1P22  22.5
+ UP BND1      RGAP1P22  55.199997
+ LO BND1      RGAP1P23  22.5
+ UP BND1      RGAP1P23  55.199997
+ LO BND1      RGAP1P24  22.5
+ UP BND1      RGAP1P24  55.199997
+ LO BND1      RGAP1P25  22.5
+ UP BND1      RGAP1P25  55.199997
+ LO BND1      RGAP1P26  22.5
+ UP BND1      RGAP1P26  55.199997
+ LO BND1      RGAP1P27  22.5
+ UP BND1      RGAP1P27  55.199997
+ LO BND1      RGAP1P28  22.5
+ UP BND1      RGAP1P28  55.199997
+ LO BND1      RGAP1P31  1147
+ UP BND1      RGAP1P31  1676
+ LO BND1      RGAP1P32  1147
+ UP BND1      RGAP1P32  1676
+ LO BND1      RGAP1P33  1147
+ UP BND1      RGAP1P33  1676
+ LO BND1      RGAP1P34  1147
+ UP BND1      RGAP1P34  1676
+ LO BND1      RGAP1P35  1147
+ UP BND1      RGAP1P35  1676
+ LO BND1      RGAP1P36  1147
+ UP BND1      RGAP1P36  1676
+ LO BND1      RGAP1P37  1147
+ UP BND1      RGAP1P37  1676
+ LO BND1      RGAP1P38  1147
+ UP BND1      RGAP1P38  1676
+ LO BND1      RGAP2P11  90.299988
+ UP BND1      RGAP2P11  144.199997
+ LO BND1      RGAP2P12  90.299988
+ UP BND1      RGAP2P12  144.199997
+ LO BND1      RGAP2P13  90.299988
+ UP BND1      RGAP2P13  144.199997
+ LO BND1      RGAP2P14  90.299988
+ UP BND1      RGAP2P14  144.199997
+ LO BND1      RGAP2P15  90.299988
+ UP BND1      RGAP2P15  144.199997
+ LO BND1      RGAP2P16  90.299988
+ UP BND1      RGAP2P16  144.199997
+ LO BND1      RGAP2P17  90.299988
+ UP BND1      RGAP2P17  144.199997
+ LO BND1      RGAP2P18  90.299988
+ UP BND1      RGAP2P18  144.199997
+ LO BND1      RGAP2P31  210.699997
+ UP BND1      RGAP2P31  310.199951
+ LO BND1      RGAP2P32  210.699997
+ UP BND1      RGAP2P32  310.199951
+ LO BND1      RGAP2P33  210.699997
+ UP BND1      RGAP2P33  310.199951
+ LO BND1      RGAP2P34  210.699997
+ UP BND1      RGAP2P34  310.199951
+ LO BND1      RGAP2P35  210.699997
+ UP BND1      RGAP2P35  310.199951
+ LO BND1      RGAP2P36  210.699997
+ UP BND1      RGAP2P36  310.199951
+ LO BND1      RGAP2P37  210.699997
+ UP BND1      RGAP2P37  310.199951
+ LO BND1      RGAP2P38  210.699997
+ UP BND1      RGAP2P38  310.199951
+ LO BND1      RGAP2P41  9.5
+ UP BND1      RGAP2P41  19.699997
+ LO BND1      RGAP2P42  9.5
+ UP BND1      RGAP2P42  19.699997
+ LO BND1      RGAP2P43  9.5
+ UP BND1      RGAP2P43  19.699997
+ LO BND1      RGAP2P44  9.5
+ UP BND1      RGAP2P44  19.699997
+ LO BND1      RGAP2P45  9.5
+ UP BND1      RGAP2P45  19.699997
+ LO BND1      RGAP2P46  9.5
+ UP BND1      RGAP2P46  19.699997
+ LO BND1      RGAP2P47  9.5
+ UP BND1      RGAP2P47  19.699997
+ LO BND1      RGAP2P48  9.5
+ UP BND1      RGAP2P48  19.699997
+ LO BND1      RGAP3P21  43.5
+ UP BND1      RGAP3P21  89.099991
+ LO BND1      RGAP3P22  43.5
+ UP BND1      RGAP3P22  89.099991
+ LO BND1      RGAP3P23  43.5
+ UP BND1      RGAP3P23  89.099991
+ LO BND1      RGAP3P24  43.5
+ UP BND1      RGAP3P24  89.099991
+ LO BND1      RGAP3P25  43.5
+ UP BND1      RGAP3P25  89.099991
+ LO BND1      RGAP3P26  43.5
+ UP BND1      RGAP3P26  89.099991
+ LO BND1      RGAP3P27  43.5
+ UP BND1      RGAP3P27  89.099991
+ LO BND1      RGAP3P28  43.5
+ UP BND1      RGAP3P28  89.099991
+ LO BND1      RGAP4P21  3.7
+ UP BND1      RGAP4P21  11.599999
+ LO BND1      RGAP4P22  3.7
+ UP BND1      RGAP4P22  11.599999
+ LO BND1      RGAP4P23  3.7
+ UP BND1      RGAP4P23  11.599999
+ LO BND1      RGAP4P24  3.7
+ UP BND1      RGAP4P24  11.599999
+ LO BND1      RGAP4P25  3.7
+ UP BND1      RGAP4P25  11.599999
+ LO BND1      RGAP4P26  3.7
+ UP BND1      RGAP4P26  11.599999
+ LO BND1      RGAP4P27  3.7
+ UP BND1      RGAP4P27  11.599999
+ LO BND1      RGAP4P28  3.7
+ UP BND1      RGAP4P28  11.599999
+ LO BND1      RGAP4P31  7.599999
+ UP BND1      RGAP4P31  22.5
+ LO BND1      RGAP4P32  7.599999
+ UP BND1      RGAP4P32  22.5
+ LO BND1      RGAP4P33  7.599999
+ UP BND1      RGAP4P33  22.5
+ LO BND1      RGAP4P34  7.599999
+ UP BND1      RGAP4P34  22.5
+ LO BND1      RGAP4P35  7.599999
+ UP BND1      RGAP4P35  22.5
+ LO BND1      RGAP4P36  7.599999
+ UP BND1      RGAP4P36  22.5
+ LO BND1      RGAP4P37  7.599999
+ UP BND1      RGAP4P37  22.5
+ LO BND1      RGAP4P38  7.599999
+ UP BND1      RGAP4P38  22.5
+ LO BND1      RGAP5P31  25.5
+ UP BND1      RGAP5P31  52.299988
+ LO BND1      RGAP5P32  25.5
+ UP BND1      RGAP5P32  52.299988
+ LO BND1      RGAP5P33  25.5
+ UP BND1      RGAP5P33  52.299988
+ LO BND1      RGAP5P34  25.5
+ UP BND1      RGAP5P34  52.299988
+ LO BND1      RGAP5P35  25.5
+ UP BND1      RGAP5P35  52.299988
+ LO BND1      RGAP5P36  25.5
+ UP BND1      RGAP5P36  52.299988
+ LO BND1      RGAP5P37  25.5
+ UP BND1      RGAP5P37  52.299988
+ LO BND1      RGAP5P38  25.5
+ UP BND1      RGAP5P38  52.299988
+ LO BND1      RGAP5P41  16.899994
+ UP BND1      RGAP5P41  36
+ LO BND1      RGAP5P42  16.899994
+ UP BND1      RGAP5P42  36
+ LO BND1      RGAP5P43  16.899994
+ UP BND1      RGAP5P43  36
+ LO BND1      RGAP5P44  16.899994
+ UP BND1      RGAP5P44  36
+ LO BND1      RGAP5P45  16.899994
+ UP BND1      RGAP5P45  36
+ LO BND1      RGAP5P46  16.899994
+ UP BND1      RGAP5P46  36
+ LO BND1      RGAP5P47  16.899994
+ UP BND1      RGAP5P47  36
+ LO BND1      RGAP5P48  16.899994
+ UP BND1      RGAP5P48  36
+ LO BND1      RDSP1P21  1.2
+ UP BND1      RDSP1P21  4.799999
+ LO BND1      RDSP1P22  1.2
+ UP BND1      RDSP1P22  4.799999
+ LO BND1      RDSP1P23  1.2
+ UP BND1      RDSP1P23  4.799999
+ LO BND1      RDSP1P24  1.2
+ UP BND1      RDSP1P24  4.799999
+ LO BND1      RDSP1P25  1.2
+ UP BND1      RDSP1P25  4.799999
+ LO BND1      RDSP1P26  1.2
+ UP BND1      RDSP1P26  4.799999
+ LO BND1      RDSP1P27  1.2
+ UP BND1      RDSP1P27  4.799999
+ LO BND1      RDSP1P28  1.2
+ UP BND1      RDSP1P28  4.799999
+ LO BND1      RDSP1P31  609.199951
+ UP BND1      RDSP1P31  1083
+ LO BND1      RDSP1P32  609.199951
+ UP BND1      RDSP1P32  1083
+ LO BND1      RDSP1P33  609.199951
+ UP BND1      RDSP1P33  1083
+ LO BND1      RDSP1P34  609.199951
+ UP BND1      RDSP1P34  1083
+ LO BND1      RDSP1P35  609.199951
+ UP BND1      RDSP1P35  1083
+ LO BND1      RDSP1P36  609.199951
+ UP BND1      RDSP1P36  1083
+ LO BND1      RDSP1P37  609.199951
+ UP BND1      RDSP1P37  1083
+ LO BND1      RDSP1P38  609.199951
+ UP BND1      RDSP1P38  1083
+ LO BND1      RDSP2P11  25.599991
+ UP BND1      RDSP2P11  42.199997
+ LO BND1      RDSP2P12  25.599991
+ UP BND1      RDSP2P12  42.199997
+ LO BND1      RDSP2P13  25.599991
+ UP BND1      RDSP2P13  42.199997
+ LO BND1      RDSP2P14  25.599991
+ UP BND1      RDSP2P14  42.199997
+ LO BND1      RDSP2P15  25.599991
+ UP BND1      RDSP2P15  42.199997
+ LO BND1      RDSP2P16  25.599991
+ UP BND1      RDSP2P16  42.199997
+ LO BND1      RDSP2P17  25.599991
+ UP BND1      RDSP2P17  42.199997
+ LO BND1      RDSP2P18  25.599991
+ UP BND1      RDSP2P18  42.199997
+ LO BND1      RDSP2P31  44
+ UP BND1      RDSP2P31  169.699997
+ LO BND1      RDSP2P32  44
+ UP BND1      RDSP2P32  169.699997
+ LO BND1      RDSP2P33  44
+ UP BND1      RDSP2P33  169.699997
+ LO BND1      RDSP2P34  44
+ UP BND1      RDSP2P34  169.699997
+ LO BND1      RDSP2P35  44
+ UP BND1      RDSP2P35  169.699997
+ LO BND1      RDSP2P36  44
+ UP BND1      RDSP2P36  169.699997
+ LO BND1      RDSP2P37  44
+ UP BND1      RDSP2P37  169.699997
+ LO BND1      RDSP2P38  44
+ UP BND1      RDSP2P38  169.699997
+ LO BND1      RDSP2P41  7.099999
+ UP BND1      RDSP2P41  12.5
+ LO BND1      RDSP2P42  7.099999
+ UP BND1      RDSP2P42  12.5
+ LO BND1      RDSP2P43  7.099999
+ UP BND1      RDSP2P43  12.5
+ LO BND1      RDSP2P44  7.099999
+ UP BND1      RDSP2P44  12.5
+ LO BND1      RDSP2P45  7.099999
+ UP BND1      RDSP2P45  12.5
+ LO BND1      RDSP2P46  7.099999
+ UP BND1      RDSP2P46  12.5
+ LO BND1      RDSP2P47  7.099999
+ UP BND1      RDSP2P47  12.5
+ LO BND1      RDSP2P48  7.099999
+ UP BND1      RDSP2P48  12.5
+ LO BND1      RDSP3P21  9.5
+ UP BND1      RDSP3P21  27.199997
+ LO BND1      RDSP3P22  9.5
+ UP BND1      RDSP3P22  27.199997
+ LO BND1      RDSP3P23  9.5
+ UP BND1      RDSP3P23  27.199997
+ LO BND1      RDSP3P24  9.5
+ UP BND1      RDSP3P24  27.199997
+ LO BND1      RDSP3P25  9.5
+ UP BND1      RDSP3P25  27.199997
+ LO BND1      RDSP3P26  9.5
+ UP BND1      RDSP3P26  27.199997
+ LO BND1      RDSP3P27  9.5
+ UP BND1      RDSP3P27  27.199997
+ LO BND1      RDSP3P28  9.5
+ UP BND1      RDSP3P28  27.199997
+ LO BND1      RDSP4P21  0.79999995
+ UP BND1      RDSP4P21  3.2
+ LO BND1      RDSP4P22  0.79999995
+ UP BND1      RDSP4P22  3.2
+ LO BND1      RDSP4P23  0.79999995
+ UP BND1      RDSP4P23  3.2
+ LO BND1      RDSP4P24  0.79999995
+ UP BND1      RDSP4P24  3.2
+ LO BND1      RDSP4P25  0.79999995
+ UP BND1      RDSP4P25  3.2
+ LO BND1      RDSP4P26  0.79999995
+ UP BND1      RDSP4P26  3.2
+ LO BND1      RDSP4P27  0.79999995
+ UP BND1      RDSP4P27  3.2
+ LO BND1      RDSP4P28  0.79999995
+ UP BND1      RDSP4P28  3.2
+ LO BND1      RDSP4P31  1.299999
+ UP BND1      RDSP4P31  2.799999
+ LO BND1      RDSP4P32  1.299999
+ UP BND1      RDSP4P32  2.799999
+ LO BND1      RDSP4P33  1.299999
+ UP BND1      RDSP4P33  2.799999
+ LO BND1      RDSP4P34  1.299999
+ UP BND1      RDSP4P34  2.799999
+ LO BND1      RDSP4P35  1.299999
+ UP BND1      RDSP4P35  2.799999
+ LO BND1      RDSP4P36  1.299999
+ UP BND1      RDSP4P36  2.799999
+ LO BND1      RDSP4P37  1.299999
+ UP BND1      RDSP4P37  2.799999
+ LO BND1      RDSP4P38  1.299999
+ UP BND1      RDSP4P38  2.799999
+ LO BND1      RDSP5P31  8.9
+ UP BND1      RDSP5P31  34.699997
+ LO BND1      RDSP5P32  8.9
+ UP BND1      RDSP5P32  34.699997
+ LO BND1      RDSP5P33  8.9
+ UP BND1      RDSP5P33  34.699997
+ LO BND1      RDSP5P34  8.9
+ UP BND1      RDSP5P34  34.699997
+ LO BND1      RDSP5P35  8.9
+ UP BND1      RDSP5P35  34.699997
+ LO BND1      RDSP5P36  8.9
+ UP BND1      RDSP5P36  34.699997
+ LO BND1      RDSP5P37  8.9
+ UP BND1      RDSP5P37  34.699997
+ LO BND1      RDSP5P38  8.9
+ UP BND1      RDSP5P38  34.699997
+ LO BND1      RDSP5P41  4.7
+ UP BND1      RDSP5P41  15.9
+ LO BND1      RDSP5P42  4.7
+ UP BND1      RDSP5P42  15.9
+ LO BND1      RDSP5P43  4.7
+ UP BND1      RDSP5P43  15.9
+ LO BND1      RDSP5P44  4.7
+ UP BND1      RDSP5P44  15.9
+ LO BND1      RDSP5P45  4.7
+ UP BND1      RDSP5P45  15.9
+ LO BND1      RDSP5P46  4.7
+ UP BND1      RDSP5P46  15.9
+ LO BND1      RDSP5P47  4.7
+ UP BND1      RDSP5P47  15.9
+ LO BND1      RDSP5P48  4.7
+ UP BND1      RDSP5P48  15.9
+ LO BND1      RRSP1P31  23.899994
+ UP BND1      RRSP1P31  119
+ LO BND1      RRSP1P32  23.899994
+ UP BND1      RRSP1P32  119
+ LO BND1      RRSP1P33  23.899994
+ UP BND1      RRSP1P33  119
+ LO BND1      RRSP1P34  23.899994
+ UP BND1      RRSP1P34  119
+ LO BND1      RRSP1P35  23.899994
+ UP BND1      RRSP1P35  119
+ LO BND1      RRSP1P36  23.899994
+ UP BND1      RRSP1P36  119
+ LO BND1      RRSP1P37  23.899994
+ UP BND1      RRSP1P37  119
+ LO BND1      RRSP1P38  23.899994
+ UP BND1      RRSP1P38  119
+ LO BND1      RRSP2P31  21.299988
+ UP BND1      RRSP2P31  43.699997
+ LO BND1      RRSP2P32  21.299988
+ UP BND1      RRSP2P32  43.699997
+ LO BND1      RRSP2P33  21.299988
+ UP BND1      RRSP2P33  43.699997
+ LO BND1      RRSP2P34  21.299988
+ UP BND1      RRSP2P34  43.699997
+ LO BND1      RRSP2P35  21.299988
+ UP BND1      RRSP2P35  43.699997
+ LO BND1      RRSP2P36  21.299988
+ UP BND1      RRSP2P36  43.699997
+ LO BND1      RRSP2P37  21.299988
+ UP BND1      RRSP2P37  43.699997
+ LO BND1      RRSP2P38  21.299988
+ UP BND1      RRSP2P38  43.699997
+ UP BND1      RRSP5P31  11.4
+ UP BND1      RRSP5P32  11.4
+ UP BND1      RRSP5P33  11.4
+ UP BND1      RRSP5P34  11.4
+ UP BND1      RRSP5P35  11.4
+ UP BND1      RRSP5P36  11.4
+ UP BND1      RRSP5P37  11.4
+ UP BND1      RRSP5P38  11.4
+ LO BND1      RKJP1P31  146.899994
+ UP BND1      RKJP1P31  299.199951
+ LO BND1      RKJP1P32  146.899994
+ UP BND1      RKJP1P32  299.199951
+ LO BND1      RKJP1P33  146.899994
+ UP BND1      RKJP1P33  299.199951
+ LO BND1      RKJP1P34  146.899994
+ UP BND1      RKJP1P34  299.199951
+ LO BND1      RKJP1P35  146.899994
+ UP BND1      RKJP1P35  299.199951
+ LO BND1      RKJP1P36  146.899994
+ UP BND1      RKJP1P36  299.199951
+ LO BND1      RKJP1P37  146.899994
+ UP BND1      RKJP1P37  299.199951
+ LO BND1      RKJP1P38  146.899994
+ UP BND1      RKJP1P38  299.199951
+ LO BND1      RKJP2P11  1.599999
+ UP BND1      RKJP2P11  9.9
+ LO BND1      RKJP2P12  1.599999
+ UP BND1      RKJP2P12  9.9
+ LO BND1      RKJP2P13  1.599999
+ UP BND1      RKJP2P13  9.9
+ LO BND1      RKJP2P14  1.599999
+ UP BND1      RKJP2P14  9.9
+ LO BND1      RKJP2P15  1.599999
+ UP BND1      RKJP2P15  9.9
+ LO BND1      RKJP2P16  1.599999
+ UP BND1      RKJP2P16  9.9
+ LO BND1      RKJP2P17  1.599999
+ UP BND1      RKJP2P17  9.9
+ LO BND1      RKJP2P18  1.599999
+ UP BND1      RKJP2P18  9.9
+ LO BND1      RKJP2P31  9.7
+ UP BND1      RKJP2P31  34.899994
+ LO BND1      RKJP2P32  9.7
+ UP BND1      RKJP2P32  34.899994
+ LO BND1      RKJP2P33  9.7
+ UP BND1      RKJP2P33  34.899994
+ LO BND1      RKJP2P34  9.7
+ UP BND1      RKJP2P34  34.899994
+ LO BND1      RKJP2P35  9.7
+ UP BND1      RKJP2P35  34.899994
+ LO BND1      RKJP2P36  9.7
+ UP BND1      RKJP2P36  34.899994
+ LO BND1      RKJP2P37  9.7
+ UP BND1      RKJP2P37  34.899994
+ LO BND1      RKJP2P38  9.7
+ UP BND1      RKJP2P38  34.899994
+ UP BND1      RKJP2P41  0.25999993
+ UP BND1      RKJP2P42  0.25999993
+ UP BND1      RKJP2P43  0.25999993
+ UP BND1      RKJP2P44  0.25999993
+ UP BND1      RKJP2P45  0.25999993
+ UP BND1      RKJP2P46  0.25999993
+ UP BND1      RKJP2P47  0.25999993
+ UP BND1      RKJP2P48  0.25999993
+ UP BND1      RKJP3P21  0.03599999
+ UP BND1      RKJP3P22  0.03599999
+ UP BND1      RKJP3P23  0.03599999
+ UP BND1      RKJP3P24  0.03599999
+ UP BND1      RKJP3P25  0.03599999
+ UP BND1      RKJP3P26  0.03599999
+ UP BND1      RKJP3P27  0.03599999
+ UP BND1      RKJP3P28  0.03599999
+ LO BND1      RKJP4P31  9.2
+ UP BND1      RKJP4P31  13
+ LO BND1      RKJP4P32  9.2
+ UP BND1      RKJP4P32  13
+ LO BND1      RKJP4P33  9.2
+ UP BND1      RKJP4P33  13
+ LO BND1      RKJP4P34  9.2
+ UP BND1      RKJP4P34  13
+ LO BND1      RKJP4P35  9.2
+ UP BND1      RKJP4P35  13
+ LO BND1      RKJP4P36  9.2
+ UP BND1      RKJP4P36  13
+ LO BND1      RKJP4P37  9.2
+ UP BND1      RKJP4P37  13
+ LO BND1      RKJP4P38  9.2
+ UP BND1      RKJP4P38  13
+ LO BND1      RKJP5P31  1.799999
+ UP BND1      RKJP5P31  25
+ LO BND1      RKJP5P32  1.799999
+ UP BND1      RKJP5P32  25
+ LO BND1      RKJP5P33  1.799999
+ UP BND1      RKJP5P33  25
+ LO BND1      RKJP5P34  1.799999
+ UP BND1      RKJP5P34  25
+ LO BND1      RKJP5P35  1.799999
+ UP BND1      RKJP5P35  25
+ LO BND1      RKJP5P36  1.799999
+ UP BND1      RKJP5P36  25
+ LO BND1      RKJP5P37  1.799999
+ UP BND1      RKJP5P37  25
+ LO BND1      RKJP5P38  1.799999
+ UP BND1      RKJP5P38  25
+ LO BND1      RKJP5P41  0.19999999
+ UP BND1      RKJP5P41  3.2
+ LO BND1      RKJP5P42  0.19999999
+ UP BND1      RKJP5P42  3.2
+ LO BND1      RKJP5P43  0.19999999
+ UP BND1      RKJP5P43  3.2
+ LO BND1      RKJP5P44  0.19999999
+ UP BND1      RKJP5P44  3.2
+ LO BND1      RKJP5P45  0.19999999
+ UP BND1      RKJP5P45  3.2
+ LO BND1      RKJP5P46  0.19999999
+ UP BND1      RKJP5P46  3.2
+ LO BND1      RKJP5P47  0.19999999
+ UP BND1      RKJP5P47  3.2
+ LO BND1      RKJP5P48  0.19999999
+ UP BND1      RKJP5P48  3.2
+ UP BND1      RNJP1P21  1.9
+ UP BND1      RNJP1P22  1.9
+ UP BND1      RNJP1P23  1.9
+ UP BND1      RNJP1P24  1.9
+ UP BND1      RNJP1P25  1.9
+ UP BND1      RNJP1P26  1.9
+ UP BND1      RNJP1P27  1.9
+ UP BND1      RNJP1P28  1.9
+ LO BND1      RNJP1P31  10.099999
+ UP BND1      RNJP1P31  52
+ LO BND1      RNJP1P32  10.099999
+ UP BND1      RNJP1P32  52
+ LO BND1      RNJP1P33  10.099999
+ UP BND1      RNJP1P33  52
+ LO BND1      RNJP1P34  10.099999
+ UP BND1      RNJP1P34  52
+ LO BND1      RNJP1P35  10.099999
+ UP BND1      RNJP1P35  52
+ LO BND1      RNJP1P36  10.099999
+ UP BND1      RNJP1P36  52
+ LO BND1      RNJP1P37  10.099999
+ UP BND1      RNJP1P37  52
+ LO BND1      RNJP1P38  10.099999
+ UP BND1      RNJP1P38  52
+ UP BND1      RNJP2P11  4
+ UP BND1      RNJP2P12  4
+ UP BND1      RNJP2P13  4
+ UP BND1      RNJP2P14  4
+ UP BND1      RNJP2P15  4
+ UP BND1      RNJP2P16  4
+ UP BND1      RNJP2P17  4
+ UP BND1      RNJP2P18  4
+ UP BND1      RNJP2P31  3.099999
+ UP BND1      RNJP2P32  3.099999
+ UP BND1      RNJP2P33  3.099999
+ UP BND1      RNJP2P34  3.099999
+ UP BND1      RNJP2P35  3.099999
+ UP BND1      RNJP2P36  3.099999
+ UP BND1      RNJP2P37  3.099999
+ UP BND1      RNJP2P38  3.099999
+ UP BND1      RNJP2P41  2.4
+ UP BND1      RNJP2P42  2.4
+ UP BND1      RNJP2P43  2.4
+ UP BND1      RNJP2P44  2.4
+ UP BND1      RNJP2P45  2.4
+ UP BND1      RNJP2P46  2.4
+ UP BND1      RNJP2P47  2.4
+ UP BND1      RNJP2P48  2.4
+ UP BND1      RNJP3P21  2.599999
+ UP BND1      RNJP3P22  2.599999
+ UP BND1      RNJP3P23  2.599999
+ UP BND1      RNJP3P24  2.599999
+ UP BND1      RNJP3P25  2.599999
+ UP BND1      RNJP3P26  2.599999
+ UP BND1      RNJP3P27  2.599999
+ UP BND1      RNJP3P28  2.599999
+ LO BND1      RNJP5P31  0.69999999
+ UP BND1      RNJP5P31  15.4
+ LO BND1      RNJP5P32  0.69999999
+ UP BND1      RNJP5P32  15.4
+ LO BND1      RNJP5P33  0.69999999
+ UP BND1      RNJP5P33  15.4
+ LO BND1      RNJP5P34  0.69999999
+ UP BND1      RNJP5P34  15.4
+ LO BND1      RNJP5P35  0.69999999
+ UP BND1      RNJP5P35  15.4
+ LO BND1      RNJP5P36  0.69999999
+ UP BND1      RNJP5P36  15.4
+ LO BND1      RNJP5P37  0.69999999
+ UP BND1      RNJP5P37  15.4
+ LO BND1      RNJP5P38  0.69999999
+ UP BND1      RNJP5P38  15.4
+ LO BND1      RNJP5P41  0.19999999
+ UP BND1      RNJP5P41  3.4
+ LO BND1      RNJP5P42  0.19999999
+ UP BND1      RNJP5P42  3.4
+ LO BND1      RNJP5P43  0.19999999
+ UP BND1      RNJP5P43  3.4
+ LO BND1      RNJP5P44  0.19999999
+ UP BND1      RNJP5P44  3.4
+ LO BND1      RNJP5P45  0.19999999
+ UP BND1      RNJP5P45  3.4
+ LO BND1      RNJP5P46  0.19999999
+ UP BND1      RNJP5P46  3.4
+ LO BND1      RNJP5P47  0.19999999
+ UP BND1      RNJP5P47  3.4
+ LO BND1      RNJP5P48  0.19999999
+ UP BND1      RNJP5P48  3.4
+ LO BND1      RPFP1P31  2.7
+ UP BND1      RPFP1P31  16.899994
+ LO BND1      RPFP1P32  2.7
+ UP BND1      RPFP1P32  16.899994
+ LO BND1      RPFP1P33  2.7
+ UP BND1      RPFP1P33  16.899994
+ LO BND1      RPFP1P34  2.7
+ UP BND1      RPFP1P34  16.899994
+ LO BND1      RPFP1P35  2.7
+ UP BND1      RPFP1P35  16.899994
+ LO BND1      RPFP1P36  2.7
+ UP BND1      RPFP1P36  16.899994
+ LO BND1      RPFP1P37  2.7
+ UP BND1      RPFP1P37  16.899994
+ LO BND1      RPFP1P38  2.7
+ UP BND1      RPFP1P38  16.899994
+ LO BND1      RPFP2P31  1
+ UP BND1      RPFP2P31  11.099999
+ LO BND1      RPFP2P32  1
+ UP BND1      RPFP2P32  11.099999
+ LO BND1      RPFP2P33  1
+ UP BND1      RPFP2P33  11.099999
+ LO BND1      RPFP2P34  1
+ UP BND1      RPFP2P34  11.099999
+ LO BND1      RPFP2P35  1
+ UP BND1      RPFP2P35  11.099999
+ LO BND1      RPFP2P36  1
+ UP BND1      RPFP2P36  11.099999
+ LO BND1      RPFP2P37  1
+ UP BND1      RPFP2P37  11.099999
+ LO BND1      RPFP2P38  1
+ UP BND1      RPFP2P38  11.099999
+ UP BND1      RPFP5P31  0.79999995
+ UP BND1      RPFP5P32  0.79999995
+ UP BND1      RPFP5P33  0.79999995
+ UP BND1      RPFP5P34  0.79999995
+ UP BND1      RPFP5P35  0.79999995
+ UP BND1      RPFP5P36  0.79999995
+ UP BND1      RPFP5P37  0.79999995
+ UP BND1      RPFP5P38  0.79999995
+ UP BND1      RLPP1P31  7.7
+ UP BND1      RLPP1P32  7.7
+ UP BND1      RLPP1P33  7.7
+ UP BND1      RLPP1P34  7.7
+ UP BND1      RLPP1P35  7.7
+ UP BND1      RLPP1P36  7.7
+ UP BND1      RLPP1P37  7.7
+ UP BND1      RLPP1P38  7.7
+ UP BND1      RLPP2P31  6.5
+ UP BND1      RLPP2P32  6.5
+ UP BND1      RLPP2P33  6.5
+ UP BND1      RLPP2P34  6.5
+ UP BND1      RLPP2P35  6.5
+ UP BND1      RLPP2P36  6.5
+ UP BND1      RLPP2P37  6.5
+ UP BND1      RLPP2P38  6.5
+ UP BND1      ROTP1P21  0.69999999
+ UP BND1      ROTP1P22  0.69999999
+ UP BND1      ROTP1P23  0.69999999
+ UP BND1      ROTP1P24  0.69999999
+ UP BND1      ROTP1P25  0.69999999
+ UP BND1      ROTP1P26  0.69999999
+ UP BND1      ROTP1P27  0.69999999
+ UP BND1      ROTP1P28  0.69999999
+ LO BND1      ROTP1P31  119.5
+ UP BND1      ROTP1P31  210.599991
+ LO BND1      ROTP1P32  119.5
+ UP BND1      ROTP1P32  210.599991
+ LO BND1      ROTP1P33  119.5
+ UP BND1      ROTP1P33  210.599991
+ LO BND1      ROTP1P34  119.5
+ UP BND1      ROTP1P34  210.599991
+ LO BND1      ROTP1P35  119.5
+ UP BND1      ROTP1P35  210.599991
+ LO BND1      ROTP1P36  119.5
+ UP BND1      ROTP1P36  210.599991
+ LO BND1      ROTP1P37  119.5
+ UP BND1      ROTP1P37  210.599991
+ LO BND1      ROTP1P38  119.5
+ UP BND1      ROTP1P38  210.599991
+ LO BND1      ROTP1P51  7.0000000000000018e-01
+ UP BND1      ROTP1P51  4.599999
+ LO BND1      ROTP1P52  7.0000000000000018e-01
+ UP BND1      ROTP1P52  4.599999
+ LO BND1      ROTP1P53  7.0000000000000018e-01
+ UP BND1      ROTP1P53  4.599999
+ LO BND1      ROTP1P54  7.0000000000000018e-01
+ UP BND1      ROTP1P54  4.599999
+ LO BND1      ROTP1P55  7.0000000000000018e-01
+ UP BND1      ROTP1P55  4.599999
+ LO BND1      ROTP1P56  7.0000000000000018e-01
+ UP BND1      ROTP1P56  4.599999
+ LO BND1      ROTP1P57  7.0000000000000018e-01
+ UP BND1      ROTP1P57  4.599999
+ LO BND1      ROTP1P58  7.0000000000000018e-01
+ UP BND1      ROTP1P58  4.599999
+ LO BND1      ROTP2P11  0.29999995
+ UP BND1      ROTP2P11  2.599999
+ LO BND1      ROTP2P12  0.29999995
+ UP BND1      ROTP2P12  2.599999
+ LO BND1      ROTP2P13  0.29999995
+ UP BND1      ROTP2P13  2.599999
+ LO BND1      ROTP2P14  0.29999995
+ UP BND1      ROTP2P14  2.599999
+ LO BND1      ROTP2P15  0.29999995
+ UP BND1      ROTP2P15  2.599999
+ LO BND1      ROTP2P16  0.29999995
+ UP BND1      ROTP2P16  2.599999
+ LO BND1      ROTP2P17  0.29999995
+ UP BND1      ROTP2P17  2.599999
+ LO BND1      ROTP2P18  0.29999995
+ UP BND1      ROTP2P18  2.599999
+ LO BND1      ROTP2P31  31
+ UP BND1      ROTP2P31  70.799988
+ LO BND1      ROTP2P32  31
+ UP BND1      ROTP2P32  70.799988
+ LO BND1      ROTP2P33  31
+ UP BND1      ROTP2P33  70.799988
+ LO BND1      ROTP2P34  31
+ UP BND1      ROTP2P34  70.799988
+ LO BND1      ROTP2P35  31
+ UP BND1      ROTP2P35  70.799988
+ LO BND1      ROTP2P36  31
+ UP BND1      ROTP2P36  70.799988
+ LO BND1      ROTP2P37  31
+ UP BND1      ROTP2P37  70.799988
+ LO BND1      ROTP2P38  31
+ UP BND1      ROTP2P38  70.799988
+ UP BND1      ROTP2P41  0.31999993
+ UP BND1      ROTP2P42  0.31999993
+ UP BND1      ROTP2P43  0.31999993
+ UP BND1      ROTP2P44  0.31999993
+ UP BND1      ROTP2P45  0.31999993
+ UP BND1      ROTP2P46  0.31999993
+ UP BND1      ROTP2P47  0.31999993
+ UP BND1      ROTP2P48  0.31999993
+ LO BND1      ROTP4P31  0.29999995
+ UP BND1      ROTP4P31  1
+ LO BND1      ROTP4P32  0.29999995
+ UP BND1      ROTP4P32  1
+ LO BND1      ROTP4P33  0.29999995
+ UP BND1      ROTP4P33  1
+ LO BND1      ROTP4P34  0.29999995
+ UP BND1      ROTP4P34  1
+ LO BND1      ROTP4P35  0.29999995
+ UP BND1      ROTP4P35  1
+ LO BND1      ROTP4P36  0.29999995
+ UP BND1      ROTP4P36  1
+ LO BND1      ROTP4P37  0.29999995
+ UP BND1      ROTP4P37  1
+ LO BND1      ROTP4P38  0.29999995
+ UP BND1      ROTP4P38  1
+ UP BND1      ROTP5P31  1.299999
+ UP BND1      ROTP5P32  1.299999
+ UP BND1      ROTP5P33  1.299999
+ UP BND1      ROTP5P34  1.299999
+ UP BND1      ROTP5P35  1.299999
+ UP BND1      ROTP5P36  1.299999
+ UP BND1      ROTP5P37  1.299999
+ UP BND1      ROTP5P38  1.299999
+ UP BND1      MPS_RgAP1P21  33.099991
+ UP BND1      MPS_RgAP1P22  33.099991
+ UP BND1      MPS_RgAP1P23  33.099991
+ UP BND1      MPS_RgAP1P24  33.099991
+ UP BND1      MPS_RgAP1P25  33.099991
+ UP BND1      MPS_RgAP1P26  33.099991
+ UP BND1      MPS_RgAP1P27  33.099991
+ UP BND1      MPS_RgAP1P28  33.099991
+ UP BND1      MPS_RgAP1P31  609
+ UP BND1      MPS_RgAP1P32  609
+ UP BND1      MPS_RgAP1P33  609
+ UP BND1      MPS_RgAP1P34  609
+ UP BND1      MPS_RgAP1P35  609
+ UP BND1      MPS_RgAP1P36  609
+ UP BND1      MPS_RgAP1P37  609
+ UP BND1      MPS_RgAP1P38  609
+ UP BND1      MPS_RgAP2P11  50.800003
+ UP BND1      MPS_RgAP2P12  50.800003
+ UP BND1      MPS_RgAP2P13  50.800003
+ UP BND1      MPS_RgAP2P14  50.800003
+ UP BND1      MPS_RgAP2P15  50.800003
+ UP BND1      MPS_RgAP2P16  50.800003
+ UP BND1      MPS_RgAP2P17  50.800003
+ UP BND1      MPS_RgAP2P18  50.800003
+ UP BND1      MPS_RgAP2P31  215.600098
+ UP BND1      MPS_RgAP2P32  215.600098
+ UP BND1      MPS_RgAP2P33  215.600098
+ UP BND1      MPS_RgAP2P34  215.600098
+ UP BND1      MPS_RgAP2P35  215.600098
+ UP BND1      MPS_RgAP2P36  215.600098
+ UP BND1      MPS_RgAP2P37  215.600098
+ UP BND1      MPS_RgAP2P38  215.600098
+ UP BND1      MPS_RgAP2P41  10.900009
+ UP BND1      MPS_RgAP2P42  10.900009
+ UP BND1      MPS_RgAP2P43  10.900009
+ UP BND1      MPS_RgAP2P44  10.900009
+ UP BND1      MPS_RgAP2P45  10.900009
+ UP BND1      MPS_RgAP2P46  10.900009
+ UP BND1      MPS_RgAP2P47  10.900009
+ UP BND1      MPS_RgAP2P48  10.900009
+ UP BND1      MPS_RgAP3P21  57
+ UP BND1      MPS_RgAP3P22  57
+ UP BND1      MPS_RgAP3P23  57
+ UP BND1      MPS_RgAP3P24  57
+ UP BND1      MPS_RgAP3P25  57
+ UP BND1      MPS_RgAP3P26  57
+ UP BND1      MPS_RgAP3P27  57
+ UP BND1      MPS_RgAP3P28  57
+ UP BND1      MPS_RgAP4P21  7.599999
+ UP BND1      MPS_RgAP4P22  7.599999
+ UP BND1      MPS_RgAP4P23  7.599999
+ UP BND1      MPS_RgAP4P24  7.599999
+ UP BND1      MPS_RgAP4P25  7.599999
+ UP BND1      MPS_RgAP4P26  7.599999
+ UP BND1      MPS_RgAP4P27  7.599999
+ UP BND1      MPS_RgAP4P28  7.599999
+ UP BND1      MPS_RgAP4P31  17.300003
+ UP BND1      MPS_RgAP4P32  17.300003
+ UP BND1      MPS_RgAP4P33  17.300003
+ UP BND1      MPS_RgAP4P34  17.300003
+ UP BND1      MPS_RgAP4P35  17.300003
+ UP BND1      MPS_RgAP4P36  17.300003
+ UP BND1      MPS_RgAP4P37  17.300003
+ UP BND1      MPS_RgAP4P38  17.300003
+ UP BND1      MPS_RgAP5P31  76.600006
+ UP BND1      MPS_RgAP5P32  76.600006
+ UP BND1      MPS_RgAP5P33  76.600006
+ UP BND1      MPS_RgAP5P34  76.600006
+ UP BND1      MPS_RgAP5P35  76.600006
+ UP BND1      MPS_RgAP5P36  76.600006
+ UP BND1      MPS_RgAP5P37  76.600006
+ UP BND1      MPS_RgAP5P38  76.600006
+ UP BND1      MPS_RgAP5P41  21.600006
+ UP BND1      MPS_RgAP5P42  21.600006
+ UP BND1      MPS_RgAP5P43  21.600006
+ UP BND1      MPS_RgAP5P44  21.600006
+ UP BND1      MPS_RgAP5P45  21.600006
+ UP BND1      MPS_RgAP5P46  21.600006
+ UP BND1      MPS_RgAP5P47  21.600006
+ UP BND1      MPS_RgAP5P48  21.600006
+ UP BND1      C2661     20
+ UP BND1      C2662     20
+ UP BND1      C2663     20
+ UP BND1      C2664     20
+ UP BND1      C2665     20
+ UP BND1      C2666     20
+ UP BND1      C2667     20
+ UP BND1      C2668     20
+ UP BND1      C2669     20
+ UP BND1      C2670     20
+ UP BND1      C2671     20
+ UP BND1      C2672     20
+ UP BND1      C2673     20
+ UP BND1      C2674     20
+ UP BND1      C2675     40
+ UP BND1      C2676     20
+ UP BND1      C2677     20
+ UP BND1      C2678     40
+ UP BND1      C2679     20
+ UP BND1      C2680     20
+ UP BND1      C2681     40
+ UP BND1      C2682     20
+ UP BND1      C2683     20
+ UP BND1      C2684     40
+ UP BND1      C2685     20
+ UP BND1      C2686     20
+ UP BND1      C2687     40
+ UP BND1      C2688     20
+ UP BND1      C2689     20
+ UP BND1      C2690     40
+ UP BND1      C2691     20
+ UP BND1      C2692     20
+ UP BND1      C2693     40
+ UP BND1      C2694     20
+ UP BND1      C2695     20
+ UP BND1      C2696     20
+ UP BND1      C2697     20
+ UP BND1      C2698     20
+ UP BND1      C2699     20
+ UP BND1      C2700     20
+ UP BND1      C2701     20
+ UP BND1      C2702     20
+ UP BND1      C2703     20
+ UP BND1      C2704     20
+ UP BND1      C2705     20
+ UP BND1      C2706     20
+ UP BND1      C2707     20
+ENDATA
