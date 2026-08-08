@@ -10,6 +10,10 @@ struct simplex_CscMatrix {
 	int *column_start;
 	int *row_index;
 	double *value;
+	int *row_start;
+	int *column_index;
+	double *row_value;
+	int owns_storage;
 };
 
 int simplex_csc_from_model(const struct lp_Model *model,

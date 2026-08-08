@@ -23,13 +23,20 @@ static int singleton_dual_structure(
 		    model->bounds[j].lb != 0. ||
 		    model->bounds[j].v_type != optm_VAR_T_REAL)
 			return 0;
-		for (i = 0; i < model->m; i++)
-			if (model->constraints[i].coef[j] != 0.) {
-				count++;
-				row = i;
-			}
+		if (model->column_start != NULL) {
+			count = model->column_start[j + 1] - model->column_start[j];
+			if (count == 1)
+				row = model->row_index[model->column_start[j]];
+		} else
+			for (i = 0; i < model->m; i++)
+				if (model->constraints[i].coef[j] != 0.) {
+					count++;
+					row = i;
+				}
 		if (count == 1 && model->objective[j] > 0.) {
-			double coefficient = model->constraints[row].coef[j];
+			double coefficient = model->column_start != NULL
+				? model->value[model->column_start[j]]
+				: model->constraints[row].coef[j];
 			if (coefficient > 0.) {
 				if (positive[row] >= 0)
 					return 0;
@@ -98,7 +105,7 @@ int simplex_singleton_dual_solve(
 			dual->constraints[row].coef[i] =
 				model->constraints[i].coef[j];
 	}
-	state = simplex_dual_solve(dual, options, dual_x, row_dual, result);
+	state = simplex_dual_solve(dual, options, dual_x, row_dual, result, 0);
 	if (state == lp_simplex_EXIT_SUCCESS &&
 	    result->status == lp_simplex_Success) {
 		double objective = 0., maximum = 0.;

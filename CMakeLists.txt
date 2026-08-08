@@ -67,11 +67,15 @@ set(SOURCES
 	src/model.c
 	src/mps.c
 	src/simplex.c
+	src/simplex_presolve.c
 	src/simplex_tableau_solver.c
 	src/simplex_dual.c
+	src/simplex_dual_pricing.c
 	src/simplex_singleton_dual.c
 	src/simplex_csc.c
+	src/simplex_sparse_vector.c
 	src/simplex_basis.c
+	src/simplex_degeneracy.c
 	src/simplex_sparse_lu.c
 	src/simplex_transform.c
 	src/simplex_tableau.c

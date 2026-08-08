@@ -47,10 +47,17 @@ struct optm_LinearConstraint {
 struct lp_Model {
 	int                           m;             /* number of constraints */
 	int                           n;             /* number of variables */
+	int                           nnz;           /* sparse coefficient count */
 	double                       *objective;
 	double                       *coefficients;  /* row major */
 	struct optm_LinearConstraint *constraints;
 	struct optm_VariableBound    *bounds;
+	int                          *column_start;  /* CSC, n + 1 */
+	int                          *row_index;     /* CSC, nnz */
+	double                       *value;         /* CSC, nnz */
+	int                          *row_start;     /* CSR, m + 1 */
+	int                          *column_index;  /* CSR, nnz */
+	double                       *row_value;     /* CSR, nnz */
 };
 
 
@@ -59,6 +66,9 @@ struct lp_Model *lp_model_create(int m, int n);
 
 /** Release a model and all arrays owned by it. */
 void lp_model_free(struct lp_Model *model);
+
+/** Rebuild the sparse CSC/CSR views from the public dense coefficient matrix. */
+int lp_model_build_sparse(struct lp_Model *model);
 
 
 #ifdef __cplusplus

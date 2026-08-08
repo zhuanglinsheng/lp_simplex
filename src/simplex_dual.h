@@ -6,6 +6,7 @@
 
 int simplex_dual_solve(const struct lp_Model *model,
 		const struct lp_simplex_Options *options,
-		double *x, double *row_dual, struct lp_simplex_Result *result);
+		double *x, double *row_dual, struct lp_simplex_Result *result,
+		int propagate_bounds);
 
 #endif

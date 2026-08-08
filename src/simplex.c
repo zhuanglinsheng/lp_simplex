@@ -4,9 +4,12 @@
  */
 #include <lp_simplex/solve.h>
 #include "simplex_dual.h"
+#include "simplex_presolve.h"
 #include "simplex_singleton_dual.h"
 #include "simplex_tableau_solver.h"
 #include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #define SIMPLEX_DEFAULT_ITERATION_LIMIT 100000
 #define SIMPLEX_DEFAULT_PRIMAL_TOLERANCE 1e-7
@@ -71,6 +74,74 @@ static int simplex_validate_options(const struct lp_simplex_Options *options)
 }
 
 
+static int simplex_solve_dual_raw(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result)
+{
+	int applicable = 0, state;
+	if (model->coefficients != NULL) {
+		state = simplex_singleton_dual_solve(
+			model, options, x, result, &applicable);
+		if (applicable)
+			return state;
+	}
+	return simplex_dual_solve(model, options, x, NULL, result, 1);
+}
+
+
+static int simplex_solve_dual_presolved(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result)
+{
+	struct simplex_Presolve presolve;
+	double *reduced_x = NULL;
+	double objective = 0.;
+	int j, state;
+	if (model->bounds == NULL)
+		return simplex_solve_dual_raw(model, options, x, result);
+	if (simplex_presolve_run(&presolve, model,
+			options->primal_tolerance) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	if (getenv("LP_SIMPLEX_PROFILE") != NULL &&
+	    (presolve.removed_rows != 0 || presolve.removed_columns != 0))
+		fprintf(stderr, "presolve: removed rows=%d columns=%d "
+			"[fixed=%d empty=%d singleton=%d] remaining=%d/%d\n",
+			presolve.removed_rows, presolve.removed_columns,
+			presolve.fixed_columns, presolve.empty_columns,
+			presolve.singleton_columns,
+			presolve.reduced != NULL ? presolve.reduced->m : 0,
+			presolve.reduced != NULL ? presolve.reduced->n : 0);
+	if (presolve.terminal) {
+		simplex_presolve_postsolve(&presolve, NULL, x);
+		result->status = presolve.terminal_status;
+		state = presolve.terminal_status == lp_simplex_Success
+			? lp_simplex_EXIT_SUCCESS : lp_simplex_EXIT_FAILURE;
+	} else if (presolve.reduced == NULL) {
+		state = simplex_solve_dual_raw(model, options, x, result);
+	} else {
+		reduced_x = (double *)lp_simplex_malloc(
+			(size_t)presolve.reduced->n * sizeof(double));
+		if (reduced_x == NULL) {
+			simplex_presolve_destroy(&presolve);
+			return lp_simplex_EXIT_FAILURE;
+		}
+		state = simplex_solve_dual_raw(
+			presolve.reduced, options, reduced_x, result);
+		simplex_presolve_postsolve(&presolve, reduced_x, x);
+	}
+	if (result->status == lp_simplex_Success) {
+		for (j = 0; j < model->n; j++)
+			objective += model->objective[j] * x[j];
+		result->objective = objective;
+	}
+	lp_simplex_free(reduced_x);
+	simplex_presolve_destroy(&presolve);
+	return state;
+}
+
+
 int lp_simplex_solve(
 		const struct lp_Model *model,
 		const struct lp_simplex_Options *options,
@@ -93,12 +164,7 @@ int lp_simplex_solve(
 		return lp_simplex_EXIT_FAILURE;
 
 	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED) {
-		int applicable = 0;
-		state = simplex_singleton_dual_solve(
-			model, options, x, result, &applicable);
-		if (applicable)
-			return state;
-		return simplex_dual_solve(model, options, x, NULL, result);
+		return simplex_solve_dual_presolved(model, options, x, result);
 	}
 
 	criteria = options->pricing == lp_simplex_PRICING_DANTZIG

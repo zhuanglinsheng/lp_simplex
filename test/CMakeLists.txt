@@ -4,3 +4,12 @@ target_compile_definitions(test_simple_examples PRIVATE
 )
 target_link_libraries(test_simple_examples PRIVATE lp_simplex)
 add_test(NAME test_simple_examples COMMAND test_simple_examples)
+
+add_executable(test_degeneracy test_degeneracy.c)
+target_include_directories(test_degeneracy PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(test_degeneracy PRIVATE lp_simplex)
+add_test(NAME test_degeneracy COMMAND test_degeneracy)
+
+add_executable(test_presolve test_presolve.c)
+target_link_libraries(test_presolve PRIVATE lp_simplex)
+add_test(NAME test_presolve COMMAND test_presolve)

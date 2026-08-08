@@ -10,6 +10,12 @@ struct simplex_SparseRow {
 	double *value;
 };
 
+struct simplex_SparseColumnRows {
+	int count;
+	int capacity;
+	int *row;
+};
+
 struct simplex_SparseLu {
 	int dimension;
 	int *permutation;
@@ -18,9 +24,12 @@ struct simplex_SparseLu {
 	double *row_scale;
 	int *work_column;
 	int *pivot_row;
+	int *diagonal_position;
+	double *diagonal_value;
 	double *work_value;
 	double *solve_work;
 	struct simplex_SparseRow *row;
+	struct simplex_SparseColumnRows *column_rows;
 };
 
 int simplex_sparse_lu_create(struct simplex_SparseLu *factor, int dimension);
@@ -29,7 +38,13 @@ int simplex_sparse_lu_factorize(
 		struct simplex_SparseLu *factor,
 		const struct simplex_CscMatrix *matrix,
 		int structural_columns, const int *basis);
+int simplex_sparse_lu_factorize_submatrix(
+		struct simplex_SparseLu *factor,
+		const struct simplex_CscMatrix *matrix,
+		const int *columns, const int *row_to_core);
 int simplex_sparse_lu_solve(
 		struct simplex_SparseLu *factor, double *vector, int transpose);
+int simplex_sparse_lu_solve_pair(
+		struct simplex_SparseLu *factor, double *first, double *second);
 
 #endif

@@ -1,50 +1,15 @@
 /* Bounded dual revised simplex over an immutable CSC constraint matrix. */
 #include "simplex_dual.h"
-#include "simplex_basis.h"
-#include "simplex_csc.h"
+#include "simplex_dual_internal.h"
+#include "simplex_dual_pricing.h"
+#include "linalg.h"
 #include "utils.h"
 #include <lp_simplex/status.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#define DUAL_STATUS_BASIC 0
-#define DUAL_STATUS_LOWER 1
-#define DUAL_STATUS_UPPER 2
-#define DUAL_STATUS_FIXED 3
-#define DUAL_STATUS_FREE  4
 #define DUAL_RELATIVE_PIVOT_TOLERANCE 1e-8
-
-
-struct simplex_DualState {
-	int rows;
-	int structural;
-	int variables;
-	int iterations;
-	int reinversions;
-	const struct lp_simplex_Options *options;
-	struct simplex_CscMatrix matrix;
-	struct simplex_Basis factor;
-	int *basis;
-	int *position;
-	unsigned char *status;
-	double *lower;
-	double *upper;
-	double *cost;
-	double *value;
-	double *reduced;
-	double *pi;
-	double *rho;
-	double *alpha;
-	double *breakpoint;
-	double *direction;
-	double *work;
-	double *edge_weight;
-	int *candidate_sign;
-	int profile_enabled;
-	double profile_ratio_seconds;
-	double profile_total_seconds;
-};
 
 
 static int dual_is_finite_lower(double value)
@@ -59,6 +24,32 @@ static int dual_is_finite_upper(double value)
 }
 
 
+static int dual_pan_structure_enabled(const struct simplex_DualState *state)
+{
+	return state->rows >= 4096 && state->structural_basic < state->rows;
+}
+
+
+static void dual_change_status(
+		struct simplex_DualState *state, const int variable,
+		const unsigned char new_status)
+{
+	simplex_degeneracy_update_status(&state->degeneracy, variable,
+		state->status[variable], new_status);
+	state->status[variable] = new_status;
+}
+
+
+static void dual_change_basis(
+		struct simplex_DualState *state, const int position,
+		const int new_variable)
+{
+	simplex_degeneracy_update_basis(&state->degeneracy, position,
+		state->basis[position], new_variable);
+	state->basis[position] = new_variable;
+}
+
+
 static void dual_destroy(struct simplex_DualState *state)
 {
 	simplex_basis_destroy(&state->factor);
@@ -70,15 +61,19 @@ static void dual_destroy(struct simplex_DualState *state)
 	lp_simplex_free(state->upper);
 	lp_simplex_free(state->cost);
 	lp_simplex_free(state->value);
+	lp_simplex_free(state->basic_value);
+	lp_simplex_free(state->basic_lower);
+	lp_simplex_free(state->basic_upper);
 	lp_simplex_free(state->reduced);
 	lp_simplex_free(state->pi);
 	lp_simplex_free(state->rho);
+	simplex_dual_pricing_destroy(state);
+	simplex_sparse_vector_destroy(&state->packed_direction);
 	lp_simplex_free(state->alpha);
 	lp_simplex_free(state->breakpoint);
 	lp_simplex_free(state->direction);
 	lp_simplex_free(state->work);
 	lp_simplex_free(state->edge_weight);
-	lp_simplex_free(state->candidate_sign);
 }
 
 
@@ -93,6 +88,7 @@ static int dual_allocate(
 	state->variables = variables;
 	state->options = options;
 	state->profile_enabled = getenv("LP_SIMPLEX_PROFILE") != NULL;
+	state->pan_enabled = getenv("LP_SIMPLEX_DISABLE_PAN") == NULL;
 	if (simplex_csc_from_model(model, &state->matrix) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	state->basis = (int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
@@ -103,9 +99,20 @@ static int dual_allocate(
 	state->upper = (double *)lp_simplex_malloc((size_t)variables * sizeof(double));
 	state->cost = (double *)lp_simplex_malloc((size_t)variables * sizeof(double));
 	state->value = (double *)lp_simplex_malloc((size_t)variables * sizeof(double));
+	state->basic_value = (double *)lp_simplex_malloc(
+		(size_t)model->m * sizeof(double));
+	state->basic_lower = (double *)lp_simplex_malloc(
+		(size_t)model->m * sizeof(double));
+	state->basic_upper = (double *)lp_simplex_malloc(
+		(size_t)model->m * sizeof(double));
 	state->reduced = (double *)lp_simplex_malloc((size_t)variables * sizeof(double));
 	state->pi = (double *)lp_simplex_malloc((size_t)model->m * sizeof(double));
 	state->rho = (double *)lp_simplex_malloc((size_t)model->m * sizeof(double));
+	if (simplex_dual_pricing_create(state) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	if (simplex_sparse_vector_create(&state->packed_direction, model->m) ==
+	    lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
 	state->alpha = (double *)lp_simplex_malloc((size_t)variables * sizeof(double));
 	state->breakpoint = (double *)lp_simplex_malloc(
 		(size_t)variables * sizeof(double));
@@ -113,18 +120,21 @@ static int dual_allocate(
 	state->work = (double *)lp_simplex_malloc((size_t)model->m * sizeof(double));
 	state->edge_weight = (double *)lp_simplex_malloc(
 		(size_t)model->m * sizeof(double));
-	state->candidate_sign = (int *)lp_simplex_malloc((size_t)variables * sizeof(int));
 	if (state->basis == NULL || state->position == NULL || state->status == NULL ||
 	    state->lower == NULL || state->upper == NULL || state->cost == NULL ||
-	    state->value == NULL || state->reduced == NULL || state->pi == NULL ||
+	    state->value == NULL || state->basic_value == NULL ||
+	    state->basic_lower == NULL || state->basic_upper == NULL ||
+	    state->reduced == NULL || state->pi == NULL ||
 	    state->rho == NULL || state->alpha == NULL || state->breakpoint == NULL ||
 	    state->direction == NULL ||
-	    state->work == NULL || state->edge_weight == NULL ||
-	    state->candidate_sign == NULL)
+	    state->work == NULL || state->edge_weight == NULL)
 		return lp_simplex_EXIT_FAILURE;
+	lp_simplex_memset(state->alpha, 0,
+		(size_t)variables * sizeof(double));
 	if (simplex_basis_create(&state->factor, &state->matrix, model->n,
 				 state->basis) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
+	simplex_degeneracy_initialize(&state->degeneracy);
 	return lp_simplex_EXIT_SUCCESS;
 }
 
@@ -155,6 +165,85 @@ static void dual_set_column_bounds(
 		    constraint->type == optm_CONS_T_LE)
 			state->upper[variable] = constraint->rhs;
 		state->cost[variable] = 0.;
+	}
+}
+
+
+/* Tighten structural bounds by interval propagation over the original rows. */
+static void dual_propagate_bounds(
+		struct simplex_DualState *state, const struct lp_Model *model)
+{
+	int pass, i, k;
+	for (pass = 0; pass < 8; pass++) {
+		int changed = 0;
+		for (i = 0; i < model->m; i++) {
+			const struct optm_LinearConstraint *constraint =
+				model->constraints + i;
+			double finite_minimum = 0., finite_maximum = 0.;
+			int minimum_infinite = 0, maximum_infinite = 0;
+			for (k = state->matrix.row_start[i];
+			     k < state->matrix.row_start[i + 1]; k++) {
+				int j = state->matrix.column_index[k];
+				double a = state->matrix.row_value[k];
+				if ((a > 0. && !dual_is_finite_lower(state->lower[j])) ||
+				    (a < 0. && !dual_is_finite_upper(state->upper[j])))
+					minimum_infinite++;
+				else
+					finite_minimum += a * (a > 0.
+						? state->lower[j] : state->upper[j]);
+				if ((a > 0. && !dual_is_finite_upper(state->upper[j])) ||
+				    (a < 0. && !dual_is_finite_lower(state->lower[j])))
+					maximum_infinite++;
+				else
+					finite_maximum += a * (a > 0.
+						? state->upper[j] : state->lower[j]);
+			}
+			for (k = state->matrix.row_start[i];
+			     k < state->matrix.row_start[i + 1]; k++) {
+				int j = state->matrix.column_index[k];
+				double a = state->matrix.row_value[k];
+				int own_minimum_infinite, own_maximum_infinite;
+				double own_minimum = 0., own_maximum = 0.;
+				own_minimum_infinite =
+					(a > 0. && !dual_is_finite_lower(state->lower[j])) ||
+					(a < 0. && !dual_is_finite_upper(state->upper[j]));
+				own_maximum_infinite =
+					(a > 0. && !dual_is_finite_upper(state->upper[j])) ||
+					(a < 0. && !dual_is_finite_lower(state->lower[j]));
+				if (!own_minimum_infinite)
+					own_minimum = a * (a > 0.
+						? state->lower[j] : state->upper[j]);
+				if (!own_maximum_infinite)
+					own_maximum = a * (a > 0.
+						? state->upper[j] : state->lower[j]);
+				if (constraint->type != optm_CONS_T_GE &&
+				    minimum_infinite - own_minimum_infinite == 0) {
+					double bound = (constraint->rhs -
+						(finite_minimum - own_minimum)) / a;
+					if (a > 0. && bound < state->upper[j]) {
+						state->upper[j] = bound;
+						changed = 1;
+					} else if (a < 0. && bound > state->lower[j]) {
+						state->lower[j] = bound;
+						changed = 1;
+					}
+				}
+				if (constraint->type != optm_CONS_T_LE &&
+				    maximum_infinite - own_maximum_infinite == 0) {
+					double bound = (constraint->rhs -
+						(finite_maximum - own_maximum)) / a;
+					if (a > 0. && bound > state->lower[j]) {
+						state->lower[j] = bound;
+						changed = 1;
+					} else if (a < 0. && bound < state->upper[j]) {
+						state->upper[j] = bound;
+						changed = 1;
+					}
+				}
+			}
+		}
+		if (!changed)
+			break;
 	}
 }
 
@@ -292,55 +381,85 @@ static int dual_crash(struct simplex_DualState *state)
 {
 	int attempt, limit = 4 * state->variables + state->rows;
 	for (attempt = 0; attempt < limit; attempt++) {
-		int i, p = -1, q = -1;
-		double largest = state->options->dual_tolerance;
-		double best_pivot = 0.;
+		int i, p = -1, q = -1, rejected = 0;
 		unsigned char leaving_status = DUAL_STATUS_FREE;
 		if (dual_compute_reduced_costs(state) == lp_simplex_EXIT_FAILURE)
 			return lp_simplex_EXIT_FAILURE;
-		for (i = 0; i < state->variables; i++) {
-			double violation;
-			if (state->position[i] >= 0)
-				continue;
-			violation = dual_variable_infeasibility(state, i);
-			if (violation > largest) {
-				largest = violation;
-				q = i;
+		if (attempt == 0 && state->profile_enabled) {
+			int infeasible = 0;
+			for (i = 0; i < state->variables; i++)
+				if (state->position[i] < 0 &&
+				    dual_variable_infeasibility(state, i) >
+				    state->options->dual_tolerance)
+					infeasible++;
+			fprintf(stderr,
+				"dual profile: crash initial infeasible variables=%d\n",
+				infeasible);
+		}
+		lp_simplex_memset(state->candidate_sign, 0,
+			(size_t)state->variables * sizeof(int));
+		for (;;) {
+			double best_pivot = 0.;
+			q = -1;
+			for (i = 0; i < state->variables; i++) {
+				double violation;
+				if (state->position[i] >= 0 || state->candidate_sign[i])
+					continue;
+				violation = dual_variable_infeasibility(state, i);
+				if (violation > state->options->dual_tolerance) {
+					q = i;
+					break;
+				}
 			}
-		}
-		if (q < 0)
-			return lp_simplex_EXIT_SUCCESS;
-		simplex_csc_column_to_dense(&state->matrix, state->structural,
-					    q, state->direction);
-		if (simplex_basis_ftran(&state->factor, state->direction) ==
-		    lp_simplex_EXIT_FAILURE)
-			return lp_simplex_EXIT_FAILURE;
-		for (i = 0; i < state->rows; i++) {
-			int leaving = state->basis[i];
-			double pivot = state->direction[i];
-			double leaving_reduced;
-			unsigned char proposed;
-			if (__lp_simplex_ABS__(pivot) <= state->options->pivot_tolerance)
-				continue;
-			leaving_reduced = -state->reduced[q] / pivot;
-			if (!dual_bound_status_for_reduced(state, leaving,
-						   leaving_reduced, &proposed))
-				continue;
-			if (__lp_simplex_ABS__(pivot) > best_pivot) {
-				best_pivot = __lp_simplex_ABS__(pivot);
-				p = i;
-				leaving_status = proposed;
+			if (q < 0) {
+				if (rejected == 0)
+					return lp_simplex_EXIT_SUCCESS;
+				if (state->profile_enabled)
+					fprintf(stderr,
+						"dual profile: crash stalled attempt=%d rejected=%d\n",
+						attempt, rejected);
+				return lp_simplex_EXIT_FAILURE;
 			}
+			simplex_csc_column_to_dense(&state->matrix, state->structural,
+						    q, state->direction);
+			if (simplex_basis_ftran(&state->factor, state->direction) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
+			p = -1;
+			for (i = 0; i < state->rows; i++) {
+				int leaving = state->basis[i];
+				double pivot = state->direction[i];
+				double leaving_reduced;
+				unsigned char proposed;
+				if (__lp_simplex_ABS__(pivot) <=
+				    state->options->pivot_tolerance)
+					continue;
+				leaving_reduced = -state->reduced[q] / pivot;
+				if (!dual_bound_status_for_reduced(state, leaving,
+							   leaving_reduced, &proposed))
+					continue;
+				if (__lp_simplex_ABS__(pivot) > best_pivot) {
+					best_pivot = __lp_simplex_ABS__(pivot);
+					p = i;
+					leaving_status = proposed;
+				}
+			}
+			if (p >= 0)
+				break;
+			state->candidate_sign[q] = 1;
+			rejected++;
 		}
-		if (p < 0) {
-			return lp_simplex_EXIT_FAILURE;
+		{
+			int leaving = state->basis[p];
+			state->structural_basic +=
+				(q < state->structural) - (leaving < state->structural);
+			state->position[leaving] = -1;
+			dual_change_status(state, leaving, leaving_status);
+			dual_set_nonbasic_value(state, leaving);
 		}
-		state->position[state->basis[p]] = -1;
-		state->status[state->basis[p]] = leaving_status;
-		dual_set_nonbasic_value(state, state->basis[p]);
-		state->basis[p] = q;
+		dual_change_basis(state, p, q);
 		state->position[q] = p;
-		state->status[q] = DUAL_STATUS_BASIC;
+		dual_change_status(state, q, DUAL_STATUS_BASIC);
 		{
 			int update = simplex_basis_update(&state->factor, p,
 						  state->direction);
@@ -353,6 +472,8 @@ static int dual_crash(struct simplex_DualState *state)
 			}
 		}
 	}
+	if (state->profile_enabled)
+		fprintf(stderr, "dual profile: crash iteration limit=%d\n", limit);
 	return lp_simplex_EXIT_FAILURE;
 }
 
@@ -372,29 +493,35 @@ static int dual_compute_primal_values(struct simplex_DualState *state)
 	if (simplex_basis_ftran(&state->factor, state->work) ==
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	for (i = 0; i < state->rows; i++)
-		state->value[state->basis[i]] = state->work[i];
+	for (i = 0; i < state->rows; i++) {
+		state->value[state->basis[i]] = state->basic_value[i] = state->work[i];
+		state->basic_lower[i] = state->lower[state->basis[i]];
+		state->basic_upper[i] = state->upper[state->basis[i]];
+	}
 	return lp_simplex_EXIT_SUCCESS;
 }
 
 
 static int dual_choose_leaving(
 		struct simplex_DualState *state,
-		double *target, int *kappa, double *maximum)
+		double *target, int *kappa, double *maximum,
+		const int pan_structure)
 {
 	int i, p = -1;
+	int structural_p = -1;
 	double largest = state->options->primal_tolerance;
 	double best_score = 0.;
+	double structural_score = 0.;
+	double structural_violation = 0.;
 	for (i = 0; i < state->rows; i++) {
-		int variable = state->basis[i];
 		double violation = 0.;
 		double score;
-		if (state->value[variable] < state->lower[variable] -
+		if (state->basic_value[i] < state->basic_lower[i] -
 		    state->options->primal_tolerance)
-			violation = state->lower[variable] - state->value[variable];
-		else if (state->value[variable] > state->upper[variable] +
+			violation = state->basic_lower[i] - state->basic_value[i];
+		else if (state->basic_value[i] > state->basic_upper[i] +
 			 state->options->primal_tolerance)
-			violation = state->value[variable] - state->upper[variable];
+			violation = state->basic_value[i] - state->basic_upper[i];
 		if (violation <= state->options->primal_tolerance)
 			continue;
 		score = violation * violation / state->edge_weight[i];
@@ -403,150 +530,53 @@ static int dual_choose_leaving(
 			largest = violation;
 			p = i;
 		}
+		if (state->basis[i] < state->structural &&
+		    (structural_p < 0 || score > structural_score)) {
+			structural_p = i;
+			structural_score = score;
+			structural_violation = violation;
+		}
+	}
+	if (pan_structure && structural_p >= 0 &&
+	    structural_score >= 0.8 * best_score) {
+		p = structural_p;
+		largest = structural_violation;
 	}
 	*maximum = largest;
 	if (p < 0)
 		return -1;
-	if (state->value[state->basis[p]] < state->lower[state->basis[p]]) {
-		*target = state->lower[state->basis[p]];
+	if (state->basic_value[p] < state->basic_lower[p]) {
+		*target = state->basic_lower[p];
 		*kappa = 1;
 	} else {
-		*target = state->upper[state->basis[p]];
+		*target = state->basic_upper[p];
 		*kappa = -1;
 	}
 	return p;
 }
 
 
-static int dual_compute_edge_weights(struct simplex_DualState *state)
-{
-	int i, k;
-	if (state->factor.update_count == 0)
-		return simplex_basis_edge_weights(&state->factor, state->edge_weight);
-	for (i = 0; i < state->rows; i++) {
-		double weight = 0.;
-		lp_simplex_memset(state->work, 0,
-			(size_t)state->rows * sizeof(double));
-		state->work[i] = 1.;
-		if (simplex_basis_btran(&state->factor, state->work) ==
-		    lp_simplex_EXIT_FAILURE)
-			return lp_simplex_EXIT_FAILURE;
-		for (k = 0; k < state->rows; k++)
-			weight += state->work[k] * state->work[k];
-		state->edge_weight[i] = __lp_simplex_MAX__(weight, 1e-12);
-	}
-	return lp_simplex_EXIT_SUCCESS;
-}
-
-
 static int dual_update_edge_weights(
 		struct simplex_DualState *state, const int p)
 {
-	int i;
+	int k;
 	double pivot = state->direction[p];
 	double old_p = state->edge_weight[p];
 	if (__lp_simplex_ABS__(pivot) <= state->options->pivot_tolerance)
 		return lp_simplex_EXIT_FAILURE;
-	lp_simplex_memcpy(state->work, state->rho,
-		(size_t)state->rows * sizeof(double));
-	if (simplex_basis_ftran(&state->factor, state->work) ==
-	    lp_simplex_EXIT_FAILURE)
-		return lp_simplex_EXIT_FAILURE;
-	for (i = 0; i < state->rows; i++) {
+	for (k = 0; k < state->packed_direction.count; k++) {
+		int i = state->packed_direction.index[k];
 		double ratio;
 		double updated;
 		if (i == p)
 			continue;
-		ratio = state->direction[i] / pivot;
+		ratio = state->packed_direction.value[k] / pivot;
 		updated = state->edge_weight[i] - 2. * ratio * state->work[i] +
 			ratio * ratio * old_p;
 		state->edge_weight[i] = __lp_simplex_MAX__(updated, 1e-12);
 	}
 	state->edge_weight[p] = __lp_simplex_MAX__(old_p / (pivot * pivot), 1e-12);
 	return lp_simplex_EXIT_SUCCESS;
-}
-
-
-static int dual_sign_for_candidate(
-		const struct simplex_DualState *state,
-		const int variable, const int kappa, const double alpha)
-{
-	if (state->status[variable] == DUAL_STATUS_LOWER)
-		return 1;
-	if (state->status[variable] == DUAL_STATUS_UPPER)
-		return -1;
-	if (state->status[variable] == DUAL_STATUS_FREE)
-		return kappa * alpha > 0. ? -1 : 1;
-	return 0;
-}
-
-
-static int dual_prepare_ratio_test(
-		struct simplex_DualState *state, const int kappa)
-{
-	int candidates = 0, j;
-	clock_t started = 0;
-	if (state->profile_enabled)
-		started = clock();
-	for (j = 0; j < state->variables; j++) {
-		int sign;
-		double denominator, signed_reduced, theta;
-		state->candidate_sign[j] = 0;
-		state->breakpoint[j] = __lp_simplex_INF__;
-		if (state->position[j] >= 0 || state->status[j] == DUAL_STATUS_FIXED)
-			continue;
-		state->alpha[j] = dual_column_dot(state, j, state->rho);
-		sign = dual_sign_for_candidate(state, j, kappa, state->alpha[j]);
-		state->candidate_sign[j] = sign;
-		denominator = -kappa * sign * state->alpha[j];
-		if (denominator <= state->options->pivot_tolerance)
-			continue;
-		signed_reduced = sign * state->reduced[j];
-		if (signed_reduced < 0. &&
-		    signed_reduced >= -state->options->dual_tolerance)
-			signed_reduced = 0.;
-		if (signed_reduced < 0.)
-			continue;
-		theta = signed_reduced / denominator;
-		state->breakpoint[j] = theta;
-		candidates++;
-	}
-	if (state->profile_enabled)
-		state->profile_ratio_seconds +=
-			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
-	return candidates;
-}
-
-
-static int dual_next_ratio_candidate(
-		struct simplex_DualState *state, double *chosen_theta)
-{
-	int j, q = -1;
-	double minimum = __lp_simplex_INF__;
-	double best_pivot = 0.;
-	for (j = 0; j < state->variables; j++) {
-		if (state->candidate_sign[j] != 0 &&
-		    state->breakpoint[j] < minimum)
-			minimum = state->breakpoint[j];
-	}
-	if (minimum == __lp_simplex_INF__)
-		return -1;
-	for (j = 0; j < state->variables; j++) {
-		double theta, relaxed;
-		if (state->candidate_sign[j] == 0)
-			continue;
-		theta = state->breakpoint[j];
-		/* Keep the exact minimum ratio as the dual-feasibility boundary.
-		 * Pivot magnitude only breaks numerically indistinguishable ties. */
-		relaxed = minimum + 1e-12 * (1. + __lp_simplex_ABS__(minimum));
-		if (theta <= relaxed &&
-		    __lp_simplex_ABS__(state->alpha[j]) > best_pivot) {
-			best_pivot = __lp_simplex_ABS__(state->alpha[j]);
-			q = j;
-			*chosen_theta = theta;
-		}
-	}
-	return q;
 }
 
 
@@ -591,13 +621,21 @@ static void dual_update_dual_values(
 		struct simplex_DualState *state, const int kappa,
 		const double theta, const int leaving, const int entering)
 {
-	int i, j;
+	int i;
 	double tau = -kappa * theta;
-	for (i = 0; i < state->rows; i++)
-		state->pi[i] += tau * state->rho[i];
-	for (j = 0; j < state->variables; j++) {
-		if (state->position[j] < 0)
-			state->reduced[j] -= tau * state->alpha[j];
+	if (tau != 0.) {
+		for (i = 0; i < state->rows; i++)
+			state->pi[i] += tau * state->rho[i];
+		if (state->packed_alpha_valid) {
+			for (i = 0; i < state->packed_alpha.count; i++) {
+				int j = state->packed_alpha.index[i];
+				state->reduced[j] -=
+					tau * state->packed_alpha.value[i];
+			}
+		} else {
+			lp_simplex_linalg_daxpy(state->variables, -tau,
+				state->alpha, 1, state->reduced, 1);
+		}
 	}
 	state->reduced[entering] = 0.;
 	state->reduced[leaving] = -tau;
@@ -607,15 +645,21 @@ static void dual_update_dual_values(
 static int dual_run(struct simplex_DualState *state, int *status)
 {
 	while (state->iterations < state->options->iteration_limit) {
-		int i, p, q, kappa, sign, restart_iteration = 0;
+		int i, p, q, kappa, leaving, sign, restart_iteration = 0;
+		int compact_was_active;
+		int recomputed_dual = 0;
 		int bound_flips = 0;
+		int weight_work_ready = 0;
 		int rejected_relative = 0;
 		double relative_pivot_tolerance = DUAL_RELATIVE_PIVOT_TOLERANCE;
 		double target, primal_infeasibility, theta = 0.;
 		double delta, new_value, movement = 0.;
 		unsigned char flipped_status = DUAL_STATUS_FREE;
 		p = dual_choose_leaving(state, &target, &kappa,
-					&primal_infeasibility);
+					&primal_infeasibility,
+					state->pan_enabled &&
+					simplex_degeneracy_should_probe(&state->degeneracy) &&
+					dual_pan_structure_enabled(state));
 		if (p < 0) {
 			if (simplex_basis_factorize(&state->factor) ==
 			    lp_simplex_EXIT_FAILURE ||
@@ -625,7 +669,10 @@ static int dual_run(struct simplex_DualState *state, int *status)
 				return lp_simplex_EXIT_FAILURE;
 			}
 			p = dual_choose_leaving(state, &target, &kappa,
-						&primal_infeasibility);
+						&primal_infeasibility,
+						state->pan_enabled &&
+						simplex_degeneracy_should_probe(&state->degeneracy) &&
+						dual_pan_structure_enabled(state));
 			if (p < 0 && dual_max_dual_infeasibility(state) <=
 			    state->options->dual_tolerance) {
 				*status = lp_simplex_Success;
@@ -652,11 +699,15 @@ static int dual_run(struct simplex_DualState *state, int *status)
 			state->edge_weight[p] =
 				__lp_simplex_MAX__(exact_weight, 1e-12);
 		}
-		lp_simplex_memset(state->alpha, 0,
-			(size_t)state->variables * sizeof(double));
-		lp_simplex_memset(state->candidate_sign, 0,
-			(size_t)state->variables * sizeof(int));
-		if (dual_prepare_ratio_test(state, kappa) == 0) {
+		if (simplex_dual_prepare_ratio_test(state, kappa) == 0) {
+			if (!simplex_dual_nonbasic_is_consistent(state)) {
+				if (state->profile_enabled)
+					fprintf(stderr,
+						"dual profile: repairing nonbasic index set\n");
+				simplex_dual_nonbasic_initialize(state);
+				if (simplex_dual_prepare_ratio_test(state, kappa) != 0)
+					continue;
+			}
 			if (state->factor.update_count != 0 &&
 			    simplex_basis_factorize(&state->factor) ==
 			    lp_simplex_EXIT_SUCCESS &&
@@ -671,7 +722,11 @@ static int dual_run(struct simplex_DualState *state, int *status)
 		q = -1;
 		for (;;) {
 			double direction_maximum = 0.;
-			q = dual_next_ratio_candidate(state, &theta);
+			q = simplex_dual_next_ratio_candidate(state, &theta,
+				state->pan_enabled &&
+				simplex_degeneracy_should_probe(&state->degeneracy),
+				state->basis[p]);
+			state->ratio_minimum_valid = 0;
 			if (q < 0) {
 				if (bound_flips > 0) {
 					restart_iteration = 1;
@@ -681,7 +736,7 @@ static int dual_run(struct simplex_DualState *state, int *status)
 				    relative_pivot_tolerance > 1e-14) {
 					relative_pivot_tolerance *= 1e-4;
 					rejected_relative = 0;
-					dual_prepare_ratio_test(state, kappa);
+					simplex_dual_prepare_ratio_test(state, kappa);
 					continue;
 				}
 				if (state->factor.update_count != 0 &&
@@ -699,14 +754,27 @@ static int dual_run(struct simplex_DualState *state, int *status)
 			}
 			simplex_csc_column_to_dense(&state->matrix, state->structural,
 						    q, state->direction);
-			if (simplex_basis_ftran(&state->factor, state->direction) ==
-			    lp_simplex_EXIT_FAILURE) {
+			if (!weight_work_ready) {
+				lp_simplex_memcpy(state->work, state->rho,
+					(size_t)state->rows * sizeof(double));
+				if (simplex_basis_ftran_pair(&state->factor,
+						state->direction, state->work) ==
+				    lp_simplex_EXIT_FAILURE) {
+					state->candidate_sign[q] = 0;
+					continue;
+				}
+				weight_work_ready = 1;
+			} else if (simplex_basis_ftran(&state->factor, state->direction) ==
+				   lp_simplex_EXIT_FAILURE) {
 				state->candidate_sign[q] = 0;
 				continue;
 			}
-			for (i = 0; i < state->rows; i++)
+			simplex_sparse_vector_pack(
+				&state->packed_direction, state->direction, 0.);
+			for (i = 0; i < state->packed_direction.count; i++)
 				direction_maximum = __lp_simplex_MAX__(direction_maximum,
-					__lp_simplex_ABS__(state->direction[i]));
+					__lp_simplex_ABS__(
+						state->packed_direction.value[i]));
 			if (__lp_simplex_ABS__(state->direction[p]) <=
 			    state->options->pivot_tolerance ||
 			    __lp_simplex_ABS__(state->direction[p]) <
@@ -732,7 +800,7 @@ static int dual_run(struct simplex_DualState *state, int *status)
 				*status = lp_simplex_PrecisionError;
 				return lp_simplex_EXIT_FAILURE;
 			}
-			delta = (state->value[state->basis[p]] - target) /
+			delta = (state->basic_value[p] - target) /
 				state->direction[p];
 			sign = state->candidate_sign[q];
 			new_value = state->value[q] + delta;
@@ -745,44 +813,76 @@ static int dual_run(struct simplex_DualState *state, int *status)
 				state->candidate_sign[q] = 0;
 				continue;
 			}
-			for (i = 0; i < state->rows; i++)
-				state->value[state->basis[i]] -=
-					state->direction[i] * movement;
+			for (i = 0; i < state->packed_direction.count; i++) {
+				int row = state->packed_direction.index[i];
+				state->basic_value[row] -=
+					state->packed_direction.value[i] * movement;
+			}
 			state->value[q] += movement;
-			state->status[q] = flipped_status;
+			dual_change_status(state, q, flipped_status);
 			state->candidate_sign[q] = 0;
 			bound_flips++;
 			movement = 0.;
 		}
 		if (restart_iteration)
 			continue;
-		for (i = 0; i < state->rows; i++) {
-			if (i != p)
-				state->value[state->basis[i]] -=
-					state->direction[i] * delta;
+		for (i = 0; i < state->packed_direction.count; i++) {
+			int row = state->packed_direction.index[i];
+			if (row != p)
+				state->basic_value[row] -=
+					state->packed_direction.value[i] * delta;
 		}
 		if (dual_update_edge_weights(state, p) == lp_simplex_EXIT_FAILURE) {
 			*status = lp_simplex_PrecisionError;
 			return lp_simplex_EXIT_FAILURE;
 		}
 		{
-			int leaving = state->basis[p];
+			leaving = state->basis[p];
 			dual_update_dual_values(state, kappa, theta, leaving, q);
+			simplex_dual_nonbasic_remove(state, q);
+			state->structural_basic +=
+				(q < state->structural) - (leaving < state->structural);
 			state->value[leaving] = target;
-			state->status[leaving] = kappa > 0
-				? DUAL_STATUS_LOWER : DUAL_STATUS_UPPER;
+			dual_change_status(state, leaving, kappa > 0
+				? DUAL_STATUS_LOWER : DUAL_STATUS_UPPER);
 			if (state->lower[leaving] == state->upper[leaving])
-				state->status[leaving] = DUAL_STATUS_FIXED;
+				dual_change_status(state, leaving, DUAL_STATUS_FIXED);
+			else
+				simplex_dual_nonbasic_add(state, leaving);
 			state->position[leaving] = -1;
-			state->basis[p] = q;
+			dual_change_basis(state, p, q);
+			state->basic_value[p] = new_value;
+			state->basic_lower[p] = state->lower[q];
+			state->basic_upper[p] = state->upper[q];
 			state->position[q] = p;
-			state->status[q] = DUAL_STATUS_BASIC;
+			dual_change_status(state, q, DUAL_STATUS_BASIC);
+			state->alpha[q] = 0.;
 			state->value[q] = new_value;
 		}
 		state->iterations++;
+		compact_was_active = state->factor.compact_active;
+		simplex_degeneracy_observe(&state->degeneracy,
+			theta * primal_infeasibility,
+			10. * state->options->dual_tolerance,
+			state->factor.compact_ever_active);
+		if (state->pan_enabled &&
+		    simplex_degeneracy_should_probe(&state->degeneracy))
+			state->factor.compact_requested = 1;
+		if (simplex_degeneracy_should_probe(&state->degeneracy))
+			simplex_degeneracy_record_state(&state->degeneracy,
+				state->basis, state->rows,
+				state->status, state->variables);
 		{
-			int update = simplex_basis_update(&state->factor, p,
-						  state->direction);
+			int update;
+			int compact_desired;
+			compact_desired = state->factor.compact_requested &&
+				state->rows >= 4096 &&
+				state->structural_basic * 3 <= state->rows;
+			if (!compact_was_active && compact_desired)
+				update = 1;
+			else
+				update = simplex_basis_update(&state->factor, p,
+							state->direction);
 			if (update == 1) {
 				update = simplex_basis_factorize(&state->factor);
 				state->reinversions++;
@@ -790,13 +890,15 @@ static int dual_run(struct simplex_DualState *state, int *status)
 					update = dual_compute_primal_values(state);
 				if (update == lp_simplex_EXIT_SUCCESS)
 					update = dual_compute_reduced_costs(state);
+				if (update == lp_simplex_EXIT_SUCCESS)
+					recomputed_dual = 1;
 			}
 			if (update == lp_simplex_EXIT_FAILURE) {
 				*status = lp_simplex_Singularity;
 				return lp_simplex_EXIT_FAILURE;
 			}
 		}
-		if (dual_max_dual_infeasibility(state) >
+		if (recomputed_dual && dual_max_dual_infeasibility(state) >
 		    10. * state->options->dual_tolerance) {
 			if (simplex_basis_factorize(&state->factor) ==
 			    lp_simplex_EXIT_FAILURE ||
@@ -821,6 +923,16 @@ static int dual_run(struct simplex_DualState *state, int *status)
 				}
 				for (i = 0; i < state->rows; i++)
 					state->edge_weight[i] = 1.;
+				lp_simplex_memset(state->alpha, 0,
+					(size_t)state->variables * sizeof(double));
+				lp_simplex_memset(state->candidate_sign, 0,
+					(size_t)state->variables * sizeof(int));
+				state->candidate_count = 0;
+				simplex_dual_nonbasic_initialize(state);
+				state->structural_basic = 0;
+				for (i = 0; i < state->rows; i++)
+					if (state->basis[i] < state->structural)
+						state->structural_basic++;
 			}
 		}
 	}
@@ -863,7 +975,8 @@ static double dual_primal_infeasibility(
 int simplex_dual_solve(
 		const struct lp_Model *model,
 		const struct lp_simplex_Options *options,
-		double *x, double *row_dual, struct lp_simplex_Result *result)
+		double *x, double *row_dual, struct lp_simplex_Result *result,
+		const int propagate_bounds)
 {
 	struct simplex_DualState state;
 	int j, status = lp_simplex_CondUnsatisfied;
@@ -878,18 +991,47 @@ int simplex_dual_solve(
 		return lp_simplex_EXIT_FAILURE;
 	}
 	dual_set_column_bounds(&state, model);
+	if (propagate_bounds)
+		dual_propagate_bounds(&state, model);
 	dual_initialize_basis(&state, model);
-	if (simplex_basis_factorize(&state.factor) == lp_simplex_EXIT_FAILURE ||
-	    dual_crash(&state) == lp_simplex_EXIT_FAILURE ||
-	    simplex_basis_factorize(&state.factor) == lp_simplex_EXIT_FAILURE ||
-	    dual_compute_primal_values(&state) == lp_simplex_EXIT_FAILURE ||
-	    dual_compute_reduced_costs(&state) == lp_simplex_EXIT_FAILURE ||
-	    dual_compute_edge_weights(&state) == lp_simplex_EXIT_FAILURE) {
-		result->status = lp_simplex_PrecisionError;
-		dual_destroy(&state);
-		return lp_simplex_EXIT_FAILURE;
+	{
+		const char *stage = NULL;
+		if (simplex_basis_factorize(&state.factor) == lp_simplex_EXIT_FAILURE)
+			stage = "initial factorization";
+		else if (dual_crash(&state) == lp_simplex_EXIT_FAILURE)
+			stage = "dual crash";
+		else if (simplex_basis_factorize(&state.factor) ==
+			 lp_simplex_EXIT_FAILURE)
+			stage = "crash-basis factorization";
+		else if (dual_compute_primal_values(&state) == lp_simplex_EXIT_FAILURE)
+			stage = "initial primal values";
+		else if (dual_compute_reduced_costs(&state) == lp_simplex_EXIT_FAILURE)
+			stage = "initial reduced costs";
+		else
+			for (j = 0; j < state.rows; j++)
+				state.edge_weight[j] = 1.;
+		if (stage != NULL) {
+			if (state.profile_enabled)
+				fprintf(stderr, "dual profile: initialization failed at %s\n",
+					stage);
+			result->status = lp_simplex_PrecisionError;
+			dual_destroy(&state);
+			return lp_simplex_EXIT_FAILURE;
+		}
 	}
+	lp_simplex_memset(state.alpha, 0,
+		(size_t)state.variables * sizeof(double));
+	lp_simplex_memset(state.candidate_sign, 0,
+		(size_t)state.variables * sizeof(int));
+	state.candidate_count = 0;
+	simplex_dual_nonbasic_initialize(&state);
+	state.structural_basic = 0;
+	for (j = 0; j < state.rows; j++)
+		if (state.basis[j] < state.structural)
+			state.structural_basic++;
 	solve_state = dual_run(&state, &status);
+	for (j = 0; j < state.rows; j++)
+		state.value[state.basis[j]] = state.basic_value[j];
 	for (j = 0; j < model->n; j++) {
 		x[j] = state.value[j];
 		objective += model->objective[j] * x[j];
@@ -903,11 +1045,23 @@ int simplex_dual_solve(
 		for (j = 0; j < model->m; j++)
 			row_dual[j] = state.pi[j];
 	if (state.profile_enabled) {
+		int active_rank = 0;
+		for (j = 0; j < state.rows; j++) {
+			int variable = state.basis[j];
+			if (state.basic_value[j] > state.lower[variable] +
+			    state.options->primal_tolerance &&
+			    state.basic_value[j] < state.upper[variable] -
+			    state.options->primal_tolerance)
+				active_rank++;
+		}
 		state.profile_total_seconds =
 			(double)(clock() - profile_started) / (double)CLOCKS_PER_SEC;
 		fprintf(stderr,
 			"dual profile: total=%.6f factor=%.6f/%ld ftran=%.6f/%ld "
-			"btran=%.6f/%ld ratio=%.6f residual=%.6f\n",
+			"btran=%.6f/%ld ratio=%.6f residual=%.6f "
+			"pan_degenerate=%ld pan_activations=%ld pan_probes=%ld "
+			"pan_rank=%d/%d factor_core=%d/%d compact=%ld[%d,%d] "
+			"eta_nnz=%ld/%ld cert=%ld/%ld refine=%ld/%ld\n",
 			state.profile_total_seconds,
 			state.factor.profile_factor_seconds,
 			state.factor.profile_factor_calls,
@@ -920,7 +1074,20 @@ int simplex_dual_solve(
 			state.factor.profile_factor_seconds -
 			state.factor.profile_ftran_seconds -
 			state.factor.profile_btran_seconds -
-			state.profile_ratio_seconds);
+			state.profile_ratio_seconds,
+			state.degeneracy.degenerate_pivots,
+			state.degeneracy.activations,
+			state.degeneracy.probes, active_rank, state.rows,
+			state.factor.factor_size, state.rows,
+			state.factor.profile_compact_calls,
+			state.factor.profile_compact_min,
+			state.factor.profile_compact_max,
+			state.factor.profile_eta_nonzeros,
+			state.factor.profile_eta_slots,
+			state.factor.profile_compact_ftran_validations,
+			state.factor.profile_compact_btran_validations,
+			state.factor.profile_compact_ftran_refinements,
+			state.factor.profile_compact_btran_refinements);
 	}
 	dual_destroy(&state);
 	return solve_state;

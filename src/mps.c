@@ -343,5 +343,9 @@ struct lp_Model *lp_read_mps(const char *file)
 		lp_model_free(model);
 		return NULL;
 	}
+	if (lp_model_build_sparse(model) != 0) {
+		lp_model_free(model);
+		return NULL;
+	}
 	return model;
 }

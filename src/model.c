@@ -18,10 +18,17 @@ struct lp_Model *lp_model_create(int m, int n)
 		return NULL;
 	model->m = m;
 	model->n = n;
+	model->nnz = 0;
 	model->objective = NULL;
 	model->coefficients = NULL;
 	model->constraints = NULL;
 	model->bounds = NULL;
+	model->column_start = NULL;
+	model->row_index = NULL;
+	model->value = NULL;
+	model->row_start = NULL;
+	model->column_index = NULL;
+	model->row_value = NULL;
 
 	model->objective = (double *)lp_simplex_malloc((size_t)n * sizeof(double));
 	model->coefficients = (double *)lp_simplex_malloc(
@@ -55,6 +62,73 @@ struct lp_Model *lp_model_create(int m, int n)
 }
 
 
+int lp_model_build_sparse(struct lp_Model *model)
+{
+	int i, j, k, nonzeros = 0;
+	int *next = NULL;
+	if (model == NULL || model->coefficients == NULL)
+		return -1;
+	for (i = 0; i < model->m; i++)
+		for (j = 0; j < model->n; j++)
+			if (model->constraints[i].coef[j] != 0.)
+				nonzeros++;
+	lp_simplex_free(model->column_start);
+	lp_simplex_free(model->row_index);
+	lp_simplex_free(model->value);
+	lp_simplex_free(model->row_start);
+	lp_simplex_free(model->column_index);
+	lp_simplex_free(model->row_value);
+	model->column_start = (int *)lp_simplex_malloc(
+		(size_t)(model->n + 1) * sizeof(int));
+	model->row_start = (int *)lp_simplex_malloc(
+		(size_t)(model->m + 1) * sizeof(int));
+	model->row_index = nonzeros > 0 ? (int *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(int)) : NULL;
+	model->value = nonzeros > 0 ? (double *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(double)) : NULL;
+	model->column_index = nonzeros > 0 ? (int *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(int)) : NULL;
+	model->row_value = nonzeros > 0 ? (double *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(double)) : NULL;
+	next = (int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+	if (model->column_start == NULL || model->row_start == NULL || next == NULL ||
+	    (nonzeros > 0 && (model->row_index == NULL || model->value == NULL ||
+	     model->column_index == NULL || model->row_value == NULL))) {
+		lp_simplex_free(next);
+		return -1;
+	}
+	k = 0;
+	for (j = 0; j < model->n; j++) {
+		model->column_start[j] = k;
+		for (i = 0; i < model->m; i++) {
+			double coefficient = model->constraints[i].coef[j];
+			if (coefficient != 0.) {
+				model->row_index[k] = i;
+				model->value[k++] = coefficient;
+			}
+		}
+	}
+	model->column_start[model->n] = k;
+	lp_simplex_memset(model->row_start, 0,
+		(size_t)(model->m + 1) * sizeof(int));
+	for (k = 0; k < nonzeros; k++)
+		model->row_start[model->row_index[k] + 1]++;
+	for (i = 0; i < model->m; i++) {
+		model->row_start[i + 1] += model->row_start[i];
+		next[i] = model->row_start[i];
+	}
+	for (j = 0; j < model->n; j++)
+		for (k = model->column_start[j]; k < model->column_start[j + 1]; k++) {
+			i = model->row_index[k];
+			model->column_index[next[i]] = j;
+			model->row_value[next[i]++] = model->value[k];
+		}
+	lp_simplex_free(next);
+	model->nnz = nonzeros;
+	return 0;
+}
+
+
 void lp_model_free(struct lp_Model *model)
 {
 	if (model == NULL)
@@ -63,5 +137,11 @@ void lp_model_free(struct lp_Model *model)
 	lp_simplex_free(model->constraints);
 	lp_simplex_free(model->bounds);
 	lp_simplex_free(model->objective);
+	lp_simplex_free(model->column_start);
+	lp_simplex_free(model->row_index);
+	lp_simplex_free(model->value);
+	lp_simplex_free(model->row_start);
+	lp_simplex_free(model->column_index);
+	lp_simplex_free(model->row_value);
 	lp_simplex_free(model);
 }
