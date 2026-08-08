@@ -51,6 +51,7 @@ static const double free_lower_solution[] = {10., -3.};
 static const double free_solution[] = {2. / 3., 4. / 3.};
 static const double equality_solution[] = {0.5, 1.25, 0., 1.};
 static const double bounds_solution[] = {-4., 3., 4.};
+static const double ranged_solution[] = {6.};
 
 /**
  * Expected results for the complete simple example collection.
@@ -90,6 +91,10 @@ static const struct ExampleSpec examples[] = {
 	{
 		"variable bounds", "variable_bounds.mps", "bland", 1000,
 		1, 3, -5., 1e-8, bounds_solution
+	},
+	{
+		"ranged rows", "ranged_rows.mps", "bland", 1000,
+		8, 1, -6., 1e-8, ranged_solution
 	}
 };
 

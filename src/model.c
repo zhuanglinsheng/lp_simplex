@@ -2,8 +2,9 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
-#include <lp_simplex/model.h>
 #include "utils.h"
+
+#include <lp_simplex/model.h>
 
 
 struct lp_Model *lp_model_create(int m, int n)
@@ -52,6 +53,64 @@ struct lp_Model *lp_model_create(int m, int n)
 			  (size_t)n * sizeof(*model->bounds));
 	for (i = 0; i < m; i++)
 		model->constraints[i].coef = model->coefficients + i * n;
+	for (i = 0; i < n; i++) {
+		model->bounds[i].lb = 0.;
+		model->bounds[i].ub = __lp_simplex_INF__;
+		model->bounds[i].b_type = optm_BOUND_T_LO;
+		model->bounds[i].v_type = optm_VAR_T_REAL;
+	}
+	return model;
+}
+
+
+struct lp_Model *lp_model_create_sparse(
+		int m, int n, int nonzero_capacity)
+{
+	struct lp_Model *model;
+	int i;
+	if (m <= 0 || n <= 0 || nonzero_capacity < 0)
+		return NULL;
+	model = (struct lp_Model *)lp_simplex_malloc(sizeof(*model));
+	if (model == NULL)
+		return NULL;
+	model->m = m;
+	model->n = n;
+	model->nnz = 0;
+	model->objective = (double *)lp_simplex_malloc((size_t)n * sizeof(double));
+	model->coefficients = NULL;
+	model->constraints = (struct optm_LinearConstraint *)lp_simplex_malloc(
+		(size_t)m * sizeof(*model->constraints));
+	model->bounds = (struct optm_VariableBound *)lp_simplex_malloc(
+		(size_t)n * sizeof(*model->bounds));
+	model->column_start = (int *)lp_simplex_malloc(
+		(size_t)(n + 1) * sizeof(int));
+	model->row_start = (int *)lp_simplex_malloc(
+		(size_t)(m + 1) * sizeof(int));
+	model->row_index = nonzero_capacity != 0 ? (int *)lp_simplex_malloc(
+		(size_t)nonzero_capacity * sizeof(int)) : NULL;
+	model->value = nonzero_capacity != 0 ? (double *)lp_simplex_malloc(
+		(size_t)nonzero_capacity * sizeof(double)) : NULL;
+	model->column_index = nonzero_capacity != 0 ? (int *)lp_simplex_malloc(
+		(size_t)nonzero_capacity * sizeof(int)) : NULL;
+	model->row_value = nonzero_capacity != 0 ? (double *)lp_simplex_malloc(
+		(size_t)nonzero_capacity * sizeof(double)) : NULL;
+	if (model->objective == NULL || model->constraints == NULL ||
+	    model->bounds == NULL || model->column_start == NULL ||
+	    model->row_start == NULL ||
+	    (nonzero_capacity != 0 && (model->row_index == NULL ||
+	     model->value == NULL || model->column_index == NULL ||
+	     model->row_value == NULL))) {
+		lp_model_free(model);
+		return NULL;
+	}
+	lp_simplex_memset(model->objective, 0, (size_t)n * sizeof(double));
+	lp_simplex_memset(model->constraints, 0,
+		(size_t)m * sizeof(*model->constraints));
+	lp_simplex_memset(model->bounds, 0, (size_t)n * sizeof(*model->bounds));
+	lp_simplex_memset(model->column_start, 0, (size_t)(n + 1) * sizeof(int));
+	lp_simplex_memset(model->row_start, 0, (size_t)(m + 1) * sizeof(int));
+	for (i = 0; i < m; i++)
+		model->constraints[i].coef = NULL;
 	for (i = 0; i < n; i++) {
 		model->bounds[i].lb = 0.;
 		model->bounds[i].ub = __lp_simplex_INF__;

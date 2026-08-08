@@ -1,7 +1,13 @@
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
 /* Sparse row-oriented LU with partial pivoting for simplex basis matrices. */
 #include "simplex_sparse_lu.h"
 #include "utils.h"
+
 #include <lp_simplex/status.h>
+
 
 #define SPARSE_LU_PIVOT_TOLERANCE 1e-13
 #define SPARSE_LU_MARKOWITZ_THRESHOLD 1e-1
@@ -124,6 +130,8 @@ int simplex_sparse_lu_create(struct simplex_SparseLu *factor, const int dimensio
 		(size_t)dimension * sizeof(double));
 	factor->solve_work = (double *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(double));
+	factor->packed_start = (int *)lp_simplex_malloc(
+		(size_t)(dimension + 1) * sizeof(int));
 	factor->row = (struct simplex_SparseRow *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(*factor->row));
 	factor->column_rows = (struct simplex_SparseColumnRows *)lp_simplex_malloc(
@@ -133,6 +141,7 @@ int simplex_sparse_lu_create(struct simplex_SparseLu *factor, const int dimensio
 	    factor->work_column == NULL || factor->pivot_row == NULL ||
 	    factor->diagonal_position == NULL || factor->diagonal_value == NULL ||
 	    factor->work_value == NULL || factor->solve_work == NULL ||
+	    factor->packed_start == NULL ||
 	    factor->row == NULL || factor->column_rows == NULL) {
 		simplex_sparse_lu_destroy(factor);
 		return lp_simplex_EXIT_FAILURE;
@@ -170,6 +179,9 @@ void simplex_sparse_lu_destroy(struct simplex_SparseLu *factor)
 	lp_simplex_free(factor->diagonal_value);
 	lp_simplex_free(factor->work_value);
 	lp_simplex_free(factor->solve_work);
+	lp_simplex_free(factor->packed_start);
+	lp_simplex_free(factor->packed_column);
+	lp_simplex_free(factor->packed_value);
 	lp_simplex_memset(factor, 0, sizeof(*factor));
 }
 
@@ -429,6 +441,43 @@ static int sparse_lu_build_column_rows(struct simplex_SparseLu *factor)
 }
 
 
+static int sparse_lu_pack_rows(struct simplex_SparseLu *factor)
+{
+	int i, next = 0, nonzeros = 0;
+	int *column;
+	double *value;
+	for (i = 0; i < factor->dimension; i++)
+		nonzeros += factor->row[i].count;
+	column = nonzeros > 0 ? (int *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(int)) : NULL;
+	value = nonzeros > 0 ? (double *)lp_simplex_malloc(
+		(size_t)nonzeros * sizeof(double)) : NULL;
+	if (nonzeros > 0 && (column == NULL || value == NULL)) {
+		lp_simplex_free(column);
+		lp_simplex_free(value);
+		return lp_simplex_EXIT_FAILURE;
+	}
+	for (i = 0; i < factor->dimension; i++) {
+		const struct simplex_SparseRow *row = factor->row + i;
+		factor->packed_start[i] = next;
+		if (row->count > 0) {
+			lp_simplex_memcpy(column + next, row->column,
+				(size_t)row->count * sizeof(int));
+			lp_simplex_memcpy(value + next, row->value,
+				(size_t)row->count * sizeof(double));
+			next += row->count;
+		}
+	}
+	factor->packed_start[factor->dimension] = next;
+	lp_simplex_free(factor->packed_column);
+	lp_simplex_free(factor->packed_value);
+	factor->packed_column = column;
+	factor->packed_value = value;
+	factor->packed_nonzeros = nonzeros;
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
 static int sparse_lu_append_row_columns(
 		struct simplex_SparseLu *factor, const int row_index)
 {
@@ -650,7 +699,9 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 	}
 	/* The lists used during elimination contain stale duplicate entries.
 	 * Rebuild exact column adjacency for reach-based triangular solves. */
-	return sparse_lu_build_column_rows(factor);
+	if (sparse_lu_build_column_rows(factor) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	return sparse_lu_pack_rows(factor);
 }
 
 
@@ -696,12 +747,14 @@ int simplex_sparse_lu_solve(
 		}
 		use_reach = active_count * 8 < n;
 		for (i = 0; i < n; i++) {
-			const struct simplex_SparseRow *row = factor->row + i;
+			int start = factor->packed_start[i];
+			int diagonal = start + factor->diagonal_position[i];
 			double value = work[i];
 			if (use_reach && !active[i])
 				continue;
-			for (k = 0; k < factor->diagonal_position[i]; k++)
-				value -= row->value[k] * work[row->column[k]];
+			for (k = start; k < diagonal; k++)
+				value -= factor->packed_value[k] *
+					work[factor->packed_column[k]];
 			work[i] = value;
 			if (use_reach && value != 0.) {
 				const struct simplex_SparseColumnRows *rows =
@@ -715,13 +768,15 @@ int simplex_sparse_lu_solve(
 			for (i = 0; i < n; i++)
 				active[i] = work[i] != 0.;
 		for (i = n - 1; i >= 0; i--) {
-			const struct simplex_SparseRow *row = factor->row + i;
+			int start = factor->packed_start[i];
+			int diagonal = start + factor->diagonal_position[i];
+			int end = factor->packed_start[i + 1];
 			double value = work[i];
 			if (use_reach && !active[i])
 				continue;
-			for (k = factor->diagonal_position[i] + 1;
-			     k < row->count; k++)
-				value -= row->value[k] * work[row->column[k]];
+			for (k = diagonal + 1; k < end; k++)
+				value -= factor->packed_value[k] *
+					work[factor->packed_column[k]];
 			value /= factor->diagonal_value[i];
 			work[i] = value;
 			if (use_reach && value != 0.) {
@@ -740,20 +795,24 @@ int simplex_sparse_lu_solve(
 			work[i] = vector[factor->column_permutation[i]] *
 				factor->column_scale[factor->column_permutation[i]];
 		for (i = 0; i < n; i++) {
-			const struct simplex_SparseRow *row = factor->row + i;
+			int diagonal = factor->packed_start[i] +
+				factor->diagonal_position[i];
+			int end = factor->packed_start[i + 1];
 			if (work[i] == 0.)
 				continue;
 			work[i] /= factor->diagonal_value[i];
-			for (k = factor->diagonal_position[i] + 1;
-			     k < row->count; k++)
-				work[row->column[k]] -= row->value[k] * work[i];
+			for (k = diagonal + 1; k < end; k++)
+				work[factor->packed_column[k]] -=
+					factor->packed_value[k] * work[i];
 		}
 		for (i = n - 1; i >= 0; i--) {
-			const struct simplex_SparseRow *row = factor->row + i;
+			int start = factor->packed_start[i];
+			int diagonal = start + factor->diagonal_position[i];
 			if (work[i] == 0.)
 				continue;
-			for (k = 0; k < factor->diagonal_position[i]; k++)
-				work[row->column[k]] -= row->value[k] * work[i];
+			for (k = start; k < diagonal; k++)
+				work[factor->packed_column[k]] -=
+					factor->packed_value[k] * work[i];
 		}
 		for (i = 0; i < n; i++)
 			vector[factor->permutation[i]] = work[i] *
@@ -768,6 +827,9 @@ int simplex_sparse_lu_solve_pair(
 {
 	int i, k;
 	int n = factor->dimension;
+	int *active = factor->work_column;
+	int active_count = 0;
+	int use_reach;
 	double *a = factor->solve_work;
 	double *b = factor->work_value;
 	for (i = 0; i < n; i++) {
@@ -775,31 +837,57 @@ int simplex_sparse_lu_solve_pair(
 		double scale = factor->row_scale[row];
 		a[i] = first[row] * scale;
 		b[i] = second[row] * scale;
+		active[i] = a[i] != 0. || b[i] != 0.;
+		active_count += active[i];
 	}
+	use_reach = active_count * 8 < n;
 	for (i = 0; i < n; i++) {
-		const struct simplex_SparseRow *row = factor->row + i;
+		int start = factor->packed_start[i];
+		int diagonal = start + factor->diagonal_position[i];
 		double av = a[i], bv = b[i];
-		for (k = 0; k < factor->diagonal_position[i]; k++) {
-			int column = row->column[k];
-			double value = row->value[k];
+		if (use_reach && !active[i])
+			continue;
+		for (k = start; k < diagonal; k++) {
+			int column = factor->packed_column[k];
+			double value = factor->packed_value[k];
 			av -= value * a[column];
 			bv -= value * b[column];
 		}
 		a[i] = av;
 		b[i] = bv;
+		if (use_reach && (av != 0. || bv != 0.)) {
+			const struct simplex_SparseColumnRows *rows =
+				factor->column_rows + i;
+			for (k = 0; k < rows->count; k++)
+				if (rows->row[k] > i)
+					active[rows->row[k]] = 1;
+		}
 	}
+	if (use_reach)
+		for (i = 0; i < n; i++)
+			active[i] = a[i] != 0. || b[i] != 0.;
 	for (i = n - 1; i >= 0; i--) {
-		const struct simplex_SparseRow *row = factor->row + i;
+		int diagonal = factor->packed_start[i] +
+			factor->diagonal_position[i];
+		int end = factor->packed_start[i + 1];
 		double av = a[i], bv = b[i];
-		for (k = factor->diagonal_position[i] + 1;
-		     k < row->count; k++) {
-			int column = row->column[k];
-			double value = row->value[k];
+		if (use_reach && !active[i])
+			continue;
+		for (k = diagonal + 1; k < end; k++) {
+			int column = factor->packed_column[k];
+			double value = factor->packed_value[k];
 			av -= value * a[column];
 			bv -= value * b[column];
 		}
 		a[i] = av / factor->diagonal_value[i];
 		b[i] = bv / factor->diagonal_value[i];
+		if (use_reach && (a[i] != 0. || b[i] != 0.)) {
+			const struct simplex_SparseColumnRows *rows =
+				factor->column_rows + i;
+			for (k = 0; k < rows->count; k++)
+				if (rows->row[k] < i)
+					active[rows->row[k]] = 1;
+		}
 	}
 	for (i = 0; i < n; i++) {
 		int column = factor->column_permutation[i];

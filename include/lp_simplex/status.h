@@ -5,6 +5,7 @@
 #ifndef LP_SIMPLEX_STATUS_H
 #define LP_SIMPLEX_STATUS_H
 
+
 enum lp_Status {
 	lp_simplex_Success           = 0,
 	lp_simplex_MemoryAllocError  = 1,

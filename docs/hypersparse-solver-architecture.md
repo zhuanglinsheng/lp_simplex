@@ -5,21 +5,37 @@
 
 ## 模型生命周期
 
-求解流程分为 original、presolved、solver 和 postsolve 四个空间。presolve 不
-修改用户模型；每项 reduction 都保存原行列映射和恢复数据。solver 只读取
+求解流程分为 original、presolved、solver 和 postsolve 四个空间。
+
+presolve 不修改用户模型；每项 reduction 都保存原行列映射和恢复数据。solver 只读取
 presolved CSC/CSR，求解结束后由 postsolve 恢复原变量并在原模型上计算目标值。
 
-当前可逆规则包括固定列消去、空列按目标方向选界、可行空行删除，以及矛盾
-空行检测。presolved model 直接构造 CSC/CSR，不分配 `m × n` 稠密矩阵。
-singleton、forcing row、implied bound、aggregation 和冗余行规则必须复用同一
-reduction record 与 postsolve 栈。
+当前可逆规则包括：
+
+- 固定列消去
+- 空列按目标方向选界
+- 可行空行删除
+- 矛盾空行检测
+- singleton 行界收紧
+- 一般行 implied-bound propagation
+- 活动区间不可行
+  与冗余判定
+- 同支撑平行行的支配和冲突检测。
+
+行列删除时增量维护 degree；
+bound propagation 使用向外舍入的安全界决定 reduction，随后 crash 在 reduced
+matrix 上计算精确工作界。
+
+presolved model 直接构造 CSC/CSR，不分配 `m × n`
+稠密矩阵。后续 aggregation 和 substitution 继续复用同一 reduction record 与
+postsolve 栈。
 
 ## 稀疏向量协议
 
 `simplex_SparseVector` 同时维护 packed `index/value`、dense scatter、generation
 marker 和索引到 packed slot 的常数时间映射。`clear` 只访问上一代活动位置。
-当前 BTRAN 结果 `rho` 已打包后交给 CSR pricing；后续 LU 内核应直接产生活动
-索引，消除从稠密结果重新扫描的过渡成本。
+
+当前 BTRAN 结果 `rho` 已打包后交给 CSR pricing；后续 LU 内核应直接产生活动索引，消除从稠密结果重新扫描的过渡成本。
 
 ## Pricing
 

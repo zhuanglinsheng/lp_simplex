@@ -1,7 +1,12 @@
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
 /* Dualize equality models whose row residuals use paired singleton columns. */
 #include "simplex_singleton_dual.h"
 #include "simplex_dual.h"
 #include "utils.h"
+
 #include <lp_simplex/status.h>
 
 

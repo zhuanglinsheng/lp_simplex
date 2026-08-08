@@ -3,7 +3,9 @@
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
 #include "linalg.h"
+
 #include <assert.h>
+
 
 void lp_simplex_linalg_daxpy(
 		int n, double a, double *x, int incx, double *y, int incy)
@@ -22,6 +24,7 @@ void lp_simplex_linalg_daxpy(
 	}
 #endif
 }
+
 
 double lp_simplex_linalg_ddot(
 		int n, const double *x, int incx, const double *y, int incy)
@@ -43,6 +46,7 @@ double lp_simplex_linalg_ddot(
 #endif
 }
 
+
 void lp_simplex_linalg_dscal(int n, double scale, double *array, int increment)
 {
 #if USE_BLAS
@@ -55,6 +59,7 @@ void lp_simplex_linalg_dscal(int n, double scale, double *array, int increment)
 		array[i] *= scale;
 #endif
 }
+
 
 void lp_simplex_linalg_dlarfg(
 		int n, double *alpha, double *x, int incx, double *tau)

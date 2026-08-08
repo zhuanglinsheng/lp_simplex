@@ -68,8 +68,11 @@ set(SOURCES
 	src/mps.c
 	src/simplex.c
 	src/simplex_presolve.c
+	src/simplex_presolve_substitution.c
+	src/simplex_problem.c
 	src/simplex_tableau_solver.c
 	src/simplex_dual.c
+	src/simplex_dual_feasibility.c
 	src/simplex_dual_pricing.c
 	src/simplex_singleton_dual.c
 	src/simplex_csc.c

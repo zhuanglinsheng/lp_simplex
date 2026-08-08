@@ -4,6 +4,7 @@
  */
 #include "simplex_transform.h"
 #include "utils.h"
+
 #include <lp_simplex/status.h>
 
 

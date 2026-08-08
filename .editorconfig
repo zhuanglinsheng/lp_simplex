@@ -1,0 +1,11 @@
+# .editorconfig
+root = true
+
+[*]
+indent_style = tab
+tab_width = 8
+
+# C/C++
+[*.{c,h,cpp,hpp}]
+indent_style = tab
+tab_width = 8

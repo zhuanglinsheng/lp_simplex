@@ -5,6 +5,7 @@
 #ifndef LP_SIMPLEX_MODEL_H
 #define LP_SIMPLEX_MODEL_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -63,6 +64,9 @@ struct lp_Model {
 
 /** Allocate a zero-initialized dense LP model with nonnegative real variables. */
 struct lp_Model *lp_model_create(int m, int n);
+
+/** Allocate model metadata and sparse CSC/CSR storage without a dense matrix. */
+struct lp_Model *lp_model_create_sparse(int m, int n, int nonzero_capacity);
 
 /** Release a model and all arrays owned by it. */
 void lp_model_free(struct lp_Model *model);

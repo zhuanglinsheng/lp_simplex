@@ -6,7 +6,9 @@
 #include "simplex_pivot.h"
 #include "linalg.h"
 #include "utils.h"
+
 #include <lp_simplex/status.h>
+
 
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder

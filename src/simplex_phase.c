@@ -7,7 +7,9 @@
 #include "simplex_tableau.h"
 #include "linalg.h"
 #include "utils.h"
+
 #include <lp_simplex/status.h>
+
 
 #define SIMPLEX_FEASIBILITY_TOLERANCE 1e-5
 

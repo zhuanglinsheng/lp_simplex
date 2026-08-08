@@ -9,7 +9,8 @@ two-sided bounds. It provides two independent simplex implementations:
 - a CSC dual revised simplex solver with logical row variables, dual
   steepest-edge pricing, Harris bound flipping, and product-form basis updates.
 
-It can read fixed-column MPS files (the `RANGES` section is not supported).
+It can read fixed-column MPS files, including ranged rows from the `RANGES`
+section.
 
 ## Build and test
 

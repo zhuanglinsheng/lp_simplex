@@ -1,6 +1,12 @@
-/* Degeneracy detection and activation policy for Pan-style face pivots. */
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ *
+ * Degeneracy detection and activation policy for Pan-style face pivots.
+ */
 #include "simplex_degeneracy.h"
 #include "utils.h"
+
 
 #define PAN_HISTORY_LENGTH 16
 #define PAN_HISTORY_MASK 0xffffU
@@ -81,6 +87,18 @@ int simplex_degeneracy_should_probe(
 		const struct simplex_DegeneracyControl *control)
 {
 	return control->active && !control->suppressed;
+}
+
+
+int simplex_degeneracy_is_stressed(
+		const struct simplex_DegeneracyControl *control)
+{
+	/* Switch ratio policy before full Pan activation.  A half-degenerate
+	 * recent window is enough evidence that a wider Harris set can change the
+	 * face-walking trajectory more than it improves pivot stability. */
+	return control->active || control->consecutive >= 4 ||
+		(control->history_count == PAN_HISTORY_LENGTH &&
+		 simplex_degeneracy_history_count(control->history) >= 8);
 }
 
 
