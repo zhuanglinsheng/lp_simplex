@@ -16,3 +16,11 @@ if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mp
 			${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mps
 	)
 endif()
+
+if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/degen2.mps")
+	add_test(
+		NAME netlib_degen2_dual_revised
+		COMMAND test_netlib --algorithm dual-revised
+			${PROJECT_SOURCE_DIR}/data/netlib/feasible/degen2.mps
+	)
+endif()

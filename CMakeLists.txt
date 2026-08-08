@@ -63,29 +63,46 @@ endif()
 # Target
 ###############################################################################
 
+set(LP_SIMPLEX_PRIVATE_INCLUDE_DIRS
+	${PROJECT_SOURCE_DIR}/src/core
+	${PROJECT_SOURCE_DIR}/src/presolve
+	${PROJECT_SOURCE_DIR}/src/dual
+	${PROJECT_SOURCE_DIR}/src/basis
+	${PROJECT_SOURCE_DIR}/src/matrix
+	${PROJECT_SOURCE_DIR}/src/tableau
+	${PROJECT_SOURCE_DIR}/src/common
+)
+
 set(SOURCES
-	src/model.c
-	src/mps.c
-	src/simplex.c
-	src/simplex_presolve.c
-	src/simplex_presolve_substitution.c
-	src/simplex_problem.c
-	src/simplex_tableau_solver.c
-	src/simplex_dual.c
-	src/simplex_dual_feasibility.c
-	src/simplex_dual_pricing.c
-	src/simplex_singleton_dual.c
-	src/simplex_csc.c
-	src/simplex_sparse_vector.c
-	src/simplex_basis.c
-	src/simplex_degeneracy.c
-	src/simplex_sparse_lu.c
-	src/simplex_transform.c
-	src/simplex_tableau.c
-	src/simplex_phase.c
-	src/simplex_pivot.c
-	src/linalg.c
-	src/utils.c
+	src/core/model.c
+	src/core/mps.c
+	src/core/simplex.c
+	src/core/simplex_problem.c
+	src/presolve/simplex_presolve.c
+	src/presolve/simplex_presolve_activity.c
+	src/presolve/simplex_presolve_postsolve.c
+	src/presolve/simplex_presolve_profile.c
+	src/presolve/simplex_presolve_queue.c
+	src/presolve/simplex_presolve_record.c
+	src/presolve/simplex_presolve_rules.c
+	src/presolve/simplex_presolve_substitution.c
+	src/dual/simplex_dual.c
+	src/dual/simplex_dual_state.c
+	src/dual/simplex_dual_feasibility.c
+	src/dual/simplex_dual_pricing.c
+	src/dual/simplex_singleton_dual.c
+	src/dual/simplex_degeneracy.c
+	src/basis/simplex_basis.c
+	src/basis/simplex_sparse_lu.c
+	src/matrix/simplex_csc.c
+	src/matrix/simplex_sparse_vector.c
+	src/tableau/simplex_tableau_solver.c
+	src/tableau/simplex_transform.c
+	src/tableau/simplex_tableau.c
+	src/tableau/simplex_phase.c
+	src/tableau/simplex_pivot.c
+	src/common/linalg.c
+	src/common/utils.c
 )
 add_library(lp_simplex SHARED
 	${SOURCES}
@@ -94,7 +111,7 @@ target_include_directories(lp_simplex PUBLIC
 	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>
 )
-target_include_directories(lp_simplex PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(lp_simplex PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 
 target_link_libraries(lp_simplex PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 target_compile_definitions(lp_simplex PRIVATE USE_BLAS USE_LAPACK)

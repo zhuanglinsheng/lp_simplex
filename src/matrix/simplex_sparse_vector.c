@@ -16,16 +16,18 @@ int simplex_sparse_vector_create(
 	vector->dimension = dimension;
 	vector->count = 0;
 	vector->capacity = dimension;
+	/* Index/slot and value/dense have identical lifetimes.  Store each pair in
+	 * one allocation so a packed workspace has one clear owner per type. */
 	vector->index = dimension > 0 ? (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int)) : NULL;
+		(size_t)2 * dimension * sizeof(int)) : NULL;
+	vector->slot = dimension > 0 && vector->index != NULL
+		? vector->index + dimension : NULL;
 	vector->value = dimension > 0 ? (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double)) : NULL;
-	vector->dense = dimension > 0 ? (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double)) : NULL;
+		(size_t)2 * dimension * sizeof(double)) : NULL;
+	vector->dense = dimension > 0 && vector->value != NULL
+		? vector->value + dimension : NULL;
 	vector->mark = dimension > 0 ? (unsigned int *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(unsigned int)) : NULL;
-	vector->slot = dimension > 0 ? (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int)) : NULL;
 	vector->generation = 1;
 	if (dimension > 0 && (vector->index == NULL || vector->value == NULL ||
 	    vector->dense == NULL || vector->mark == NULL || vector->slot == NULL)) {
@@ -48,9 +50,7 @@ void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector)
 		return;
 	lp_simplex_free(vector->index);
 	lp_simplex_free(vector->value);
-	lp_simplex_free(vector->dense);
 	lp_simplex_free(vector->mark);
-	lp_simplex_free(vector->slot);
 	vector->index = NULL;
 	vector->value = NULL;
 	vector->dense = NULL;

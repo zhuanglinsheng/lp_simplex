@@ -31,23 +31,55 @@ void lp_simplex_default_options(
 		? lp_simplex_PRICING_DUAL_STEEPEST_EDGE
 		: lp_simplex_PRICING_BLAND;
 	options->iteration_limit = SIMPLEX_DEFAULT_ITERATION_LIMIT;
+	options->presolve = 1;
 	options->primal_tolerance = SIMPLEX_DEFAULT_PRIMAL_TOLERANCE;
 	options->dual_tolerance = SIMPLEX_DEFAULT_DUAL_TOLERANCE;
 	options->pivot_tolerance = SIMPLEX_DEFAULT_PIVOT_TOLERANCE;
 }
 
 
+static int simplex_validate_sparse_storage(const struct lp_Model *model)
+{
+	int i, k;
+	if (model->nnz < 0 || model->column_start == NULL ||
+	    model->row_start == NULL ||
+	    (model->nnz > 0 && (model->row_index == NULL || model->value == NULL ||
+	     model->column_index == NULL || model->row_value == NULL)) ||
+	    model->column_start[0] != 0 ||
+	    model->column_start[model->n] != model->nnz ||
+	    model->row_start[0] != 0 || model->row_start[model->m] != model->nnz)
+		return 0;
+	for (i = 0; i < model->n; i++)
+		if (model->column_start[i] > model->column_start[i + 1])
+			return 0;
+	for (i = 0; i < model->m; i++)
+		if (model->row_start[i] > model->row_start[i + 1])
+			return 0;
+	for (k = 0; k < model->nnz; k++)
+		if (model->row_index[k] < 0 || model->row_index[k] >= model->m ||
+		    model->column_index[k] < 0 ||
+		    model->column_index[k] >= model->n)
+			return 0;
+	return 1;
+}
+
+
 static int simplex_validate_model(const struct lp_Model *model)
 {
 	int i, j;
-	int sparse;
+	int has_sparse, sparse = 0;
 	if (model == NULL || model->objective == NULL || model->constraints == NULL ||
 	    model->m <= 0 || model->n <= 0)
 		return 0;
-	sparse = model->column_start != NULL && model->row_start != NULL &&
-		(model->nnz == 0 || (model->row_index != NULL &&
-		 model->value != NULL && model->column_index != NULL &&
-		 model->row_value != NULL));
+	has_sparse = model->column_start != NULL || model->row_start != NULL ||
+		model->row_index != NULL || model->value != NULL ||
+		model->column_index != NULL || model->row_value != NULL ||
+		model->nnz != 0;
+	if (has_sparse) {
+		if (!simplex_validate_sparse_storage(model))
+			return 0;
+		sparse = 1;
+	}
 	for (i = 0; i < model->m; i++) {
 		if ((model->constraints[i].coef == NULL && !sparse) ||
 		    model->constraints[i].type < optm_CONS_T_EQ ||
@@ -77,6 +109,7 @@ static struct lp_Model *simplex_materialize_dense(
 		return NULL;
 	lp_simplex_memcpy(dense->objective, model->objective,
 		(size_t)model->n * sizeof(double));
+	dense->objective_offset = model->objective_offset;
 	if (model->bounds != NULL)
 		lp_simplex_memcpy(dense->bounds, model->bounds,
 			(size_t)model->n * sizeof(*dense->bounds));
@@ -105,6 +138,7 @@ static struct lp_Model *simplex_materialize_dense(
 static int simplex_validate_options(const struct lp_simplex_Options *options)
 {
 	if (options == NULL || options->iteration_limit <= 0 ||
+	    (options->presolve != 0 && options->presolve != 1) ||
 	    options->primal_tolerance <= 0. || options->dual_tolerance <= 0. ||
 	    options->pivot_tolerance <= 0.)
 		return 0;
@@ -140,58 +174,29 @@ static int simplex_solve_dual_presolved(
 {
 	struct simplex_Presolve presolve;
 	double *reduced_x = NULL;
-	double objective = 0.;
+	double objective = model->objective_offset;
 	clock_t presolve_started;
 	int j, state;
-	if (model->bounds == NULL)
-		return simplex_solve_dual_raw(model, options, x, result);
+	if (!options->presolve || getenv("LP_SIMPLEX_DISABLE_PRESOLVE") != NULL ||
+	    model->bounds == NULL) {
+		state = simplex_solve_dual_raw(model, options, x, result);
+		if (result->status == lp_simplex_Success)
+			result->objective += model->objective_offset;
+		return state;
+	}
 	presolve_started = clock();
 	if (simplex_presolve_run(&presolve, model,
 			options->primal_tolerance) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	if (getenv("LP_SIMPLEX_PROFILE") != NULL)
-		fprintf(stderr, "presolve: time=%.6f seconds\n",
+		simplex_presolve_print_profile(&presolve,
 			(double)(clock() - presolve_started) /
 			(double)CLOCKS_PER_SEC);
-	if (getenv("LP_SIMPLEX_PROFILE") != NULL &&
-	    (presolve.removed_rows != 0 || presolve.removed_columns != 0 ||
-	     presolve.tightened_bounds != 0))
-		fprintf(stderr, "presolve: removed rows=%d columns=%d "
-			"[fixed=%d empty=%d singleton-col=%d singleton-ineq-col=%d "
-			"singleton-row=%d "
-			"redundant-row=%d duplicate-row=%d forcing-row=%d forced-column=%d "
-			"doubleton=%d singleton-column=%d implied-free-column=%d "
-			"singleton-projection=%d "
-			"tightened=%d passes=%d singleton-column-candidates=%d "
-			"free-singleton=%d equality-singleton=%d exact-propagation=%d] "
-			"remaining=%d/%d\n",
-			presolve.removed_rows, presolve.removed_columns,
-			presolve.fixed_columns, presolve.empty_columns,
-			presolve.singleton_columns,
-			presolve.singleton_inequality_columns,
-			presolve.singleton_rows, presolve.redundant_rows,
-			presolve.duplicate_rows,
-			presolve.forcing_rows, presolve.forced_columns,
-			presolve.doubleton_rows,
-			presolve.singleton_column_rows,
-			presolve.implied_free_columns,
-			presolve.singleton_projection_columns,
-			presolve.tightened_bounds, presolve.passes,
-			presolve.singleton_column_candidates,
-			presolve.free_singleton_columns,
-			presolve.equality_singleton_columns,
-			presolve.exact_bound_propagation,
-			presolve.reduced != NULL ? presolve.reduced->rows :
-				(presolve.terminal ? 0 : model->m),
-			presolve.reduced != NULL ? presolve.reduced->columns :
-				(presolve.terminal ? 0 : model->n));
-	if (presolve.terminal) {
+	if (presolve.status != lp_simplex_CondUnsatisfied) {
 		simplex_presolve_postsolve(&presolve, NULL, x);
-		result->status = presolve.terminal_status;
-		state = presolve.terminal_status == lp_simplex_Success
+		result->status = presolve.status;
+		state = presolve.status == lp_simplex_Success
 			? lp_simplex_EXIT_SUCCESS : lp_simplex_EXIT_FAILURE;
-	} else if (presolve.reduced == NULL) {
-		state = simplex_solve_dual_raw(model, options, x, result);
 	} else {
 		reduced_x = (double *)lp_simplex_malloc(
 			(size_t)presolve.reduced->columns * sizeof(double));
@@ -258,6 +263,6 @@ int lp_simplex_solve(
 					    options->iteration_limit,
 					    x, &objective, &status);
 	result->status = status;
-	result->objective = objective;
+	result->objective = objective + model->objective_offset;
 	return state;
 }

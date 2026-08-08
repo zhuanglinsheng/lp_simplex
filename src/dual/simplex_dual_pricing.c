@@ -21,13 +21,13 @@ int simplex_dual_pricing_create(struct simplex_DualState *state)
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	state->candidate_sign = (int *)lp_simplex_malloc(
-		(size_t)variables * sizeof(int));
-	state->candidate_index = (int *)lp_simplex_malloc(
-		(size_t)variables * sizeof(int));
-	state->nonbasic_index = (int *)lp_simplex_malloc(
-		(size_t)variables * sizeof(int));
-	state->nonbasic_slot = (int *)lp_simplex_malloc(
-		(size_t)variables * sizeof(int));
+		(size_t)4 * variables * sizeof(int));
+	state->candidate_index = state->candidate_sign != NULL
+		? state->candidate_sign + variables : NULL;
+	state->nonbasic_index = state->candidate_sign != NULL
+		? state->candidate_sign + 2 * variables : NULL;
+	state->nonbasic_slot = state->candidate_sign != NULL
+		? state->candidate_sign + 3 * variables : NULL;
 	if (state->candidate_sign == NULL || state->candidate_index == NULL ||
 	    state->nonbasic_index == NULL || state->nonbasic_slot == NULL)
 		return lp_simplex_EXIT_FAILURE;
@@ -44,9 +44,6 @@ void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 	simplex_sparse_vector_destroy(&state->packed_rho);
 	simplex_sparse_vector_destroy(&state->packed_alpha);
 	lp_simplex_free(state->candidate_sign);
-	lp_simplex_free(state->candidate_index);
-	lp_simplex_free(state->nonbasic_index);
-	lp_simplex_free(state->nonbasic_slot);
 	state->candidate_sign = NULL;
 	state->candidate_index = NULL;
 	state->nonbasic_index = NULL;
@@ -195,7 +192,7 @@ int simplex_dual_prepare_ratio_test(
 	long row_entries = 0;
 	double minimum = __lp_simplex_INF__;
 	clock_t started = 0;
-	if (state->profile_enabled)
+	if (state->profile.enabled)
 		started = clock();
 	for (candidate = 0; candidate < state->candidate_count; candidate++)
 		state->candidate_sign[state->candidate_index[candidate]] = 0;
@@ -243,7 +240,7 @@ int simplex_dual_prepare_ratio_test(
 					missing++;
 				}
 			}
-			if (state->profile_enabled)
+			if (state->profile.enabled)
 				fprintf(stderr,
 					"dual profile: hypersparse alpha audit error=%.3g repaired=%d touched=%d/%d\n",
 					maximum_error, missing, state->packed_alpha.count,
@@ -264,11 +261,26 @@ int simplex_dual_prepare_ratio_test(
 		pricing_add_candidate(state, j, kappa, 0, harris_enabled,
 			&candidates, &minimum);
 	}
+	/* A sparse pricing pass is only a fast candidate generator, never an
+	 * infeasibility certificate.  Cancellation and stale sparsity can omit an
+	 * eligible column; certify an empty set with a full CSC dot-product scan. */
+	if (candidates == 0 && alpha_ready) {
+		minimum = __lp_simplex_INF__;
+		for (i = 0; i < state->nonbasic_count; i++) {
+			j = state->nonbasic_index[i];
+			pricing_add_candidate(state, j, kappa, 0, harris_enabled,
+				&candidates, &minimum);
+		}
+		/* The exact certification pass supersedes the hypersparse alpha.
+		 * Keeping packed_alpha_valid here would update reduced costs for only
+		 * the old sparse support after choosing a column found by the full scan. */
+		state->packed_alpha_valid = 0;
+	}
 	state->ratio_minimum = minimum;
 	state->ratio_minimum_valid = 1;
 	state->candidate_count = candidates;
-	if (state->profile_enabled)
-		state->profile_ratio_seconds +=
+	if (state->profile.enabled)
+		state->profile.ratio_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
 	return candidates;
 }
@@ -295,7 +307,8 @@ int simplex_dual_next_ratio_candidate(
 	if (pan_perturbation && minimum <= 10. * state->options->dual_tolerance) {
 		int pan_candidate = -1;
 		int best_rank_delta = 2;
-		int structure_enabled = state->factor.compact_ever_active ||
+		int structure_enabled =
+			simplex_basis_compact_ever_active(&state->factor) ||
 			(state->rows >= 4096 && state->structural_basic < state->rows);
 		double best_structural_score = -1.;
 		for (candidate = 0; candidate < state->candidate_count; candidate++) {

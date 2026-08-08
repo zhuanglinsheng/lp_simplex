@@ -1,10 +1,36 @@
 #include <lp_simplex/lp_simplex.h>
+#include "simplex_presolve_queue.h"
 #include <stdio.h>
 
 
 static double absolute_value(const double value)
 {
 	return value < 0. ? -value : value;
+}
+
+
+static int exercise_presolve_work_queue(void)
+{
+	struct simplex_PresolveQueue queue;
+	int item;
+	if (simplex_presolve_queue_init(&queue, 3) ==
+	    lp_simplex_EXIT_FAILURE)
+		return 0;
+	if (simplex_presolve_queue_push(&queue, 0) == lp_simplex_EXIT_FAILURE ||
+	    simplex_presolve_queue_push(&queue, 1) == lp_simplex_EXIT_FAILURE ||
+	    simplex_presolve_queue_push(&queue, 2) == lp_simplex_EXIT_FAILURE ||
+	    simplex_presolve_queue_push(&queue, 1) == lp_simplex_EXIT_FAILURE ||
+	    !simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
+	    simplex_presolve_queue_push(&queue, 0) == lp_simplex_EXIT_FAILURE ||
+	    !simplex_presolve_queue_pop(&queue, &item) || item != 1 ||
+	    !simplex_presolve_queue_pop(&queue, &item) || item != 2 ||
+	    !simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
+	    simplex_presolve_queue_pop(&queue, &item)) {
+		simplex_presolve_queue_destroy(&queue);
+		return 0;
+	}
+	simplex_presolve_queue_destroy(&queue);
+	return 1;
 }
 
 
@@ -462,6 +488,78 @@ static int solve_degree_two_implied_free_substitution(void)
 }
 
 
+static int solve_with_objective_offset(void)
+{
+	struct lp_Model *model = lp_model_create(1, 1);
+	struct lp_simplex_Options options;
+	struct lp_simplex_Result result;
+	double x[1];
+	int state;
+	if (model == NULL)
+		return 0;
+	model->objective[0] = 2.;
+	model->objective_offset = -7.;
+	model->constraints[0].type = optm_CONS_T_GE;
+	model->constraints[0].rhs = 3.;
+	model->constraints[0].coef[0] = 1.;
+	lp_model_build_sparse(model);
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	state = lp_simplex_solve(model, &options, x, &result);
+	lp_model_free(model);
+	return state == lp_simplex_EXIT_SUCCESS &&
+		result.status == lp_simplex_Success &&
+		absolute_value(x[0] - 3.) <= 1e-9 &&
+		absolute_value(result.objective + 1.) <= 1e-9;
+}
+
+
+static int solve_dense_presolve_equivalence(void)
+{
+	struct lp_Model *model = lp_model_create(4, 4);
+	struct lp_simplex_Options options;
+	struct lp_simplex_Result with_presolve, without_presolve;
+	double reduced_x[4], raw_x[4];
+	int first, second, j;
+	if (model == NULL)
+		return 0;
+	for (j = 0; j < 4; j++) {
+		model->bounds[j].b_type = optm_BOUND_T_BS;
+		model->bounds[j].lb = 0.;
+		model->bounds[j].ub = 10.;
+	}
+	model->objective[0] = 2.;
+	model->objective[1] = -1.;
+	model->objective[2] = .5;
+	model->objective[3] = 1.;
+	model->constraints[0].type = optm_CONS_T_GE;
+	model->constraints[0].rhs = 3.;
+	model->constraints[0].coef[0] = 1.;
+	model->constraints[0].coef[1] = 1.;
+	model->constraints[1].type = optm_CONS_T_LE;
+	model->constraints[1].rhs = 7.;
+	model->constraints[1].coef[1] = 1.;
+	model->constraints[1].coef[2] = 1.;
+	model->constraints[2].type = optm_CONS_T_EQ;
+	model->constraints[2].rhs = 1.;
+	model->constraints[2].coef[0] = 1.;
+	model->constraints[2].coef[2] = -1.;
+	model->constraints[3].type = optm_CONS_T_GE;
+	model->constraints[3].rhs = 2.;
+	model->constraints[3].coef[3] = 1.;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	first = lp_simplex_solve(model, &options, reduced_x, &with_presolve);
+	options.presolve = 0;
+	second = lp_simplex_solve(model, &options, raw_x, &without_presolve);
+	lp_model_free(model);
+	return first == lp_simplex_EXIT_SUCCESS &&
+		second == lp_simplex_EXIT_SUCCESS &&
+		with_presolve.status == lp_simplex_Success &&
+		without_presolve.status == lp_simplex_Success &&
+		absolute_value(with_presolve.objective -
+			without_presolve.objective) <= 1e-7;
+}
+
+
 int main(void)
 {
 	int passed = solve_fixed_and_empty_column() +
@@ -473,7 +571,10 @@ int main(void)
 		solve_zero_cost_singleton_inequality_column() +
 		solve_substitution_fixed_point_cascade() +
 		solve_singleton_equality_projection() +
-		solve_degree_two_implied_free_substitution();
-	printf("%d/14 presolve reductions passed.\n", passed);
-	return passed == 14 ? 0 : 1;
+		solve_degree_two_implied_free_substitution() +
+		solve_with_objective_offset() +
+		solve_dense_presolve_equivalence() +
+		exercise_presolve_work_queue();
+	printf("%d/17 presolve reductions passed.\n", passed);
+	return passed == 17 ? 0 : 1;
 }

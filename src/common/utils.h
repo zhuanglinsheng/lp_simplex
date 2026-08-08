@@ -19,15 +19,6 @@
 int is_in_arri(int idx, const int *idxset, int len);
 
 int maxabs_arri(const int *arr, int len, int inc);
-int argmaxabs_arrd(const double *arr, int len, int inc);
-double maxabs_arrd(const double *arr, int len, int inc);
-double maxabs_arrd_gap(const double *arr1, const double *arr2, int len, int inc);
-
-void lp_simplex_prt_arri(const int *arr, int len, int inc);
-void lp_simplex_prt_arrl(const long *arr, int len, int inc);
-void lp_simplex_prt_arrd(const double *arr, int len, int inc, int sci);
-void lp_simplex_prt_arrld(const long double *arr, int len, int inc, int sci);
-void lp_simplex_prt_matd(const double *mat, int ld, int nrow, int ncol);
 
 void *lp_simplex_malloc(size_t size);
 void *lp_simplex_realloc(void *ptr, size_t size);

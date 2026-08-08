@@ -31,6 +31,8 @@ struct lp_simplex_Options {
 	double primal_tolerance;
 	double dual_tolerance;
 	double pivot_tolerance;
+	/** Nonzero enables presolve; defaults to 1. */
+	int presolve;
 };
 
 struct lp_simplex_Result {

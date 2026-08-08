@@ -1,6 +1,11 @@
 # Sparse dual revised simplex 全量 NETLIB feasible 基准测试
 
-本文记录当前 `lp_simplex` sparse dual revised simplex 对仓库中全部 114 个 NETLIB feasible 模型的端到端正确性与性能测试。
+> 这是 2026-08-08 对当时提交状态的历史快照。后续 presolve、dual、basis 和
+> 文件结构已经变化；表中的迭代数、通过率与耗时不能代表当前工作区。当前
+> 算法行为以 [整体算法说明](./algorithm.md) 和源码为准。
+
+本文记录当时版本的 `lp_simplex` sparse dual revised simplex 对仓库中全部
+114 个 NETLIB feasible 模型的端到端正确性与性能测试。
 
 ## 测试环境与口径
 

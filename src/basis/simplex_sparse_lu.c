@@ -90,11 +90,14 @@ static int sparse_row_reserve(struct simplex_SparseRow *row, const int capacity)
 }
 
 
-static int sparse_row_find(const struct simplex_SparseRow *row, const int column)
+static int sparse_row_find_counted(
+		struct simplex_SparseLu *factor,
+		const struct simplex_SparseRow *row, const int column)
 {
 	int left = 0, right = row->count - 1;
 	while (left <= right) {
 		int middle = left + (right - left) / 2;
+		factor->factor_work++;
 		if (row->column[middle] < column)
 			left = middle + 1;
 		else if (row->column[middle] > column)
@@ -385,6 +388,7 @@ static int sparse_lu_eliminate_row(
 		int pivot_column = b < pivot->count ? pivot->column[b] : factor->dimension;
 		int result_column;
 		double result_value;
+		factor->factor_work++;
 		if (pivot_column <= column) {
 			b++;
 			continue;
@@ -431,11 +435,13 @@ static int sparse_lu_build_column_rows(struct simplex_SparseLu *factor)
 		factor->column_rows[i].count = 0;
 	for (i = 0; i < factor->dimension; i++) {
 		const struct simplex_SparseRow *row = factor->row + i;
-		for (k = 0; k < row->count; k++)
+		for (k = 0; k < row->count; k++) {
+			factor->factor_work++;
 			if (sparse_column_rows_append(
 				factor->column_rows + row->column[k], i) ==
 			    lp_simplex_EXIT_FAILURE)
 				return lp_simplex_EXIT_FAILURE;
+		}
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
@@ -493,10 +499,11 @@ static int sparse_lu_append_row_columns(
 
 
 static void sparse_row_swap_columns(
-		struct simplex_SparseRow *row, const int left, const int right)
+		struct simplex_SparseLu *factor, struct simplex_SparseRow *row,
+		const int left, const int right)
 {
-	int left_position = sparse_row_find(row, left);
-	int right_position = sparse_row_find(row, right);
+	int left_position = sparse_row_find_counted(factor, row, left);
+	int right_position = sparse_row_find_counted(factor, row, right);
 	if (left_position >= 0 && right_position >= 0) {
 		double value = row->value[left_position];
 		row->value[left_position] = row->value[right_position];
@@ -505,6 +512,7 @@ static void sparse_row_swap_columns(
 		double value = row->value[left_position];
 		while (left_position + 1 < row->count &&
 		       row->column[left_position + 1] < right) {
+			factor->factor_work++;
 			row->column[left_position] = row->column[left_position + 1];
 			row->value[left_position] = row->value[left_position + 1];
 			left_position++;
@@ -514,6 +522,7 @@ static void sparse_row_swap_columns(
 	} else if (right_position >= 0) {
 		double value = row->value[right_position];
 		while (right_position > 0 && row->column[right_position - 1] > left) {
+			factor->factor_work++;
 			row->column[right_position] = row->column[right_position - 1];
 			row->value[right_position] = row->value[right_position - 1];
 			right_position--;
@@ -531,7 +540,7 @@ static void sparse_lu_swap_columns(
 	if (left == right)
 		return;
 	for (i = 0; i < factor->dimension; i++)
-		sparse_row_swap_columns(factor->row + i, left, right);
+		sparse_row_swap_columns(factor, factor->row + i, left, right);
 	original = factor->column_permutation[left];
 	factor->column_permutation[left] = factor->column_permutation[right];
 	factor->column_permutation[right] = original;
@@ -553,6 +562,7 @@ static int sparse_lu_choose_column(
 	for (i = first; i < n; i++) {
 		const struct simplex_SparseRow *row = factor->row + i;
 		for (k = 0; k < row->count; k++) {
+			factor->factor_work++;
 			column = row->column[k];
 			if (column >= first) {
 				double magnitude = __lp_simplex_ABS__(row->value[k]);
@@ -574,9 +584,11 @@ static int sparse_lu_choose_column(
 		    SPARSE_LU_MARKOWITZ_THRESHOLD * global_maximum)
 			continue;
 		row = factor->row + factor->pivot_row[column];
-		for (k = 0; k < row->count; k++)
+		for (k = 0; k < row->count; k++) {
+			factor->factor_work++;
 			if (row->column[k] >= first)
 				row_nonzeros++;
+		}
 		score = (double)(factor->work_column[column] - 1) *
 			(double)(row_nonzeros - 1);
 		if (best < 0 || score < best_score ||
@@ -617,9 +629,11 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 				int row_index = rows->row[i];
 				int position;
 				double magnitude;
+				factor->factor_work++;
 				if (row_index < k)
 					continue;
-				position = sparse_row_find(factor->row + row_index, k);
+				position = sparse_row_find_counted(
+					factor, factor->row + row_index, k);
 				if (position < 0)
 					continue;
 				magnitude = __lp_simplex_ABS__(
@@ -630,7 +644,9 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 				}
 			}
 		} else for (i = k; i < n; i++) {
-			int position = sparse_row_find(factor->row + i, k);
+			int position = sparse_row_find_counted(
+				factor, factor->row + i, k);
+			factor->factor_work++;
 			if (position >= 0) {
 				double magnitude = __lp_simplex_ABS__(
 					factor->row[i].value[position]);
@@ -657,7 +673,8 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 				return lp_simplex_EXIT_FAILURE;
 		}
 		{
-			int diagonal = sparse_row_find(factor->row + k, k);
+			int diagonal = sparse_row_find_counted(
+				factor, factor->row + k, k);
 			double pivot = factor->row[k].value[diagonal];
 			if (n >= SPARSE_LU_GLOBAL_MARKOWITZ_LIMIT) {
 				const struct simplex_SparseColumnRows *rows =
@@ -669,7 +686,8 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 					if (row_index <= k || factor->pivot_row[row_index] == k)
 						continue;
 					factor->pivot_row[row_index] = k;
-					position = sparse_row_find(factor->row + row_index, k);
+					position = sparse_row_find_counted(
+						factor, factor->row + row_index, k);
 					if (position < 0)
 						continue;
 					multiplier = factor->row[row_index].value[position] / pivot;
@@ -678,7 +696,8 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 						return lp_simplex_EXIT_FAILURE;
 				}
 			} else for (i = k + 1; i < n; i++) {
-				int position = sparse_row_find(factor->row + i, k);
+				int position = sparse_row_find_counted(
+					factor, factor->row + i, k);
 				if (position >= 0) {
 					double multiplier = factor->row[i].value[position] / pivot;
 					if (sparse_lu_eliminate_row(factor, i, k, k,
@@ -689,7 +708,8 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 		}
 	}
 	for (i = 0; i < n; i++) {
-		int diagonal = sparse_row_find(factor->row + i, i);
+		int diagonal = sparse_row_find_counted(
+			factor, factor->row + i, i);
 		if (diagonal < 0 || __lp_simplex_ABS__(
 				factor->row[i].value[diagonal]) <=
 		    SPARSE_LU_PIVOT_TOLERANCE)
@@ -710,6 +730,7 @@ int simplex_sparse_lu_factorize(
 		const struct simplex_CscMatrix *matrix,
 		const int structural_columns, const int *basis)
 {
+	factor->factor_work = 0;
 	if (sparse_lu_assemble(factor, matrix, structural_columns, basis) ==
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
@@ -722,6 +743,7 @@ int simplex_sparse_lu_factorize_submatrix(
 		const struct simplex_CscMatrix *matrix,
 		const int *columns, const int *row_to_core)
 {
+	factor->factor_work = 0;
 	if (sparse_lu_assemble_submatrix(factor, matrix, columns, row_to_core) ==
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;

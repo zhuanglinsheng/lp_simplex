@@ -4,6 +4,9 @@
  */
 #include "simplex_presolve_substitution.h"
 #include "simplex_presolve.h"
+#include "simplex_presolve_queue.h"
+#include "simplex_presolve_record.h"
+#include "simplex_presolve_rules.h"
 #include "utils.h"
 
 #include <lp_simplex/status.h>
@@ -27,45 +30,17 @@ struct presolve_Incidence {
 };
 
 
-static int substitution_finite_lower(
-		const struct optm_VariableBound *bound)
-{
-	return bound->b_type == optm_BOUND_T_LO ||
-		bound->b_type == optm_BOUND_T_BS;
-}
-
-
-static int substitution_finite_upper(
-		const struct optm_VariableBound *bound)
-{
-	return bound->b_type == optm_BOUND_T_UP ||
-		bound->b_type == optm_BOUND_T_BS;
-}
-
-
-static void substitution_set_lower(
-		struct optm_VariableBound *bound, const double value)
-{
-	bound->lb = value;
-	bound->b_type = substitution_finite_upper(bound)
-		? optm_BOUND_T_BS : optm_BOUND_T_LO;
-}
-
-
-static void substitution_set_upper(
-		struct optm_VariableBound *bound, const double value)
-{
-	bound->ub = value;
-	bound->b_type = substitution_finite_lower(bound)
-		? optm_BOUND_T_BS : optm_BOUND_T_UP;
-}
-
-
 static int substitution_append_incidence(
 		struct presolve_Incidence *incidence, const int row)
 {
-	int capacity;
+	int capacity, k;
 	int *grown;
+	/* Removed coefficients leave a harmless tombstone in the incidence list.
+	 * Reusing that row/column pair must not append another copy: duplicates
+	 * inflate scans and can repeatedly schedule the same structural rule. */
+	for (k = 0; k < incidence->count; k++)
+		if (incidence->row[k] == row)
+			return lp_simplex_EXIT_SUCCESS;
 	if (incidence->count < incidence->capacity) {
 		incidence->row[incidence->count++] = row;
 		return lp_simplex_EXIT_SUCCESS;
@@ -143,74 +118,6 @@ static void substitution_remove_from_row(
 }
 
 
-static int substitution_reserve_terms(
-		struct simplex_Presolve *presolve, const int additional)
-{
-	int capacity;
-	int *columns;
-	double *multipliers;
-	if (presolve->substitution_term_count + additional <=
-	    presolve->substitution_term_capacity)
-		return lp_simplex_EXIT_SUCCESS;
-	capacity = presolve->substitution_term_capacity == 0
-		? 64 : presolve->substitution_term_capacity;
-	while (capacity < presolve->substitution_term_count + additional)
-		capacity *= 2;
-	columns = (int *)lp_simplex_realloc(presolve->substitution_term_column,
-		(size_t)capacity * sizeof(int));
-	if (columns == NULL)
-		return lp_simplex_EXIT_FAILURE;
-	presolve->substitution_term_column = columns;
-	multipliers = (double *)lp_simplex_realloc(
-		presolve->substitution_term_multiplier,
-		(size_t)capacity * sizeof(double));
-	if (multipliers == NULL)
-		return lp_simplex_EXIT_FAILURE;
-	presolve->substitution_term_multiplier = multipliers;
-	presolve->substitution_term_capacity = capacity;
-	return lp_simplex_EXIT_SUCCESS;
-}
-
-
-static struct simplex_PresolveSubstitution *substitution_new_record(
-		struct simplex_Presolve *presolve, const int column,
-		const double constant, const int terms)
-{
-	struct simplex_PresolveSubstitution *grown;
-	int capacity;
-	if (presolve->substitution_count == presolve->substitution_capacity) {
-		capacity = presolve->substitution_capacity == 0
-			? 32 : presolve->substitution_capacity * 2;
-		grown = (struct simplex_PresolveSubstitution *)lp_simplex_realloc(
-			presolve->substitution,
-			(size_t)capacity * sizeof(*grown));
-		if (grown == NULL)
-			return NULL;
-		presolve->substitution = grown;
-		presolve->substitution_capacity = capacity;
-	}
-	if (substitution_reserve_terms(presolve, terms) ==
-	    lp_simplex_EXIT_FAILURE)
-		return NULL;
-	grown = presolve->substitution + presolve->substitution_count++;
-	grown->column = column;
-	grown->constant = constant;
-	grown->term_start = presolve->substitution_term_count;
-	grown->term_count = terms;
-	return grown;
-}
-
-
-static void substitution_add_record_term(
-		struct simplex_Presolve *presolve, const int column,
-		const double multiplier)
-{
-	int position = presolve->substitution_term_count++;
-	presolve->substitution_term_column[position] = column;
-	presolve->substitution_term_multiplier[position] = multiplier;
-}
-
-
 static int substitution_transfer_bounds(
 		const struct optm_VariableBound *eliminated,
 		struct optm_VariableBound *kept, const double constant,
@@ -218,27 +125,27 @@ static int substitution_transfer_bounds(
 {
 	double lower = __lp_simplex_NINF__, upper = __lp_simplex_INF__;
 	double margin;
-	if (substitution_finite_lower(eliminated)) {
+	if (simplex_presolve_has_lower(eliminated)) {
 		double value = (eliminated->lb - constant) / multiplier;
 		if (multiplier > 0.) lower = value;
 		else upper = value;
 	}
-	if (substitution_finite_upper(eliminated)) {
+	if (simplex_presolve_has_upper(eliminated)) {
 		double value = (eliminated->ub - constant) / multiplier;
 		if (multiplier > 0.) upper = value;
 		else lower = value;
 	}
 	if (isfinite(lower) &&
-	    (!substitution_finite_lower(kept) || lower > kept->lb))
-		substitution_set_lower(kept, lower);
+	    (!simplex_presolve_has_lower(kept) || lower > kept->lb))
+		simplex_presolve_set_lower(kept, lower);
 	if (isfinite(upper) &&
-	    (!substitution_finite_upper(kept) || upper < kept->ub))
-		substitution_set_upper(kept, upper);
+	    (!simplex_presolve_has_upper(kept) || upper < kept->ub))
+		simplex_presolve_set_upper(kept, upper);
 	margin = tolerance * (1. +
-		(substitution_finite_lower(kept) ? __lp_simplex_ABS__(kept->lb) : 0.) +
-		(substitution_finite_upper(kept) ? __lp_simplex_ABS__(kept->ub) : 0.));
-	return substitution_finite_lower(kept) &&
-		substitution_finite_upper(kept) && kept->lb > kept->ub + margin
+		(simplex_presolve_has_lower(kept) ? __lp_simplex_ABS__(kept->lb) : 0.) +
+		(simplex_presolve_has_upper(kept) ? __lp_simplex_ABS__(kept->ub) : 0.));
+	return simplex_presolve_has_lower(kept) &&
+		simplex_presolve_has_upper(kept) && kept->lb > kept->ub + margin
 		? lp_simplex_Infeasibility : lp_simplex_Success;
 }
 
@@ -273,8 +180,8 @@ static void substitution_expression_bound_flags(
 	long double minimum = constant, maximum = constant, magnitude = 0.;
 	int minimum_finite = 1, maximum_finite = 1;
 	int k;
-	*lower_implied = !substitution_finite_lower(eliminated);
-	*upper_implied = !substitution_finite_upper(eliminated);
+	*lower_implied = !simplex_presolve_has_lower(eliminated);
+	*upper_implied = !simplex_presolve_has_upper(eliminated);
 	for (k = 0; k < row->count; k++) {
 		const struct optm_VariableBound *bound;
 		double multiplier;
@@ -283,23 +190,23 @@ static void substitution_expression_bound_flags(
 		bound = problem->bounds + row->column[k];
 		multiplier = -row->value[k] / eliminated_coefficient;
 		if (multiplier > 0.) {
-			if (substitution_finite_lower(bound)) {
+			if (simplex_presolve_has_lower(bound)) {
 				long double contribution = multiplier * bound->lb;
 				minimum += contribution;
 				magnitude += fabsl(contribution);
 			} else minimum_finite = 0;
-			if (substitution_finite_upper(bound)) {
+			if (simplex_presolve_has_upper(bound)) {
 				long double contribution = multiplier * bound->ub;
 				maximum += contribution;
 				magnitude += fabsl(contribution);
 			} else maximum_finite = 0;
 		} else {
-			if (substitution_finite_upper(bound)) {
+			if (simplex_presolve_has_upper(bound)) {
 				long double contribution = multiplier * bound->ub;
 				minimum += contribution;
 				magnitude += fabsl(contribution);
 			} else minimum_finite = 0;
-			if (substitution_finite_lower(bound)) {
+			if (simplex_presolve_has_lower(bound)) {
 				long double contribution = multiplier * bound->lb;
 				maximum += contribution;
 				magnitude += fabsl(contribution);
@@ -309,10 +216,10 @@ static void substitution_expression_bound_flags(
 	{
 		long double margin = (long double)tolerance *
 			(1. + fabsl((long double)constant) + magnitude);
-		if (substitution_finite_lower(eliminated) && minimum_finite &&
+		if (simplex_presolve_has_lower(eliminated) && minimum_finite &&
 		    minimum >= eliminated->lb - margin)
 			*lower_implied = 1;
-		if (substitution_finite_upper(eliminated) && maximum_finite &&
+		if (simplex_presolve_has_upper(eliminated) && maximum_finite &&
 		    maximum <= eliminated->ub + margin)
 			*upper_implied = 1;
 	}
@@ -323,16 +230,16 @@ static int substitution_remove_singleton_columns(
 		struct simplex_Presolve *presolve,
 		struct simplex_Problem *problem,
 		struct presolve_MutableRow *rows,
-		struct presolve_Incidence *incidence,
-		unsigned char *column_active, int *column_degree,
-		const double tolerance,
+	struct presolve_Incidence *incidence,
+	unsigned char *column_active, int *column_degree,
+	struct simplex_PresolveQueue *column_queue,
+	const double tolerance,
 		int *active_rows, int *active_columns, int *substitutions,
 		int *projections)
 {
-	int j, progress;
-	do {
-		progress = 0;
-		for (j = 0; j < problem->columns; j++) {
+	int j;
+	while (*active_rows > 1 && *active_columns > 1 &&
+	       simplex_presolve_queue_pop(column_queue, &j)) {
 			int degree, position, row_index = -1, t;
 			int lower_implied, upper_implied, project_lower;
 			struct presolve_MutableRow *row;
@@ -412,7 +319,7 @@ static int substitution_remove_singleton_columns(
 			if (!(lower_implied && upper_implied) &&
 			    problem->objective[j] != 0.)
 				continue;
-			if (substitution_new_record(presolve,
+			if (simplex_presolve_record_begin(presolve,
 					presolve->column_map[j], constant,
 					row->count - 1) == NULL)
 				return lp_simplex_EXIT_FAILURE;
@@ -420,7 +327,7 @@ static int substitution_remove_singleton_columns(
 				if (t != position) {
 					int kept = row->column[t];
 					double multiplier = -row->value[t] / coefficient;
-					substitution_add_record_term(presolve,
+					simplex_presolve_record_add_term(presolve,
 						presolve->column_map[kept], multiplier);
 					problem->objective[kept] +=
 						problem->objective[j] * multiplier;
@@ -455,6 +362,8 @@ static int substitution_remove_singleton_columns(
 							    lp_simplex_EXIT_FAILURE)
 								return lp_simplex_EXIT_FAILURE;
 							column_degree[kept] += inserted - removed;
+							(void)simplex_presolve_queue_push(
+								column_queue, kept);
 							if (inserted && substitution_append_incidence(
 									incidence + kept, affected) ==
 							    lp_simplex_EXIT_FAILURE)
@@ -463,15 +372,18 @@ static int substitution_remove_singleton_columns(
 				}
 				for (t = 0; t < row->count; t++)
 					if (column_active[row->column[t]] &&
-					    column_degree[row->column[t]] > 0)
+					    column_degree[row->column[t]] > 0) {
 						column_degree[row->column[t]]--;
+						(void)simplex_presolve_queue_push(
+							column_queue, row->column[t]);
+					}
 				row->active = 0;
 				(*active_rows)--;
 				(*substitutions)++;
 				if (degree == 1)
-					presolve->singleton_column_rows++;
+					presolve->stats.singleton_column_rows++;
 				else
-					presolve->implied_free_columns++;
+					presolve->stats.implied_free_columns++;
 			} else {
 				substitution_remove_from_row(row, position);
 				for (t = 0; t < row->count; t++)
@@ -482,50 +394,14 @@ static int substitution_remove_singleton_columns(
 				problem->row_type[row_index] = project_lower
 					? optm_CONS_T_GE : optm_CONS_T_LE;
 				(*projections)++;
-				presolve->singleton_projection_columns++;
+				presolve->stats.singleton_projection_columns++;
 			}
 			column_active[j] = 0;
 			column_degree[j] = 0;
 			presolve->eliminated[presolve->column_map[j]] = 1;
 			(*active_columns)--;
-			progress = 1;
-		}
-	} while (progress && *active_rows > 1 && *active_columns > 1);
+	}
 	return lp_simplex_EXIT_SUCCESS;
-}
-
-
-static int substitution_empty_row_feasible(
-		const int type, const double rhs, const double tolerance)
-{
-	if (type == optm_CONS_T_EQ)
-		return __lp_simplex_ABS__(rhs) <= tolerance;
-	if (type == optm_CONS_T_GE)
-		return rhs <= tolerance;
-	return rhs >= -tolerance;
-}
-
-
-static int substitution_choose_empty_column(
-		const struct simplex_Problem *problem, const int column,
-		double *value)
-{
-	const struct optm_VariableBound *bound = problem->bounds + column;
-	double cost = problem->objective[column];
-	if (cost > 0.) {
-		if (!substitution_finite_lower(bound))
-			return lp_simplex_Unboundedness;
-		*value = bound->lb;
-	} else if (cost < 0.) {
-		if (!substitution_finite_upper(bound))
-			return lp_simplex_Unboundedness;
-		*value = bound->ub;
-	} else if (substitution_finite_lower(bound) && bound->lb > 0.) {
-		*value = bound->lb;
-	} else if (substitution_finite_upper(bound) && bound->ub < 0.) {
-		*value = bound->ub;
-	} else *value = 0.;
-	return lp_simplex_Success;
 }
 
 
@@ -535,7 +411,7 @@ static void substitution_eliminate_fixed_column(
 		struct presolve_MutableRow *rows,
 		struct presolve_Incidence *incidence,
 		unsigned char *column_active, int *column_degree,
-		int *queue, int *queue_count, const int column,
+		struct simplex_PresolveQueue *queue, const int column,
 		const double value, int *active_columns, int *removed_columns)
 {
 	int k;
@@ -552,8 +428,8 @@ static void substitution_eliminate_fixed_column(
 		substitution_remove_from_row(row, position);
 		if (column_degree[column] > 0)
 			column_degree[column]--;
-		if (row->count <= 1 && *queue_count < problem->rows)
-			queue[(*queue_count)++] = row_index;
+		if (row->count <= 1 && queue != NULL)
+			(void)simplex_presolve_queue_push(queue, row_index);
 	}
 	column_active[column] = 0;
 	column_degree[column] = 0;
@@ -573,17 +449,18 @@ static int substitution_close_fixed_point(
 		struct presolve_MutableRow *rows,
 		struct presolve_Incidence *incidence,
 		unsigned char *column_active, int *column_degree,
-		int *queue, const double tolerance,
+		const double tolerance,
 		int *active_rows, int *active_columns,
 		int *removed_rows, int *removed_columns)
 {
-	int i, j, queue_head, queue_count, activity_changed;
+	struct simplex_PresolveQueue queue;
+	int i, j, row_index, activity_changed;
+	int result = lp_simplex_Success;
+	if (simplex_presolve_queue_init(&queue, problem->rows) ==
+	    lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
 restart:
-	queue_head = 0;
-	queue_count = 0;
-	for (i = 0; i < problem->rows; i++)
-		if (rows[i].active && rows[i].count <= 1)
-			queue[queue_count++] = i;
+	simplex_presolve_queue_clear(&queue);
 	for (j = 0; j < problem->columns; j++) {
 		double value;
 		int fixed, status;
@@ -594,33 +471,40 @@ restart:
 		if (fixed)
 			value = problem->bounds[j].lb;
 		else if (column_degree[j] == 0) {
-			status = substitution_choose_empty_column(problem, j, &value);
-			if (status != lp_simplex_Success)
-				return status;
-			presolve->empty_columns++;
+			status = simplex_presolve_choose_empty_column(
+				problem->objective[j], problem->bounds + j, &value);
+			if (status != lp_simplex_Success) {
+				result = status;
+				goto finish;
+			}
+			presolve->stats.empty_columns++;
 			fixed = 1;
 		}
 		if (fixed) {
-			presolve->fixed_columns += column_degree[j] != 0;
+			presolve->stats.fixed_columns += column_degree[j] != 0;
 			substitution_eliminate_fixed_column(presolve, problem, rows,
-				incidence, column_active, column_degree, queue,
-				&queue_count, j, value, active_columns, removed_columns);
+				incidence, column_active, column_degree, NULL,
+				j, value, active_columns, removed_columns);
 		}
 	}
-	while (queue_head < queue_count) {
+	for (i = 0; i < problem->rows; i++)
+		if (rows[i].active && rows[i].count <= 1)
+			(void)simplex_presolve_queue_push(&queue, i);
+	while (simplex_presolve_queue_pop(&queue, &row_index)) {
 		struct presolve_MutableRow *row;
-		double coefficient, implied, margin;
-		int row_index = queue[queue_head++];
+		double coefficient;
 		struct optm_VariableBound *bound;
-		int lower, status = lp_simplex_Success;
+		int status, tightened;
 		if (!rows[row_index].active || rows[row_index].count > 1)
 			continue;
 		row = rows + row_index;
 		if (row->count == 0) {
-			if (!substitution_empty_row_feasible(
+			if (!simplex_presolve_empty_row_feasible(
 					problem->row_type[row_index],
-					problem->rhs[row_index], tolerance))
-				return lp_simplex_Infeasibility;
+					problem->rhs[row_index], tolerance)) {
+				result = lp_simplex_Infeasibility;
+				goto finish;
+			}
 			row->active = 0;
 			(*active_rows)--;
 			(*removed_rows)++;
@@ -631,52 +515,27 @@ restart:
 		if (!column_active[j] || coefficient == 0.)
 			continue;
 		bound = problem->bounds + j;
-		implied = problem->rhs[row_index] / coefficient;
-		margin = tolerance * (1. + __lp_simplex_ABS__(implied));
-		if (problem->row_type[row_index] == optm_CONS_T_EQ) {
-			if ((substitution_finite_lower(bound) &&
-			     implied < bound->lb - margin) ||
-			    (substitution_finite_upper(bound) &&
-			     implied > bound->ub + margin))
-				return lp_simplex_Infeasibility;
-			substitution_set_lower(bound, implied);
-			substitution_set_upper(bound, implied);
-			presolve->singleton_columns++;
-		} else {
-			lower = (problem->row_type[row_index] == optm_CONS_T_GE &&
-				 coefficient > 0.) ||
-				(problem->row_type[row_index] == optm_CONS_T_LE &&
-				 coefficient < 0.);
-			if (lower) {
-				if (substitution_finite_upper(bound) &&
-				    implied > bound->ub + margin)
-					status = lp_simplex_Infeasibility;
-				else if (!substitution_finite_lower(bound) ||
-					 implied > bound->lb)
-					substitution_set_lower(bound, implied);
-			} else {
-				if (substitution_finite_lower(bound) &&
-				    implied < bound->lb - margin)
-					status = lp_simplex_Infeasibility;
-				else if (!substitution_finite_upper(bound) ||
-					 implied < bound->ub)
-					substitution_set_upper(bound, implied);
-			}
-			if (status != lp_simplex_Success)
-				return status;
+		status = simplex_presolve_tighten_singleton(bound,
+			problem->row_type[row_index], coefficient,
+			problem->rhs[row_index], tolerance, &tightened);
+		if (status != lp_simplex_Success) {
+			result = status;
+			goto finish;
 		}
+		if (problem->row_type[row_index] == optm_CONS_T_EQ)
+			presolve->stats.singleton_columns++;
 		row->active = 0;
 		if (column_degree[j] > 0)
 			column_degree[j]--;
 		(*active_rows)--;
 		(*removed_rows)++;
-		presolve->singleton_rows++;
-		presolve->tightened_bounds++;
+		presolve->stats.singleton_rows++;
+		presolve->stats.tightened_bounds += tightened;
 		if (bound->b_type == optm_BOUND_T_BS && bound->lb == bound->ub) {
-			presolve->fixed_columns++;
+			presolve->stats.fixed_columns++;
 			substitution_eliminate_fixed_column(presolve, problem, rows,
-				incidence, column_active, column_degree, queue,
-				&queue_count, j, bound->lb, active_columns,
+				incidence, column_active, column_degree, &queue,
+				j, bound->lb, active_columns,
 				removed_columns);
 		}
 	}
@@ -695,23 +554,23 @@ restart:
 			double coefficient = row->value[j];
 			double contribution;
 			if (coefficient > 0.) {
-				if (substitution_finite_lower(bound)) {
+				if (simplex_presolve_has_lower(bound)) {
 					contribution = coefficient * bound->lb;
 					minimum += contribution;
 					magnitude += fabsl((long double)contribution);
 				} else minimum_infinite++;
-				if (substitution_finite_upper(bound)) {
+				if (simplex_presolve_has_upper(bound)) {
 					contribution = coefficient * bound->ub;
 					maximum += contribution;
 					magnitude += fabsl((long double)contribution);
 				} else maximum_infinite++;
 			} else {
-				if (substitution_finite_upper(bound)) {
+				if (simplex_presolve_has_upper(bound)) {
 					contribution = coefficient * bound->ub;
 					minimum += contribution;
 					magnitude += fabsl((long double)contribution);
 				} else minimum_infinite++;
-				if (substitution_finite_lower(bound)) {
+				if (simplex_presolve_has_lower(bound)) {
 					contribution = coefficient * bound->lb;
 					maximum += contribution;
 					magnitude += fabsl((long double)contribution);
@@ -723,13 +582,17 @@ restart:
 		if ((problem->row_type[i] == optm_CONS_T_GE ||
 		     problem->row_type[i] == optm_CONS_T_EQ) &&
 		    maximum_infinite == 0 &&
-		    maximum < (long double)problem->rhs[i] - margin)
-			return lp_simplex_Infeasibility;
+		    maximum < (long double)problem->rhs[i] - margin) {
+			result = lp_simplex_Infeasibility;
+			goto finish;
+		}
 		if ((problem->row_type[i] == optm_CONS_T_LE ||
 		     problem->row_type[i] == optm_CONS_T_EQ) &&
 		    minimum_infinite == 0 &&
-		    minimum > (long double)problem->rhs[i] + margin)
-			return lp_simplex_Infeasibility;
+		    minimum > (long double)problem->rhs[i] + margin) {
+			result = lp_simplex_Infeasibility;
+			goto finish;
+		}
 		if (problem->row_type[i] == optm_CONS_T_GE &&
 		    minimum_infinite == 0 &&
 		    minimum >= (long double)problem->rhs[i] + margin)
@@ -745,7 +608,7 @@ restart:
 			row->active = 0;
 			(*active_rows)--;
 			(*removed_rows)++;
-			presolve->redundant_rows++;
+			presolve->stats.redundant_rows++;
 			activity_changed = 1;
 			continue;
 		}
@@ -771,14 +634,14 @@ restart:
 				value = row->value[j] > 0. ? bound->lb : bound->ub;
 			else
 				value = row->value[j] > 0. ? bound->ub : bound->lb;
-			substitution_set_lower(bound, value);
-			substitution_set_upper(bound, value);
+			simplex_presolve_set_lower(bound, value);
+			simplex_presolve_set_upper(bound, value);
 			fixed++;
 		}
 		if (fixed != 0) {
-			presolve->forcing_rows++;
-			presolve->forced_columns += fixed;
-			presolve->tightened_bounds += fixed;
+			presolve->stats.forcing_rows++;
+			presolve->stats.forced_columns += fixed;
+			presolve->stats.tightened_bounds += fixed;
 			activity_changed = 1;
 		}
 	}
@@ -787,102 +650,164 @@ restart:
 	for (j = 0; j < problem->columns; j++)
 		if (column_active[j] && column_degree[j] == 0) {
 			double value;
-			int status = substitution_choose_empty_column(problem, j, &value);
-			if (status != lp_simplex_Success)
-				return status;
-			presolve->empty_columns++;
+			int status = simplex_presolve_choose_empty_column(
+				problem->objective[j], problem->bounds + j, &value);
+			if (status != lp_simplex_Success) {
+				result = status;
+				goto finish;
+			}
+			presolve->stats.empty_columns++;
 			substitution_eliminate_fixed_column(presolve, problem, rows,
-				incidence, column_active, column_degree, queue,
-				&queue_count, j, value, active_columns, removed_columns);
+				incidence, column_active, column_degree, NULL,
+				j, value, active_columns, removed_columns);
 		}
-	return lp_simplex_Success;
+finish:
+	simplex_presolve_queue_destroy(&queue);
+	return result;
 }
 
 
-int simplex_presolve_substitute_doubletons(
-		struct simplex_Presolve *presolve, const double tolerance)
+struct substitution_Workspace {
+	struct simplex_Problem *problem;
+	struct presolve_MutableRow *rows;
+	struct presolve_Incidence *incidence;
+	unsigned char *column_active;
+	int *column_degree;
+	struct simplex_PresolveQueue doubleton_queue;
+	struct simplex_PresolveQueue singleton_queue;
+	int active_rows;
+	int active_columns;
+	int substitutions;
+	int doubletons;
+	int projections;
+	int closed_rows;
+	int closed_columns;
+};
+
+
+static void substitution_workspace_destroy(
+		struct substitution_Workspace *workspace)
 {
-	struct simplex_Problem *problem = presolve->reduced;
-	struct presolve_MutableRow *rows = NULL;
-	struct presolve_Incidence *incidence = NULL;
-	unsigned char *column_active = NULL;
-	int *column_degree = NULL;
-	int *queue = NULL, *new_column_map = NULL, *new_row_map = NULL;
-	int queue_head = 0, queue_count = 0;
-	int i, j, k, active_rows, active_columns, substitutions = 0;
-	int doubletons = 0, projections = 0, closed_rows = 0, closed_columns = 0;
-	int closure_status;
-	struct simplex_Problem *reduced = NULL;
-	if (problem == NULL)
-		return lp_simplex_EXIT_SUCCESS;
-	rows = (struct presolve_MutableRow *)lp_simplex_malloc(
-		(size_t)problem->rows * sizeof(*rows));
-	incidence = (struct presolve_Incidence *)lp_simplex_malloc(
-		(size_t)problem->columns * sizeof(*incidence));
-	column_active = (unsigned char *)lp_simplex_malloc(
+	if (workspace == NULL)
+		return;
+	if (workspace->problem != NULL)
+		substitution_destroy_rows(workspace->rows,
+			workspace->problem->rows, workspace->incidence,
+			workspace->problem->columns);
+	else
+		substitution_destroy_rows(workspace->rows, 0,
+			workspace->incidence, 0);
+	lp_simplex_free(workspace->column_active);
+	lp_simplex_free(workspace->column_degree);
+	simplex_presolve_queue_destroy(&workspace->doubleton_queue);
+	simplex_presolve_queue_destroy(&workspace->singleton_queue);
+	lp_simplex_memset(workspace, 0, sizeof(*workspace));
+}
+
+
+static int substitution_workspace_create(
+		struct simplex_Problem *problem,
+		struct substitution_Workspace *workspace)
+{
+	int i, j, k;
+	lp_simplex_memset(workspace, 0, sizeof(*workspace));
+	workspace->problem = problem;
+	workspace->rows = (struct presolve_MutableRow *)lp_simplex_malloc(
+		(size_t)problem->rows * sizeof(*workspace->rows));
+	workspace->incidence = (struct presolve_Incidence *)lp_simplex_malloc(
+		(size_t)problem->columns * sizeof(*workspace->incidence));
+	workspace->column_active = (unsigned char *)lp_simplex_malloc(
 		(size_t)problem->columns * sizeof(unsigned char));
-	column_degree = (int *)lp_simplex_malloc(
+	workspace->column_degree = (int *)lp_simplex_malloc(
 		(size_t)problem->columns * sizeof(int));
-	queue = (int *)lp_simplex_malloc((size_t)problem->rows * sizeof(int));
-	if (rows == NULL || incidence == NULL || column_active == NULL ||
-	    column_degree == NULL || queue == NULL)
-		goto failure;
-	lp_simplex_memset(rows, 0, (size_t)problem->rows * sizeof(*rows));
-	lp_simplex_memset(incidence, 0,
-		(size_t)problem->columns * sizeof(*incidence));
-	lp_simplex_memset(column_active, 1,
+	if (workspace->rows != NULL)
+		lp_simplex_memset(workspace->rows, 0,
+			(size_t)problem->rows * sizeof(*workspace->rows));
+	if (workspace->incidence != NULL)
+		lp_simplex_memset(workspace->incidence, 0,
+			(size_t)problem->columns * sizeof(*workspace->incidence));
+	if (workspace->rows == NULL || workspace->incidence == NULL ||
+	    workspace->column_active == NULL || workspace->column_degree == NULL)
+		return lp_simplex_EXIT_FAILURE;
+	if (simplex_presolve_queue_init(&workspace->doubleton_queue,
+		problem->rows) == lp_simplex_EXIT_FAILURE ||
+	    simplex_presolve_queue_init(&workspace->singleton_queue,
+		problem->columns) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	lp_simplex_memset(workspace->column_active, 1,
 		(size_t)problem->columns * sizeof(unsigned char));
-	lp_simplex_memset(column_degree, 0,
+	lp_simplex_memset(workspace->column_degree, 0,
 		(size_t)problem->columns * sizeof(int));
+	/* The immutable input already provides exact column degrees.  Reserve the
+	 * initial incidence storage once instead of growing every column through
+	 * several reallocations while copying rows. */
+	for (j = 0; j < problem->columns; j++) {
+		int count = problem->matrix.column_start[j + 1] -
+			problem->matrix.column_start[j];
+		workspace->incidence[j].capacity = count;
+		workspace->incidence[j].row = (int *)lp_simplex_malloc(
+			(size_t)count * sizeof(int));
+		if (count != 0 && workspace->incidence[j].row == NULL)
+			return lp_simplex_EXIT_FAILURE;
+	}
 	for (i = 0; i < problem->rows; i++) {
 		int count = problem->matrix.row_start[i + 1] -
 			problem->matrix.row_start[i];
-		rows[i].active = 1;
-		rows[i].count = rows[i].capacity = count;
-		rows[i].column = (int *)lp_simplex_malloc(
+		workspace->rows[i].active = 1;
+		workspace->rows[i].count = workspace->rows[i].capacity = count;
+		workspace->rows[i].column = (int *)lp_simplex_malloc(
 			(size_t)count * sizeof(int));
-		rows[i].value = (double *)lp_simplex_malloc(
+		workspace->rows[i].value = (double *)lp_simplex_malloc(
 			(size_t)count * sizeof(double));
-		if (count != 0 && (rows[i].column == NULL || rows[i].value == NULL))
-			goto failure;
+		if (count != 0 && (workspace->rows[i].column == NULL ||
+		    workspace->rows[i].value == NULL))
+			return lp_simplex_EXIT_FAILURE;
 		for (k = 0; k < count; k++) {
 			j = problem->matrix.column_index[
 				problem->matrix.row_start[i] + k];
-			rows[i].column[k] = j;
-			rows[i].value[k] = problem->matrix.row_value[
+			workspace->rows[i].column[k] = j;
+			workspace->rows[i].value[k] = problem->matrix.row_value[
 				problem->matrix.row_start[i] + k];
-			column_degree[j]++;
-			if (substitution_append_incidence(incidence + j, i) ==
+			workspace->column_degree[j]++;
+			if (substitution_append_incidence(
+					workspace->incidence + j, i) ==
 			    lp_simplex_EXIT_FAILURE)
-				goto failure;
+				return lp_simplex_EXIT_FAILURE;
 		}
-		if (problem->row_type[i] == optm_CONS_T_EQ && count == 2)
-			queue[queue_count++] = i;
 	}
-	active_rows = problem->rows;
-	active_columns = problem->columns;
-	/* A singleton column in an equality can be substituted without matrix
-	 * fill.  Its bounds must already be implied by the remaining row activity;
-	 * otherwise eliminating it would create a new ranged constraint. */
-	if (substitution_remove_singleton_columns(presolve, problem, rows,
-			incidence, column_active, column_degree, tolerance, &active_rows,
-			&active_columns, &substitutions, &projections) ==
-		    lp_simplex_EXIT_FAILURE)
-		goto failure;
-	/* Low-degree column aggregation can expose new doubleton equalities.
-	 * Rebuild the work queue from the mutated rows instead of keeping only
-	 * the doubletons present in the input model. */
-	queue_head = 0;
-	queue_count = 0;
-	for (i = 0; i < problem->rows; i++)
-		if (rows[i].active && rows[i].count == 2 &&
-		    problem->row_type[i] == optm_CONS_T_EQ)
-			queue[queue_count++] = i;
-	while (queue_head < queue_count && active_rows > 1 && active_columns > 1) {
-		int row_index = queue[queue_head++];
-		struct presolve_MutableRow *row = rows + row_index;
+	workspace->active_rows = problem->rows;
+	workspace->active_columns = problem->columns;
+	for (j = 0; j < problem->columns; j++)
+		(void)simplex_presolve_queue_push(&workspace->singleton_queue, j);
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static void substitution_rebuild_doubleton_queue(
+		struct substitution_Workspace *workspace)
+{
+	int i;
+	simplex_presolve_queue_clear(&workspace->doubleton_queue);
+	for (i = 0; i < workspace->problem->rows; i++)
+		if (workspace->rows[i].active && workspace->rows[i].count == 2 &&
+		    workspace->problem->row_type[i] == optm_CONS_T_EQ)
+			(void)simplex_presolve_queue_push(
+				&workspace->doubleton_queue, i);
+}
+
+
+static int substitution_eliminate_doubletons(
+		struct simplex_Presolve *presolve,
+		struct substitution_Workspace *workspace, const double tolerance)
+{
+	struct simplex_Problem *problem = workspace->problem;
+	int row_index;
+	while (workspace->active_rows > 1 && workspace->active_columns > 1 &&
+	       simplex_presolve_queue_pop(
+		       &workspace->doubleton_queue, &row_index)) {
+		struct presolve_MutableRow *row = workspace->rows + row_index;
 		int first, second, eliminate, keep, eliminate_position;
-		int first_degree, second_degree;
+		int first_degree, second_degree, k;
 		double eliminate_coefficient, keep_coefficient;
 		double constant, multiplier;
 		if (!row->active || row->count != 2 ||
@@ -890,10 +815,11 @@ int simplex_presolve_substitute_doubletons(
 			continue;
 		first = row->column[0];
 		second = row->column[1];
-		if (!column_active[first] || !column_active[second])
+		if (!workspace->column_active[first] ||
+		    !workspace->column_active[second])
 			continue;
-		first_degree = column_degree[first];
-		second_degree = column_degree[second];
+		first_degree = workspace->column_degree[first];
+		second_degree = workspace->column_degree[second];
 		eliminate = first_degree <= second_degree ? first : second;
 		keep = eliminate == first ? second : first;
 		eliminate_position = eliminate == first ? 0 : 1;
@@ -907,18 +833,18 @@ int simplex_presolve_substitute_doubletons(
 		if (!isfinite(constant) || !isfinite(multiplier) || multiplier == 0.)
 			continue;
 		if (substitution_transfer_bounds(problem->bounds + eliminate,
-				problem->bounds + keep, constant, multiplier,
-				tolerance) != lp_simplex_Success)
-			goto infeasible;
-		if (substitution_new_record(presolve,
-				presolve->column_map[eliminate], constant, 1) == NULL)
-			goto failure;
-		substitution_add_record_term(presolve,
+			problem->bounds + keep, constant, multiplier, tolerance) !=
+		    lp_simplex_Success)
+			return lp_simplex_Infeasibility;
+		if (simplex_presolve_record_begin(presolve,
+			presolve->column_map[eliminate], constant, 1) == NULL)
+			return lp_simplex_EXIT_FAILURE;
+		simplex_presolve_record_add_term(presolve,
 			presolve->column_map[keep], multiplier);
 		problem->objective[keep] += problem->objective[eliminate] * multiplier;
-		for (k = 0; k < incidence[eliminate].count; k++) {
-			int affected = incidence[eliminate].row[k];
-			struct presolve_MutableRow *target = rows + affected;
+		for (k = 0; k < workspace->incidence[eliminate].count; k++) {
+			int affected = workspace->incidence[eliminate].row[k];
+			struct presolve_MutableRow *target = workspace->rows + affected;
 			int position, inserted, removed;
 			double coefficient;
 			if (!target->active || affected == row_index)
@@ -928,190 +854,229 @@ int simplex_presolve_substitute_doubletons(
 				continue;
 			coefficient = target->value[position];
 			substitution_remove_from_row(target, position);
-			column_degree[eliminate]--;
+			workspace->column_degree[eliminate]--;
 			problem->rhs[affected] -= coefficient * constant;
 			if (substitution_add_to_row(target, keep,
-					coefficient * multiplier, &inserted, &removed) ==
-				    lp_simplex_EXIT_FAILURE)
-				goto failure;
-			column_degree[keep] += inserted - removed;
+				coefficient * multiplier, &inserted, &removed) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
+			workspace->column_degree[keep] += inserted - removed;
+			(void)simplex_presolve_queue_push(
+				&workspace->singleton_queue, keep);
 			if (inserted && substitution_append_incidence(
-					incidence + keep, affected) == lp_simplex_EXIT_FAILURE)
-				goto failure;
+					workspace->incidence + keep, affected) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
 			if (problem->row_type[affected] == optm_CONS_T_EQ &&
-			    target->count == 2 && queue_count < problem->rows)
-				queue[queue_count++] = affected;
+			    target->count == 2)
+				(void)simplex_presolve_queue_push(
+					&workspace->doubleton_queue, affected);
 		}
-		if (column_degree[first] > 0)
-			column_degree[first]--;
-		if (column_degree[second] > 0)
-			column_degree[second]--;
+		if (workspace->column_degree[first] > 0) {
+			workspace->column_degree[first]--;
+			(void)simplex_presolve_queue_push(
+				&workspace->singleton_queue, first);
+		}
+		if (workspace->column_degree[second] > 0) {
+			workspace->column_degree[second]--;
+			(void)simplex_presolve_queue_push(
+				&workspace->singleton_queue, second);
+		}
 		row->active = 0;
-		column_active[eliminate] = 0;
-		column_degree[eliminate] = 0;
+		workspace->column_active[eliminate] = 0;
+		workspace->column_degree[eliminate] = 0;
 		presolve->eliminated[presolve->column_map[eliminate]] = 1;
-		active_rows--;
-		active_columns--;
-		substitutions++;
-		doubletons++;
+		workspace->active_rows--;
+		workspace->active_columns--;
+		workspace->substitutions++;
+		workspace->doubletons++;
 	}
-	/* Removing doubleton rows lowers adjacent column degrees.  Run the
-	 * singleton-column fixed point again to capture the resulting cascade. */
-	if (substitution_remove_singleton_columns(presolve, problem, rows,
-			incidence, column_active, column_degree, tolerance, &active_rows,
-			&active_columns, &substitutions, &projections) ==
+	return lp_simplex_Success;
+}
+
+
+static struct simplex_Problem *substitution_compact_problem(
+		struct simplex_Presolve *presolve,
+		const struct substitution_Workspace *workspace)
+{
+	struct simplex_Problem *problem = workspace->problem;
+	struct simplex_Problem *reduced = NULL;
+	int *column_position = NULL, *cursor = NULL;
+	int i, j, k, nonzeros = 0, next = 0, new_row = 0, new_column = 0;
+	column_position = (int *)lp_simplex_malloc(
+		(size_t)problem->columns * sizeof(int));
+	if (column_position == NULL)
+		return NULL;
+	for (j = 0; j < problem->columns; j++) {
+		column_position[j] = -1;
+		if (workspace->column_active[j]) {
+			column_position[j] = new_column++;
+			presolve->column_map[new_column - 1] = presolve->column_map[j];
+		}
+	}
+	for (i = 0; i < problem->rows; i++)
+		if (workspace->rows[i].active) {
+			presolve->row_map[new_row++] = presolve->row_map[i];
+			nonzeros += workspace->rows[i].count;
+		}
+	reduced = simplex_problem_create_sparse(workspace->active_rows,
+		workspace->active_columns, nonzeros);
+	if (reduced == NULL)
+		goto failure;
+	for (j = 0; j < problem->columns; j++)
+		if (workspace->column_active[j]) {
+			int destination = column_position[j];
+			reduced->objective[destination] = problem->objective[j];
+			reduced->bounds[destination] = problem->bounds[j];
+		}
+	new_row = 0;
+	for (i = 0; i < problem->rows; i++)
+		if (workspace->rows[i].active) {
+			reduced->rhs[new_row] = problem->rhs[i];
+			reduced->row_type[new_row] = problem->row_type[i];
+			reduced->matrix.row_start[new_row] = next;
+			for (k = 0; k < workspace->rows[i].count; k++) {
+				reduced->matrix.column_index[next] =
+					column_position[workspace->rows[i].column[k]];
+				reduced->matrix.row_value[next++] = workspace->rows[i].value[k];
+			}
+			new_row++;
+		}
+	reduced->matrix.row_start[workspace->active_rows] = next;
+	lp_simplex_memset(reduced->matrix.column_start, 0,
+		(size_t)(workspace->active_columns + 1) * sizeof(int));
+	for (k = 0; k < nonzeros; k++)
+		reduced->matrix.column_start[
+			reduced->matrix.column_index[k] + 1]++;
+	for (j = 0; j < workspace->active_columns; j++)
+		reduced->matrix.column_start[j + 1] +=
+			reduced->matrix.column_start[j];
+	cursor = (int *)lp_simplex_malloc(
+		(size_t)workspace->active_columns * sizeof(int));
+	if (cursor == NULL)
+		goto failure;
+	lp_simplex_memcpy(cursor, reduced->matrix.column_start,
+		(size_t)workspace->active_columns * sizeof(int));
+	for (i = 0; i < workspace->active_rows; i++)
+		for (k = reduced->matrix.row_start[i];
+		     k < reduced->matrix.row_start[i + 1]; k++) {
+			int column = reduced->matrix.column_index[k];
+			int destination = cursor[column]++;
+			reduced->matrix.row_index[destination] = i;
+			reduced->matrix.value[destination] =
+				reduced->matrix.row_value[k];
+		}
+	lp_simplex_free(cursor);
+	lp_simplex_free(column_position);
+	return reduced;
+failure:
+	lp_simplex_free(cursor);
+	lp_simplex_free(column_position);
+	simplex_problem_free(reduced);
+	return NULL;
+}
+
+
+static int substitution_reduce_to_fixed_point(
+		struct simplex_Presolve *presolve,
+		struct substitution_Workspace *workspace, const double tolerance)
+{
+	struct simplex_Problem *problem = workspace->problem;
+	for (;;) {
+		int before = workspace->substitutions + workspace->projections +
+			workspace->closed_rows + workspace->closed_columns;
+		int j, status;
+		if (substitution_remove_singleton_columns(presolve, problem,
+			workspace->rows, workspace->incidence,
+			workspace->column_active, workspace->column_degree,
+			&workspace->singleton_queue, tolerance,
+			&workspace->active_rows, &workspace->active_columns,
+			&workspace->substitutions, &workspace->projections) ==
 		    lp_simplex_EXIT_FAILURE)
-		goto failure;
-	closure_status = substitution_close_fixed_point(presolve, problem, rows,
-		incidence, column_active, column_degree, queue, tolerance,
-		&active_rows, &active_columns, &closed_rows, &closed_columns);
-	if (closure_status == lp_simplex_EXIT_FAILURE)
-		goto failure;
-	if (closure_status != lp_simplex_Success) {
-		presolve->terminal = 1;
-		presolve->terminal_status = closure_status;
-		substitution_destroy_rows(rows, problem->rows,
-			incidence, problem->columns);
-		lp_simplex_free(column_active);
-		lp_simplex_free(column_degree);
-		lp_simplex_free(queue);
-		return lp_simplex_EXIT_SUCCESS;
-	}
-	if (active_rows == 0 || active_columns == 0) {
-		presolve->removed_rows += substitutions + closed_rows;
-		presolve->removed_columns += substitutions + projections + closed_columns;
-		presolve->terminal = 1;
-		presolve->terminal_status = lp_simplex_Success;
-		substitution_destroy_rows(rows, problem->rows,
-			incidence, problem->columns);
-		lp_simplex_free(column_active);
-		lp_simplex_free(column_degree);
-		lp_simplex_free(queue);
-		return lp_simplex_EXIT_SUCCESS;
-	}
-	if (substitutions == 0 && projections == 0 &&
-	    closed_rows == 0 && closed_columns == 0) {
-		substitution_destroy_rows(rows, problem->rows,
-			incidence, problem->columns);
-		lp_simplex_free(column_active);
-		lp_simplex_free(column_degree);
-		lp_simplex_free(queue);
-		return lp_simplex_EXIT_SUCCESS;
-	}
-	{
-		int nonzeros = 0, next = 0, new_row = 0, new_column = 0;
-		int *column_position = (int *)lp_simplex_malloc(
-			(size_t)problem->columns * sizeof(int));
-		new_column_map = (int *)lp_simplex_malloc(
-			(size_t)active_columns * sizeof(int));
-		new_row_map = (int *)lp_simplex_malloc(
-			(size_t)active_rows * sizeof(int));
-		if (column_position == NULL || new_column_map == NULL ||
-		    new_row_map == NULL) {
-			lp_simplex_free(column_position);
-			goto failure;
-		}
-		for (j = 0; j < problem->columns; j++) {
-			column_position[j] = -1;
-			if (column_active[j]) {
-				column_position[j] = new_column++;
-				new_column_map[new_column - 1] = presolve->column_map[j];
-			}
-		}
-		for (i = 0; i < problem->rows; i++)
-			if (rows[i].active) {
-				new_row_map[new_row++] = presolve->row_map[i];
-				nonzeros += rows[i].count;
-			}
-		reduced = simplex_problem_create_sparse(
-			active_rows, active_columns, nonzeros);
-		if (reduced == NULL) {
-			lp_simplex_free(column_position);
-			goto failure;
-		}
+			return lp_simplex_EXIT_FAILURE;
+		substitution_rebuild_doubleton_queue(workspace);
+		status = substitution_eliminate_doubletons(
+			presolve, workspace, tolerance);
+		if (status != lp_simplex_Success)
+			return status;
+		if (substitution_remove_singleton_columns(presolve, problem,
+			workspace->rows, workspace->incidence,
+			workspace->column_active, workspace->column_degree,
+			&workspace->singleton_queue, tolerance,
+			&workspace->active_rows, &workspace->active_columns,
+			&workspace->substitutions, &workspace->projections) ==
+		    lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		status = substitution_close_fixed_point(presolve, problem,
+			workspace->rows, workspace->incidence,
+			workspace->column_active, workspace->column_degree,
+			tolerance, &workspace->active_rows,
+			&workspace->active_columns, &workspace->closed_rows,
+			&workspace->closed_columns);
+		if (status != lp_simplex_Success)
+			return status;
+		if (before == workspace->substitutions + workspace->projections +
+		    workspace->closed_rows + workspace->closed_columns ||
+		    workspace->active_rows <= 1 || workspace->active_columns <= 1)
+			return lp_simplex_Success;
+		/* Cheap closure can expose fresh low-degree columns.  Begin another
+		 * structural epoch without rebuilding the mutable matrix. */
+		simplex_presolve_queue_clear(&workspace->singleton_queue);
 		for (j = 0; j < problem->columns; j++)
-			if (column_active[j]) {
-				int destination = column_position[j];
-				reduced->objective[destination] = problem->objective[j];
-				reduced->bounds[destination] = problem->bounds[j];
-			}
-		new_row = 0;
-		for (i = 0; i < problem->rows; i++)
-			if (rows[i].active) {
-				reduced->rhs[new_row] = problem->rhs[i];
-				reduced->row_type[new_row] = problem->row_type[i];
-				reduced->matrix.row_start[new_row] = next;
-				for (k = 0; k < rows[i].count; k++) {
-					reduced->matrix.column_index[next] =
-						column_position[rows[i].column[k]];
-					reduced->matrix.row_value[next++] = rows[i].value[k];
-				}
-				new_row++;
-			}
-		reduced->matrix.row_start[active_rows] = next;
-		lp_simplex_memset(reduced->matrix.column_start, 0,
-			(size_t)(active_columns + 1) * sizeof(int));
-		for (k = 0; k < nonzeros; k++)
-			reduced->matrix.column_start[
-				reduced->matrix.column_index[k] + 1]++;
-		for (j = 0; j < active_columns; j++)
-			reduced->matrix.column_start[j + 1] +=
-				reduced->matrix.column_start[j];
-		{
-			int *cursor = (int *)lp_simplex_malloc(
-				(size_t)active_columns * sizeof(int));
-			if (cursor == NULL) {
-				lp_simplex_free(column_position);
-				goto failure;
-			}
-			lp_simplex_memcpy(cursor, reduced->matrix.column_start,
-				(size_t)active_columns * sizeof(int));
-			for (i = 0; i < active_rows; i++)
-				for (k = reduced->matrix.row_start[i];
-				     k < reduced->matrix.row_start[i + 1]; k++) {
-					int column = reduced->matrix.column_index[k];
-					int destination = cursor[column]++;
-					reduced->matrix.row_index[destination] = i;
-					reduced->matrix.value[destination] =
-						reduced->matrix.row_value[k];
-				}
-			lp_simplex_free(cursor);
-		}
-		lp_simplex_free(column_position);
+			if (workspace->column_active[j])
+				(void)simplex_presolve_queue_push(
+					&workspace->singleton_queue, j);
 	}
-	for (j = 0; j < active_columns; j++)
-		presolve->column_map[j] = new_column_map[j];
-	for (i = 0; i < active_rows; i++)
-		presolve->row_map[i] = new_row_map[i];
-	presolve->removed_columns += substitutions + projections + closed_columns;
-	presolve->removed_rows += substitutions + closed_rows;
-	presolve->doubleton_rows += doubletons;
-	substitution_destroy_rows(rows, problem->rows, incidence, problem->columns);
+}
+
+
+int simplex_presolve_substitute_doubletons(
+		struct simplex_Presolve *presolve, const double tolerance)
+{
+	struct substitution_Workspace workspace;
+	struct simplex_Problem *problem = presolve->reduced;
+	struct simplex_Problem *reduced;
+	int status;
+	if (problem == NULL)
+		return lp_simplex_EXIT_SUCCESS;
+	if (substitution_workspace_create(problem, &workspace) ==
+	    lp_simplex_EXIT_FAILURE)
+		goto failure;
+	status = substitution_reduce_to_fixed_point(
+		presolve, &workspace, tolerance);
+	if (status == lp_simplex_EXIT_FAILURE)
+		goto failure;
+	if (status != lp_simplex_Success) {
+		presolve->status = status;
+		goto success;
+	}
+	if (workspace.active_rows == 0 || workspace.active_columns == 0) {
+		presolve->stats.removed_rows +=
+			workspace.substitutions + workspace.closed_rows;
+		presolve->stats.removed_columns += workspace.substitutions +
+			workspace.projections + workspace.closed_columns;
+		presolve->status = lp_simplex_Success;
+		goto success;
+	}
+	if (workspace.substitutions == 0 && workspace.projections == 0 &&
+	    workspace.closed_rows == 0 && workspace.closed_columns == 0)
+		goto success;
+	reduced = substitution_compact_problem(presolve, &workspace);
+	if (reduced == NULL)
+		goto failure;
+	presolve->stats.removed_columns += workspace.substitutions +
+		workspace.projections + workspace.closed_columns;
+	presolve->stats.removed_rows +=
+		workspace.substitutions + workspace.closed_rows;
+	presolve->stats.doubleton_rows += workspace.doubletons;
+	substitution_workspace_destroy(&workspace);
 	simplex_problem_free(presolve->reduced);
 	presolve->reduced = reduced;
-	lp_simplex_free(column_active);
-	lp_simplex_free(column_degree);
-	lp_simplex_free(queue);
-	lp_simplex_free(new_column_map);
-	lp_simplex_free(new_row_map);
 	return lp_simplex_EXIT_SUCCESS;
-infeasible:
-	presolve->terminal = 1;
-	presolve->terminal_status = lp_simplex_Infeasibility;
-	substitution_destroy_rows(rows, problem->rows, incidence, problem->columns);
-	lp_simplex_free(column_active);
-	lp_simplex_free(column_degree);
-	lp_simplex_free(queue);
+success:
+	substitution_workspace_destroy(&workspace);
 	return lp_simplex_EXIT_SUCCESS;
 failure:
-	simplex_problem_free(reduced);
-	substitution_destroy_rows(rows,
-		problem != NULL ? problem->rows : 0, incidence,
-		problem != NULL ? problem->columns : 0);
-	lp_simplex_free(column_active);
-	lp_simplex_free(column_degree);
-	lp_simplex_free(queue);
-	lp_simplex_free(new_column_map);
-	lp_simplex_free(new_row_map);
+	substitution_workspace_destroy(&workspace);
 	return lp_simplex_EXIT_FAILURE;
 }

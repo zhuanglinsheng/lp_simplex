@@ -37,6 +37,7 @@ struct simplex_SparseLu {
 	int *packed_column;
 	double *packed_value;
 	int packed_nonzeros;
+	long factor_work;
 	struct simplex_SparseRow *row;
 	struct simplex_SparseColumnRows *column_rows;
 };

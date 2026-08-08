@@ -101,13 +101,13 @@ static double feasibility_row_score(
 		const struct simplex_DualState *state, const int row)
 {
 	double violation = 0.;
-	if (state->basic_value[row] < state->basic_lower[row] -
-	    state->options->primal_tolerance)
+	double tolerance = __lp_simplex_MAX__(state->options->primal_tolerance,
+		state->feasibility_tolerance[row]);
+	if (state->basic_value[row] < state->basic_lower[row] - tolerance)
 		violation = state->basic_lower[row] - state->basic_value[row];
-	else if (state->basic_value[row] > state->basic_upper[row] +
-		 state->options->primal_tolerance)
+	else if (state->basic_value[row] > state->basic_upper[row] + tolerance)
 		violation = state->basic_value[row] - state->basic_upper[row];
-	return violation > state->options->primal_tolerance
+	return violation > tolerance
 		? violation * violation / __lp_simplex_MAX__(state->edge_weight[row],
 			1e-12) : 0.;
 }
@@ -118,12 +118,14 @@ int simplex_dual_feasibility_create(
 {
 	lp_simplex_memset(feasibility, 0, sizeof(*feasibility));
 	feasibility->rows = rows;
-	feasibility->heap = (int *)lp_simplex_malloc((size_t)rows * sizeof(int));
-	feasibility->slot = (int *)lp_simplex_malloc((size_t)rows * sizeof(int));
-	feasibility->structural_heap = (int *)lp_simplex_malloc(
-		(size_t)rows * sizeof(int));
-	feasibility->structural_slot = (int *)lp_simplex_malloc(
-		(size_t)rows * sizeof(int));
+	feasibility->heap = (int *)lp_simplex_malloc(
+		(size_t)4 * rows * sizeof(int));
+	feasibility->slot = feasibility->heap != NULL
+		? feasibility->heap + rows : NULL;
+	feasibility->structural_heap = feasibility->heap != NULL
+		? feasibility->heap + 2 * rows : NULL;
+	feasibility->structural_slot = feasibility->heap != NULL
+		? feasibility->heap + 3 * rows : NULL;
 	feasibility->score = (double *)lp_simplex_malloc(
 		(size_t)rows * sizeof(double));
 	if (feasibility->heap == NULL || feasibility->slot == NULL ||
@@ -142,9 +144,6 @@ void simplex_dual_feasibility_destroy(
 	if (feasibility == NULL)
 		return;
 	lp_simplex_free(feasibility->heap);
-	lp_simplex_free(feasibility->slot);
-	lp_simplex_free(feasibility->structural_heap);
-	lp_simplex_free(feasibility->structural_slot);
 	lp_simplex_free(feasibility->score);
 	lp_simplex_memset(feasibility, 0, sizeof(*feasibility));
 }

@@ -36,6 +36,7 @@ struct Options {
 	const char *criteria;
 	int algorithm;
 	int iteration_limit;
+	int presolve;
 	double tolerance;
 	int print_solution;
 	int expected_kind;  /**< 0 = automatic, 1 = objective, 2 = infeasible. */
@@ -53,6 +54,7 @@ static void print_usage(const char *program)
 	printf("  --criteria RULE       bland (default), dantzig, or pan97\n");
 	printf("  --iterations N        total pivot limit (default: %d)\n",
 	       DEFAULT_ITERATION_LIMIT);
+	printf("  --no-presolve         bypass presolve for differential diagnostics\n");
 	printf("  --tolerance VALUE     objective relative tolerance (default: %.0e)\n",
 	       DEFAULT_TOLERANCE);
 	printf("  --expected VALUE      override the reference objective\n");
@@ -102,6 +104,7 @@ static int parse_options(int argc, char **argv, struct Options *options)
 	options->criteria = "bland";
 	options->algorithm = lp_simplex_ALGORITHM_TABLEAU;
 	options->iteration_limit = DEFAULT_ITERATION_LIMIT;
+	options->presolve = 1;
 	options->tolerance = DEFAULT_TOLERANCE;
 	options->print_solution = 0;
 	options->expected_kind = 0;
@@ -119,6 +122,8 @@ static int parse_options(int argc, char **argv, struct Options *options)
 			options->print_solution = 1;
 		} else if (strcmp(argument, "--infeasible") == 0) {
 			options->expected_kind = 2;
+		} else if (strcmp(argument, "--no-presolve") == 0) {
+			options->presolve = 0;
 		} else if (strcmp(argument, "--algorithm") == 0) {
 			value = option_value(argc, argv, &i);
 			if (value == NULL)
@@ -283,6 +288,60 @@ static void print_solution(const struct lp_Model *model, const double *x)
 		printf("  %-8.8s = %.15g\n", model->bounds[i].name, x[i]);
 }
 
+
+/** Measure the returned point against the public model, after postsolve. */
+static double original_primal_infeasibility(
+		const struct lp_Model *model, const double *x,
+		int *worst_row, int *worst_column)
+{
+	double maximum = 0.;
+	int i, j, k;
+	*worst_row = -1;
+	*worst_column = -1;
+	for (j = 0; j < model->n; j++) {
+		double violation = 0.;
+		if ((model->bounds[j].b_type == optm_BOUND_T_LO ||
+		     model->bounds[j].b_type == optm_BOUND_T_BS) &&
+		    x[j] < model->bounds[j].lb)
+			violation = model->bounds[j].lb - x[j];
+		if ((model->bounds[j].b_type == optm_BOUND_T_UP ||
+		     model->bounds[j].b_type == optm_BOUND_T_BS) &&
+		    x[j] > model->bounds[j].ub &&
+		    x[j] - model->bounds[j].ub > violation)
+			violation = x[j] - model->bounds[j].ub;
+		if (violation > maximum) {
+			maximum = violation;
+			*worst_column = j;
+			*worst_row = -1;
+		}
+	}
+	for (i = 0; i < model->m; i++) {
+		double activity = 0., violation = 0.;
+		if (model->row_start != NULL)
+			for (k = model->row_start[i]; k < model->row_start[i + 1]; k++)
+				activity += model->row_value[k] * x[model->column_index[k]];
+		else
+			for (j = 0; j < model->n; j++)
+				activity += model->constraints[i].coef[j] * x[j];
+		if (model->constraints[i].type == optm_CONS_T_EQ)
+			violation = activity - model->constraints[i].rhs;
+		else if (model->constraints[i].type == optm_CONS_T_GE &&
+			 activity < model->constraints[i].rhs)
+			violation = model->constraints[i].rhs - activity;
+		else if (model->constraints[i].type == optm_CONS_T_LE &&
+			 activity > model->constraints[i].rhs)
+			violation = activity - model->constraints[i].rhs;
+		if (violation < 0.)
+			violation = -violation;
+		if (violation > maximum) {
+			maximum = violation;
+			*worst_row = i;
+			*worst_column = -1;
+		}
+	}
+	return maximum;
+}
+
 /** Load, solve, report, and validate one MPS model. */
 int main(int argc, char **argv)
 {
@@ -294,8 +353,9 @@ int main(int argc, char **argv)
 	double objective = 0.;
 	clock_t started, finished;
 	double elapsed;
+	double original_infeasibility = 0.;
 	char model_name[128];
-	int state;
+	int state, worst_row = -1, worst_column = -1;
 	int passed;
 
 	if (!parse_options(argc, argv, &options)) {
@@ -322,11 +382,15 @@ int main(int argc, char **argv)
 	started = clock();
 	lp_simplex_default_options(&solve_options, options.algorithm);
 	solve_options.iteration_limit = options.iteration_limit;
+	solve_options.presolve = options.presolve;
 	if (options.algorithm == lp_simplex_ALGORITHM_TABLEAU)
 		solve_options.pricing = strcmp(options.criteria, "dantzig") == 0
 			? lp_simplex_PRICING_DANTZIG : lp_simplex_PRICING_BLAND;
 	state = lp_simplex_solve(model, &solve_options, x, &result);
 	objective = result.objective;
+	if (state == lp_simplex_EXIT_SUCCESS)
+		original_infeasibility = original_primal_infeasibility(
+			model, x, &worst_row, &worst_column);
 	finished = clock();
 	elapsed = (double)(finished - started) / (double)CLOCKS_PER_SEC;
 
@@ -340,6 +404,9 @@ int main(int argc, char **argv)
 	printf("iterations: %d\n", result.iterations);
 	printf("residuals:  primal=%.3g, dual=%.3g\n",
 	       result.primal_infeasibility, result.dual_infeasibility);
+	if (state == lp_simplex_EXIT_SUCCESS)
+		printf("postsolve:  primal=%.3g, worst-row=%d, worst-column=%d\n",
+		       original_infeasibility, worst_row, worst_column);
 	printf("time:       %.6f seconds\n", elapsed);
 	if (options.has_gurobi_time) {
 		printf("gurobi:     %.6f seconds (bundled reference)\n",

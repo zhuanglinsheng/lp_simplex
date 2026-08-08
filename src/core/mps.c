@@ -276,65 +276,6 @@ finish:
 }
 
 
-static void fill_model_coef(
-		struct lp_Model *model, const double value,
-		const char *field_name, const int nvars)
-{
-	int i, m = model->m;
-
-	for (i = 0; i < m; i++) {
-		char *tmp = model->constraints[i].name;
-
-		if (mps_name_equal(field_name, tmp)) {
-			model->constraints[i].coef[nvars - 1] = value;
-			break;
-		}
-	}
-}
-
-
-static void fill_columns_to_model(
-		struct lp_Model *model,
-		const char *obj_name, const char *field_name,
-		const double value, const int nvars)
-{
-	if (mps_name_equal(field_name, obj_name))
-		model->objective[nvars - 1] = value;
-	else
-		fill_model_coef(model, value, field_name, nvars);
-}
-
-
-static void fill_model_rhs(
-		struct lp_Model *model,
-		const char *field_name, const double value)
-{
-	int i, m = model->m;
-
-	for (i = 0; i < m; i++) {
-		char *tmp = model->constraints[i].name;
-
-		if (mps_name_equal(field_name, tmp)) {
-			model->constraints[i].rhs = value;
-			break;
-		}
-	}
-}
-
-
-static struct optm_VariableBound *find_model_bound(
-		struct lp_Model *model, const char *name)
-{
-	int i;
-
-	for (i = 0; i < model->n; i++) {
-		if (mps_name_equal(name, model->bounds[i].name))
-			return model->bounds + i;
-	}
-	return NULL;
-}
-
-
 static int apply_model_bound(
 		struct optm_VariableBound *bound, const char *line)
 {
@@ -377,110 +318,8 @@ static int apply_model_bound(
 }
 
 
-static int fill_model_bound(struct lp_Model *model, const char *line)
-{
-	struct optm_VariableBound *bound = find_model_bound(model, line + 14);
-	return bound == NULL ? lp_simplex_EXIT_FAILURE
-		: apply_model_bound(bound, line);
-}
 
 
-static int fill_model(const char *file, struct lp_Model *model)
-{
-	char line[128];
-	char obj_name[9];
-	char *last_name = model->bounds->name;
-	int sect_code = 0;
-	int ncons = 0, nvars = 0;
-	double value;
-
-	FILE *f = fopen(file, "r");
-
-	if (f == NULL) {
-		printf("Cannot open file: \"%s\"\n", file);
-		return lp_simplex_EXIT_FAILURE;
-	}
-	lp_simplex_memset(line, '\0', 128);
-	lp_simplex_memset(obj_name, '\0', 9);
-	lp_simplex_memset(last_name, '\0', 9);
-LOOP:
-	file_readline(f, line, 128);
-
-	if (change_sect_code(line, &sect_code))
-		goto LOOP;
-	switch (sect_code) {
-	case 1:  /* ROWS */
-		/*
-		 * Fixed MPS puts the row type in column 2.  A few NETLIB files,
-		 * including qap12 and qap15, indent it by one extra column while
-		 * keeping the row name in columns 5--12.  Accept both layouts.
-		 */
-		switch (line[1] == ' ' ? line[2] : line[1]) {
-		case 'N':
-			lp_simplex_memset(obj_name, '\0', 8);
-			lp_simplex_memcpy(obj_name, line + 4, 8);
-			break;
-		case 'L':
-			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = optm_CONS_T_LE;
-			ncons++;
-			break;
-		case 'G':
-			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = optm_CONS_T_GE;
-			ncons++;
-			break;
-		case 'E':
-			lp_simplex_memcpy(model->constraints[ncons].name, line + 4, 8);
-			model->constraints[ncons].type = optm_CONS_T_EQ;
-			ncons++;
-			break;
-		default:
-			break;
-		}
-		break;
-	case 2:  /* COLUMNS */
-		if (lp_simplex_memcmp(last_name, line + 4, 8) != 0) {
-			lp_simplex_memset(model->bounds[nvars].name, '\0',
-					  sizeof(model->bounds[nvars].name));
-			lp_simplex_memcpy(model->bounds[nvars].name, line + 4, 8);
-			last_name = model->bounds[nvars].name;
-			nvars++;
-		}
-		value = get_filed_1_value(line);
-		fill_columns_to_model(model, obj_name, line + 14, value, nvars);
-		if (lp_simplex_strlen(line) < 40)
-			goto LOOP;
-		value = get_field_2_value(line);
-		fill_columns_to_model(model, obj_name, line + 39, value, nvars);
-		break;
-	case 3:  /* RHS */
-		value = get_filed_1_value(line);
-		fill_model_rhs(model, line + 14, value);
-		if (lp_simplex_strlen(line) < 40)
-			goto LOOP;
-		value = get_field_2_value(line);
-		fill_model_rhs(model, line + 39, value);
-		break;
-	case 4:  /* RANGES are not representable by the public model structure. */
-		fclose(f);
-		return lp_simplex_EXIT_FAILURE;
-	case 5:  /* BOUNDS */
-		if (fill_model_bound(model, line) == lp_simplex_EXIT_FAILURE) {
-			fclose(f);
-			return lp_simplex_EXIT_FAILURE;
-		}
-		break;
-	default:
-		break;
-	}
-	if (feof(f))
-		goto END;
-	goto LOOP;
-END:
-	fclose(f);
-	return lp_simplex_EXIT_SUCCESS;
-}
 
 
 struct mps_NameTable {
@@ -790,7 +629,9 @@ static int fill_sparse_model(
 			}
 		} else if (section == 3) {
 			int row;
-			if (!mps_name_equal(line + 14, objective_name)) {
+			if (mps_name_equal(line + 14, objective_name)) {
+				model->objective_offset = -get_filed_1_value(line);
+			} else {
 				row = mps_name_table_find(&rows, line + 14, model, 1);
 				if (row < 0)
 					goto close;
@@ -800,7 +641,9 @@ static int fill_sparse_model(
 						model->constraints[row].rhs;
 			}
 			if (mps_has_second_field(line)) {
-				if (!mps_name_equal(line + 39, objective_name)) {
+				if (mps_name_equal(line + 39, objective_name)) {
+					model->objective_offset = -get_field_2_value(line);
+				} else {
 					row = mps_name_table_find(&rows, line + 39, model, 1);
 					if (row < 0)
 						goto close;
@@ -891,8 +734,7 @@ struct lp_Model *lp_read_mps(const char *file)
 		lp_simplex_free(range_scan.row_type);
 		return NULL;
 	}
-	if ((model->coefficients != NULL ? fill_model(file, model)
-		: fill_sparse_model(file, model, entry_capacity, &range_scan)) ==
+	if (fill_sparse_model(file, model, entry_capacity, &range_scan) ==
 	    lp_simplex_EXIT_FAILURE) {
 		lp_model_free(model);
 		lp_simplex_free(range_scan.ranged);

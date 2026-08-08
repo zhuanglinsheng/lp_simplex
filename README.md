@@ -40,6 +40,7 @@ double *x;
 
 lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
 options.iteration_limit = 100000;
+options.presolve = 1;
 
 if (lp_simplex_solve(model, &options, x, &result) ==
     lp_simplex_EXIT_SUCCESS) {
@@ -51,6 +52,8 @@ if (lp_simplex_solve(model, &options, x, &result) ==
 Select `lp_simplex_ALGORITHM_TABLEAU` to use the original solver. Its default
 pricing rule is Bland; set `options.pricing` to
 `lp_simplex_PRICING_DANTZIG` when desired.
+Presolve is enabled by default; set `options.presolve = 0` for differential
+diagnostics or to solve the original model directly.
 
 ## Source layout
 
@@ -58,23 +61,27 @@ The public headers under `include/lp_simplex/` separate the model, MPS reader,
 termination status, and simplex solve API. The implementation is divided by
 its current responsibilities:
 
-- `model.c` and `mps.c`: model ownership and fixed-column MPS input;
-- `simplex.c`: public validation, default options, and algorithm dispatch;
-- `simplex_tableau_solver.c` and `simplex_transform.c`: tableau orchestration,
-  bound conversion, and recovery of original variables;
-- `simplex_tableau.c`, `simplex_phase.c`, and `simplex_pivot.c`: tableau
-  construction, the two-phase procedure, and pivot iterations;
-- `simplex_csc.c`: immutable CSC construction and augmented-column access;
-- `simplex_basis.c` and `simplex_sparse_lu.c`: the basis-factorization boundary,
-  sparse LU, FTRAN/BTRAN, product-form updates, and periodic reinversion;
-- `simplex_singleton_dual.c`: structure-detected dualization of equality models
-  with paired positive/negative singleton residual columns;
-- `simplex_dual.c`: dual crash, dual steepest-edge leaving selection, Harris
-  ratio testing, bound flipping, and revised-simplex iterations;
-- `linalg.c` and `utils.c`: private numerical and support routines.
+- `src/core/`: model ownership, MPS input, public validation and algorithm
+  dispatch, plus the solver's immutable problem representation;
+- `src/presolve/`: sparse reductions, activity and bound propagation,
+  substitution, postsolve journaling, and solution reconstruction;
+- `src/dual/`: revised-simplex orchestration, feasibility, pricing,
+  degeneracy control, and structure-detected dualization;
+- `src/basis/`: the opaque basis-factorization boundary, sparse LU/KLU
+  backends, FTRAN/BTRAN, product-form updates, and periodic reinversion;
+- `src/matrix/`: immutable CSC and sparse-vector primitives;
+- `src/tableau/`: bound transformation, two-phase tableau construction,
+  pricing, pivoting, and recovery of original variables;
+- `src/common/`: private numerical and support routines.
 
 Tableau and linear-algebra internals are deliberately absent from the installed
 public API.
+
+## Algorithm documentation
+
+See the [overall algorithm guide](./docs/algorithm.md) for the end-to-end
+flowcharts and the current presolve, dual revised simplex, basis-update,
+degeneracy-control, tableau, and postsolve behavior.
 
 ## Examples
 

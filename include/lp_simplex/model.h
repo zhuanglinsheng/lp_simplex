@@ -49,6 +49,7 @@ struct lp_Model {
 	int                           m;             /* number of constraints */
 	int                           n;             /* number of variables */
 	int                           nnz;           /* sparse coefficient count */
+	double                        objective_offset; /* constant objective term */
 	double                       *objective;
 	double                       *coefficients;  /* row major */
 	struct optm_LinearConstraint *constraints;

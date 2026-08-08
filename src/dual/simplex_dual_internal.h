@@ -21,6 +21,27 @@
 #define DUAL_STATUS_FREE  4
 
 
+struct simplex_DualProfile {
+	int enabled;
+	double ratio_seconds;
+	double total_seconds;
+	long rejected_relative;
+	long rejected_ftran;
+	long bound_flips;
+	long flip_batches;
+};
+
+
+/* Owners for the dense solver workspaces.  The state keeps typed aliases for
+ * hot-path readability; destruction only releases these four roots. */
+struct simplex_DualWorkspace {
+	int *index;
+	unsigned char *status;
+	double *column;
+	double *row;
+};
+
+
 /* Shared only by the dual orchestration modules; not part of the public API. */
 struct simplex_DualState {
 	int rows;
@@ -32,6 +53,7 @@ struct simplex_DualState {
 	const struct lp_simplex_Options *options;
 	struct simplex_CscMatrix matrix;
 	struct simplex_Basis factor;
+	struct simplex_DualWorkspace workspace;
 	int *basis;
 	int *position;
 	unsigned char *status;
@@ -42,6 +64,7 @@ struct simplex_DualState {
 	double *basic_value;
 	double *basic_lower;
 	double *basic_upper;
+	double *feasibility_tolerance;
 	double *reduced;
 	double *pi;
 	double *rho;
@@ -66,14 +89,9 @@ struct simplex_DualState {
 	int pan_enabled;
 	int stable_candidate_order;
 	int regular_columns;
+	int numerically_stressed;
 	int modal_column_degree;
-	int profile_enabled;
-	double profile_ratio_seconds;
-	double profile_total_seconds;
-	long profile_rejected_relative;
-	long profile_rejected_ftran;
-	long profile_bound_flips;
-	long profile_flip_batches;
+	struct simplex_DualProfile profile;
 	double ratio_minimum;
 	int ratio_minimum_valid;
 	int pricing_validation_countdown;

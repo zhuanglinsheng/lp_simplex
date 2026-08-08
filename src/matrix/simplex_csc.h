@@ -9,17 +9,18 @@
 
 
 struct simplex_CscMatrix {
-	int rows;
-	int columns;
-	int nonzeros;
-	int *column_start;
-	int *row_index;
-	double *value;
-	int *row_start;
-	int *column_index;
-	double *row_value;
-	int owns_storage;
+	int                  rows;
+	int                  columns;
+	int                  nonzeros;
+	int                 *column_start;
+	int                 *row_index;
+	double              *value;
+	int                 *row_start;
+	int                 *column_index;
+	double              *row_value;
+	int                  owns_storage;
 };
+
 
 int simplex_csc_from_model(
 		const struct lp_Model *model,

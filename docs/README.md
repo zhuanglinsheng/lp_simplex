@@ -1,22 +1,11 @@
-# lp_simplex documentation
+# lp_simplex 文档
 
-This directory contains the design notes, file-format documentation, and user
-guides for `lp_simplex`.
+- [整体算法说明](./algorithm.md)：当前实现的权威说明，覆盖公开入口、
+  presolve、dual revised simplex、basis factor、退化控制、tableau 与
+  postsolve，并给出端到端和单次 pivot 流程图。
+- [NETLIB 基准快照](./dual-revised-simplex-benchmark.md)：带测试日期的历史结果，
+  用于性能回归与问题定位，不作为当前算法行为的定义。
 
-## Tutorials
-
-- [基于 CSC 的稀疏 dual revised simplex](./sparse-dual-revised-simplex.md)：
-  介绍 CSC 模型、隐式逻辑列、稀疏基分解、Harris BFRT 以及 dual revised
-  simplex 的完整迭代过程。
-- [Pan 退化控制与主求解流程融合](./pan-degeneracy-control.md)：
-  介绍 deficient-face 对偶方向、退化触发状态机、符号扰动、循环保护及其
-  在 sparse dual revised simplex 主循环中的实现。
-- [Hypersparse dual simplex 架构](./hypersparse-solver-architecture.md)：
-  定义 presolve/postsolve、packed sparse vector、pricing engine、稀疏基更新和
-  跨组件成本策略的边界。
-
-## Benchmarks
-
-- [CSC sparse dual revised simplex 性能测试](./dual-revised-simplex-benchmark.md)：
-	记录 30 个代表性 NETLIB 模型的当前求解时间、迭代数、正确性结果以及
-	Gurobi 仓库参考数据。
+过去分散的 presolve、hypersparse、Pan、dual/basis 和 CSC 教程已经合并进
+`algorithm.md`。这样“当前实现”和“未来设计”不会继续分散在多份相互重复的
+文档中。

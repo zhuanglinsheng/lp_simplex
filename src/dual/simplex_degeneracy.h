@@ -4,8 +4,6 @@
  */
 #ifndef LP_SIMPLEX_DEGENERACY_INTERNAL_H
 #define LP_SIMPLEX_DEGENERACY_INTERNAL_H
-
-
 /* Controller for the bounded-deficiency (Pan) anti-stalling mode. */
 struct simplex_DegeneracyControl {
 	unsigned int history;
