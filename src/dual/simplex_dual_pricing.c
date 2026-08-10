@@ -291,7 +291,8 @@ int simplex_dual_next_ratio_candidate(
 		const int pan_perturbation, const int leaving_variable)
 {
 	int candidate, j, q = -1;
-	int stable_order = state->stable_candidate_order || pan_perturbation;
+	int stable_order = state->stable_candidate_order ||
+		simplex_degeneracy_is_stressed(&state->degeneracy);
 	double minimum = state->ratio_minimum_valid
 		? state->ratio_minimum : __lp_simplex_INF__;
 	double best_pivot = 0.;
@@ -307,6 +308,8 @@ int simplex_dual_next_ratio_candidate(
 	if (pan_perturbation && minimum <= 10. * state->options->dual_tolerance) {
 		int pan_candidate = -1;
 		int best_rank_delta = 2;
+		int lexicographic = simplex_degeneracy_is_lexicographic(
+			&state->degeneracy);
 		int structure_enabled =
 			simplex_basis_compact_ever_active(&state->factor) ||
 			(state->rows >= 4096 && state->structural_basic < state->rows);
@@ -319,6 +322,8 @@ int simplex_dual_next_ratio_candidate(
 			    state->breakpoint[j] > minimum +
 			    1e-12 * (1. + __lp_simplex_ABS__(minimum)))
 				continue;
+			if (!structure_enabled && !lexicographic)
+				continue;
 			rank_delta = (j < state->structural) -
 				(leaving_variable < state->structural);
 			nonzeros = j < state->structural
@@ -326,16 +331,24 @@ int simplex_dual_next_ratio_candidate(
 				  state->matrix.column_start[j] : 1;
 			structural_score = __lp_simplex_ABS__(state->alpha[j]) /
 				(1. + nonzeros);
-			if (pan_candidate < 0 ||
-			    (!structure_enabled && j < pan_candidate) ||
-			    (structure_enabled &&
+			/* A repeated face state escalates to a Bland-compatible order.
+			 * Keep the absolute pivot safeguard, then select the smallest
+			 * variable id; this ordering is independent of floating scores. */
+			if (lexicographic &&
+			    __lp_simplex_ABS__(state->alpha[j]) >
+			    state->options->pivot_tolerance) {
+				if (pan_candidate < 0 || j < pan_candidate)
+					pan_candidate = j;
+				continue;
+			}
+			if (!lexicographic && (pan_candidate < 0 ||
+			    pricing_significantly_greater(structural_score,
+				best_structural_score) ||
+			    (pricing_nearly_equal(structural_score,
+				best_structural_score) &&
 			     (rank_delta < best_rank_delta ||
 			      (rank_delta == best_rank_delta &&
-				       (pricing_significantly_greater(structural_score,
-					best_structural_score) ||
-				        (pricing_nearly_equal(structural_score,
-					best_structural_score) &&
-			         j < pan_candidate)))))) {
+			       j < pan_candidate))))) {
 				pan_candidate = j;
 				best_rank_delta = rank_delta;
 				best_structural_score = structural_score;

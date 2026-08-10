@@ -11,8 +11,9 @@
 
 
 int simplex_tableau_solve_model(
-		const struct lp_Model *model, const char *criteria,
-		int iteration_limit, double *x, double *value, int *status)
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, double *value, int *status, int *iterations)
 {
 	int transformed_m, transformed_n;
 	double *transformed_objective;
@@ -24,8 +25,8 @@ int simplex_tableau_solve_model(
 
 	if (model->bounds == NULL)
 		return simplex_solve_standard(model->objective, model->constraints,
-				model->m, model->n, criteria, iteration_limit,
-				x, value, status);
+				model->m, model->n, options,
+				x, value, status, iterations);
 
 	simplex_transform_size(model->bounds, model->m, model->n,
 			       &transformed_m, &transformed_n);
@@ -44,9 +45,9 @@ int simplex_tableau_solve_model(
 				  &objective_offset, transformed_coefficients,
 				  transformed_constraints);
 	if (simplex_solve_standard(transformed_objective, transformed_constraints,
-				   transformed_m, transformed_n, criteria,
-				   iteration_limit, transformed_x,
-				   &transformed_value, status) == lp_simplex_EXIT_SUCCESS) {
+				   transformed_m, transformed_n, options,
+				   transformed_x, &transformed_value,
+				   status, iterations) == lp_simplex_EXIT_SUCCESS) {
 		simplex_transform_recover(model->bounds, model->n, transformed_x,
 					  transformed_value, objective_offset,
 					  x, value);

@@ -7,17 +7,8 @@
 #include "utils.h"
 
 
-/* Identifier of non-zero beta */
-#define __lp_simplex_ZEROS_BETA__           1e-9
-
-/* Checker of the general checking "LP is optimal" */
-#define __lp_simplex_CTR_SPLX_OPTIMAL__     1e-9
-
 /* Numerically stable staged threshold used by Bland's entering rule. */
 #define __lp_simplex_BLAND_EPS__            1e-3
-
-/* Controller for pivot leaving rule */
-#define __lp_simplex_PIV_LEV__              1e-9
 
 
 /* Choose the variable to leave basis
@@ -26,7 +17,7 @@
 static int simplex_pivot_leave_rule(
 		const double *table, const int ldtable,
 		const int *basis, const int m, const int n,
-		const int q, int *bounded)
+		const int q, const double pivot_tolerance, int *bounded)
 {
 	int i, p = n;
 	double y_i_0, y_i_q, x_iq, min_x_iq = __lp_simplex_INF__;
@@ -36,13 +27,13 @@ static int simplex_pivot_leave_rule(
 		y_i_0 = table[n + (i + 1) * ldtable];
 		y_i_q = table[q + (i + 1) * ldtable];
 
-		if (y_i_q <= __lp_simplex_PIV_LEV__)
+		if (y_i_q <= pivot_tolerance)
 			continue;
 		else {
 			x_iq = y_i_0 / y_i_q;
 
-			if (x_iq < min_x_iq - __lp_simplex_PIV_LEV__ ||
-			    (__lp_simplex_ABS__(x_iq - min_x_iq) <= __lp_simplex_PIV_LEV__ &&
+			if (x_iq < min_x_iq - pivot_tolerance ||
+			    (__lp_simplex_ABS__(x_iq - min_x_iq) <= pivot_tolerance &&
 			     (p == n || basis[i] < basis[p]))) {
 				min_x_iq = x_iq;
 				p = i;
@@ -63,11 +54,12 @@ static int simplex_pivot_leave_rule(
  *	leading to unpredicted results
  */
 static int simplex_pivot_enter_rule_datzig(
-		const double *table, const unsigned char *is_basic, const int n)
+		const double *table, const unsigned char *is_basic, const int n,
+		const double optimality_tolerance)
 {
 	int j, q = n;
 	double beta_j = 0.;
-	double beta_q = 0.;
+	double beta_q = optimality_tolerance;
 
 	for (j = 0; j < n; j++) {
 		if (is_basic[j])
@@ -89,7 +81,8 @@ static int simplex_pivot_enter_rule_datzig(
  * Note: on failure, the algorithm returns n
  */
 static int simplex_pivot_enter_rule_bland(
-		const double *table, const unsigned char *is_basic, const int n)
+		const double *table, const unsigned char *is_basic, const int n,
+		const double optimality_tolerance)
 {
 	int j;
 	double epsilon = __lp_simplex_BLAND_EPS__;
@@ -99,9 +92,10 @@ static int simplex_pivot_enter_rule_bland(
 			if (!is_basic[j] && table[j] > epsilon)
 				return j;
 		}
-		if (epsilon < __lp_simplex_CTR_SPLX_OPTIMAL__)
+		if (epsilon <= optimality_tolerance)
 			return n;
-		epsilon /= 10.;
+		epsilon = epsilon / 10. < optimality_tolerance
+			? optimality_tolerance : epsilon / 10.;
 	}
 }
 
@@ -155,7 +149,8 @@ void simplex_apply_pivot(
 static int lp_simplex_pivot_on(
 		double *table, const int ldtable, int *basis,
 		unsigned char *is_basic, const int m, const int n,
-		const int use_dantzig)
+		const int use_dantzig, const double optimality_tolerance,
+		const double pivot_tolerance)
 {
 	int bounded = 0;
 	int q = 0, p = 0;
@@ -175,23 +170,26 @@ static int lp_simplex_pivot_on(
 	}
 
 	if (use_dantzig) {
-		q = simplex_pivot_enter_rule_datzig(table, is_basic, n);
+		q = simplex_pivot_enter_rule_datzig(
+			table, is_basic, n, optimality_tolerance);
 	}
 	else {
-		q = simplex_pivot_enter_rule_bland(table, is_basic, n);
+		q = simplex_pivot_enter_rule_bland(
+			table, is_basic, n, optimality_tolerance);
 	}
 	if (n <= q) {
 		/* No eligible nonbasic column remains.  A sizeable positive basic
 		 * residual signals a damaged tableau rather than a valid optimum. */
 		for (i = 0; i < n; i++) {
-			if (table[i] > __lp_simplex_CTR_SPLX_OPTIMAL__) {
+			if (table[i] > optimality_tolerance) {
 				residual = 1;
 				break;
 			}
 		}
 		return residual ? 9 : 1;
 	}
-	p = simplex_pivot_leave_rule(table, ldtable, basis, m, n, q, &bounded);
+	p = simplex_pivot_leave_rule(table, ldtable, basis, m, n, q,
+		pivot_tolerance, &bounded);
 	if (bounded == 0)
 		return 2;
 	basis[p] = q;
@@ -203,7 +201,7 @@ static int lp_simplex_pivot_on(
 int simplex_run_pivots(
 		int *epoch, double *table, const int ldtable, int *basis,
 		const int m, const int n, const int nreal,
-		const char *criteria, const int niter)
+		const struct lp_simplex_Options *options)
 {
 	unsigned char *is_basic;
 	int result = 0;
@@ -213,18 +211,17 @@ int simplex_run_pivots(
 	assert(table != NULL);
 	assert(basis != NULL);
 	assert(epoch != NULL);
-	if (criteria == NULL)
-		criteria = "";
-	use_dantzig = 7 == lp_simplex_strlen(criteria) &&
-		0 == lp_simplex_memcmp("dantzig", criteria, 7);
+	use_dantzig = options->pricing == lp_simplex_PRICING_DANTZIG;
 	is_basic = (unsigned char *)lp_simplex_malloc((size_t)n * sizeof(unsigned char));
 	if (is_basic == NULL)
 		return 4;
 
-	while (*epoch < niter) {
+	while (*epoch < options->iteration_limit) {
 		(*epoch)++;
 		switch (lp_simplex_pivot_on(table, ldtable, basis, is_basic,
-					   m, n, use_dantzig)) {
+					   m, n, use_dantzig,
+					   options->dual_tolerance,
+					   options->pivot_tolerance)) {
 		case 0:
 			break;
 		case 1:

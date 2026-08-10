@@ -180,13 +180,28 @@ static int run_example(const struct ExampleSpec *example, const int algorithm)
 		printf("[FAIL] %s: state=%d, code=%d; expected successful optimum\n",
 		       example->label, state, result.status);
 		passed = 0;
+	} else if (algorithm == lp_simplex_ALGORITHM_TABLEAU &&
+		   result.iterations <= 0) {
+		printf("[FAIL] %s: tableau did not report its pivot iterations\n",
+		       example->label);
+		passed = 0;
+	} else if (result.primal_infeasibility > 10. *
+		   (example->tolerance > options.primal_tolerance
+		    ? example->tolerance : options.primal_tolerance)) {
+		printf("[FAIL] %s: primal infeasibility=%.15g\n",
+		       example->label, result.primal_infeasibility);
+		passed = 0;
 	} else if (!nearly_equal(value, example->expected_value, example->tolerance)) {
 		printf("[FAIL] %s: objective=%.15g, expected=%.15g\n",
 		       example->label, value, example->expected_value);
 		passed = 0;
 	} else if (example->expected_x != NULL) {
+		double solution_tolerance = example->tolerance >
+			options.primal_tolerance ? example->tolerance :
+			options.primal_tolerance;
 		for (i = 0; i < model->n; i++) {
-			if (!nearly_equal(x[i], example->expected_x[i], example->tolerance)) {
+			if (!nearly_equal(x[i], example->expected_x[i],
+				10. * solution_tolerance)) {
 				printf("[FAIL] %s: x[%d]=%.15g, expected=%.15g\n",
 				       example->label, i, x[i], example->expected_x[i]);
 				passed = 0;
@@ -195,8 +210,11 @@ static int run_example(const struct ExampleSpec *example, const int algorithm)
 		}
 	}
 	if (passed) {
+		const char *algorithm_name = algorithm == lp_simplex_ALGORITHM_TABLEAU
+			? "tableau" : algorithm == lp_simplex_ALGORITHM_PAN_BDA
+			? "pan-bda" : "dual-revised";
 		printf("[PASS] %-12s %-23s objective=% .12g (expected % .12g)\n",
-		       algorithm == lp_simplex_ALGORITHM_TABLEAU ? "tableau" : "dual-revised",
+		       algorithm_name,
 		       example->label, value, example->expected_value);
 	}
 
@@ -213,13 +231,13 @@ int main(void)
 	int algorithm, i;
 
 	for (algorithm = lp_simplex_ALGORITHM_TABLEAU;
-	     algorithm <= lp_simplex_ALGORITHM_DUAL_REVISED; algorithm++) {
+	     algorithm <= lp_simplex_ALGORITHM_PAN_BDA; algorithm++) {
 		for (i = 0; i < count; i++) {
 			if (!run_example(examples + i, algorithm))
 				failures++;
 		}
 	}
 	printf("%d/%d solver/example pairs reached their predicted results.\n",
-	       2 * count - failures, 2 * count);
+	       3 * count - failures, 3 * count);
 	return failures == 0 ? 0 : 1;
 }

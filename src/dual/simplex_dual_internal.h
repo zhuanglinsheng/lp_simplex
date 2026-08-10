@@ -95,6 +95,9 @@ struct simplex_DualState {
 	double ratio_minimum;
 	int ratio_minimum_valid;
 	int pricing_validation_countdown;
+	/* A leaving row whose complete Harris set had no stable actual FTRAN
+	 * pivot is skipped once so Pan can move along another face direction. */
+	int pan_deferred_row;
 };
 
 #endif

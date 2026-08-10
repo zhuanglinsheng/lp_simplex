@@ -26,7 +26,7 @@
 #define NETLIB_REFERENCE_CSV "data/netlib/feasible_gurobi_1e-8.csv"
 #endif
 
-#define DEFAULT_ITERATION_LIMIT 100000
+#define DEFAULT_ITERATION_LIMIT 300000
 #define DEFAULT_TOLERANCE 1e-7
 #define PATH_BUFFER_SIZE 1024
 
@@ -50,8 +50,8 @@ static void print_usage(const char *program)
 {
 	printf("Usage: %s [options] MODEL.mps\n", program);
 	printf("\nOptions:\n");
-	printf("  --algorithm NAME      tableau (default) or dual-revised\n");
-	printf("  --criteria RULE       bland (default), dantzig, or pan97\n");
+	printf("  --algorithm NAME      dual-revised (default), pan-bda, or tableau\n");
+	printf("  --criteria RULE       dantzig (default), normalized (Pan), or bland\n");
 	printf("  --iterations N        total pivot limit (default: %d)\n",
 	       DEFAULT_ITERATION_LIMIT);
 	printf("  --no-presolve         bypass presolve for differential diagnostics\n");
@@ -101,8 +101,8 @@ static int parse_options(int argc, char **argv, struct Options *options)
 	int i;
 
 	options->mps_path = NULL;
-	options->criteria = "bland";
-	options->algorithm = lp_simplex_ALGORITHM_TABLEAU;
+	options->criteria = "dantzig";
+	options->algorithm = lp_simplex_ALGORITHM_DUAL_REVISED;
 	options->iteration_limit = DEFAULT_ITERATION_LIMIT;
 	options->presolve = 1;
 	options->tolerance = DEFAULT_TOLERANCE;
@@ -132,12 +132,16 @@ static int parse_options(int argc, char **argv, struct Options *options)
 				options->algorithm = lp_simplex_ALGORITHM_TABLEAU;
 			else if (strcmp(value, "dual-revised") == 0)
 				options->algorithm = lp_simplex_ALGORITHM_DUAL_REVISED;
+			else if (strcmp(value, "pan-bda") == 0)
+				options->algorithm = lp_simplex_ALGORITHM_PAN_BDA;
 			else
 				return 0;
 		} else if (strcmp(argument, "--criteria") == 0) {
 			value = option_value(argc, argv, &i);
 			if (value == NULL ||
-			    (strcmp(value, "bland") != 0 && strcmp(value, "dantzig") != 0 &&
+			    (strcmp(value, "bland") != 0 &&
+			     strcmp(value, "dantzig") != 0 &&
+			     strcmp(value, "normalized") != 0 &&
 			     strcmp(value, "pan97") != 0))
 				return 0;
 			options->criteria = value;
@@ -386,6 +390,9 @@ int main(int argc, char **argv)
 	if (options.algorithm == lp_simplex_ALGORITHM_TABLEAU)
 		solve_options.pricing = strcmp(options.criteria, "dantzig") == 0
 			? lp_simplex_PRICING_DANTZIG : lp_simplex_PRICING_BLAND;
+	else if (options.algorithm == lp_simplex_ALGORITHM_PAN_BDA)
+		solve_options.pricing = strcmp(options.criteria, "normalized") == 0
+			? lp_simplex_PRICING_PAN_NORMALIZED : lp_simplex_PRICING_DANTZIG;
 	state = lp_simplex_solve(model, &solve_options, x, &result);
 	objective = result.objective;
 	if (state == lp_simplex_EXIT_SUCCESS)
@@ -397,8 +404,14 @@ int main(int argc, char **argv)
 	printf("model:      %s\n", model_name);
 	printf("dimensions: %d constraints, %d variables\n", model->m, model->n);
 	printf("algorithm:  %s\n", options.algorithm == lp_simplex_ALGORITHM_TABLEAU
-	       ? "tableau" : "dual-revised");
-	printf("criteria:   %s\n", options.criteria);
+	       ? "tableau" : options.algorithm == lp_simplex_ALGORITHM_PAN_BDA
+	       ? "pan-bda" : "dual-revised");
+	printf("pricing:    %s\n",
+	       options.algorithm == lp_simplex_ALGORITHM_TABLEAU
+	       ? options.criteria : options.algorithm == lp_simplex_ALGORITHM_PAN_BDA
+	       ? (strcmp(options.criteria, "normalized") == 0
+		  ? "normalized-violation" : "dantzig-violation")
+	       : "dual-steepest-edge");
 	printf("result:     state=%d, code=%d (%s)\n",
 	       state, result.status, solver_code_name(result.status));
 	printf("iterations: %d\n", result.iterations);

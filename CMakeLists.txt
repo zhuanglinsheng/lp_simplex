@@ -8,6 +8,7 @@ project(lp_simplex LANGUAGES C)
 include(CTest)
 option(LP_SIMPLEX_BUILD_TOOLS "Build command-line diagnostic tools" ON)
 option(LP_SIMPLEX_USE_KLU "Use SuiteSparse KLU for sparse basis factorizations" ON)
+option(LP_SIMPLEX_USE_SPQR "Use CHOLMOD/SPQR sparse algebra for Pan/BDA" ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 90)
@@ -67,6 +68,8 @@ set(LP_SIMPLEX_PRIVATE_INCLUDE_DIRS
 	${PROJECT_SOURCE_DIR}/src/core
 	${PROJECT_SOURCE_DIR}/src/presolve
 	${PROJECT_SOURCE_DIR}/src/dual
+	${PROJECT_SOURCE_DIR}/src/degeneracy/pan
+	${PROJECT_SOURCE_DIR}/src/degeneracy/pan/linalg
 	${PROJECT_SOURCE_DIR}/src/basis
 	${PROJECT_SOURCE_DIR}/src/matrix
 	${PROJECT_SOURCE_DIR}/src/tableau
@@ -87,11 +90,18 @@ set(SOURCES
 	src/presolve/simplex_presolve_rules.c
 	src/presolve/simplex_presolve_substitution.c
 	src/dual/simplex_dual.c
+	src/dual/simplex_dual_bounds.c
 	src/dual/simplex_dual_state.c
 	src/dual/simplex_dual_feasibility.c
 	src/dual/simplex_dual_pricing.c
 	src/dual/simplex_singleton_dual.c
 	src/dual/simplex_degeneracy.c
+	src/degeneracy/pan/simplex_pan.c
+	src/degeneracy/pan/simplex_pan_basis.c
+	src/degeneracy/pan/simplex_pan_basis_spqr.c
+	src/degeneracy/pan/simplex_pan_phase1.c
+	src/degeneracy/pan/simplex_pan_standard.c
+	src/degeneracy/pan/linalg/pan_dynamic_sparse_qr.c
 	src/basis/simplex_basis.c
 	src/basis/simplex_sparse_lu.c
 	src/matrix/simplex_csc.c
@@ -116,11 +126,30 @@ target_include_directories(lp_simplex PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS}
 target_link_libraries(lp_simplex PRIVATE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 target_compile_definitions(lp_simplex PRIVATE USE_BLAS USE_LAPACK)
 
+if(LP_SIMPLEX_USE_SPQR)
+	find_path(SPQR_INCLUDE_DIR SuiteSparseQR_C.h PATH_SUFFIXES suitesparse)
+	find_library(SPQR_LIBRARY NAMES spqr)
+	find_library(CHOLMOD_LIBRARY NAMES cholmod)
+	find_library(SUITESPARSE_CONFIG_LIBRARY NAMES suitesparseconfig)
+	if(SPQR_INCLUDE_DIR AND SPQR_LIBRARY AND CHOLMOD_LIBRARY AND
+	   SUITESPARSE_CONFIG_LIBRARY)
+		target_include_directories(lp_simplex SYSTEM PRIVATE ${SPQR_INCLUDE_DIR})
+		target_link_libraries(lp_simplex PRIVATE ${SPQR_LIBRARY}
+			${CHOLMOD_LIBRARY} ${SUITESPARSE_CONFIG_LIBRARY})
+		target_compile_definitions(lp_simplex PRIVATE LP_SIMPLEX_HAVE_SPQR)
+		target_sources(lp_simplex PRIVATE
+			src/degeneracy/pan/linalg/pan_multifrontal_qr.c)
+		message(STATUS "Using CHOLMOD/SPQR sparse Pan/BDA basis backend")
+	else()
+		message(STATUS "SuiteSparseQR not found; using Pan dense fallback backend")
+	endif()
+endif()
+
 if(LP_SIMPLEX_USE_KLU)
 	find_path(KLU_INCLUDE_DIR klu.h PATH_SUFFIXES suitesparse)
 	find_library(KLU_LIBRARY NAMES klu)
 	if(KLU_INCLUDE_DIR AND KLU_LIBRARY)
-		target_include_directories(lp_simplex PRIVATE ${KLU_INCLUDE_DIR})
+		target_include_directories(lp_simplex SYSTEM PRIVATE ${KLU_INCLUDE_DIR})
 		target_link_libraries(lp_simplex PRIVATE ${KLU_LIBRARY})
 		target_compile_definitions(lp_simplex PRIVATE LP_SIMPLEX_HAVE_KLU)
 		message(STATUS "Using SuiteSparse KLU basis backend")

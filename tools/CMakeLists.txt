@@ -15,6 +15,11 @@ if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mp
 		COMMAND test_netlib --algorithm dual-revised
 			${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mps
 	)
+	add_test(
+		NAME netlib_afiro_pan_bda
+		COMMAND test_netlib --algorithm pan-bda
+			${PROJECT_SOURCE_DIR}/data/netlib/feasible/afiro.mps
+	)
 endif()
 
 if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/degen2.mps")

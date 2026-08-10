@@ -1,111 +1,8 @@
-/*
- * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
- * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
- *
- * Degeneracy detection and activation policy for Pan-style face pivots.
- */
+/* Event-driven Pan face-state controller. */
 #include "simplex_degeneracy.h"
 #include "utils.h"
 
-
-#define PAN_HISTORY_LENGTH 16
-#define PAN_HISTORY_MASK 0xffffU
-#define PAN_WINDOW_TRIGGER 15
-#define PAN_STREAK_TRIGGER 12
-#define PAN_EXIT_PROGRESS 1
-#define PAN_COOLDOWN 32
-
-
-void simplex_degeneracy_initialize(struct simplex_DegeneracyControl *control)
-{
-	lp_simplex_memset(control, 0, sizeof(*control));
-}
-
-
-static int simplex_degeneracy_history_count(unsigned int history)
-{
-	int count = 0;
-	while (history != 0U) {
-		count += (int)(history & 1U);
-		history >>= 1;
-	}
-	return count;
-}
-
-
-void simplex_degeneracy_observe(
-		struct simplex_DegeneracyControl *control,
-		const double dual_step, const double tolerance,
-		const int allow_reactivation)
-{
-	int degenerate = __lp_simplex_ABS__(dual_step) <= tolerance;
-	control->history = ((control->history << 1) |
-		(degenerate ? 1U : 0U)) & PAN_HISTORY_MASK;
-	if (control->history_count < PAN_HISTORY_LENGTH)
-		control->history_count++;
-	if (control->cooldown > 0)
-		control->cooldown--;
-	if (degenerate) {
-		control->consecutive++;
-		control->improving = 0;
-		control->degenerate_pivots++;
-	} else {
-		control->consecutive = 0;
-		control->improving++;
-	}
-	if (control->active) {
-		control->active_iterations++;
-		if (control->improving >= PAN_EXIT_PROGRESS) {
-			control->active = 0;
-			control->active_iterations = 0;
-			control->cooldown = PAN_COOLDOWN;
-		} else if (control->active_iterations >= 64) {
-			control->active = 0;
-			control->active_iterations = 0;
-			if (allow_reactivation)
-				control->cooldown = PAN_COOLDOWN;
-			else
-				control->suppressed = 1;
-		}
-		return;
-	}
-	if (control->cooldown == 0 &&
-	    !control->suppressed &&
-	    (control->consecutive >= PAN_STREAK_TRIGGER ||
-	     (control->history_count == PAN_HISTORY_LENGTH &&
-	      simplex_degeneracy_history_count(control->history) >=
-	      PAN_WINDOW_TRIGGER))) {
-		control->active = 1;
-		control->active_iterations = 0;
-		control->improving = 0;
-		control->activations++;
-	}
-}
-
-
-int simplex_degeneracy_should_probe(
-		const struct simplex_DegeneracyControl *control)
-{
-	return control->active && !control->suppressed;
-}
-
-
-int simplex_degeneracy_is_stressed(
-		const struct simplex_DegeneracyControl *control)
-{
-	/* Switch ratio policy before full Pan activation.  A half-degenerate
-	 * recent window is enough evidence that a wider Harris set can change the
-	 * face-walking trajectory more than it improves pivot stability. */
-	return control->active || control->consecutive >= 4 ||
-		(control->history_count == PAN_HISTORY_LENGTH &&
-		 simplex_degeneracy_history_count(control->history) >= 8);
-}
-
-
-void simplex_degeneracy_record_probe(struct simplex_DegeneracyControl *control)
-{
-	control->probes++;
-}
+#include <lp_simplex/status.h>
 
 
 static unsigned int simplex_degeneracy_mix(unsigned int value)
@@ -132,6 +29,172 @@ static unsigned int simplex_degeneracy_status_item(
 {
 	return simplex_degeneracy_mix((unsigned int)variable * 0xc2b2ae35U ^
 		(unsigned int)status + 0x27d4eb2fU);
+}
+
+
+static unsigned int simplex_degeneracy_pair_hash(
+		const unsigned int basis, const unsigned int status)
+{
+	return simplex_degeneracy_mix(basis ^
+		simplex_degeneracy_mix(status + 0x9e3779b9U));
+}
+
+
+static int simplex_degeneracy_table_reserve(
+		struct simplex_DegeneracyControl *control, const int capacity)
+{
+	unsigned int *basis;
+	unsigned int *status;
+	unsigned char *used;
+	int next = 16;
+	int i;
+	while (next < capacity)
+		next *= 2;
+	basis = (unsigned int *)lp_simplex_malloc(
+		(size_t)next * sizeof(unsigned int));
+	status = (unsigned int *)lp_simplex_malloc(
+		(size_t)next * sizeof(unsigned int));
+	used = (unsigned char *)lp_simplex_malloc((size_t)next);
+	if (basis == NULL || status == NULL || used == NULL) {
+		lp_simplex_free(basis);
+		lp_simplex_free(status);
+		lp_simplex_free(used);
+		return lp_simplex_EXIT_FAILURE;
+	}
+	lp_simplex_memset(used, 0, (size_t)next);
+	for (i = 0; i < control->fingerprint_capacity; i++)
+		if (control->fingerprint_used[i]) {
+			unsigned int hash = simplex_degeneracy_pair_hash(
+				control->fingerprint_basis[i],
+				control->fingerprint_status[i]);
+			int slot = (int)(hash & (unsigned int)(next - 1));
+			while (used[slot])
+				slot = (slot + 1) & (next - 1);
+			used[slot] = 1;
+			basis[slot] = control->fingerprint_basis[i];
+			status[slot] = control->fingerprint_status[i];
+		}
+	lp_simplex_free(control->fingerprint_basis);
+	lp_simplex_free(control->fingerprint_status);
+	lp_simplex_free(control->fingerprint_used);
+	control->fingerprint_basis = basis;
+	control->fingerprint_status = status;
+	control->fingerprint_used = used;
+	control->fingerprint_capacity = next;
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static void simplex_degeneracy_clear_face(
+		struct simplex_DegeneracyControl *control)
+{
+	control->fingerprint_count = 0;
+	if (control->fingerprint_used != NULL)
+		lp_simplex_memset(control->fingerprint_used, 0,
+			(size_t)control->fingerprint_capacity);
+}
+
+
+void simplex_degeneracy_initialize(struct simplex_DegeneracyControl *control)
+{
+	lp_simplex_memset(control, 0, sizeof(*control));
+}
+
+
+void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control)
+{
+	if (control == NULL)
+		return;
+	lp_simplex_free(control->fingerprint_basis);
+	lp_simplex_free(control->fingerprint_status);
+	lp_simplex_free(control->fingerprint_used);
+	lp_simplex_memset(control, 0, sizeof(*control));
+}
+
+
+void simplex_degeneracy_observe(
+		struct simplex_DegeneracyControl *control,
+		const double dual_step, const double dual_error_bound,
+		const double merit_before, const double merit_after,
+		const double merit_error_bound)
+{
+	int zero_objective = __lp_simplex_ABS__(dual_step) <= dual_error_bound;
+	int merit_improved = merit_after + merit_error_bound < merit_before;
+	if (zero_objective)
+		control->degenerate_pivots++;
+	if (zero_objective && !merit_improved) {
+		if (control->phase == SIMPLEX_PAN_NORMAL) {
+			control->phase = SIMPLEX_PAN_FACE;
+			control->activations++;
+			simplex_degeneracy_clear_face(control);
+		}
+		return;
+	}
+	control->phase = SIMPLEX_PAN_NORMAL;
+	control->recovery_pending = 0;
+	simplex_degeneracy_clear_face(control);
+}
+
+
+int simplex_degeneracy_should_probe(
+		const struct simplex_DegeneracyControl *control)
+{
+	return control->phase != SIMPLEX_PAN_NORMAL;
+}
+
+
+int simplex_degeneracy_is_stressed(
+		const struct simplex_DegeneracyControl *control)
+{
+	/* A newly detected flat face is not numerical stress: retain Harris'
+	 * stability envelope while Pan changes only the tie policy.  Widen the
+	 * candidate set only after an actual cycle or consistency failure. */
+	return control->phase == SIMPLEX_PAN_LEXICOGRAPHIC ||
+		control->recovery_pending;
+}
+
+
+int simplex_degeneracy_is_lexicographic(
+		const struct simplex_DegeneracyControl *control)
+{
+	return control->phase == SIMPLEX_PAN_LEXICOGRAPHIC;
+}
+
+
+void simplex_degeneracy_request_recovery(
+		struct simplex_DegeneracyControl *control)
+{
+	if (control->phase == SIMPLEX_PAN_NORMAL) {
+		control->phase = SIMPLEX_PAN_FACE;
+		control->activations++;
+	}
+	if (!control->recovery_pending) {
+		control->recovery_pending = 1;
+		control->recovery_requests++;
+	}
+}
+
+
+int simplex_degeneracy_take_recovery(
+		struct simplex_DegeneracyControl *control)
+{
+	if (!control->recovery_pending)
+		return 0;
+	control->recovery_pending = 0;
+	return 1;
+}
+
+
+void simplex_degeneracy_record_recovery(
+		struct simplex_DegeneracyControl *control)
+{
+	control->recoveries++;
+}
+
+
+void simplex_degeneracy_record_probe(struct simplex_DegeneracyControl *control)
+{
+	control->probes++;
 }
 
 
@@ -165,12 +228,10 @@ int simplex_degeneracy_record_state(
 		const int *basis, const int rows,
 		const unsigned char *status, const int variables)
 {
+	unsigned int hash;
+	int slot;
 	int i;
-	unsigned int basis_hash;
-	unsigned int status_hash;
 	if (!control->fingerprint_initialized) {
-		control->current_basis_hash = 0U;
-		control->current_status_hash = 0U;
 		for (i = 0; i < rows; i++)
 			control->current_basis_hash ^=
 				simplex_degeneracy_basis_item(i, basis[i]);
@@ -179,20 +240,32 @@ int simplex_degeneracy_record_state(
 				simplex_degeneracy_status_item(i, status[i]);
 		control->fingerprint_initialized = 1;
 	}
-	basis_hash = control->current_basis_hash;
-	status_hash = control->current_status_hash;
-	for (i = 0; i < control->fingerprint_count; i++) {
-		if (control->fingerprint_basis[i] == basis_hash &&
-		    control->fingerprint_status[i] == status_hash) {
-			control->active = 0;
-			control->suppressed = 1;
+	if (control->fingerprint_capacity == 0 ||
+	    (control->fingerprint_count + 1) * 2 >=
+	    control->fingerprint_capacity)
+		if (simplex_degeneracy_table_reserve(control,
+			control->fingerprint_capacity > 0 ?
+			2 * control->fingerprint_capacity : 16) ==
+		    lp_simplex_EXIT_FAILURE)
+			return 0;
+	hash = simplex_degeneracy_pair_hash(control->current_basis_hash,
+		control->current_status_hash);
+	slot = (int)(hash &
+		(unsigned int)(control->fingerprint_capacity - 1));
+	while (control->fingerprint_used[slot]) {
+		if (control->fingerprint_basis[slot] ==
+		    control->current_basis_hash &&
+		    control->fingerprint_status[slot] ==
+		    control->current_status_hash) {
+			control->phase = SIMPLEX_PAN_LEXICOGRAPHIC;
+			control->repeated_states++;
 			return 1;
 		}
+		slot = (slot + 1) & (control->fingerprint_capacity - 1);
 	}
-	control->fingerprint_basis[control->fingerprint_next] = basis_hash;
-	control->fingerprint_status[control->fingerprint_next] = status_hash;
-	control->fingerprint_next = (control->fingerprint_next + 1) & 63;
-	if (control->fingerprint_count < 64)
-		control->fingerprint_count++;
+	control->fingerprint_used[slot] = 1;
+	control->fingerprint_basis[slot] = control->current_basis_hash;
+	control->fingerprint_status[slot] = control->current_status_hash;
+	control->fingerprint_count++;
 	return 0;
 }

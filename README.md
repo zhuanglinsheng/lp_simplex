@@ -3,11 +3,14 @@ A simple implementation of the Simplex algorithm for linear programming in C
 
 The library solves continuous minimization problems with equality and
 inequality constraints, free variables, lower bounds, upper bounds, and
-two-sided bounds. It provides two independent simplex implementations:
+two-sided bounds. It provides three independent simplex implementations:
 
 - a two-phase tableau solver with Bland or Dantzig pricing;
 - a CSC dual revised simplex solver with logical row variables, dual
   steepest-edge pricing, Harris bound flipping, and product-form basis updates.
+- Pan's generalized simplex (Pan/BDA), with reliable NNLS Phase I, a
+  dynamically deficient basis, minimum-norm multipliers, and orthogonal
+  recovery/certification.
 
 It can read fixed-column MPS files, including ranged rows from the `RANGES`
 section.
@@ -18,6 +21,11 @@ BLAS and LAPACK development libraries are required.
 SuiteSparse KLU is optional and detected automatically; when available it is
 used for sparse basis reinversion. Otherwise the repository's sparse LU backend
 is used with the same FTRAN/BTRAN interface.
+SuiteSparse CHOLMOD and SuiteSparseQR are also detected for Pan/BDA. When both
+are available, Pan uses sparse normalized semi-normal equations with CHOLMOD
+and reserves SPQR for orthogonal recovery/certification; otherwise it builds
+the portable dense fallback. Use `-DLP_SIMPLEX_USE_SPQR=OFF` to test that
+fallback explicitly.
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
@@ -52,6 +60,11 @@ if (lp_simplex_solve(model, &options, x, &result) ==
 Select `lp_simplex_ALGORITHM_TABLEAU` to use the original solver. Its default
 pricing rule is Bland; set `options.pricing` to
 `lp_simplex_PRICING_DANTZIG` when desired.
+Select `lp_simplex_ALGORITHM_PAN_BDA` to run the full Pan/BDA path. It is an
+independent solver, not the Pan-inspired anti-stalling policy inside the dual
+revised implementation. Pan defaults to Dantzig violation pricing; set
+`options.pricing = lp_simplex_PRICING_PAN_NORMALIZED` for normalized violation
+pricing.
 Presolve is enabled by default; set `options.presolve = 0` for differential
 diagnostics or to solve the original model directly.
 
@@ -66,7 +79,9 @@ its current responsibilities:
 - `src/presolve/`: sparse reductions, activity and bound propagation,
   substitution, postsolve journaling, and solution reconstruction;
 - `src/dual/`: revised-simplex orchestration, feasibility, pricing,
-  degeneracy control, and structure-detected dualization;
+  Pan-inspired anti-stalling control, and structure-detected dualization;
+- `src/degeneracy/pan/`: full Pan/BDA standard-form conversion, NNLS Phase I,
+  dynamic deficient basis, minimum-norm pricing, and numerical certification;
 - `src/basis/`: the opaque basis-factorization boundary, sparse LU/KLU
   backends, FTRAN/BTRAN, product-form updates, and periodic reinversion;
 - `src/matrix/`: immutable CSC and sparse-vector primitives;
@@ -81,7 +96,8 @@ public API.
 
 See the [overall algorithm guide](./docs/algorithm.md) for the end-to-end
 flowcharts and the current presolve, dual revised simplex, basis-update,
-degeneracy-control, tableau, and postsolve behavior.
+degeneracy-control, tableau, and postsolve behavior. The full implementation is
+specified separately in the [Pan/BDA algorithm note](./docs/pan-bda.md).
 
 ## Examples
 
@@ -95,14 +111,17 @@ and pass an MPS path to `test_netlib`:
 
 ```sh
 ./build/tools/test_netlib data/netlib/feasible/afiro.mps
-./build/tools/test_netlib --algorithm dual-revised \
+./build/tools/test_netlib --algorithm tableau --criteria bland \
     data/netlib/feasible/afiro.mps
-./build/tools/test_netlib --criteria dantzig --iterations 200000 \
+./build/tools/test_netlib --algorithm pan-bda \
+    data/netlib/feasible/degen2.mps
+./build/tools/test_netlib --iterations 500000 \
     data/netlib/feasible/25fv47.mps
 ```
 
 For feasible Netlib models the tool automatically reads the reference objective
 and Gurobi solve time from the bundled CSV, then reports a timing ratio. Paths
-under `infeasible/` are automatically expected to be infeasible. Bland remains
-the conservative default; Dantzig pricing is faster on some models but may be
-less stable on degenerate instances.
+under `infeasible/` are automatically expected to be infeasible. The tool
+defaults to the dual revised solver with presolve, dual steepest-edge pricing,
+Pan-inspired anti-stalling control, and a 300000-pivot limit. The tableau solver remains
+available for differential diagnostics and defaults to Dantzig pricing.

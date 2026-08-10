@@ -21,6 +21,8 @@ struct simplex_DualFeasibility {
 	int *structural_slot;
 	int structural_count;
 	double *score;
+	double *merit;
+	double total_merit;
 	long rebuilds;
 	long incremental_updates;
 };
@@ -42,6 +44,10 @@ void simplex_dual_feasibility_update_packed(
 
 int simplex_dual_feasibility_choose(
 		struct simplex_DualState *state, double *target, int *kappa,
-		double *maximum, int prefer_structural);
+		double *maximum, int prefer_structural, int lexicographic,
+		int deferred_row);
+
+double simplex_dual_feasibility_merit(
+		const struct simplex_DualState *state);
 
 #endif

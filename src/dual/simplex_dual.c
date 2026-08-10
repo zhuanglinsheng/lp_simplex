@@ -4,6 +4,7 @@
  */
 /* Bounded dual revised simplex over an immutable CSC constraint matrix. */
 #include "simplex_dual.h"
+#include "simplex_dual_bounds.h"
 #include "simplex_dual_internal.h"
 #include "simplex_dual_pricing.h"
 #include "simplex_dual_state.h"
@@ -40,6 +41,7 @@ struct dual_Iteration {
 	double theta;
 	double delta;
 	double new_value;
+	double merit_before;
 };
 
 
@@ -78,113 +80,6 @@ static void dual_change_basis(
 	simplex_degeneracy_update_basis(&state->degeneracy, position,
 		state->basis[position], new_variable);
 	state->basis[position] = new_variable;
-}
-
-
-static void dual_set_column_bounds(
-		struct simplex_DualState *state, const struct simplex_Problem *problem)
-{
-	int i, j;
-	for (j = 0; j < problem->columns; j++) {
-		const struct optm_VariableBound *bound = problem->bounds + j;
-		state->lower[j] = __lp_simplex_NINF__;
-		state->upper[j] = __lp_simplex_INF__;
-		if (bound->b_type == optm_BOUND_T_LO || bound->b_type == optm_BOUND_T_BS)
-			state->lower[j] = bound->lb;
-		if (bound->b_type == optm_BOUND_T_UP || bound->b_type == optm_BOUND_T_BS)
-			state->upper[j] = bound->ub;
-		state->cost[j] = problem->objective[j];
-	}
-	for (i = 0; i < problem->rows; i++) {
-		int variable = problem->columns + i;
-		int type = problem->row_type[i];
-		state->lower[variable] = __lp_simplex_NINF__;
-		state->upper[variable] = __lp_simplex_INF__;
-		if (type == optm_CONS_T_EQ || type == optm_CONS_T_GE)
-			state->lower[variable] = problem->rhs[i];
-		if (type == optm_CONS_T_EQ || type == optm_CONS_T_LE)
-			state->upper[variable] = problem->rhs[i];
-		state->cost[variable] = 0.;
-	}
-}
-
-
-/* Tighten structural bounds by interval propagation over the original rows. */
-static void dual_propagate_bounds(
-		struct simplex_DualState *state, const struct simplex_Problem *problem)
-{
-	int pass, i, k;
-	for (pass = 0; pass < 8; pass++) {
-		int changed = 0;
-		for (i = 0; i < problem->rows; i++) {
-			int type = problem->row_type[i];
-			double rhs = problem->rhs[i];
-			double finite_minimum = 0., finite_maximum = 0.;
-			int minimum_infinite = 0, maximum_infinite = 0;
-			for (k = state->matrix.row_start[i];
-			     k < state->matrix.row_start[i + 1]; k++) {
-				int j = state->matrix.column_index[k];
-				double a = state->matrix.row_value[k];
-				if ((a > 0. && !dual_is_finite_lower(state->lower[j])) ||
-				    (a < 0. && !dual_is_finite_upper(state->upper[j])))
-					minimum_infinite++;
-				else
-					finite_minimum += a * (a > 0.
-						? state->lower[j] : state->upper[j]);
-				if ((a > 0. && !dual_is_finite_upper(state->upper[j])) ||
-				    (a < 0. && !dual_is_finite_lower(state->lower[j])))
-					maximum_infinite++;
-				else
-					finite_maximum += a * (a > 0.
-						? state->upper[j] : state->lower[j]);
-			}
-			for (k = state->matrix.row_start[i];
-			     k < state->matrix.row_start[i + 1]; k++) {
-				int j = state->matrix.column_index[k];
-				double a = state->matrix.row_value[k];
-				int own_minimum_infinite, own_maximum_infinite;
-				double own_minimum = 0., own_maximum = 0.;
-				own_minimum_infinite =
-					(a > 0. && !dual_is_finite_lower(state->lower[j])) ||
-					(a < 0. && !dual_is_finite_upper(state->upper[j]));
-				own_maximum_infinite =
-					(a > 0. && !dual_is_finite_upper(state->upper[j])) ||
-					(a < 0. && !dual_is_finite_lower(state->lower[j]));
-				if (!own_minimum_infinite)
-					own_minimum = a * (a > 0.
-						? state->lower[j] : state->upper[j]);
-				if (!own_maximum_infinite)
-					own_maximum = a * (a > 0.
-						? state->upper[j] : state->lower[j]);
-				if (type != optm_CONS_T_GE &&
-				    minimum_infinite - own_minimum_infinite == 0) {
-					double bound = (rhs -
-						(finite_minimum - own_minimum)) / a;
-					if (a > 0. && bound < state->upper[j]) {
-						state->upper[j] = bound;
-						changed = 1;
-					} else if (a < 0. && bound > state->lower[j]) {
-						state->lower[j] = bound;
-						changed = 1;
-					}
-				}
-				if (type != optm_CONS_T_LE &&
-				    maximum_infinite - own_maximum_infinite == 0) {
-					double bound = (rhs -
-						(finite_maximum - own_maximum)) / a;
-					if (a > 0. && bound > state->lower[j]) {
-						state->lower[j] = bound;
-						changed = 1;
-					} else if (a < 0. && bound < state->upper[j]) {
-						state->upper[j] = bound;
-						changed = 1;
-					}
-				}
-			}
-		}
-		if (!changed)
-			break;
-	}
 }
 
 
@@ -440,6 +335,12 @@ static int dual_reinvert(struct simplex_DualState *state)
 		return lp_simplex_EXIT_FAILURE;
 	state->reinversions++;
 	simplex_dual_feasibility_rebuild(state);
+	/* Recovery is an event consumed by the exact-state transaction, not by
+	 * individual callers.  This keeps every reinversion path consistent and
+	 * records recovery only after factor, primal, dual and heap state agree. */
+	if (state->pan_enabled &&
+	    simplex_degeneracy_take_recovery(&state->degeneracy))
+		simplex_degeneracy_record_recovery(&state->degeneracy);
 	return lp_simplex_EXIT_SUCCESS;
 }
 
@@ -628,22 +529,29 @@ static int dual_select_leaving(
 		int *terminal_repairs, struct dual_Iteration *iteration)
 {
 	int prefer_structural;
+	int lexicographic;
 	double dual_error;
 	prefer_structural = state->pan_enabled &&
 		simplex_degeneracy_should_probe(&state->degeneracy) &&
 		dual_pan_structure_enabled(state);
+	lexicographic = state->pan_enabled &&
+		simplex_degeneracy_is_lexicographic(&state->degeneracy);
+	iteration->merit_before = simplex_dual_feasibility_merit(state);
 	iteration->p = simplex_dual_feasibility_choose(state,
 		&iteration->target, &iteration->kappa,
-		&iteration->primal_infeasibility, prefer_structural);
+		&iteration->primal_infeasibility, prefer_structural,
+		lexicographic, state->pan_deferred_row);
 	if (iteration->p >= 0)
 		return DUAL_STEP_READY;
 	if (dual_reinvert(state) == lp_simplex_EXIT_FAILURE) {
 		*status = lp_simplex_Singularity;
 		return DUAL_STEP_FAILED;
 	}
+	iteration->merit_before = simplex_dual_feasibility_merit(state);
 	iteration->p = simplex_dual_feasibility_choose(state,
 		&iteration->target, &iteration->kappa,
-		&iteration->primal_infeasibility, prefer_structural);
+		&iteration->primal_infeasibility, prefer_structural,
+		lexicographic, state->pan_deferred_row);
 	if (iteration->p >= 0)
 		return DUAL_STEP_READY;
 	dual_error = dual_max_dual_infeasibility(state);
@@ -733,11 +641,28 @@ static int dual_handle_exhausted_ratio(
 		}
 		return DUAL_STEP_RESTART;
 	}
-	if (*rejected_relative > 0 && *relative_pivot_tolerance > 1e-14) {
-		*relative_pivot_tolerance *= 1e-4;
-		*rejected_relative = 0;
-		simplex_dual_prepare_ratio_test(state, iteration->kappa);
-		return DUAL_STEP_RETRY;
+	if (*rejected_relative > 0 && *relative_pivot_tolerance > 0.) {
+		/* Candidate exhaustion is direct evidence that the approximate ratio
+		 * row and the actual FTRAN pivots disagree.  Enter Pan face mode and
+		 * perform one exact-pivot pass; do not tune a tolerance repeatedly. */
+		if (state->pan_enabled)
+			simplex_degeneracy_request_recovery(&state->degeneracy);
+		if (simplex_basis_update_count(&state->factor) != 0) {
+			if (dual_reinvert(state) == lp_simplex_EXIT_FAILURE) {
+				*status = lp_simplex_PrecisionError;
+				return DUAL_STEP_FAILED;
+			}
+		}
+		/* Never accept an arbitrarily weak pivot.  Defer this leaving row
+		 * once and let the feasibility queue expose another direction on the
+		 * same face.  Returning to an already deferred row means no alternate
+		 * direction exists, so normal certification below must decide. */
+		if (state->pan_deferred_row != iteration->p) {
+			state->pan_deferred_row = iteration->p;
+			return DUAL_STEP_RESTART;
+		}
+		*status = lp_simplex_PrecisionError;
+		return DUAL_STEP_FAILED;
 	}
 	if (simplex_basis_update_count(&state->factor) != 0 &&
 	    dual_reinvert(state) == lp_simplex_EXIT_SUCCESS)
@@ -846,9 +771,12 @@ static int dual_build_entering_direction(
 		state->alpha[iteration->q]) >
 	    100. * state->options->pivot_tolerance *
 	    __lp_simplex_MAX__(1., __lp_simplex_ABS__(state->alpha[iteration->q]))) {
+		if (state->pan_enabled)
+			simplex_degeneracy_request_recovery(&state->degeneracy);
 		if (simplex_basis_update_count(&state->factor) != 0 &&
-		    dual_reinvert(state) == lp_simplex_EXIT_SUCCESS)
+		    dual_reinvert(state) == lp_simplex_EXIT_SUCCESS) {
 			return DUAL_STEP_RESTART;
+		}
 		*status = lp_simplex_PrecisionError;
 		return DUAL_STEP_FAILED;
 	}
@@ -1012,6 +940,7 @@ static int dual_commit_iteration(
 		const struct dual_Iteration *iteration)
 {
 	int compact_was_active, i, recomputed_dual = 0;
+	double pan_step, pan_error, pan_merit_error;
 	for (i = 0; i < state->packed_direction.count; i++) {
 		int row = state->packed_direction.index[i];
 		if (row != iteration->p)
@@ -1027,22 +956,37 @@ static int dual_commit_iteration(
 	simplex_dual_feasibility_update_packed(state, &state->packed_direction);
 	state->iterations++;
 	compact_was_active = simplex_basis_compact_active(&state->factor);
-	simplex_degeneracy_observe(&state->degeneracy,
-		iteration->theta * iteration->primal_infeasibility,
-		10. * state->options->dual_tolerance,
-		simplex_basis_compact_ever_active(&state->factor));
-	if (state->pan_enabled &&
-	    simplex_degeneracy_should_probe(&state->degeneracy))
-		simplex_basis_request_compact(&state->factor);
-	if (simplex_degeneracy_should_probe(&state->degeneracy))
-		simplex_degeneracy_record_state(&state->degeneracy,
-			state->basis, state->rows, state->status, state->variables);
 	if (dual_update_factorization(state, iteration->p, compact_was_active,
 		&recomputed_dual) == lp_simplex_EXIT_FAILURE) {
 		*status = lp_simplex_Singularity;
 		return lp_simplex_EXIT_FAILURE;
 	}
-	return dual_validate_recomputed_dual(state, status, recomputed_dual);
+	if (dual_validate_recomputed_dual(state, status, recomputed_dual) ==
+	    lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	state->pan_deferred_row = -1;
+	if (!state->pan_enabled)
+		return lp_simplex_EXIT_SUCCESS;
+	pan_step = iteration->theta * iteration->primal_infeasibility;
+	/* First-order error propagation for theta*v, using the solver's
+	 * feasibility tolerances rather than an activation-count threshold. */
+	pan_error = state->options->dual_tolerance *
+		iteration->primal_infeasibility +
+		state->options->primal_tolerance *
+		__lp_simplex_ABS__(iteration->theta) +
+		state->options->dual_tolerance *
+		state->options->primal_tolerance;
+	pan_merit_error = (double)state->rows *
+		state->options->primal_tolerance;
+	simplex_degeneracy_observe(&state->degeneracy, pan_step, pan_error,
+		iteration->merit_before,
+		simplex_dual_feasibility_merit(state), pan_merit_error);
+	if (simplex_degeneracy_should_probe(&state->degeneracy)) {
+		simplex_basis_request_compact(&state->factor);
+		simplex_degeneracy_record_state(&state->degeneracy,
+			state->basis, state->rows, state->status, state->variables);
+	}
+	return lp_simplex_EXIT_SUCCESS;
 }
 
 
@@ -1128,9 +1072,7 @@ int simplex_dual_solve_problem(
 		result->status = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
 	}
-	dual_set_column_bounds(&state, problem);
-	if (propagate_bounds)
-		dual_propagate_bounds(&state, problem);
+	simplex_dual_initialize_bounds(&state, problem, propagate_bounds);
 	dual_initialize_basis(&state, problem);
 	{
 		const char *stage = NULL;
@@ -1201,6 +1143,7 @@ int simplex_dual_solve_problem(
 			"dual profile: total=%.6f factor=%.6f/%ld ftran=%.6f/%ld "
 			"btran=%.6f/%ld ratio=%.6f residual=%.6f "
 			"pan_degenerate=%ld pan_activations=%ld pan_probes=%ld "
+			"pan_cycles=%ld pan_recovery=%ld/%ld "
 			"pan_rank=%d/%d factor_core=%d/%d compact=%ld[%d,%d] "
 			"eta_nnz=%ld/%ld cert=%ld/%ld refine=%ld/%ld "
 			"reject=%ld/%ld flips=%ld/%ld\n",
@@ -1219,7 +1162,11 @@ int simplex_dual_solve_problem(
 			state.profile.ratio_seconds,
 			state.degeneracy.degenerate_pivots,
 			state.degeneracy.activations,
-			state.degeneracy.probes, active_rank, state.rows,
+			state.degeneracy.probes,
+			state.degeneracy.repeated_states,
+			state.degeneracy.recoveries,
+			state.degeneracy.recovery_requests,
+			active_rank, state.rows,
 			basis_profile.factor_size, state.rows,
 			basis_profile.compact_calls,
 			basis_profile.compact_min,

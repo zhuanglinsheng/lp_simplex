@@ -21,6 +21,7 @@ struct simplex_Problem {
 	struct optm_VariableBound *bounds;
 	double *rhs;
 	unsigned char *row_type;
+	void *vector_storage;
 	int owns_vectors;
 };
 

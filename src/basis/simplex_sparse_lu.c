@@ -111,40 +111,36 @@ static int sparse_row_find_counted(
 
 int simplex_sparse_lu_create(struct simplex_SparseLu *factor, const int dimension)
 {
+	int *integer;
+	double *numeric;
 	lp_simplex_memset(factor, 0, sizeof(*factor));
 	factor->dimension = dimension;
-	factor->permutation = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	factor->column_permutation = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	factor->column_scale = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
-	factor->row_scale = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
-	factor->work_column = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	factor->pivot_row = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	factor->diagonal_position = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	factor->diagonal_value = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
-	factor->work_value = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
-	factor->solve_work = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
-	factor->packed_start = (int *)lp_simplex_malloc(
-		(size_t)(dimension + 1) * sizeof(int));
+	factor->integer_storage = (int *)lp_simplex_malloc(
+		((size_t)6 * dimension + 1) * sizeof(int));
+	factor->numeric_storage = (double *)lp_simplex_malloc(
+		(size_t)5 * dimension * sizeof(double));
+	integer = factor->integer_storage;
+	numeric = factor->numeric_storage;
+	if (integer != NULL) {
+		factor->permutation = integer;
+		factor->column_permutation = factor->permutation + dimension;
+		factor->work_column = factor->column_permutation + dimension;
+		factor->pivot_row = factor->work_column + dimension;
+		factor->diagonal_position = factor->pivot_row + dimension;
+		factor->packed_start = factor->diagonal_position + dimension;
+	}
+	if (numeric != NULL) {
+		factor->column_scale = numeric;
+		factor->row_scale = factor->column_scale + dimension;
+		factor->diagonal_value = factor->row_scale + dimension;
+		factor->work_value = factor->diagonal_value + dimension;
+		factor->solve_work = factor->work_value + dimension;
+	}
 	factor->row = (struct simplex_SparseRow *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(*factor->row));
 	factor->column_rows = (struct simplex_SparseColumnRows *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(*factor->column_rows));
-	if (factor->permutation == NULL || factor->column_permutation == NULL ||
-	    factor->column_scale == NULL || factor->row_scale == NULL ||
-	    factor->work_column == NULL || factor->pivot_row == NULL ||
-	    factor->diagonal_position == NULL || factor->diagonal_value == NULL ||
-	    factor->work_value == NULL || factor->solve_work == NULL ||
-	    factor->packed_start == NULL ||
+	if (factor->integer_storage == NULL || factor->numeric_storage == NULL ||
 	    factor->row == NULL || factor->column_rows == NULL) {
 		simplex_sparse_lu_destroy(factor);
 		return lp_simplex_EXIT_FAILURE;
@@ -172,17 +168,8 @@ void simplex_sparse_lu_destroy(struct simplex_SparseLu *factor)
 	}
 	lp_simplex_free(factor->row);
 	lp_simplex_free(factor->column_rows);
-	lp_simplex_free(factor->permutation);
-	lp_simplex_free(factor->column_permutation);
-	lp_simplex_free(factor->column_scale);
-	lp_simplex_free(factor->row_scale);
-	lp_simplex_free(factor->work_column);
-	lp_simplex_free(factor->pivot_row);
-	lp_simplex_free(factor->diagonal_position);
-	lp_simplex_free(factor->diagonal_value);
-	lp_simplex_free(factor->work_value);
-	lp_simplex_free(factor->solve_work);
-	lp_simplex_free(factor->packed_start);
+	lp_simplex_free(factor->integer_storage);
+	lp_simplex_free(factor->numeric_storage);
 	lp_simplex_free(factor->packed_column);
 	lp_simplex_free(factor->packed_value);
 	lp_simplex_memset(factor, 0, sizeof(*factor));

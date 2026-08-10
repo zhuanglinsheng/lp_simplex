@@ -3,6 +3,7 @@
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
 #include "simplex_dual.h"
+#include "simplex_pan.h"
 #include "simplex_presolve.h"
 #include "simplex_singleton_dual.h"
 #include "simplex_tableau_solver.h"
@@ -29,7 +30,8 @@ void lp_simplex_default_options(
 	options->algorithm = algorithm;
 	options->pricing = algorithm == lp_simplex_ALGORITHM_DUAL_REVISED
 		? lp_simplex_PRICING_DUAL_STEEPEST_EDGE
-		: lp_simplex_PRICING_BLAND;
+		: algorithm == lp_simplex_ALGORITHM_PAN_BDA
+		? lp_simplex_PRICING_DANTZIG : lp_simplex_PRICING_BLAND;
 	options->iteration_limit = SIMPLEX_DEFAULT_ITERATION_LIMIT;
 	options->presolve = 1;
 	options->primal_tolerance = SIMPLEX_DEFAULT_PRIMAL_TOLERANCE;
@@ -147,7 +149,57 @@ static int simplex_validate_options(const struct lp_simplex_Options *options)
 			options->pricing == lp_simplex_PRICING_DANTZIG;
 	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED)
 		return options->pricing == lp_simplex_PRICING_DUAL_STEEPEST_EDGE;
+	if (options->algorithm == lp_simplex_ALGORITHM_PAN_BDA)
+		return options->pricing == lp_simplex_PRICING_DANTZIG ||
+			options->pricing == lp_simplex_PRICING_PAN_NORMALIZED;
 	return 0;
+}
+
+
+static double simplex_primal_infeasibility(
+		const struct lp_Model *model, const double *x)
+{
+	double maximum = 0.;
+	int i, j, k;
+	for (j = 0; j < model->n; j++) {
+		double violation = 0.;
+		if (model->bounds == NULL) {
+			if (x[j] < 0.)
+				violation = -x[j];
+		} else {
+			int type = model->bounds[j].b_type;
+			if ((type == optm_BOUND_T_LO || type == optm_BOUND_T_BS) &&
+			    x[j] < model->bounds[j].lb)
+				violation = model->bounds[j].lb - x[j];
+			if ((type == optm_BOUND_T_UP || type == optm_BOUND_T_BS) &&
+			    x[j] > model->bounds[j].ub &&
+			    x[j] - model->bounds[j].ub > violation)
+				violation = x[j] - model->bounds[j].ub;
+		}
+		if (violation > maximum)
+			maximum = violation;
+	}
+	for (i = 0; i < model->m; i++) {
+		double activity = 0.;
+		double violation;
+		if (model->row_start != NULL) {
+			for (k = model->row_start[i]; k < model->row_start[i + 1]; k++)
+				activity += model->row_value[k] * x[model->column_index[k]];
+		} else {
+			for (j = 0; j < model->n; j++)
+				activity += model->constraints[i].coef[j] * x[j];
+		}
+		violation = activity - model->constraints[i].rhs;
+		if (model->constraints[i].type == optm_CONS_T_EQ)
+			violation = __lp_simplex_ABS__(violation);
+		else if (model->constraints[i].type == optm_CONS_T_GE)
+			violation = violation < 0. ? -violation : 0.;
+		else
+			violation = violation > 0. ? violation : 0.;
+		if (violation > maximum)
+			maximum = violation;
+	}
+	return maximum;
 }
 
 
@@ -167,7 +219,35 @@ static int simplex_solve_dual_raw(
 }
 
 
-static int simplex_solve_dual_presolved(
+static int simplex_solve_pan_raw(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result)
+{
+	struct simplex_Problem problem;
+	int state;
+	if (simplex_problem_from_model(&problem, model) == lp_simplex_EXIT_FAILURE) {
+		result->status = lp_simplex_MemoryAllocError;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	state = simplex_pan_solve_problem(&problem, options, x, result);
+	simplex_problem_destroy(&problem);
+	return state;
+}
+
+
+static int simplex_solve_sparse_raw(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		double *x, struct lp_simplex_Result *result)
+{
+	return options->algorithm == lp_simplex_ALGORITHM_PAN_BDA
+		? simplex_solve_pan_raw(model, options, x, result)
+		: simplex_solve_dual_raw(model, options, x, result);
+}
+
+
+static int simplex_solve_sparse_presolved(
 		const struct lp_Model *model,
 		const struct lp_simplex_Options *options,
 		double *x, struct lp_simplex_Result *result)
@@ -179,7 +259,7 @@ static int simplex_solve_dual_presolved(
 	int j, state;
 	if (!options->presolve || getenv("LP_SIMPLEX_DISABLE_PRESOLVE") != NULL ||
 	    model->bounds == NULL) {
-		state = simplex_solve_dual_raw(model, options, x, result);
+		state = simplex_solve_sparse_raw(model, options, x, result);
 		if (result->status == lp_simplex_Success)
 			result->objective += model->objective_offset;
 		return state;
@@ -207,8 +287,11 @@ static int simplex_solve_dual_presolved(
 		/* Presolve uses outward-rounded bounds for safe elimination.  The crash
 		 * phase then derives exact working bounds on the reduced matrix; these
 		 * bounds guide initialization but do not authorize more elimination. */
-		state = simplex_dual_solve_problem(
-			presolve.reduced, options, reduced_x, NULL, result, 1);
+		state = options->algorithm == lp_simplex_ALGORITHM_PAN_BDA
+			? simplex_pan_solve_problem(
+				presolve.reduced, options, reduced_x, result)
+			: simplex_dual_solve_problem(
+				presolve.reduced, options, reduced_x, NULL, result, 1);
 		simplex_presolve_postsolve(&presolve, reduced_x, x);
 	}
 	if (result->status == lp_simplex_Success) {
@@ -227,7 +310,6 @@ int lp_simplex_solve(
 		const struct lp_simplex_Options *options,
 		double *x, struct lp_simplex_Result *result)
 {
-	const char *criteria;
 	int state;
 	int status = lp_simplex_CondUnsatisfied;
 	double objective = 0.;
@@ -243,8 +325,13 @@ int lp_simplex_solve(
 	    !simplex_validate_options(options))
 		return lp_simplex_EXIT_FAILURE;
 
-	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED) {
-		return simplex_solve_dual_presolved(model, options, x, result);
+	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED ||
+	    options->algorithm == lp_simplex_ALGORITHM_PAN_BDA) {
+		state = simplex_solve_sparse_presolved(model, options, x, result);
+		if (result->status == lp_simplex_Success)
+			result->primal_infeasibility =
+				simplex_primal_infeasibility(model, x);
+		return state;
 	}
 	if (model->coefficients == NULL) {
 		struct lp_Model *dense = simplex_materialize_dense(model);
@@ -257,12 +344,12 @@ int lp_simplex_solve(
 		return state;
 	}
 
-	criteria = options->pricing == lp_simplex_PRICING_DANTZIG
-		? "dantzig" : "bland";
-	state = simplex_tableau_solve_model(model, criteria,
-					    options->iteration_limit,
-					    x, &objective, &status);
+	state = simplex_tableau_solve_model(
+		model, options, x, &objective, &status, &result->iterations);
 	result->status = status;
 	result->objective = objective + model->objective_offset;
+	if (status == lp_simplex_Success)
+		result->primal_infeasibility =
+			simplex_primal_infeasibility(model, x);
 	return state;
 }

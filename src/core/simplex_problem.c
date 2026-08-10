@@ -12,16 +12,18 @@
 static int simplex_problem_allocate_vectors(
 		struct simplex_Problem *problem, const int rows, const int columns)
 {
-	problem->objective = (double *)lp_simplex_malloc(
-		(size_t)columns * sizeof(double));
-	problem->bounds = (struct optm_VariableBound *)lp_simplex_malloc(
-		(size_t)columns * sizeof(*problem->bounds));
-	problem->rhs = (double *)lp_simplex_malloc((size_t)rows * sizeof(double));
-	problem->row_type = (unsigned char *)lp_simplex_malloc(
-		(size_t)rows * sizeof(unsigned char));
-	return problem->objective != NULL && problem->bounds != NULL &&
-		problem->rhs != NULL && problem->row_type != NULL
-		? lp_simplex_EXIT_SUCCESS : lp_simplex_EXIT_FAILURE;
+	size_t numeric_bytes = ((size_t)columns + (size_t)rows) * sizeof(double);
+	size_t bound_bytes = (size_t)columns * sizeof(*problem->bounds);
+	unsigned char *storage = (unsigned char *)lp_simplex_malloc(
+		numeric_bytes + bound_bytes + (size_t)rows);
+	if (storage == NULL)
+		return lp_simplex_EXIT_FAILURE;
+	problem->vector_storage = storage;
+	problem->objective = (double *)storage;
+	problem->rhs = problem->objective + columns;
+	problem->bounds = (struct optm_VariableBound *)(storage + numeric_bytes);
+	problem->row_type = storage + numeric_bytes + bound_bytes;
+	return lp_simplex_EXIT_SUCCESS;
 }
 
 
@@ -42,8 +44,16 @@ int simplex_problem_from_model(
 	}
 	lp_simplex_memcpy(problem->objective, model->objective,
 		(size_t)model->n * sizeof(double));
-	lp_simplex_memcpy(problem->bounds, model->bounds,
-		(size_t)model->n * sizeof(*problem->bounds));
+	if (model->bounds != NULL)
+		lp_simplex_memcpy(problem->bounds, model->bounds,
+			(size_t)model->n * sizeof(*problem->bounds));
+	else
+		for (i = 0; i < model->n; i++) {
+			problem->bounds[i].lb = 0.;
+			problem->bounds[i].ub = __lp_simplex_INF__;
+			problem->bounds[i].b_type = optm_BOUND_T_LO;
+			problem->bounds[i].v_type = optm_VAR_T_REAL;
+		}
 	for (i = 0; i < model->m; i++) {
 		problem->rhs[i] = model->constraints[i].rhs;
 		problem->row_type[i] =
@@ -105,10 +115,7 @@ void simplex_problem_destroy(struct simplex_Problem *problem)
 		return;
 	simplex_csc_destroy(&problem->matrix);
 	if (problem->owns_vectors) {
-		lp_simplex_free(problem->objective);
-		lp_simplex_free(problem->bounds);
-		lp_simplex_free(problem->rhs);
-		lp_simplex_free(problem->row_type);
+		lp_simplex_free(problem->vector_storage);
 	}
 	lp_simplex_memset(problem, 0, sizeof(*problem));
 }

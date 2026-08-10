@@ -5,6 +5,7 @@
 #ifndef LP_SIMPLEX_PIVOT_H
 #define LP_SIMPLEX_PIVOT_H
 
+#include <lp_simplex/solve.h>
 
 void simplex_apply_pivot(
 		double *table,
@@ -15,6 +16,6 @@ void simplex_apply_pivot(
 int simplex_run_pivots(
 		int *iteration, double *table, int ld, int *basis,
 		int m, int n, int real_columns,
-		const char *criteria, int iteration_limit);
+		const struct lp_simplex_Options *options);
 
 #endif

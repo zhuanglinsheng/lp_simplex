@@ -23,6 +23,8 @@ struct simplex_SparseColumnRows {
 
 struct simplex_SparseLu {
 	int dimension;
+	int *integer_storage;
+	double *numeric_storage;
 	int *permutation;
 	int *column_permutation;
 	double *column_scale;

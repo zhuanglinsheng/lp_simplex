@@ -11,14 +11,11 @@
 #include <lp_simplex/status.h>
 
 
-#define SIMPLEX_FEASIBILITY_TOLERANCE 1e-5
-
-
 static int simplex_run_phase_one(
 		double **table, int *ld, int **basis, int **constraint_types,
 		int *variable_count, int *iteration, int *status,
 		const struct optm_LinearConstraint *constraints,
-		int m, int n, const char *criteria, int iteration_limit)
+		int m, int n, const struct lp_simplex_Options *options)
 {
 	int rows, columns;
 	int slack_count, artificial_count;
@@ -46,12 +43,12 @@ static int simplex_run_phase_one(
 
 	switch (simplex_run_pivots(iteration, *table, *ld, *basis, m,
 				   *variable_count, n + slack_count,
-				   criteria, iteration_limit)) {
+				   options)) {
 	case 0:
 		*status = lp_simplex_ExceedIterLimit;
 		goto FAILURE;
 	case 1:
-		if ((*table)[columns - 1] > SIMPLEX_FEASIBILITY_TOLERANCE) {
+		if ((*table)[columns - 1] > options->primal_tolerance) {
 			*status = lp_simplex_Infeasibility;
 			goto FAILURE;
 		}
@@ -81,10 +78,10 @@ FAILURE:
 static int simplex_run_phase_two(
 		double *table, int ld, int *basis, int *constraint_types,
 		int *iteration, int *status, int m, int variable_count,
-		const char *criteria, int iteration_limit)
+		const struct lp_simplex_Options *options)
 {
 	switch (simplex_run_pivots(iteration, table, ld, basis, m, variable_count,
-				   variable_count, criteria, iteration_limit)) {
+				   variable_count, options)) {
 	case 0:
 		*status = lp_simplex_ExceedIterLimit;
 		break;
@@ -109,25 +106,23 @@ static int simplex_run_phase_two(
 int simplex_solve_standard(
 		const double *objective,
 		const struct optm_LinearConstraint *constraints,
-		int m, int n, const char *criteria, int iteration_limit,
-		double *x, double *value, int *status)
+		int m, int n, const struct lp_simplex_Options *options,
+		double *x, double *value, int *status, int *iterations)
 {
 	int i, j, k;
 	int ld, variable_count;
-	int iteration = 0;
 	int *basis = NULL;
 	double *table = NULL;
 	int *constraint_types = NULL;
 
-	if (status == NULL)
+	if (status == NULL || iterations == NULL)
 		return lp_simplex_EXIT_FAILURE;
+	*iterations = 0;
 	if (objective == NULL || constraints == NULL || x == NULL || value == NULL ||
-	    m <= 0 || n <= 0 || iteration_limit <= 0) {
+	    options == NULL || m <= 0 || n <= 0 || options->iteration_limit <= 0) {
 		*status = lp_simplex_CondUnsatisfied;
 		return lp_simplex_EXIT_FAILURE;
 	}
-	if (criteria == NULL)
-		criteria = "";
 	for (k = 0; k < m; k++) {
 		if (constraints[k].coef == NULL || constraints[k].type < optm_CONS_T_EQ ||
 		    constraints[k].type > optm_CONS_T_LE) {
@@ -136,8 +131,8 @@ int simplex_solve_standard(
 		}
 	}
 	if (simplex_run_phase_one(&table, &ld, &basis, &constraint_types,
-				  &variable_count, &iteration, status,
-				  constraints, m, n, criteria, iteration_limit) ==
+				  &variable_count, iterations, status,
+				  constraints, m, n, options) ==
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 
@@ -149,9 +144,9 @@ int simplex_solve_standard(
 		lp_simplex_linalg_daxpy(variable_count + 1, ratio,
 					table + row, 1, table, 1);
 	}
-	if (simplex_run_phase_two(table, ld, basis, constraint_types, &iteration,
-				  status, m, variable_count, criteria,
-				  iteration_limit) == lp_simplex_EXIT_FAILURE)
+	if (simplex_run_phase_two(table, ld, basis, constraint_types, iterations,
+				  status, m, variable_count, options) ==
+	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 
 	*value = table[variable_count];

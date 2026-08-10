@@ -15,13 +15,17 @@ extern "C" {
 
 enum lp_simplex_Algorithm {
 	lp_simplex_ALGORITHM_TABLEAU = 0,
-	lp_simplex_ALGORITHM_DUAL_REVISED = 1
+	lp_simplex_ALGORITHM_DUAL_REVISED = 1,
+	/** Pan's generalized simplex with a dynamically deficient basis. */
+	lp_simplex_ALGORITHM_PAN_BDA = 2
 };
 
 enum lp_simplex_Pricing {
 	lp_simplex_PRICING_BLAND = 0,
 	lp_simplex_PRICING_DANTZIG = 1,
-	lp_simplex_PRICING_DUAL_STEEPEST_EDGE = 2
+	lp_simplex_PRICING_DUAL_STEEPEST_EDGE = 2,
+	/** Euclidean-normalized violated-constraint selection for Pan/BDA. */
+	lp_simplex_PRICING_PAN_NORMALIZED = 3
 };
 
 struct lp_simplex_Options {

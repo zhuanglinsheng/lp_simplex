@@ -96,6 +96,7 @@ void simplex_dual_state_destroy(struct simplex_DualState *state)
 {
 	if (state == NULL)
 		return;
+	simplex_degeneracy_destroy(&state->degeneracy);
 	simplex_dual_feasibility_destroy(&state->feasibility);
 	simplex_basis_destroy(&state->factor);
 	simplex_csc_destroy(&state->matrix);
@@ -120,6 +121,7 @@ int simplex_dual_state_create(
 	state->structural = problem->columns;
 	state->variables = variables;
 	state->options = options;
+	state->pan_deferred_row = -1;
 	state->profile.enabled = getenv("LP_SIMPLEX_PROFILE") != NULL;
 	state->matrix = problem->matrix;
 	state->matrix.owns_storage = 0;

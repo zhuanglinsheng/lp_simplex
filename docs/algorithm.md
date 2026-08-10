@@ -1,8 +1,8 @@
 # lp_simplex 整体算法说明
 
 本文以当前代码为准，说明 `lp_simplex` 从公开模型、预处理到求解和解恢复的
-完整流程。仓库包含两套算法：默认面向稀疏问题的 dual revised simplex，以及
-用于对照和小模型的 two-phase tableau simplex。文中的“已实现”只指当前源码
+完整流程。仓库包含三套算法：默认面向稀疏问题的 dual revised simplex、完整
+的 Pan/BDA 动态亏基算法，以及用于对照和小模型的 two-phase tableau simplex。文中的“已实现”只指当前源码
 实际执行的逻辑，不包含规划中的 partial pricing、Forrest–Tomlin update、通用
 scaling 或完整证书导出。
 
@@ -42,7 +42,7 @@ flowchart TD
     T5 -- "是" --> T6["Phase II：Bland 或 Dantzig pivot"]
     T6 --> T7["恢复原变量并计算目标值"]
 
-    C -- "DUAL_REVISED" --> D1{"启用 presolve 且模型有变量界？"}
+    C -- "DUAL_REVISED / PAN_BDA" --> D1{"启用 presolve 且模型有变量界？"}
     D1 -- "否" --> D2{"稠密模型满足 singleton-dual 结构？"}
     D2 -- "是" --> D3["结构特化的 singleton dual 求解"]
     D2 -- "否" --> D4["构造 immutable simplex_Problem"]
@@ -52,7 +52,7 @@ flowchart TD
     P2 --> P3["Presolve 第二阶段：singleton / doubleton substitution"]
     P3 --> P4{"Presolve 已判定终态？"}
     P4 -- "是" --> P8["直接 postsolve"]
-    P4 -- "否" --> D5["对 reduced problem 运行 dual revised simplex"]
+    P4 -- "否" --> D5["按选项运行 dual revised 或 Pan/BDA"]
     D3 --> R1["写入 result"]
     D4 --> D5
     D5 --> P6["按 journal 逆序 postsolve"]
@@ -150,7 +150,8 @@ Dual 内核维护基本映射、变量状态、原始值、reduced cost、DSE �
 可行性堆、非基活动集以及 basis factor。初始化顺序是：
 
 1. 将结构变量界和逻辑行变量界装入连续工作区；
-2. 最多进行八轮精确工作界传播；Presolve 的 outward-rounded 界用于安全
+2. 把所有行加入边界传播事件队列；变量界改变后只重新调度包含该变量的行，
+   并以 `8m` 次行处理作为确定性预算。Presolve 的 outward-rounded 界用于安全
    reduction，这一步只指导 crash 和初始状态，不再做消元；
 3. 根据目标系数为结构变量选择 `LOWER / UPPER / FIXED / FREE` 状态；
 4. 以所有逻辑列构造初始基并分解；
@@ -211,27 +212,34 @@ flowchart TD
     G --> H["Hypersparse CSR 或 nonbasic CSC pricing"]
     H --> I["生成 Harris ratio candidates"]
     I --> J{"有 candidate？"}
-    J -- "否" --> K["检查 nonbasic index、reinvert、证书尺度"]
-    K --> L{"仍无合法方向？"}
-    L -- "是" --> XI["返回 Infeasibility"]
-    L -- "否" --> A
+    J -- "否" --> K["检查 nonbasic index、实际 FTRAN 拒绝和证书尺度"]
+    K --> L{"存在数值不一致？"}
+    L -- "是" --> KR["请求恢复；reinvert 或暂缓该 leaving row"]
+    KR --> A
+    L -- "否" --> XI["返回 Infeasibility"]
 
     J -- "是" --> M["选择 q；必要时执行或累计 bound flip"]
     M --> N{"需要继续 flip？"}
     N -- "是" --> I
     N -- "否" --> O["FTRAN：B d = a_q；同时计算 DSE work"]
     O --> P{"pivot 足够大且 d_p 与 alpha_q 一致？"}
-    P -- "否" --> Q{"仍有候选或可放宽相对阈值？"}
+    P -- "否" --> Q{"仍有满足固定主元条件的候选？"}
     Q -- "是" --> I
-    Q -- "否：flush flips / reinvert" --> A
+    Q -- "否：flush flips / 恢复事件" --> A
     P -- "是" --> R["更新 primal / dual / reduced costs"]
     R --> S["原子交换 basis、position、status"]
     S --> U["用 packed direction 更新 heap、DSE 和 eta"]
     U --> V{"需要 reinversion 或 compact factor？"}
     V -- "是" --> W["重分解并重建派生状态"]
-    V -- "否" --> Y["记录退化状态"]
+    V -- "否" --> Y["提交后观察目标与全局可行性 merit"]
     W --> Y
-    Y --> A
+    Y --> T{"进入零进展 face？"}
+    T -- "是" --> U1["记录 basis/status 指纹；按结构选择"]
+    T -- "重复状态" --> U2["升级为词典序 Pan"]
+    T -- "取得严格进展" --> U3["退出 face，清空本 face 指纹"]
+    U1 --> A
+    U2 --> A
+    U3 --> A
 ```
 
 ### 7.1 Leaving row：dual steepest edge
@@ -329,22 +337,50 @@ Reinversion 的主要触发条件是：
 Reinversion 是一个整体事务：重新 factorize 后，同时重算 primal values、
 \(\pi\)、reduced costs 和可行性 heap，防止 factor 与派生状态描述不同的基。
 
-## 9. 退化控制与 compact basis
+## 9. 两种不同的 Pan 机制
 
-每次成功 pivot 后，控制器观察
+### 9.1 Dual revised 中的 Pan-inspired anti-stalling
+
+这一路径使用事件驱动状态机，而不是“连续若干次退化”一类经验窗口。每次
+成功 pivot 并完成 factor update/reinversion 后，控制器同时观察
 
 \[
-|\theta v_p|.
+\Delta_d=|\theta v_p|,
+\qquad
+M(x_B)=\sum_i \operatorname{dist}(x_{B_i},[l_{B_i},u_{B_i}]).
 \]
 
-连续 12 次近零进展，或最近 16 次中至少 15 次退化，会激活 bounded-deficiency
-Pan mode。它只改变近零 Harris 同率候选的确定性顺序，不改变实际 ratio、
-FTRAN/BTRAN 或可行性条件。取得非退化进展后退出并进入 cooldown。
+`NORMAL -> FACE` 的充分条件是：对偶目标进展不超过由 primal/dual
+feasibility tolerance 推导的一阶误差界，并且全局原始不可行性 merit 也没有
+超过累计舍入界的严格下降。只满足“目标零步长”并不足以触发，因为退化 pivot
+仍可能在改善全局可行性。反之，实际 FTRAN 主元与 BTRAN/定价行不一致、或所有
+候选在固定的绝对/相对主元安全条件下被拒绝，是独立的数值恢复事件，也会进入
+`FACE` 并请求完整 reinversion。
 
-控制器还维护 basis/status 的增量指纹；最近状态重复时停止本次 Pan 探索，
-但不会据此判断最优或不可行。
+`FACE` 初次出现时仍保留 Harris 两遍比值检验；检测 face 本身不等于数值不稳。
+只有如下事件会改变调用路径：
 
-对于至少 4096 行、且结构基本列不超过总行数三分之一的问题，Pan 可以请求
+- 存在可利用的逻辑列/结构列块时，leaving queue 和同一 Harris 安全窗口内的
+  entering 选择采用结构保持顺序，并请求 compact factor；
+- 当前 face 上重复出现相同的 basis/status 状态时，升级到
+  `LEXICOGRAPHIC`，leaving 与 entering 都改用稳定变量编号顺序，同时切换到精确
+  最小 ratio 候选集；
+- 定价行与实际 FTRAN 不一致时发出一次可合并的 recovery event；任意成功的
+  reinversion 事务在 factor、primal、dual 和 feasibility heap 全部重建后统一
+  消费该事件；
+- 候选因主元安全性耗尽时绝不降低 pivot tolerance，而是 reinvert，并把当前
+  leaving row 暂缓一次以暴露同一 face 上的另一方向；再次回到同一坏方向则返回
+  `PrecisionError`，不把弱主元伪装成合法 pivot。
+
+取得严格目标进展，或全局 merit 出现可认证下降时，状态立即回到 `NORMAL`，并
+清除仅属于当前 face 的状态集合。这里没有次数阈值、滑动窗口、cooldown 或逐步
+放宽容差。
+
+Basis/status 指纹在 pivot 交换时以 O(1) 增量更新；当前 face 的状态集合使用可
+增长的开放寻址表，不再受固定历史长度限制。指纹重复只负责升级防循环顺序，
+不会据此判断最优或不可行。
+
+对于至少 4096 行、且结构基本列不超过总行数三分之一的问题，该控制器可以请求
 compact factor。若逻辑基列对应行为 \(D\)，其余行为 \(R\)，结构基列为
 \(S\)，基可写成
 
@@ -355,6 +391,21 @@ B=\begin{bmatrix}A_{R,S}&0\\A_{D,S}&-I\end{bmatrix}.
 因此只需分解 \(K=A_{R,S}\)。恢复出的完整 FTRAN/BTRAN 结果仍用原基做残差
 检查，必要时最多执行两次迭代精化。这是逻辑列产生的精确块消元，不是对原
 LP 的近似。
+
+### 9.2 独立的完整 Pan/BDA 求解器
+
+`lp_simplex_ALGORITHM_PAN_BDA` 走独立路径。它将模型稀疏转换为
+\(Az=c,z\ge0\)，用 active-set NNLS 完成可靠 Phase I，并在 Phase II 维护列数
+\(k\le m\) 且列线性无关的动态基 \(B\)。每轮由
+\(B^Tx=-c_B\) 的最小范数解定价；违反列不属于 \(\mathcal R(B)\) 时直接扩基，
+属于该空间时执行最小比值交换，并允许多个零比值列同时离基，从而真实地产生
+亏基。正交 QR 用于秩恢复和最终可行性认证，而不是把普通方基补齐。
+
+完整 Pan/BDA 目前只在用户明确选择 `lp_simplex_ALGORITHM_PAN_BDA` 时从 Phase I
+启动；dual-revised 的中间基没有被隐式转换成 Pan 的活动基，因为两者的可行性
+不变量和 warm-start 状态不同。公式、伪代码、数值策略、模块映射和实测数据见
+[Pan/BDA 算法说明](./pan-bda.md)。这一路径与上面的 anti-stalling mode 不应
+混为一谈。
 
 ## 10. 终止状态与结果
 
@@ -386,6 +437,13 @@ Tableau solver 是独立实现，不共享 dual basis factor。它先把自由�
 3. Phase II 使用 Bland 或 Dantzig entering rule；
 4. 恢复变换前变量并加回 objective offset。
 
+Tableau 与 dual-revised 共享公开选项和最终结果层：Phase I 使用
+`primal_tolerance`，entering/optimality 使用 `dual_tolerance`，主元和 ratio
+筛选使用 `pivot_tolerance`；两阶段累计迭代数回填到 `result.iterations`。成功
+恢复原变量后，统一在原模型上重算变量界与行约束的最大 primal
+infeasibility。Tableau 当前不构造可公开验证的对偶向量，因此
+`dual_infeasibility` 仍只对 dual-revised 路径有算法意义。
+
 稀疏输入选择 tableau 时会先物化临时稠密矩阵，因此它适合教学、差分验证和
 小模型，不是大规模稀疏问题的默认路径。
 
@@ -395,22 +453,25 @@ Tableau solver 是独立实现，不共享 dual basis factor。它先把自由�
 |---|---|
 | `src/core/` | 公开模型、MPS、输入验证、算法分派和 immutable problem |
 | `src/presolve/` | 活动集规则、行活动、队列、substitution、journal、postsolve |
-| `src/dual/` | dual 生命周期、主循环、pricing、可行性 heap、退化控制 |
+| `src/dual/` | dual 生命周期、主循环、pricing、可行性 heap、Pan-inspired anti-stalling |
+| `src/degeneracy/pan/` | 完整 Pan/BDA：标准型、NNLS Phase I、动态亏基、最小范数定价与认证 |
 | `src/basis/` | KLU / sparse-LU、compact factor、FTRAN/BTRAN、eta、reinversion |
 | `src/matrix/` | immutable CSC/CSR 列操作和 packed sparse vector |
 | `src/tableau/` | 标准型变换、两阶段 tableau、pivot 和变量恢复 |
 | `src/common/` | 私有 BLAS 包装、内存和少量通用支持函数 |
 
 所有权遵循“少数 owner、热路径 typed alias”的原则。Dual、pricing、
-feasibility、basis scratch 和 sparse vector 的同生命周期数组按类型连续分配；
-destroy 只释放 owner。Presolve 的 phase workspace 在阶段结束时销毁，只有
-reduced problem、映射和 journal 跨阶段保留。
+feasibility、basis scratch、canonical problem vectors 和 internal sparse-LU
+workspace 的同生命周期数组连续分配；destroy 只释放 owner。Presolve 的
+phase workspace 在阶段结束时销毁，只有 reduced problem、映射和 journal
+跨阶段保留。
 
 ## 13. 诊断与验证
 
 设置 `LP_SIMPLEX_PROFILE=1` 会输出 presolve 各规则耗时，以及 dual 的 factor、
-FTRAN、BTRAN、ratio、bound flip、Pan 和 compact-factor 统计。设置
-`LP_SIMPLEX_DISABLE_PAN=1` 可关闭退化控制；`options.presolve = 0` 或
+FTRAN、BTRAN、ratio、bound flip、anti-stalling 和 compact-factor 统计；选择
+Pan/BDA 时则输出迭代、最终亏基秩、分解和精化次数。设置
+`LP_SIMPLEX_DISABLE_PAN=1` 可关闭 dual-revised 的 anti-stalling 控制（不影响独立 Pan/BDA）；`options.presolve = 0` 或
 `LP_SIMPLEX_DISABLE_PRESOLVE` 可关闭 presolve，用于差分诊断。
 
 代码变更至少应验证：
