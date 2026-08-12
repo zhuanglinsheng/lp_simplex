@@ -26,6 +26,33 @@ Harris 同率排序的 Pan-inspired anti-stalling 策略。
 其中 \(b=-d\)。维护的活动列集 \(B\) 始终线性无关，但列数
 \(k=|B|\) 只要求 \(k\le m\)，不要求是传统的 \(m\) 阶方基。
 
+### 1.1 标准形变换的逐项定义
+
+设原变量为 \(x_j\)，变换后的非负变量为 \(z\)。当前实现逐列采用
+
+\[
+\begin{array}{c|c|c}
+\text{原变量的界} & \text{代换} & \text{附加约束}\\ \hline
+x_j\ \text{自由} & x_j=z_j^+-z_j^- & z_j^+,z_j^-\ge0\\
+x_j\ge l_j & x_j=l_j+z_j & z_j\ge0\\
+x_j\le u_j & x_j=u_j-z_j & z_j\ge0\\
+l_j\le x_j\le u_j & x_j=l_j+z_j & z_j+s_j=u_j-l_j\\
+x_j=l_j=u_j & x_j=l_j & \text{删除该列}
+\end{array}
+\]
+
+其中 \(s_j\ge0\)。对原行 \(a_i^Tx\le b_i\) 加入系数为 \(+1\) 的
+slack，对 \(a_i^Tx\ge b_i\) 加入系数为 \(-1\) 的 slack；等式行不加
+slack。所有平移同时作用于右端项与目标常数。因而恢复映射具有统一形式
+
+\[
+  x_j=\sigma_j+\sum_{q:\,\iota(q)=j}\tau_qz_q,
+  \qquad \tau_q\in\{-1,1\},
+\]
+
+其中固定变量只保留 \(\sigma_j\)。该表达式也是
+`simplex_pan_standard_recover` 的直接数学对应。
+
 ## 2. Phase I：可靠可行亏基
 
 Phase I 求解非负最小二乘
@@ -36,7 +63,8 @@ Phase I 求解非负最小二乘
 
 实现采用 Lawson--Hanson active-set NNLS：以残差 \(r=c-Ay\) 为梯度，选择
 归一化相关性 \(a_j^Tr/\|a_j\|_2\) 最大的列进入 passive set；只有通过
-Cholesky 秩检验的列才能进入。无约束最小二乘解若含非正分量，就沿当前可行解
+当前线性代数后端秩检验的列才能进入。无约束最小二乘解若含非正分量，就沿
+当前可行解
 到该解的线段前进，所有先触及零的列同时删除。于是 Phase I 结束时直接得到
 
 \[
@@ -46,6 +74,16 @@ Cholesky 秩检验的列才能进入。无约束最小二乘解若含非正分�
 若 NNLS 的 KKT entering 条件已经满足而残差仍超出
 `primal_tolerance * (1 + ||c||)`，返回 `Infeasibility`；Phase I 和 Phase II
 共享同一个迭代预算。
+
+Phase I 结束时的活动集合记为 \(J_B\)，相应矩阵记为 \(B=A_{J_B}\)。其向
+Phase II 交付的不是传统方基，而是如下三个不变量：
+
+\[
+  B\text{ 满列秩},\qquad y_B\ge0,\qquad By_B=c.
+\]
+
+非活动分量恒取零。因此 \(y\) 已是标准形的原始可行点，Phase II 无须再引入
+人工变量或执行可行性修复。
 
 ## 3. Phase II：Pan 动态亏基主循环
 
@@ -83,6 +121,90 @@ Cholesky 秩检验的列才能进入。无约束最小二乘解若含非正分�
 
 扩基、单列交换和多列同时删除都是普通路径，而不是停滞达到阈值后才启用的
 补丁。这正是 Pan 动态亏基的核心。
+
+### 3.1 最优性条件
+
+令当前活动集为 \(J_B\)，非活动集为 \(J_N\)。由于 \(B\) 满列秩，方程
+
+\[
+  B^Tx=b_B
+\]
+
+总有解；当 \(k<m\) 时解通常不唯一，实现选取唯一的最小二范数解
+
+\[
+  x^*=\mathop{\arg\min}_x\{\|x\|_2:B^Tx=b_B\}.
+\]
+
+记 \(v_j=b_j-a_j^Tx^*\)。活动列满足 \(v_j=0\)。若所有非活动列满足
+\(v_j\le\epsilon_d\)，则 \(A^Tx^*\ge b\)，故 \(x^*\) 对互补不等式问题
+可行；又因 \(y_N=0\) 且 \(B^Tx^*=b_B\)，有
+
+\[
+  c^Tx^*=(By_B)^Tx^*=y_B^TB^Tx^*=b_B^Ty_B=b^Ty.
+\]
+
+弱对偶性遂给出当前 \(y\) 的最优性。这说明实现中的“无违反列”并非经验停止
+条件，而是上述原始—对偶等值条件的容差版本。
+
+### 3.2 单次迭代的形式化描述
+
+```text
+输入：满列秩 B=A[J_B]，By_B=c，y_B>=0
+求 x = argmin ||x||_2  s.t. B^T x=b_B
+选择 p in J_N，使 v_p=b_p-a_p^T x>epsilon_d 最大
+若不存在 p：返回最优
+求 delta = argmin_delta ||B delta-a_p||_2
+若 ||B delta-a_p||_2 > epsilon_p(1+||a_p||_2)：
+    J_B <- J_B union {p}，y_p<-0                 （扩基）
+否则若 delta_i<=epsilon_p 对所有 i：
+    返回无界
+否则：
+    theta <- min{y_i/delta_i: delta_i>epsilon_p}
+    Q <- {i: y_i/delta_i 与 theta 在同率容差内}
+    y_B <- y_B-theta delta，y_p<-theta
+    J_B <- (J_B \ Q) union {p}                  （交换或降基）
+```
+
+这里 \(\epsilon_d\) 为 `dual_tolerance`，\(\epsilon_p\) 为
+`pivot_tolerance`；更新后的负分量另由 `primal_tolerance` 检查。若投影把列
+误判为独立而增广分解失败，实现撤销该扩基并转入相关列交换路径。每次成功扩基
+或交换计为一次迭代；Phase I 与 Phase II 的计数之和写入
+`result.iterations`。
+
+### 3.3 不变量保持与亏基形成
+
+扩基情形令新分量为零，故 \(By_B=c\) 与非负性不变；投影残差检验保证新列不在
+原列空间内，所以新基仍满列秩。相关列情形满足 \(a_p=B\delta\)，于是
+
+\[
+  B(y_B-\theta\delta)+a_p\theta=By_B=c.
+\]
+
+最小比值检验保证 \(y_B-\theta\delta\ge0\)。同时删除全部达到最小比值的
+零分量后，新活动列仍表示同一可行点；普通单列同率给出传统交换，若
+\(|Q|>1\)，则活动列数由 \(k\) 变为 \(k-|Q|+1<k\)。因此亏基是由退化
+同率的代数结构直接产生，而非事后删除近零列。
+
+### 3.4 无界方向
+
+当 \(a_p=B\delta\) 且所有 \(\delta_i\le0\) 时，对任意 \(\theta\ge0\)，
+
+\[
+  y_p(\theta)=\theta,\qquad
+  y_B(\theta)=y_B-\theta\delta\ge0,qquad
+  Ay(\theta)=c.
+\]
+
+沿此射线的目标斜率为
+
+\[
+  b_p-b_B^T\delta
+  =b_p-(B^Tx^*)^T\delta
+  =b_p-a_p^Tx^*=v_p>0,
+\]
+
+故标准形最大化问题无界；对应公开最小化问题返回 `Unboundedness`。
 
 ## 4. Multifrontal Householder 锚点与动态正交更新
 
@@ -135,7 +257,25 @@ SuiteSparse 不可用时，构建系统保留原来的归一化稠密 Gram/LAPAC
 `-DLP_SIMPLEX_USE_SPQR=OFF` 可显式测试该路径。动态 QR 普通更新不调用 CHOLMOD；
 SuiteSparseQR 仍作为最终独立认证与恢复后端。
 
-## 5. 代码结构与使用
+## 5. 终止状态与数值语义
+
+Pan/BDA 路径的主要终止状态为：
+
+- `Success`：所有非活动列通过对偶违反检查，且最终原标准形残差与非负性认证
+  通过；
+- `Infeasibility`：Phase I 的 NNLS KKT 条件成立，但残差仍超过尺度化原始容差；
+- `Unboundedness`：遇到零列违反，或相关进入列给出上述非负无界方向；
+- `ExceedIterLimit`：两阶段累计迭代达到 `iteration_limit`；
+- `PrecisionError`：最小范数方程、投影、动态更新或最终 QR 恢复无法通过残差
+  检查；
+- `MemoryAllocError`：工作区或因子对象分配失败。
+
+公开结果中的 `dual_infeasibility` 是最后一次定价扫描所得的最大正违反
+\(\max_{j\in J_N}(b_j-a_j^Tx)_+\)。成功返回后，框架还会在恢复出的原变量
+空间重算目标和原始不可行度。当前 API 不导出无界射线或不可行证书，因此上述
+状态是求解器结论，而不是可由调用者独立复核的证书对象。
+
+## 6. 代码结构与使用
 
 | 文件 | 职责 |
 |---|---|
@@ -176,7 +316,7 @@ options.pricing = lp_simplex_PRICING_PAN_NORMALIZED;
 `rank/rows`、后端名称、总分解次数、Phase I 的迭代/分解拆分、bordered extension、
 downdate、Givens 旋转、增量符号更新和迭代精化次数。
 
-## 6. 当前版本的验证与效率快照
+## 7. 当前版本的验证与效率快照
 
 下表是在 Apple Silicon、Release 构建、默认 \(10^{-7}\) 容差下的单次诊断
 快照，用来说明算法行为而非跨机器性能承诺：
@@ -211,9 +351,14 @@ downdate、116336 次 Givens 和 174 次成本/误差驱动锚点重构。稳定
 `test_simple_examples` 对三种求解路径运行全部小型 MPS，CTest 另含 Pan/BDA
 的 `afiro` smoke test。
 
-## 7. 参考
+## 8. 参考
 
-- P.-Q. Pan, “A basis-deficiency-allowing variation of the simplex method,”
-  *Computers & Mathematics with Applications*, 1998。
-- 现代 BDA 论文中的 Algorithm 1 明确说明其与 Pan primal BDA 等价；本文用它
-  交叉核对了动态扩基、最小比值和多列同时离基的流程。
+- P.-Q. Pan, “A basis-deficiency-allowing variation of the simplex method for
+  linear programming,” *Computers & Mathematics with Applications*, 36(3),
+  33--53, 1998，DOI: [10.1016/S0898-1221(98)00127-8](https://doi.org/10.1016/S0898-1221(98)00127-8)。
+- C. L. Lawson and R. J. Hanson, *Solving Least Squares Problems*,
+  Prentice-Hall, 1974；Phase I 的 passive-set NNLS 更新采用其 active-set 框架。
+- P. Guerrero-García and E. M. T. Hendrix, “Experiments with Active-Set LP
+  Algorithms Allowing Basis Deficiency,” *Computers*, 12(1), 3, 2023，DOI:
+  [10.3390/computers12010003](https://doi.org/10.3390/computers12010003)；该文用于
+  对照现代 BDA 的亏基活动集与稀疏 QR 表述。

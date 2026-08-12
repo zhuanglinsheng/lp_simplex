@@ -29,3 +29,17 @@ if(BUILD_TESTING AND EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/degen2.m
 			${PROJECT_SOURCE_DIR}/data/netlib/feasible/degen2.mps
 	)
 endif()
+
+# Numerical regressions which exercise the raw-model recovery and alternate
+# dual-crash paths.  Keep these as individual tests so a future failure names
+# the affected model directly.
+foreach(model IN ITEMS 25fv47 agg2 bnl1 etamacro grow22 maros scfxm1 share1b)
+	if(BUILD_TESTING AND
+	   EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/${model}.mps")
+		add_test(
+			NAME netlib_${model}_dual_revised
+			COMMAND test_netlib --algorithm dual-revised
+				${PROJECT_SOURCE_DIR}/data/netlib/feasible/${model}.mps
+		)
+	endif()
+endforeach()

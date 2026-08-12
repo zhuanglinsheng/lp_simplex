@@ -60,6 +60,7 @@ struct simplex_DualState {
 	double *lower;
 	double *upper;
 	double *cost;
+	double *original_cost;
 	double *value;
 	double *basic_value;
 	double *basic_lower;
@@ -86,6 +87,8 @@ struct simplex_DualState {
 	int *nonbasic_slot;
 	int nonbasic_count;
 	struct simplex_DegeneracyControl degeneracy;
+	struct simplex_DegeneracyControl crash_history;
+	int crash_tracking_active;
 	int pan_enabled;
 	int stable_candidate_order;
 	int regular_columns;
@@ -95,6 +98,9 @@ struct simplex_DualState {
 	double ratio_minimum;
 	int ratio_minimum_valid;
 	int pricing_validation_countdown;
+	int cost_shift_active;
+	int cost_shift_count;
+	int cost_shift_allowed;
 	/* A leaving row whose complete Harris set had no stable actual FTRAN
 	 * pivot is skipped once so Pan can move along another face direction. */
 	int pan_deferred_row;

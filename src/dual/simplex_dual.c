@@ -69,6 +69,9 @@ static void dual_change_status(
 {
 	simplex_degeneracy_update_status(&state->degeneracy, variable,
 		state->status[variable], new_status);
+	if (state->crash_tracking_active)
+		simplex_degeneracy_update_status(&state->crash_history, variable,
+			state->status[variable], new_status);
 	state->status[variable] = new_status;
 }
 
@@ -79,6 +82,9 @@ static void dual_change_basis(
 {
 	simplex_degeneracy_update_basis(&state->degeneracy, position,
 		state->basis[position], new_variable);
+	if (state->crash_tracking_active)
+		simplex_degeneracy_update_basis(&state->crash_history, position,
+			state->basis[position], new_variable);
 	state->basis[position] = new_variable;
 }
 
@@ -211,15 +217,35 @@ static int dual_bound_status_for_reduced(
 }
 
 
+static int dual_crash_finish(
+		struct simplex_DualState *state, const int result)
+{
+	state->crash_tracking_active = 0;
+	return result;
+}
+
+
 /* Build a dual-feasible crash basis without changing the immutable CSC model. */
-static int dual_crash(struct simplex_DualState *state)
+static int dual_crash(
+		struct simplex_DualState *state, const int largest_violation)
 {
 	int attempt, limit = 4 * state->variables + state->rows;
+	simplex_degeneracy_reset_state(&state->crash_history);
+	state->crash_tracking_active = 1;
 	for (attempt = 0; attempt < limit; attempt++) {
 		int candidate, candidates = 0, i, p = -1, q = -1;
 		unsigned char leaving_status = DUAL_STATUS_FREE;
+		if (simplex_degeneracy_record_state(&state->crash_history,
+			state->basis, state->rows, state->status,
+			state->variables)) {
+			if (state->profile.enabled)
+				fprintf(stderr,
+					"dual profile: crash repeated state attempt=%d\n",
+					attempt);
+			return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
+		}
 		if (dual_compute_reduced_costs(state) == lp_simplex_EXIT_FAILURE)
-			return lp_simplex_EXIT_FAILURE;
+			return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
 		/* Snapshot the infeasible nonbasics once for this basis.  The previous
 		 * rejection loop repeatedly rescanned every variable from index zero. */
 		for (i = 0; i < state->variables; i++)
@@ -232,7 +258,30 @@ static int dual_crash(struct simplex_DualState *state)
 				"dual profile: crash initial infeasible variables=%d\n",
 				candidates);
 		if (candidates == 0)
-			return lp_simplex_EXIT_SUCCESS;
+			return dual_crash_finish(state, lp_simplex_EXIT_SUCCESS);
+		/* Repair the largest dual violation first.  Index-order crash selection
+		 * can exchange a long sequence of nearly feasible variables and revisit
+		 * the same degenerate bases (MAROS/SHARE1B).  Moving only the best item to
+		 * the front preserves the stable fallback order when that column has no
+		 * admissible leaving variable. */
+		if (largest_violation) {
+			int best = 0;
+			double best_violation = dual_variable_infeasibility(
+				state, state->candidate_index[0]);
+			for (i = 1; i < candidates; i++) {
+				double violation = dual_variable_infeasibility(
+					state, state->candidate_index[i]);
+				if (violation > best_violation) {
+					best = i;
+					best_violation = violation;
+				}
+			}
+			if (best != 0) {
+				int variable = state->candidate_index[0];
+				state->candidate_index[0] = state->candidate_index[best];
+				state->candidate_index[best] = variable;
+			}
+		}
 		for (candidate = 0; candidate < candidates; candidate++) {
 			double best_pivot = 0.;
 			q = state->candidate_index[candidate];
@@ -240,7 +289,7 @@ static int dual_crash(struct simplex_DualState *state)
 						    q, state->direction);
 			if (simplex_basis_ftran(&state->factor, state->direction) ==
 			    lp_simplex_EXIT_FAILURE)
-				return lp_simplex_EXIT_FAILURE;
+				return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
 			p = -1;
 			for (i = 0; i < state->rows; i++) {
 				int leaving = state->basis[i];
@@ -268,7 +317,7 @@ static int dual_crash(struct simplex_DualState *state)
 				fprintf(stderr,
 					"dual profile: crash stalled attempt=%d rejected=%d\n",
 					attempt, candidates);
-			return lp_simplex_EXIT_FAILURE;
+			return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
 		}
 		{
 			int leaving = state->basis[p];
@@ -288,19 +337,21 @@ static int dual_crash(struct simplex_DualState *state)
 			if (update == 1) {
 				if (simplex_basis_factorize(&state->factor) ==
 				    lp_simplex_EXIT_FAILURE)
-					return lp_simplex_EXIT_FAILURE;
+					return dual_crash_finish(
+						state, lp_simplex_EXIT_FAILURE);
 			} else if (update == lp_simplex_EXIT_FAILURE) {
-				return lp_simplex_EXIT_FAILURE;
+				return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
 			}
 		}
 	}
 	if (state->profile.enabled)
 		fprintf(stderr, "dual profile: crash iteration limit=%d\n", limit);
-	return lp_simplex_EXIT_FAILURE;
+	return dual_crash_finish(state, lp_simplex_EXIT_FAILURE);
 }
 
 
-static int dual_compute_primal_values(struct simplex_DualState *state)
+static int dual_compute_primal_values_impl(
+		struct simplex_DualState *state, const int refined)
 {
 	int i, j;
 	lp_simplex_memset(state->work, 0, (size_t)state->rows * sizeof(double));
@@ -312,7 +363,9 @@ static int dual_compute_primal_values(struct simplex_DualState *state)
 			simplex_csc_column_axpy(&state->matrix, state->structural,
 						  j, -state->value[j], state->work);
 	}
-	if (simplex_basis_ftran(&state->factor, state->work) ==
+	if ((refined
+	     ? simplex_basis_ftran_refined(&state->factor, state->work)
+	     : simplex_basis_ftran(&state->factor, state->work)) ==
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < state->rows; i++) {
@@ -321,6 +374,18 @@ static int dual_compute_primal_values(struct simplex_DualState *state)
 		state->basic_upper[i] = state->upper[state->basis[i]];
 	}
 	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static int dual_compute_primal_values(struct simplex_DualState *state)
+{
+	return dual_compute_primal_values_impl(state, 0);
+}
+
+
+static int dual_compute_primal_values_refined(struct simplex_DualState *state)
+{
+	return dual_compute_primal_values_impl(state, 1);
 }
 
 
@@ -454,6 +519,57 @@ static double dual_max_dual_infeasibility(const struct simplex_DualState *state)
 }
 
 
+/* Restore dual feasibility after an exact reinversion by changing only the
+ * objective coefficients of infeasible nonbasic variables.  Since basic
+ * costs are untouched, pi remains valid and cost[j]-=reduced[j] places each
+ * shifted reduced cost exactly at zero.  Shifts are retained across pivots and
+ * removed transactionally before accepting optimality for the original LP. */
+static int dual_apply_cost_shifts(struct simplex_DualState *state)
+{
+	double maximum_relative_shift = 0.;
+	int j, shifted = 0;
+	for (j = 0; j < state->variables; j++) {
+		double violation;
+		if (state->position[j] >= 0)
+			continue;
+		violation = dual_variable_infeasibility(state, j);
+		if (violation <= state->options->dual_tolerance)
+			continue;
+		state->cost[j] -= state->reduced[j];
+		state->reduced[j] = 0.;
+		shifted++;
+	}
+	if (shifted > 0) {
+		state->cost_shift_active = 1;
+		state->cost_shift_count += shifted;
+		if (state->profile.enabled) {
+			for (j = 0; j < state->variables; j++)
+				maximum_relative_shift = __lp_simplex_MAX__(
+					maximum_relative_shift,
+					__lp_simplex_ABS__(state->cost[j] -
+						state->original_cost[j]) /
+					__lp_simplex_MAX__(1.,
+						__lp_simplex_ABS__(state->original_cost[j])));
+			fprintf(stderr,
+				"dual profile: phase-I cost shifts=%d total=%d max-relative=%.17g\n",
+				shifted, state->cost_shift_count, maximum_relative_shift);
+		}
+	}
+	return shifted;
+}
+
+
+static int dual_restore_original_cost(struct simplex_DualState *state)
+{
+	if (!state->cost_shift_active)
+		return lp_simplex_EXIT_SUCCESS;
+	lp_simplex_memcpy(state->cost, state->original_cost,
+		(size_t)state->variables * sizeof(double));
+	state->cost_shift_active = 0;
+	return dual_compute_reduced_costs(state);
+}
+
+
 /* Scale a terminal Farkas gap by the cancellation in rho^T(-N x_N).
  * This distinguishes a genuine infeasibility certificate from roundoff in a
  * redundant zero-RHS row with very large primal activities. */
@@ -524,9 +640,157 @@ static void dual_rebuild_iteration_indexes(struct simplex_DualState *state)
 }
 
 
+/* Optimize the restored original objective from a primal-feasible basis.
+ * Dual Phase-I cost shifts deliberately end in exactly this state: primal
+ * feasibility is already available, while some original reduced costs have
+ * the wrong sign.  A revised-primal cleanup is the mathematically natural
+ * transition; trying to manufacture another dual-feasible crash basis throws
+ * away the feasible point and can cycle on highly degenerate models. */
+static int dual_primal_cleanup(
+		struct simplex_DualState *state, int *status)
+{
+	int cleanup_iterations = 0;
+	while (state->iterations < state->options->iteration_limit) {
+		double step = HUGE_VAL, opposite_step = HUGE_VAL;
+		double entering_violation = 0.;
+		int entering = -1, entering_sign = 0;
+		int i, leaving_position = -1;
+		unsigned char leaving_status = DUAL_STATUS_FREE;
+		if (state->profile.enabled && cleanup_iterations > 0 &&
+		    (cleanup_iterations & (cleanup_iterations - 1)) == 0)
+			fprintf(stderr,
+				"dual profile: primal cleanup progress=%d dual=%.6g\n",
+				cleanup_iterations, dual_max_dual_infeasibility(state));
+
+		/* Price by original reduced-cost violation.  This is the bounded-primal
+		 * analogue of Dantzig pricing; index order resolves exact ties. */
+		for (i = 0; i < state->variables; i++) {
+			double violation;
+			if (state->position[i] >= 0)
+				continue;
+			violation = dual_variable_infeasibility(state, i);
+			if (violation <= state->options->dual_tolerance ||
+			    violation <= entering_violation)
+				continue;
+			entering = i;
+			entering_violation = violation;
+			if (state->status[i] == DUAL_STATUS_LOWER)
+				entering_sign = 1;
+			else if (state->status[i] == DUAL_STATUS_UPPER)
+				entering_sign = -1;
+			else
+				entering_sign = state->reduced[i] < 0. ? 1 : -1;
+		}
+		if (entering < 0) {
+			if (state->profile.enabled)
+				fprintf(stderr,
+					"dual profile: primal cleanup iterations=%d\n",
+					cleanup_iterations);
+			return lp_simplex_EXIT_SUCCESS;
+		}
+
+		simplex_csc_column_to_dense(&state->matrix, state->structural,
+			entering, state->direction);
+		if (simplex_basis_ftran(&state->factor, state->direction) ==
+		    lp_simplex_EXIT_FAILURE) {
+			*status = lp_simplex_Singularity;
+			return lp_simplex_EXIT_FAILURE;
+		}
+		for (i = 0; i < state->rows; i++) {
+			double change = -entering_sign * state->direction[i];
+			double candidate;
+			unsigned char candidate_status;
+			if (__lp_simplex_ABS__(state->direction[i]) <=
+			    state->options->pivot_tolerance)
+				continue;
+			if (change < 0. &&
+			    dual_is_finite_lower(state->basic_lower[i])) {
+				candidate = (state->basic_value[i] -
+					state->basic_lower[i]) / -change;
+				candidate_status = DUAL_STATUS_LOWER;
+			} else if (change > 0. &&
+				   dual_is_finite_upper(state->basic_upper[i])) {
+				candidate = (state->basic_upper[i] -
+					state->basic_value[i]) / change;
+				candidate_status = DUAL_STATUS_UPPER;
+			} else
+				continue;
+			candidate = __lp_simplex_MAX__(0., candidate);
+			if (candidate < step ||
+			    (candidate == step && leaving_position >= 0 &&
+			     state->basis[i] < state->basis[leaving_position])) {
+				step = candidate;
+				leaving_position = i;
+				leaving_status = candidate_status;
+			}
+		}
+		if (entering_sign > 0 &&
+		    dual_is_finite_upper(state->upper[entering]))
+			opposite_step = __lp_simplex_MAX__(0.,
+				state->upper[entering] - state->value[entering]);
+		else if (entering_sign < 0 &&
+			 dual_is_finite_lower(state->lower[entering]))
+			opposite_step = __lp_simplex_MAX__(0.,
+				state->value[entering] - state->lower[entering]);
+
+		if (opposite_step < step) {
+			dual_change_status(state, entering, entering_sign > 0
+				? DUAL_STATUS_UPPER : DUAL_STATUS_LOWER);
+			dual_set_nonbasic_value(state, entering);
+			if (dual_compute_primal_values(state) == lp_simplex_EXIT_FAILURE) {
+				*status = lp_simplex_PrecisionError;
+				return lp_simplex_EXIT_FAILURE;
+			}
+			simplex_dual_feasibility_rebuild(state);
+			state->iterations++;
+			cleanup_iterations++;
+			continue;
+		}
+		if (leaving_position < 0) {
+			*status = lp_simplex_Unboundedness;
+			return lp_simplex_EXIT_FAILURE;
+		}
+		{
+			int leaving = state->basis[leaving_position];
+			int update;
+			state->position[leaving] = -1;
+			dual_change_status(state, leaving, leaving_status);
+			if (state->lower[leaving] == state->upper[leaving])
+				dual_change_status(state, leaving, DUAL_STATUS_FIXED);
+			dual_change_basis(state, leaving_position, entering);
+			state->position[entering] = leaving_position;
+			dual_change_status(state, entering, DUAL_STATUS_BASIC);
+			update = simplex_basis_update(&state->factor,
+				leaving_position, state->direction);
+			if (update == lp_simplex_EXIT_FAILURE) {
+				*status = lp_simplex_Singularity;
+				return lp_simplex_EXIT_FAILURE;
+			}
+			if (update == 1) {
+				if (dual_reinvert(state) == lp_simplex_EXIT_FAILURE) {
+					*status = lp_simplex_Singularity;
+					return lp_simplex_EXIT_FAILURE;
+				}
+			} else if (dual_compute_primal_values(state) ==
+					lp_simplex_EXIT_FAILURE ||
+				  dual_compute_reduced_costs(state) ==
+					lp_simplex_EXIT_FAILURE) {
+				*status = lp_simplex_PrecisionError;
+				return lp_simplex_EXIT_FAILURE;
+			}
+		}
+		state->iterations++;
+		cleanup_iterations++;
+		dual_rebuild_iteration_indexes(state);
+	}
+	*status = lp_simplex_ExceedIterLimit;
+	return lp_simplex_EXIT_FAILURE;
+}
+
+
 static int dual_select_leaving(
 		struct simplex_DualState *state, int *status,
-		int *terminal_repairs, struct dual_Iteration *iteration)
+		struct dual_Iteration *iteration)
 {
 	int prefer_structural;
 	int lexicographic;
@@ -554,21 +818,41 @@ static int dual_select_leaving(
 		lexicographic, state->pan_deferred_row);
 	if (iteration->p >= 0)
 		return DUAL_STEP_READY;
+	/* Certify an apparent primal optimum against the current complete basis.
+	 * Iterative refinement is deliberately terminal-only: it prevents an
+	 * inaccurate success result without perturbing the normal pivot path. */
+	if (dual_compute_primal_values_refined(state) == lp_simplex_EXIT_FAILURE) {
+		*status = lp_simplex_PrecisionError;
+		return DUAL_STEP_FAILED;
+	}
+	simplex_dual_feasibility_rebuild(state);
+	iteration->merit_before = simplex_dual_feasibility_merit(state);
+	iteration->p = simplex_dual_feasibility_choose(state,
+		&iteration->target, &iteration->kappa,
+		&iteration->primal_infeasibility, prefer_structural,
+		lexicographic, state->pan_deferred_row);
+	if (iteration->p >= 0)
+		return DUAL_STEP_READY;
 	dual_error = dual_max_dual_infeasibility(state);
+	if (state->cost_shift_active &&
+	    dual_error <= state->options->dual_tolerance) {
+		if (dual_restore_original_cost(state) == lp_simplex_EXIT_FAILURE) {
+			*status = lp_simplex_PrecisionError;
+			return DUAL_STEP_FAILED;
+		}
+		dual_error = dual_max_dual_infeasibility(state);
+	}
 	if (dual_error <= state->options->dual_tolerance) {
 		*status = lp_simplex_Success;
 		return DUAL_STEP_FINISHED;
 	}
-	if (dual_error <= 10. * state->options->dual_tolerance &&
-	    *terminal_repairs < 2 &&
-	    dual_crash(state) == lp_simplex_EXIT_SUCCESS &&
-	    dual_reinvert(state) == lp_simplex_EXIT_SUCCESS) {
-		(*terminal_repairs)++;
-		dual_rebuild_iteration_indexes(state);
-		return DUAL_STEP_RESTART;
-	}
-	*status = lp_simplex_PrecisionError;
-	return DUAL_STEP_FAILED;
+	/* At this point the complete basis has passed primal certification.  Any
+	 * remaining wrong-sign reduced costs belong to a primal-simplex cleanup;
+	 * a dual crash would destructively discard the feasible basis on failure. */
+	if (dual_primal_cleanup(state, status) == lp_simplex_EXIT_FAILURE)
+		return DUAL_STEP_FAILED;
+	dual_rebuild_iteration_indexes(state);
+	return DUAL_STEP_RESTART;
 }
 
 
@@ -923,7 +1207,11 @@ static int dual_validate_recomputed_dual(
 	if (dual_max_dual_infeasibility(state) <=
 	    10. * state->options->dual_tolerance)
 		return lp_simplex_EXIT_SUCCESS;
-	if (dual_crash(state) == lp_simplex_EXIT_FAILURE ||
+	if (state->cost_shift_allowed && dual_apply_cost_shifts(state) > 0 &&
+	    dual_max_dual_infeasibility(state) <=
+	    state->options->dual_tolerance)
+		return lp_simplex_EXIT_SUCCESS;
+	if (dual_crash(state, 0) == lp_simplex_EXIT_FAILURE ||
 	    dual_reinvert(state) == lp_simplex_EXIT_FAILURE ||
 	    dual_max_dual_infeasibility(state) >
 	    10. * state->options->dual_tolerance) {
@@ -992,13 +1280,11 @@ static int dual_commit_iteration(
 
 static int dual_run(struct simplex_DualState *state, int *status)
 {
-	int terminal_repairs = 0;
 	while (state->iterations < state->options->iteration_limit) {
 		struct dual_Iteration iteration;
 		int step;
 		simplex_sparse_vector_clear(&state->flip_rhs);
-		step = dual_select_leaving(state, status, &terminal_repairs,
-			&iteration);
+		step = dual_select_leaving(state, status, &iteration);
 		if (step == DUAL_STEP_FINISHED)
 			return lp_simplex_EXIT_SUCCESS;
 		if (step == DUAL_STEP_FAILED)
@@ -1073,21 +1359,54 @@ int simplex_dual_solve_problem(
 		return lp_simplex_EXIT_FAILURE;
 	}
 	simplex_dual_initialize_bounds(&state, problem, propagate_bounds);
+	state.cost_shift_allowed = !propagate_bounds;
+	lp_simplex_memcpy(state.original_cost, state.cost,
+		(size_t)state.variables * sizeof(double));
 	dual_initialize_basis(&state, problem);
 	{
 		const char *stage = NULL;
+		int fallback_crash = 0;
 		if (simplex_basis_factorize(&state.factor) == lp_simplex_EXIT_FAILURE)
 			stage = "initial factorization";
-		else if (dual_crash(&state) == lp_simplex_EXIT_FAILURE)
-			stage = "dual crash";
-		else if (simplex_basis_factorize(&state.factor) ==
+		else if (dual_crash(&state, 0) == lp_simplex_EXIT_FAILURE) {
+			/* Preserve the established index-ordered crash for normal
+			 * models.  Only after it demonstrably cycles, reset the complete
+			 * logical basis.  Small models first retain the targeted
+			 * largest-violation crash; large raw-model certification uses the
+			 * exact logical basis with a reversible Phase-I objective. */
+			if (state.rows <= 1024) {
+				dual_initialize_basis(&state, problem);
+				if (simplex_basis_factorize(&state.factor) ==
+					lp_simplex_EXIT_FAILURE ||
+				    dual_crash(&state, 1) == lp_simplex_EXIT_FAILURE)
+					stage = "dual crash";
+				else
+					fallback_crash = 1;
+			} else if (state.cost_shift_allowed) {
+				dual_initialize_basis(&state, problem);
+				if (simplex_basis_factorize(&state.factor) ==
+						lp_simplex_EXIT_FAILURE ||
+				    dual_compute_reduced_costs(&state) ==
+						lp_simplex_EXIT_FAILURE)
+					stage = "phase-I logical basis";
+				else {
+					dual_apply_cost_shifts(&state);
+					fallback_crash = 1;
+				}
+			} else
+				stage = "dual crash";
+		}
+		if (stage == NULL && !fallback_crash &&
+		    simplex_basis_factorize(&state.factor) ==
 			 lp_simplex_EXIT_FAILURE)
 			stage = "crash-basis factorization";
-		else if (dual_compute_primal_values(&state) == lp_simplex_EXIT_FAILURE)
+		if (stage == NULL &&
+		    dual_compute_primal_values(&state) == lp_simplex_EXIT_FAILURE)
 			stage = "initial primal values";
-		else if (dual_compute_reduced_costs(&state) == lp_simplex_EXIT_FAILURE)
+		if (stage == NULL &&
+		    dual_compute_reduced_costs(&state) == lp_simplex_EXIT_FAILURE)
 			stage = "initial reduced costs";
-		else
+		if (stage == NULL)
 			for (j = 0; j < state.rows; j++)
 				state.edge_weight[j] = 1.;
 		if (stage != NULL) {
@@ -1111,6 +1430,14 @@ int simplex_dual_solve_problem(
 		if (state.basis[j] < state.structural)
 			state.structural_basic++;
 	solve_state = dual_run(&state, &status);
+	/* A shifted auxiliary objective can establish primal infeasibility only
+	 * after the original costs have been restored and certified.  Until then,
+	 * treat a numerical certificate failure honestly as a precision error. */
+	if (state.cost_shift_active && status == lp_simplex_Infeasibility) {
+		dual_restore_original_cost(&state);
+		status = lp_simplex_PrecisionError;
+		solve_state = lp_simplex_EXIT_FAILURE;
+	}
 	for (j = 0; j < state.rows; j++)
 		state.value[state.basis[j]] = state.basic_value[j];
 	for (j = 0; j < problem->columns; j++) {

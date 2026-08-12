@@ -16,6 +16,7 @@
 
 #include <lp_simplex/status.h>
 
+#include <float.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -44,6 +45,9 @@ struct simplex_BasisImpl {
 	double *core_work;
 	double *refine_work;
 	double *correction_work;
+	double *certify_right;
+	double *certify_residual;
+	double *certify_correction;
 #ifdef LP_SIMPLEX_HAVE_KLU
 	int *base_column_start;
 	int *base_row_index;
@@ -129,13 +133,19 @@ int simplex_basis_create(
 	basis->impl->base_index = basis->impl->core_basis != NULL
 		? basis->impl->core_basis + 5 * matrix->rows : NULL;
 	basis->impl->base_work = (double *)lp_simplex_malloc(
-		(size_t)4 * matrix->rows * sizeof(double));
+		(size_t)7 * matrix->rows * sizeof(double));
 	basis->impl->core_work = basis->impl->base_work != NULL
 		? basis->impl->base_work + matrix->rows : NULL;
 	basis->impl->refine_work = basis->impl->base_work != NULL
 		? basis->impl->base_work + 2 * matrix->rows : NULL;
 	basis->impl->correction_work = basis->impl->base_work != NULL
 		? basis->impl->base_work + 3 * matrix->rows : NULL;
+	basis->impl->certify_right = basis->impl->base_work != NULL
+		? basis->impl->base_work + 4 * matrix->rows : NULL;
+	basis->impl->certify_residual = basis->impl->base_work != NULL
+		? basis->impl->base_work + 5 * matrix->rows : NULL;
+	basis->impl->certify_correction = basis->impl->base_work != NULL
+		? basis->impl->base_work + 6 * matrix->rows : NULL;
 #ifdef LP_SIMPLEX_HAVE_KLU
 	basis->impl->base_column_start = (int *)lp_simplex_malloc(
 		(size_t)(matrix->rows + 1) * sizeof(int));
@@ -203,7 +213,11 @@ int simplex_basis_create(
 	    basis->impl->logical_position == NULL || basis->impl->base_work == NULL ||
 	    basis->impl->base_index == NULL || basis->impl->core_work == NULL ||
 	    basis->impl->refine_work == NULL ||
-	    basis->impl->correction_work == NULL || basis->impl->eta_value == NULL ||
+	    basis->impl->correction_work == NULL ||
+	    basis->impl->certify_right == NULL ||
+	    basis->impl->certify_residual == NULL ||
+	    basis->impl->certify_correction == NULL ||
+	    basis->impl->eta_value == NULL ||
 	    basis->impl->eta_index == NULL || basis->impl->eta_start == NULL ||
 	    basis->impl->eta_pivot == NULL || basis->impl->eta_pivot_value == NULL ||
 	    basis->impl->eta_dense_slot == NULL) {
@@ -262,6 +276,9 @@ void simplex_basis_destroy(struct simplex_Basis *basis)
 	basis->impl->core_work = NULL;
 	basis->impl->refine_work = NULL;
 	basis->impl->correction_work = NULL;
+	basis->impl->certify_right = NULL;
+	basis->impl->certify_residual = NULL;
+	basis->impl->certify_correction = NULL;
 	basis->impl->core_size = 0;
 	basis->impl->factor_size = 0;
 	basis->impl->compact_active = 0;
@@ -903,6 +920,90 @@ static int simplex_basis_btran_raw(
 			return lp_simplex_EXIT_FAILURE;
 	}
 	return simplex_basis_base_btran(basis, vector);
+}
+
+
+/* Componentwise backward error for B*x=right using the current basis, not
+ * merely the basis captured by the last refactorization.  The denominator
+ * |right|+|B||x| makes the certificate invariant to row/column magnitudes. */
+static double simplex_basis_current_ftran_residual(
+		const struct simplex_Basis *basis, const double *right,
+		const double *solution, double *residual, double *denominator)
+{
+	const struct simplex_CscMatrix *matrix = basis->impl->matrix;
+	double maximum = 0.;
+	int i, k;
+	for (i = 0; i < basis->impl->rows; i++) {
+		residual[i] = right[i];
+		denominator[i] = __lp_simplex_ABS__(right[i]);
+	}
+	for (i = 0; i < basis->impl->rows; i++) {
+		int variable = basis->impl->index[i];
+		double value = solution[i];
+		if (variable >= basis->impl->structural_columns) {
+			residual[variable - basis->impl->structural_columns] += value;
+			denominator[variable - basis->impl->structural_columns] +=
+				__lp_simplex_ABS__(value);
+		} else
+			for (k = matrix->column_start[variable];
+			     k < matrix->column_start[variable + 1]; k++) {
+				double term = matrix->value[k] * value;
+				int row = matrix->row_index[k];
+				residual[row] -= term;
+				denominator[row] += __lp_simplex_ABS__(term);
+			}
+	}
+	for (i = 0; i < basis->impl->rows; i++)
+		maximum = __lp_simplex_MAX__(maximum,
+			__lp_simplex_ABS__(residual[i]) /
+			__lp_simplex_MAX__(denominator[i], DBL_MIN));
+	return maximum;
+}
+
+
+static int simplex_basis_refine(
+		const struct simplex_Basis *basis, double *vector)
+{
+	struct simplex_Basis *mutable = (struct simplex_Basis *)basis;
+	double error, improved;
+	double threshold = 16. * DBL_EPSILON *
+		(double)(basis->impl->rows + 1);
+	int i, refinement;
+	lp_simplex_memcpy(mutable->impl->certify_right, vector,
+		(size_t)basis->impl->rows * sizeof(double));
+	if (simplex_basis_ftran_raw(basis, vector) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	error = simplex_basis_current_ftran_residual(basis,
+			mutable->impl->certify_right, vector,
+			mutable->impl->certify_residual, mutable->impl->core_work);
+	for (refinement = 0; refinement < 3 && error > threshold; refinement++) {
+		lp_simplex_memcpy(mutable->impl->certify_correction,
+			mutable->impl->certify_residual,
+			(size_t)basis->impl->rows * sizeof(double));
+		if (simplex_basis_ftran_raw(
+				basis, mutable->impl->certify_correction) ==
+		    lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		for (i = 0; i < basis->impl->rows; i++)
+			vector[i] += mutable->impl->certify_correction[i];
+		improved = simplex_basis_current_ftran_residual(basis,
+				mutable->impl->certify_right, vector,
+				mutable->impl->certify_residual, mutable->impl->core_work);
+		if (improved >= error) {
+			for (i = 0; i < basis->impl->rows; i++)
+				vector[i] -= mutable->impl->certify_correction[i];
+			break;
+		}
+		error = improved;
+	}
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+int simplex_basis_ftran_refined(
+		const struct simplex_Basis *basis, double *vector)
+{
+	return simplex_basis_refine(basis, vector);
 }
 
 

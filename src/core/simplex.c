@@ -215,7 +215,12 @@ static int simplex_solve_dual_raw(
 		if (applicable)
 			return state;
 	}
-	return simplex_dual_solve(model, options, x, NULL, result, 1);
+	/* Raw solves are also the numerical fallback for a rejected presolve
+	 * result.  Do not derive additional working bounds here: on unscaled models
+	 * with extreme coefficient ranges (ETAMACRO/PILOT) repeated activity
+	 * cancellation can make those optional crash bounds less reliable than the
+	 * original model.  Presolved problems retain propagation below. */
+	return simplex_dual_solve(model, options, x, NULL, result, 0);
 }
 
 
@@ -293,6 +298,65 @@ static int simplex_solve_sparse_presolved(
 			: simplex_dual_solve_problem(
 				presolve.reduced, options, reduced_x, NULL, result, 1);
 		simplex_presolve_postsolve(&presolve, reduced_x, x);
+	}
+	/* A reduced model is only an optimization, never a weaker correctness
+	 * contract.  Outward-rounded substitutions can still magnify cancellation
+	 * during postsolve on badly scaled models.  Retry the original sparse model
+	 * when postsolve violates the requested primal tolerance, or when a crash on
+	 * the reduced model failed before making a simplex iteration.  The latter
+	 * is a cheap and useful discriminator: continuing failures are not hidden,
+	 * while models such as SHARE1B recover without disabling presolve globally. */
+	{
+		double postsolve_infeasibility = result->status == lp_simplex_Success
+			? simplex_primal_infeasibility(model, x) : 0.;
+		int invalid_postsolve = result->status == lp_simplex_Success &&
+			postsolve_infeasibility > options->primal_tolerance;
+		int repairable_postsolve = invalid_postsolve &&
+			(postsolve_infeasibility > 10. * options->primal_tolerance ||
+			 (model->m <= 1024 && postsolve_infeasibility <=
+			  10. * options->primal_tolerance));
+		if (invalid_postsolve && getenv("LP_SIMPLEX_PROFILE") != NULL)
+			fprintf(stderr, "presolve: rejected postsolve primal=%.6g\n",
+				postsolve_infeasibility);
+		if (repairable_postsolve ||
+		    (result->status == lp_simplex_PrecisionError &&
+		     (result->iterations == 0 ||
+		      result->primal_infeasibility <= options->primal_tolerance))) {
+			double *saved_x = (double *)lp_simplex_malloc(
+				(size_t)model->n * sizeof(double));
+			struct lp_simplex_Result saved_result = *result;
+			struct lp_simplex_Result retry_result;
+			int retry_state;
+			if (saved_x != NULL) {
+				lp_simplex_memcpy(saved_x, x,
+					(size_t)model->n * sizeof(double));
+				retry_state = simplex_solve_sparse_raw(
+					model, options, x, &retry_result);
+				if (retry_result.status == lp_simplex_Success) {
+					retry_result.objective += model->objective_offset;
+					*result = retry_result;
+					state = retry_state;
+				} else {
+					lp_simplex_memcpy(x, saved_x,
+						(size_t)model->n * sizeof(double));
+					*result = saved_result;
+				}
+				lp_simplex_free(saved_x);
+			}
+		}
+		/* Report feasibility for the original model, not only the reduced
+		 * problem.  A materially infeasible postsolve vector must never retain a
+		 * Success status merely because the objective happens to match. */
+		if (result->status == lp_simplex_Success) {
+			double original_infeasibility =
+				simplex_primal_infeasibility(model, x);
+			result->primal_infeasibility = original_infeasibility;
+			if (original_infeasibility >
+			    10. * options->primal_tolerance) {
+				result->status = lp_simplex_PrecisionError;
+				state = lp_simplex_EXIT_FAILURE;
+			}
+		}
 	}
 	if (result->status == lp_simplex_Success) {
 		for (j = 0; j < model->n; j++)

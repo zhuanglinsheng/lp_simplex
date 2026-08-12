@@ -64,14 +64,16 @@ static void dual_bind_workspace(struct simplex_DualState *state)
 		? state->workspace.column + variables : NULL;
 	state->cost = state->workspace.column != NULL
 		? state->workspace.column + 2 * variables : NULL;
-	state->value = state->workspace.column != NULL
+	state->original_cost = state->workspace.column != NULL
 		? state->workspace.column + 3 * variables : NULL;
-	state->reduced = state->workspace.column != NULL
+	state->value = state->workspace.column != NULL
 		? state->workspace.column + 4 * variables : NULL;
-	state->alpha = state->workspace.column != NULL
+	state->reduced = state->workspace.column != NULL
 		? state->workspace.column + 5 * variables : NULL;
-	state->breakpoint = state->workspace.column != NULL
+	state->alpha = state->workspace.column != NULL
 		? state->workspace.column + 6 * variables : NULL;
+	state->breakpoint = state->workspace.column != NULL
+		? state->workspace.column + 7 * variables : NULL;
 	state->basic_value = state->workspace.row;
 	state->basic_lower = state->workspace.row != NULL
 		? state->workspace.row + rows : NULL;
@@ -97,6 +99,7 @@ void simplex_dual_state_destroy(struct simplex_DualState *state)
 	if (state == NULL)
 		return;
 	simplex_degeneracy_destroy(&state->degeneracy);
+	simplex_degeneracy_destroy(&state->crash_history);
 	simplex_dual_feasibility_destroy(&state->feasibility);
 	simplex_basis_destroy(&state->factor);
 	simplex_csc_destroy(&state->matrix);
@@ -139,7 +142,7 @@ int simplex_dual_state_create(
 	state->workspace.status = (unsigned char *)lp_simplex_malloc(
 		(size_t)variables * sizeof(unsigned char));
 	state->workspace.column = (double *)lp_simplex_malloc(
-		(size_t)7 * variables * sizeof(double));
+		(size_t)8 * variables * sizeof(double));
 	state->workspace.row = (double *)lp_simplex_malloc(
 		(size_t)9 * problem->rows * sizeof(double));
 	dual_bind_workspace(state);
@@ -163,5 +166,6 @@ int simplex_dual_state_create(
 	simplex_basis_set_sparse_eta(&state->factor,
 		!state->regular_columns || state->modal_column_degree == 1);
 	simplex_degeneracy_initialize(&state->degeneracy);
+	simplex_degeneracy_initialize(&state->crash_history);
 	return lp_simplex_EXIT_SUCCESS;
 }

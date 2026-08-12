@@ -34,6 +34,11 @@ void simplex_degeneracy_initialize(struct simplex_DegeneracyControl *control);
 
 void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control);
 
+/* Clear basis-dependent fingerprints while retaining the allocated hash table
+ * and lifetime counters. */
+void simplex_degeneracy_reset_state(
+		struct simplex_DegeneracyControl *control);
+
 /* A pivot enters the Pan face on zero numerical progress and leaves it on
  * strict progress.  The caller supplies the same feasibility-scaled error
  * bound used by the simplex acceptance test. */

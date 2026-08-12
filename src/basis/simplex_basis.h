@@ -46,6 +46,11 @@ int simplex_basis_factorize(struct simplex_Basis *basis);
 
 int simplex_basis_ftran(const struct simplex_Basis *basis, double *vector);
 
+/* Solve against the current basis and certify the result with componentwise
+ * backward-error iterative refinement.  Intended for exact-state rebuilds. */
+int simplex_basis_ftran_refined(
+		const struct simplex_Basis *basis, double *vector);
+
 int simplex_basis_ftran_pair(
 		const struct simplex_Basis *basis,
 		double *first, double *second);

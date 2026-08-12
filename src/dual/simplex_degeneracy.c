@@ -112,6 +112,20 @@ void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control)
 }
 
 
+void simplex_degeneracy_reset_state(struct simplex_DegeneracyControl *control)
+{
+	control->phase = SIMPLEX_PAN_NORMAL;
+	control->recovery_pending = 0;
+	control->fingerprint_count = 0;
+	control->fingerprint_initialized = 0;
+	control->current_basis_hash = 0;
+	control->current_status_hash = 0;
+	if (control->fingerprint_used != NULL)
+		lp_simplex_memset(control->fingerprint_used, 0,
+			(size_t)control->fingerprint_capacity);
+}
+
+
 void simplex_degeneracy_observe(
 		struct simplex_DegeneracyControl *control,
 		const double dual_step, const double dual_error_bound,
