@@ -28,6 +28,8 @@ struct simplex_BasisProfile {
 	int compact_max;
 	long eta_nonzeros;
 	long eta_slots;
+	long fill_reinversions;
+	long stability_reinversions;
 	long compact_ftran_validations;
 	long compact_btran_validations;
 	long compact_ftran_refinements;

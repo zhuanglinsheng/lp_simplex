@@ -12,6 +12,77 @@
 #define SPARSE_LU_PIVOT_TOLERANCE 1e-13
 #define SPARSE_LU_MARKOWITZ_THRESHOLD 1e-1
 #define SPARSE_LU_GLOBAL_MARKOWITZ_LIMIT 1024
+#define SPARSE_LU_FT_UPDATE_LIMIT 512
+
+
+/* Order columns by increasing initial degree, breaking ties by the original
+ * position.  The old insertion sort made every reinversion quadratic when a
+ * changing basis happened to present columns in reverse degree order. */
+static int sparse_lu_degree_greater(
+		const int left, const int right, const int *degree)
+{
+	return degree[left] > degree[right] ||
+		(degree[left] == degree[right] && left > right);
+}
+
+
+static void sparse_lu_sift_degree_heap(
+		int *order, const int count, int root, const int *degree)
+{
+	for (;;) {
+		int child = 2 * root + 1;
+		int largest = root;
+		int value;
+		if (child < count && sparse_lu_degree_greater(
+			order[child], order[largest], degree))
+			largest = child;
+		if (child + 1 < count && sparse_lu_degree_greater(
+			order[child + 1], order[largest], degree))
+			largest = child + 1;
+		if (largest == root)
+			return;
+		value = order[root];
+		order[root] = order[largest];
+		order[largest] = value;
+		root = largest;
+	}
+}
+
+
+static void sparse_lu_sort_columns_by_degree(
+		int *order, const int count, const int *degree)
+{
+	int adjacent_inversions = 0;
+	int i;
+	/* Basis updates often preserve most of the previous structural order.  In
+	 * that common case insertion sort is linear in practice and moves less
+	 * memory than a heap.  Use the bounded-complexity path once disorder is
+	 * visible across a material number of adjacent pairs. */
+	for (i = 1; i < count; i++)
+		if (sparse_lu_degree_greater(order[i - 1], order[i], degree))
+			adjacent_inversions++;
+	if (adjacent_inversions <= __lp_simplex_MAX__(8, count / 64)) {
+		for (i = 1; i < count; i++) {
+			int original = order[i];
+			int position = i;
+			while (position > 0 && sparse_lu_degree_greater(
+				order[position - 1], original, degree)) {
+				order[position] = order[position - 1];
+				position--;
+			}
+			order[position] = original;
+		}
+		return;
+	}
+	for (i = count / 2; i > 0; i--)
+		sparse_lu_sift_degree_heap(order, count, i - 1, degree);
+	for (i = count - 1; i > 0; i--) {
+		int value = order[0];
+		order[0] = order[i];
+		order[i] = value;
+		sparse_lu_sift_degree_heap(order, i, 0, degree);
+	}
+}
 
 
 static void sparse_row_destroy(struct simplex_SparseRow *row)
@@ -140,8 +211,28 @@ int simplex_sparse_lu_create(struct simplex_SparseLu *factor, const int dimensio
 		(size_t)dimension * sizeof(*factor->row));
 	factor->column_rows = (struct simplex_SparseColumnRows *)lp_simplex_malloc(
 		(size_t)dimension * sizeof(*factor->column_rows));
+	factor->ft_column = (struct simplex_SparseRow *)lp_simplex_malloc(
+		(size_t)dimension * sizeof(*factor->ft_column));
+	factor->ft_row_eta = (struct simplex_SparseRow *)lp_simplex_malloc(
+		(size_t)SPARSE_LU_FT_UPDATE_LIMIT * sizeof(*factor->ft_row_eta));
+	factor->ft_order = (int *)lp_simplex_malloc(
+		(size_t)2 * dimension * sizeof(int));
+	factor->ft_pivot_position = factor->ft_order != NULL
+		? factor->ft_order + dimension : NULL;
+	factor->ft_row_pivot = (int *)lp_simplex_malloc(
+		(size_t)SPARSE_LU_FT_UPDATE_LIMIT * sizeof(int));
+	factor->ft_spike_cache = (double *)lp_simplex_malloc(
+		(size_t)2 * dimension * sizeof(double));
+	factor->ft_btran_cache = factor->ft_spike_cache != NULL
+		? factor->ft_spike_cache + dimension : NULL;
+	/* The hard bound is supplemented by a fill-based reinversion test in the
+	 * update routine. */
+	factor->ft_update_capacity = SPARSE_LU_FT_UPDATE_LIMIT;
 	if (factor->integer_storage == NULL || factor->numeric_storage == NULL ||
-	    factor->row == NULL || factor->column_rows == NULL) {
+	    factor->row == NULL || factor->column_rows == NULL ||
+	    factor->ft_column == NULL || factor->ft_row_eta == NULL ||
+	    factor->ft_order == NULL || factor->ft_row_pivot == NULL ||
+	    factor->ft_spike_cache == NULL) {
 		simplex_sparse_lu_destroy(factor);
 		return lp_simplex_EXIT_FAILURE;
 	}
@@ -149,6 +240,10 @@ int simplex_sparse_lu_create(struct simplex_SparseLu *factor, const int dimensio
 		(size_t)dimension * sizeof(*factor->row));
 	lp_simplex_memset(factor->column_rows, 0,
 		(size_t)dimension * sizeof(*factor->column_rows));
+	lp_simplex_memset(factor->ft_column, 0,
+		(size_t)dimension * sizeof(*factor->ft_column));
+	lp_simplex_memset(factor->ft_row_eta, 0,
+		(size_t)SPARSE_LU_FT_UPDATE_LIMIT * sizeof(*factor->ft_row_eta));
 	return lp_simplex_EXIT_SUCCESS;
 }
 
@@ -166,8 +261,19 @@ void simplex_sparse_lu_destroy(struct simplex_SparseLu *factor)
 		for (i = 0; i < factor->dimension; i++)
 			sparse_column_rows_destroy(factor->column_rows + i);
 	}
+	if (factor->ft_column != NULL)
+		for (i = 0; i < factor->dimension; i++)
+			sparse_row_destroy(factor->ft_column + i);
+	if (factor->ft_row_eta != NULL)
+		for (i = 0; i < factor->ft_update_capacity; i++)
+			sparse_row_destroy(factor->ft_row_eta + i);
 	lp_simplex_free(factor->row);
 	lp_simplex_free(factor->column_rows);
+	lp_simplex_free(factor->ft_column);
+	lp_simplex_free(factor->ft_row_eta);
+	lp_simplex_free(factor->ft_order);
+	lp_simplex_free(factor->ft_row_pivot);
+	lp_simplex_free(factor->ft_spike_cache);
 	lp_simplex_free(factor->integer_storage);
 	lp_simplex_free(factor->numeric_storage);
 	lp_simplex_free(factor->packed_column);
@@ -226,17 +332,8 @@ static int sparse_lu_assemble(
 	for (i = 0; i < n; i++)
 		factor->row_scale[i] = factor->row_scale[i] > 0.
 			? 1. / factor->row_scale[i] : 1.;
-	for (j = 1; j < n; j++) {
-		int original = factor->column_permutation[j];
-		int position = j;
-		while (position > 0 &&
-		       count[factor->column_permutation[position - 1]] > count[original]) {
-			factor->column_permutation[position] =
-				factor->column_permutation[position - 1];
-			position--;
-		}
-		factor->column_permutation[position] = original;
-	}
+	sparse_lu_sort_columns_by_degree(
+		factor->column_permutation, n, count);
 	lp_simplex_memset(count, 0, (size_t)n * sizeof(int));
 	for (j = 0; j < n; j++) {
 		int variable = basis[factor->column_permutation[j]];
@@ -319,17 +416,8 @@ static int sparse_lu_assemble_submatrix(
 	for (i = 0; i < n; i++)
 		factor->row_scale[i] = factor->row_scale[i] > 0.
 			? 1. / factor->row_scale[i] : 1.;
-	for (j = 1; j < n; j++) {
-		int original = factor->column_permutation[j];
-		int position = j;
-		while (position > 0 &&
-		       count[factor->column_permutation[position - 1]] > count[original]) {
-			factor->column_permutation[position] =
-				factor->column_permutation[position - 1];
-			position--;
-		}
-		factor->column_permutation[position] = original;
-	}
+	sparse_lu_sort_columns_by_degree(
+		factor->column_permutation, n, count);
 	lp_simplex_memset(count, 0, (size_t)n * sizeof(int));
 	for (j = 0; j < n; j++) {
 		int column = columns[factor->column_permutation[j]];
@@ -468,6 +556,150 @@ static int sparse_lu_pack_rows(struct simplex_SparseLu *factor)
 	factor->packed_value = value;
 	factor->packed_nonzeros = nonzeros;
 	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+/* Build the initial U eta file.  For an upper triangular U, its raw column
+ * etas have the factor product
+ *
+ *     U = E_{n-1} ... E_1 E_0.
+ *
+ * Forrest--Tomlin updates preserve this product form while changing the eta
+ * order; no triangular pattern is assumed after the first update. */
+static int sparse_lu_ft_initialize(struct simplex_SparseLu *factor)
+{
+	int i, k;
+	int n = factor->dimension;
+	long nonzeros = 0;
+	for (i = 0; i < n; i++) {
+		factor->ft_column[i].count = 0;
+		/* U = E_{n-1} ... E_1 E_0.  The eta file stores that factor
+		 * order; applying the inverse to a vector follows the same list. */
+		factor->ft_order[i] = n - 1 - i;
+		factor->ft_pivot_position[n - 1 - i] = i;
+	}
+	for (i = 0; i < factor->ft_update_capacity; i++)
+		factor->ft_row_eta[i].count = 0;
+	for (i = 0; i < n; i++) {
+		int diagonal = factor->packed_start[i] +
+			factor->diagonal_position[i];
+		int end = factor->packed_start[i + 1];
+		for (k = diagonal; k < end; k++) {
+			int column = factor->packed_column[k];
+			struct simplex_SparseRow *eta = factor->ft_column + column;
+			if (sparse_row_reserve(eta, eta->count + 1) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
+			eta->column[eta->count] = i;
+			eta->value[eta->count++] = factor->packed_value[k];
+			nonzeros++;
+		}
+	}
+	factor->ft_update_count = 0;
+	factor->ft_active = 1;
+	factor->ft_spike_valid = 0;
+	factor->ft_btran_pivot = -1;
+	factor->ft_initial_nonzeros = nonzeros;
+	factor->ft_nonzeros = nonzeros;
+	factor->ft_row_nonzeros = 0;
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static double sparse_lu_ft_pivot(
+		const struct simplex_SparseLu *factor, const int pivot)
+{
+	const struct simplex_SparseRow *eta = factor->ft_column + pivot;
+	int k;
+	for (k = 0; k < eta->count; k++)
+		if (eta->column[k] == pivot)
+			return eta->value[k];
+	return 0.;
+}
+
+
+static int sparse_lu_ft_u_inverse(
+		const struct simplex_SparseLu *factor, double *work, const int transpose)
+{
+	int q;
+	int n = factor->dimension;
+	if (!transpose) {
+		for (q = 0; q < n; q++) {
+			int k;
+			int p = factor->ft_order[q];
+			const struct simplex_SparseRow *eta = factor->ft_column + p;
+			double pivot = sparse_lu_ft_pivot(factor, p);
+			double multiplier;
+			if (__lp_simplex_ABS__(pivot) <= SPARSE_LU_PIVOT_TOLERANCE)
+				return lp_simplex_EXIT_FAILURE;
+			if (work[p] == 0.)
+				continue;
+			multiplier = work[p] / pivot;
+			for (k = 0; k < eta->count; k++)
+				if (eta->column[k] != p)
+					work[eta->column[k]] -= multiplier * eta->value[k];
+			work[p] = multiplier;
+		}
+	} else {
+		for (q = n - 1; q >= 0; q--) {
+			int k;
+			int p = factor->ft_order[q];
+			const struct simplex_SparseRow *eta = factor->ft_column + p;
+			double pivot = sparse_lu_ft_pivot(factor, p);
+			double value = work[p];
+			if (__lp_simplex_ABS__(pivot) <= SPARSE_LU_PIVOT_TOLERANCE)
+				return lp_simplex_EXIT_FAILURE;
+			for (k = 0; k < eta->count; k++)
+				if (eta->column[k] != p)
+					value -= eta->value[k] * work[eta->column[k]];
+			work[p] = value / pivot;
+		}
+	}
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static void sparse_lu_ft_u_product(
+		const struct simplex_SparseLu *factor, double *work)
+{
+	int q;
+	for (q = factor->dimension - 1; q >= 0; q--) {
+		int k;
+		int p = factor->ft_order[q];
+		const struct simplex_SparseRow *eta = factor->ft_column + p;
+		double value = work[p];
+		for (k = 0; k < eta->count; k++)
+			if (eta->column[k] != p)
+				work[eta->column[k]] += eta->value[k] * value;
+		work[p] = sparse_lu_ft_pivot(factor, p) * value;
+	}
+}
+
+
+static void sparse_lu_ft_apply_rows(
+		const struct simplex_SparseLu *factor, double *work,
+		const int transpose)
+{
+	int q;
+	if (!transpose)
+		for (q = 0; q < factor->ft_update_count; q++) {
+			int k;
+			const struct simplex_SparseRow *row = factor->ft_row_eta + q;
+			int p = factor->ft_row_pivot[q];
+			double dot = 0.;
+			for (k = 0; k < row->count; k++)
+				dot += row->value[k] * work[row->column[k]];
+			work[p] -= dot;
+		}
+	else
+		for (q = factor->ft_update_count - 1; q >= 0; q--) {
+			int k;
+			const struct simplex_SparseRow *row = factor->ft_row_eta + q;
+			int p = factor->ft_row_pivot[q];
+			double value = work[p];
+			for (k = 0; k < row->count; k++)
+				work[row->column[k]] -= row->value[k] * value;
+		}
 }
 
 
@@ -708,7 +940,9 @@ static int sparse_lu_factorize_assembled(struct simplex_SparseLu *factor)
 	 * Rebuild exact column adjacency for reach-based triangular solves. */
 	if (sparse_lu_build_column_rows(factor) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	return sparse_lu_pack_rows(factor);
+	if (sparse_lu_pack_rows(factor) == lp_simplex_EXIT_FAILURE)
+		return lp_simplex_EXIT_FAILURE;
+	return sparse_lu_ft_initialize(factor);
 }
 
 
@@ -738,6 +972,86 @@ int simplex_sparse_lu_factorize_submatrix(
 }
 
 
+static int sparse_lu_ft_solve(
+		struct simplex_SparseLu *factor, double *vector, const int transpose)
+{
+	int i, k;
+	int n = factor->dimension;
+	double *work = factor->solve_work;
+	if (!transpose) {
+		for (i = 0; i < n; i++) {
+			work[i] = vector[factor->permutation[i]] *
+				factor->row_scale[factor->permutation[i]];
+		}
+		/* The initial L is immutable. */
+		for (i = 0; i < n; i++) {
+			int start = factor->packed_start[i];
+			int diagonal = start + factor->diagonal_position[i];
+			double value = work[i];
+			for (k = start; k < diagonal; k++)
+				value -= factor->packed_value[k] *
+					work[factor->packed_column[k]];
+			work[i] = value;
+		}
+		sparse_lu_ft_apply_rows(factor, work, 0);
+		lp_simplex_memcpy(factor->ft_spike_cache, work,
+			(size_t)n * sizeof(double));
+		factor->ft_spike_valid = 1;
+		if (sparse_lu_ft_u_inverse(factor, work, 0) ==
+		    lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		for (i = 0; i < n; i++)
+			vector[factor->column_permutation[i]] = work[i] *
+				factor->column_scale[factor->column_permutation[i]];
+	} else {
+		int singleton = -1;
+		double singleton_value = 0.;
+		for (i = 0; i < n; i++)
+			if (vector[i] != 0.) {
+				if (singleton >= 0) {
+					singleton = -2;
+					break;
+				}
+				singleton = i;
+				singleton_value = vector[i];
+			}
+		for (i = 0; i < n; i++)
+			work[i] = vector[factor->column_permutation[i]] *
+				factor->column_scale[factor->column_permutation[i]];
+		if (sparse_lu_ft_u_inverse(factor, work, 1) ==
+		    lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		factor->ft_btran_pivot = -1;
+		if (singleton >= 0 && singleton_value != 0.)
+			for (i = 0; i < n; i++)
+				if (factor->column_permutation[i] == singleton) {
+					double normalization = singleton_value *
+						factor->column_scale[singleton];
+					for (k = 0; k < n; k++)
+						factor->ft_btran_cache[k] = work[k] /
+							normalization;
+					factor->ft_btran_pivot = i;
+					break;
+				}
+		sparse_lu_ft_apply_rows(factor, work, 1);
+		for (i = n - 1; i >= 0; i--) {
+			int start = factor->packed_start[i];
+			int diagonal = start + factor->diagonal_position[i];
+			double value = work[i];
+			if (value == 0.)
+				continue;
+			for (k = start; k < diagonal; k++)
+				work[factor->packed_column[k]] -=
+					factor->packed_value[k] * value;
+		}
+		for (i = 0; i < n; i++)
+			vector[factor->permutation[i]] = work[i] *
+				factor->row_scale[factor->permutation[i]];
+	}
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
 int simplex_sparse_lu_solve(
 		struct simplex_SparseLu *factor, double *vector, const int transpose)
 {
@@ -747,6 +1061,8 @@ int simplex_sparse_lu_solve(
 	int active_count = 0;
 	int use_reach;
 	double *work = factor->solve_work;
+	if (factor->ft_active && factor->ft_update_count > 0)
+		return sparse_lu_ft_solve(factor, vector, transpose);
 	if (!transpose) {
 		for (i = 0; i < n; i++) {
 			work[i] = vector[factor->permutation[i]] *
@@ -841,6 +1157,18 @@ int simplex_sparse_lu_solve_pair(
 	int use_reach;
 	double *a = factor->solve_work;
 	double *b = factor->work_value;
+	if (factor->ft_active && factor->ft_update_count > 0) {
+		if (sparse_lu_ft_solve(factor, first, 0) == lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		lp_simplex_memcpy(factor->work_value, factor->ft_spike_cache,
+			(size_t)n * sizeof(double));
+		if (sparse_lu_ft_solve(factor, second, 0) == lp_simplex_EXIT_FAILURE)
+			return lp_simplex_EXIT_FAILURE;
+		lp_simplex_memcpy(factor->ft_spike_cache, factor->work_value,
+			(size_t)n * sizeof(double));
+		factor->ft_spike_valid = 1;
+		return lp_simplex_EXIT_SUCCESS;
+	}
 	for (i = 0; i < n; i++) {
 		int row = factor->permutation[i];
 		double scale = factor->row_scale[row];
@@ -905,4 +1233,152 @@ int simplex_sparse_lu_solve_pair(
 		second[column] = b[i] * scale;
 	}
 	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+static void sparse_lu_ft_remove_row(
+		struct simplex_SparseRow *column, const int row)
+{
+	int k, out = 0;
+	for (k = 0; k < column->count; k++)
+		if (column->column[k] != row) {
+			column->column[out] = column->column[k];
+			column->value[out++] = column->value[k];
+		}
+	column->count = out;
+}
+
+
+int simplex_sparse_lu_ft_update(
+		struct simplex_SparseLu *factor, const int leaving_position,
+		const double *direction)
+{
+	struct simplex_SparseRow *row_eta;
+	struct simplex_SparseRow *new_column;
+	double *spike = factor->work_value;
+	double *partial_btran = factor->solve_work;
+	double pivot, dot = 0.;
+	double column_scale;
+	int i, k, p = -1, position;
+	int new_nonzeros = 0;
+	long removed_row = 0;
+	long projected_nonzeros;
+	int n = factor->dimension;
+	if (!factor->ft_active || factor->ft_update_count >=
+	    factor->ft_update_capacity)
+		return 1;
+	for (i = 0; i < n; i++)
+		if (factor->column_permutation[i] == leaving_position) {
+			p = i;
+			break;
+		}
+	if (p < 0)
+		return lp_simplex_EXIT_FAILURE;
+	column_scale = factor->column_scale[leaving_position];
+	if (__lp_simplex_ABS__(column_scale) <= SPARSE_LU_PIVOT_TOLERANCE)
+		return lp_simplex_EXIT_FAILURE;
+	/* FTRAN caches the spike immediately before its U solve.  Reconstruct it
+	 * from the final direction only for unusual callers that update without a
+	 * preceding FTRAN. */
+	if (factor->ft_spike_valid)
+		lp_simplex_memcpy(spike, factor->ft_spike_cache,
+			(size_t)n * sizeof(double));
+	else {
+		for (i = 0; i < n; i++)
+			spike[i] = direction[factor->column_permutation[i]] /
+				factor->column_scale[factor->column_permutation[i]];
+		sparse_lu_ft_u_product(factor, spike);
+	}
+	for (i = 0; i < n; i++)
+		spike[i] *= column_scale;
+
+	/* Tomlin's shortcut: r^T = e_p^T-u_pp e_p^T U^{-1}. */
+	if (factor->ft_btran_pivot == p)
+		lp_simplex_memcpy(partial_btran, factor->ft_btran_cache,
+			(size_t)n * sizeof(double));
+	else {
+		for (i = 0; i < n; i++)
+			partial_btran[i] = 0.;
+		partial_btran[p] = 1.;
+		if (sparse_lu_ft_u_inverse(factor, partial_btran, 1) ==
+		    lp_simplex_EXIT_FAILURE)
+			return 1;
+	}
+	pivot = sparse_lu_ft_pivot(factor, p);
+	row_eta = factor->ft_row_eta + factor->ft_update_count;
+	row_eta->count = 0;
+	for (i = 0; i < n; i++) {
+		double value = i == p ? 0. : -pivot * partial_btran[i];
+		if (value != 0.) {
+			if (sparse_row_reserve(row_eta, row_eta->count + 1) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
+			row_eta->column[row_eta->count] = i;
+			row_eta->value[row_eta->count++] = value;
+			dot += value * spike[i];
+		}
+	}
+	spike[p] -= dot;
+	if (__lp_simplex_ABS__(spike[p]) <= SPARSE_LU_PIVOT_TOLERANCE)
+		return 1;
+	for (i = 0; i < n; i++) {
+		if (spike[i] != 0.)
+			new_nonzeros++;
+		if (i != p) {
+			const struct simplex_SparseRow *column = factor->ft_column + i;
+			for (k = 0; k < column->count; k++)
+				if (column->column[k] == p) {
+					removed_row++;
+					break;
+				}
+		}
+	}
+	projected_nonzeros = factor->ft_nonzeros -
+		factor->ft_column[p].count - removed_row + new_nonzeros;
+	/* FT fill can change abruptly on hyper-sparse models.  Reinvert before
+	 * committing an update whose U file or accumulated row file would cost
+	 * more to traverse than a fresh sparse factorization. */
+	if (factor->ft_update_count > 0 &&
+	    (projected_nonzeros > __lp_simplex_MAX__(
+		2 * factor->ft_initial_nonzeros,
+		factor->ft_initial_nonzeros + 8L * n) ||
+	     factor->ft_row_nonzeros + row_eta->count > 8L * n))
+		return 1;
+
+	/* Delete the old pivot column and zero the leaving row in every other
+	 * eta.  In factor-product order the new eta is prepended (equivalently it
+	 * is appended to the inverse-application file used in the literature). */
+	for (i = 0; i < n; i++)
+		if (i != p)
+			sparse_lu_ft_remove_row(factor->ft_column + i, p);
+	new_column = factor->ft_column + p;
+	new_column->count = 0;
+	for (i = 0; i < n; i++)
+		if (spike[i] != 0.) {
+			if (sparse_row_reserve(new_column, new_column->count + 1) ==
+			    lp_simplex_EXIT_FAILURE)
+				return lp_simplex_EXIT_FAILURE;
+			new_column->column[new_column->count] = i;
+			new_column->value[new_column->count++] = spike[i];
+		}
+	position = factor->ft_pivot_position[p];
+	for (k = position; k > 0; k--) {
+		factor->ft_order[k] = factor->ft_order[k - 1];
+		factor->ft_pivot_position[factor->ft_order[k]] = k;
+	}
+	factor->ft_order[0] = p;
+	factor->ft_pivot_position[p] = 0;
+	factor->ft_row_pivot[factor->ft_update_count] = p;
+	factor->ft_nonzeros = projected_nonzeros;
+	factor->ft_row_nonzeros += row_eta->count;
+	factor->ft_update_count++;
+	factor->ft_spike_valid = 0;
+	factor->ft_btran_pivot = -1;
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+int simplex_sparse_lu_ft_active(const struct simplex_SparseLu *factor)
+{
+	return factor != NULL && factor->ft_active;
 }

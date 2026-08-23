@@ -4,6 +4,7 @@
  */
 /* Bounded dual revised simplex over an immutable CSC constraint matrix. */
 #include "simplex_dual.h"
+#include "simplex_scaling.h"
 #include "simplex_dual_bounds.h"
 #include "simplex_dual_internal.h"
 #include "simplex_dual_pricing.h"
@@ -1340,7 +1341,7 @@ static double dual_primal_infeasibility(
 }
 
 
-int simplex_dual_solve_problem(
+static int dual_solve_problem_kernel(
 		const struct simplex_Problem *problem,
 		const struct lp_simplex_Options *options,
 		double *x, double *row_dual, struct lp_simplex_Result *result,
@@ -1472,7 +1473,7 @@ int simplex_dual_solve_problem(
 			"pan_degenerate=%ld pan_activations=%ld pan_probes=%ld "
 			"pan_cycles=%ld pan_recovery=%ld/%ld "
 			"pan_rank=%d/%d factor_core=%d/%d compact=%ld[%d,%d] "
-			"eta_nnz=%ld/%ld cert=%ld/%ld refine=%ld/%ld "
+			"eta_nnz=%ld/%ld reinvert=%ld/%ld cert=%ld/%ld refine=%ld/%ld "
 			"reject=%ld/%ld flips=%ld/%ld\n",
 			state.profile.total_seconds,
 			basis_profile.factor_seconds,
@@ -1500,6 +1501,8 @@ int simplex_dual_solve_problem(
 			basis_profile.compact_max,
 			basis_profile.eta_nonzeros,
 			basis_profile.eta_slots,
+			basis_profile.fill_reinversions,
+			basis_profile.stability_reinversions,
 			basis_profile.compact_ftran_validations,
 			basis_profile.compact_btran_validations,
 			basis_profile.compact_ftran_refinements,
@@ -1511,6 +1514,99 @@ int simplex_dual_solve_problem(
 	}
 	simplex_dual_state_destroy(&state);
 	return solve_state;
+}
+
+
+static double dual_problem_primal_infeasibility(
+		const struct simplex_Problem *problem, const double *x)
+{
+	double maximum = 0.;
+	int i, j, k;
+	for (j = 0; j < problem->columns; j++) {
+		double violation = 0.;
+		int type = problem->bounds[j].b_type;
+		if ((type == optm_BOUND_T_LO || type == optm_BOUND_T_BS) &&
+		    x[j] < problem->bounds[j].lb)
+			violation = problem->bounds[j].lb - x[j];
+		if ((type == optm_BOUND_T_UP || type == optm_BOUND_T_BS) &&
+		    x[j] > problem->bounds[j].ub)
+			violation = __lp_simplex_MAX__(violation,
+				x[j] - problem->bounds[j].ub);
+		maximum = __lp_simplex_MAX__(maximum, violation);
+	}
+	for (i = 0; i < problem->rows; i++) {
+		double activity = 0.;
+		double violation;
+		for (k = problem->matrix.row_start[i];
+		     k < problem->matrix.row_start[i + 1]; k++)
+			activity += problem->matrix.row_value[k] *
+				x[problem->matrix.column_index[k]];
+		violation = activity - problem->rhs[i];
+		if (problem->row_type[i] == optm_CONS_T_EQ)
+			violation = __lp_simplex_ABS__(violation);
+		else if (problem->row_type[i] == optm_CONS_T_GE)
+			violation = violation < 0. ? -violation : 0.;
+		else
+			violation = violation > 0. ? violation : 0.;
+		maximum = __lp_simplex_MAX__(maximum, violation);
+	}
+	return maximum;
+}
+
+
+int simplex_dual_solve_problem(
+		const struct simplex_Problem *problem,
+		const struct lp_simplex_Options *options,
+		double *x, double *row_dual, struct lp_simplex_Result *result,
+		const int propagate_bounds)
+{
+	struct simplex_Scaling scaling;
+	struct simplex_Problem *scaled;
+	double *dual = row_dual;
+	int i, j, state;
+	if (getenv("LP_SIMPLEX_DISABLE_SCALING") != NULL)
+		return dual_solve_problem_kernel(problem, options, x, row_dual,
+			result, propagate_bounds);
+	scaled = simplex_scaling_create_problem(problem, &scaling);
+	if (scaled == NULL) {
+		result->status = lp_simplex_MemoryAllocError;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	if (dual == NULL && problem->rows > 0)
+		dual = (double *)lp_simplex_malloc(
+			(size_t)problem->rows * sizeof(double));
+	if (dual == NULL && problem->rows > 0) {
+		simplex_problem_free(scaled);
+		simplex_scaling_destroy(&scaling);
+		result->status = lp_simplex_MemoryAllocError;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	/* The kernel may reject an initial factorization before producing a
+	 * solution.  Initialize the recovery buffers so that failure reporting does
+	 * not read indeterminate caller storage. */
+	for (j = 0; j < problem->columns; j++)
+		x[j] = 0.;
+	for (i = 0; i < problem->rows; i++)
+		dual[i] = 0.;
+	state = dual_solve_problem_kernel(scaled, options, x, dual, result,
+		propagate_bounds);
+	simplex_scaling_recover_primal(&scaling, x);
+	simplex_scaling_recover_dual(&scaling, dual);
+	result->objective = 0.;
+	for (j = 0; j < problem->columns; j++)
+		result->objective += problem->objective[j] * x[j];
+	result->primal_infeasibility =
+		dual_problem_primal_infeasibility(problem, x);
+	if (result->status == lp_simplex_Success &&
+	    result->primal_infeasibility > 10. * options->primal_tolerance) {
+		result->status = lp_simplex_PrecisionError;
+		state = lp_simplex_EXIT_FAILURE;
+	}
+	if (row_dual == NULL)
+		lp_simplex_free(dual);
+	simplex_problem_free(scaled);
+	simplex_scaling_destroy(&scaling);
+	return state;
 }
 
 

@@ -35,3 +35,14 @@ add_executable(test_presolve test_presolve.c)
 target_include_directories(test_presolve PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_presolve PRIVATE lp_simplex)
 add_test(NAME test_presolve COMMAND test_presolve)
+
+add_executable(test_scaling test_scaling.c)
+target_include_directories(test_scaling PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_scaling PRIVATE lp_simplex)
+add_test(NAME test_scaling COMMAND test_scaling)
+
+add_executable(test_basis_update test_basis_update.c)
+target_include_directories(test_basis_update PRIVATE
+	${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_basis_update PRIVATE lp_simplex)
+add_test(NAME test_basis_update COMMAND test_basis_update)

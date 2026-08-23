@@ -3,8 +3,8 @@
 本文以当前代码为准，说明 `lp_simplex` 从公开模型、预处理到求解和解恢复的
 完整流程。仓库包含三套算法：默认面向稀疏问题的 dual revised simplex、完整
 的 Pan/BDA 动态亏基算法，以及用于对照和小模型的 two-phase tableau simplex。文中的“已实现”只指当前源码
-实际执行的逻辑，不包含规划中的 partial pricing、Forrest–Tomlin update、通用
-scaling 或完整证书导出。
+实际执行的逻辑，不包含规划中的 partial pricing 或
+完整证书导出。
 
 ## 1. 求解问题与公开入口
 
@@ -143,6 +143,21 @@ Presolve 的目标是缩小问题，同时保存足够的信息恢复原解。�
 求解完成后先把 reduced solution 按 `column_map` scatter 到原变量数组，再按
 journal 创建顺序的逆序恢复 substitution 变量。固定值和空列选择也保存在
 presolve 状态中。最终目标值在原变量空间用用户目标重新计算。
+
+### 4.4 Dual kernel 的全局 scaling
+
+Dual revised 在 presolve 之后、crash 之前对 canonical problem 做四轮可逆的
+行列几何平衡。缩放因子限制为 2 的整数次幂，令
+
+\[
+\hat A=RAC,\qquad \hat b=Rb,\qquad \hat c=Cc,\qquad x=Cz.
+\]
+
+变量界同步除以列因子。内核求解缩放后的 `simplex_Problem`，退出后恢复
+`x=Cz` 和原问题行对偶 `y=R\hat y`，并在未缩放问题上重新计算目标值、primal
+residual。`dual_infeasibility` 保持内核对非基变量的既有定义，避免在丢失基状态后
+用变量是否恰好落在界上猜测其基/非基身份。设置 `LP_SIMPLEX_DISABLE_SCALING=1`
+可用于差分诊断。
 
 ## 5. Dual revised simplex 的初始化
 
@@ -313,29 +328,54 @@ d_p\approx\alpha_q.
 保存一次尝试的临时数据；basis/status/position 的交换集中在 commit 阶段，
 避免失败重试留下半提交状态。
 
-## 8. Basis factor、eta 与 reinversion
+## 8. Basis factor、Forrest–Tomlin 与 reinversion
 
 Basis 模块向 dual 层只暴露 factorize、FTRAN、双右端 FTRAN、BTRAN、update
 以及 profile。后端可以是 SuiteSparse KLU，也可以是仓库内置 sparse-LU；
 上层算法不依赖具体实现。
 
-一次基础分解之后，换基通过 product-form eta 链维护：
+内置 sparse-LU 后端实现了真正的 Forrest–Tomlin 更新。初始分解写成
+
+\[
+B=L U,\qquad U=E_{n-1}\cdots E_0.
+\]
+
+每次换基删除离基主元对应的 U 列 eta、清空该主元行、用
+\(r^T=e_p^T-u_{pp}e_p^TU^{-1}\) 构造 Tomlin 行变换，并把变换后的 entering
+spike 放回动态 U 文件。更新后的分解为
+
+\[
+B_k=L R_1\cdots R_k U_k.
+\]
+
+FTRAN/BTRAN 分别按此乘积的正向/转置逆向顺序求解。实现缓存 partial FTRAN
+spike 与 partial BTRAN 行，正常 dual pivot 不重复执行这两个部分求解；动态 U
+和累计行文件超过填充预算时，在提交更新前请求 reinversion。
+
+在小于 4096 行的完整内置 factor 上使用 FT。更大的 hypersparse factor 上，
+实测动态 U 的通用遍历会破坏 reach-based triangular solve 的优势，因此保留
+product-form eta 作为自适应后端；compact factor 和 KLU 后端也继续使用该路径：
 
 - FTRAN 正序应用 eta；
 - BTRAN 逆序应用 eta transpose；
-- hypersparse 或 compact 更新保存 packed index/value；
+- hypersparse 或 compact/PFI 更新保存 packed index/value；
 - 稠密更新按实际出现的列数渐进扩容，不预留完整 512 列；
 - 正常 dual pivot 直接复用已经生成的 `packed_direction`。
 
 Reinversion 的主要触发条件是：
 
 - eta 更新数达到 512；
-- eta 累积访问工作量达到基础 factor 的估算工作量；
-- 控制器发现相对主元或 alpha 一致性问题；
+- FT 的动态 U 或累计 Tomlin 行超过相对初始 factor 的填充预算；
+- PFI 后端在小基上使用累积访问工作量策略：sparse eta 达到基础 factor 的估算
+  工作量时重分解，dense eta 因连续内存访问成本较低而采用两倍访问预算；大基
+  优先复用更新链，直到 512 次硬上限，避免昂贵 sparse-LU reinversion 过密；
+- 新 eta 的相对主元低于稳定性阈值，或控制器发现 alpha 一致性问题；
 - 终止认证、对偶漂移修复或 compact factor 策略切换。
 
 Reinversion 是一个整体事务：重新 factorize 后，同时重算 primal values、
 \(\pi\)、reduced costs 和可行性 heap，防止 factor 与派生状态描述不同的基。
+FTRAN 应用更新链时还会跳过主元分量严格为零的 eta；双右端求解只在两个主元
+分量都为零时跳过，从而保持代数等价而减少 hypersparse 右端的无效遍历。
 
 ## 9. 两种不同的 Pan 机制
 

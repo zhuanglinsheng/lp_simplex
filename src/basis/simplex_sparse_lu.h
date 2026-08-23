@@ -42,6 +42,25 @@ struct simplex_SparseLu {
 	long factor_work;
 	struct simplex_SparseRow *row;
 	struct simplex_SparseColumnRows *column_rows;
+	/* Forrest--Tomlin representation of the mutable U factor.  ft_column is
+	 * an eta file indexed by pivot row; ft_order is the order in which the
+	 * column etas are applied for U^{-1}.  Each update moves one pivot to the
+	 * end and appends a sparse row transformation. */
+	struct simplex_SparseRow *ft_column;
+	struct simplex_SparseRow *ft_row_eta;
+	int *ft_order;
+	int *ft_pivot_position;
+	int *ft_row_pivot;
+	double *ft_spike_cache;
+	double *ft_btran_cache;
+	int ft_spike_valid;
+	int ft_btran_pivot;
+	int ft_update_count;
+	int ft_update_capacity;
+	int ft_active;
+	long ft_initial_nonzeros;
+	long ft_nonzeros;
+	long ft_row_nonzeros;
 };
 
 int simplex_sparse_lu_create(struct simplex_SparseLu *factor, int dimension);
@@ -63,5 +82,11 @@ int simplex_sparse_lu_solve(
 
 int simplex_sparse_lu_solve_pair(
 		struct simplex_SparseLu *factor, double *first, double *second);
+
+int simplex_sparse_lu_ft_update(
+		struct simplex_SparseLu *factor,
+		int leaving_position, const double *direction);
+
+int simplex_sparse_lu_ft_active(const struct simplex_SparseLu *factor);
 
 #endif

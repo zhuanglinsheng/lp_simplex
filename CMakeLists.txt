@@ -81,6 +81,7 @@ set(SOURCES
 	src/core/mps.c
 	src/core/simplex.c
 	src/core/simplex_problem.c
+	src/core/simplex_scaling.c
 	src/presolve/simplex_presolve.c
 	src/presolve/simplex_presolve_activity.c
 	src/presolve/simplex_presolve_postsolve.c

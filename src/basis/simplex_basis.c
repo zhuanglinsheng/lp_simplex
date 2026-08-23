@@ -22,6 +22,7 @@
 
 
 #define SIMPLEX_BASIS_UPDATE_LIMIT 512
+#define SIMPLEX_BASIS_STABILITY_PIVOT 1e-7
 
 
 struct simplex_BasisImpl {
@@ -814,6 +815,8 @@ static int simplex_basis_apply_eta(
 	double value;
 	if (__lp_simplex_ABS__(pivot) <= 1e-14)
 		return lp_simplex_EXIT_FAILURE;
+	if (vector[p] == 0.)
+		return lp_simplex_EXIT_SUCCESS;
 	value = vector[p] / pivot;
 	if (dense_slot < 0)
 		for (k = basis->impl->eta_start[update];
@@ -839,6 +842,8 @@ static int simplex_basis_apply_eta_pair(
 	double first_value, second_value;
 	if (__lp_simplex_ABS__(pivot) <= 1e-14)
 		return lp_simplex_EXIT_FAILURE;
+	if (first[p] == 0. && second[p] == 0.)
+		return lp_simplex_EXIT_SUCCESS;
 	first_value = first[p] / pivot;
 	second_value = second[p] / pivot;
 	if (dense_slot < 0) {
@@ -890,10 +895,15 @@ static int simplex_basis_apply_eta_transpose(
 static int simplex_basis_ftran_raw(
 		const struct simplex_Basis *basis, double *vector)
 {
-	int update;
+	int update, first_update = 0;
 	if (simplex_basis_base_ftran(basis, vector) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	for (update = 0; update < basis->impl->update_count; update++) {
+#ifndef LP_SIMPLEX_HAVE_KLU
+	if (!basis->impl->compact_active &&
+	    simplex_sparse_lu_ft_active(&basis->impl->sparse))
+		first_update = basis->impl->sparse.ft_update_count;
+#endif
+	for (update = first_update; update < basis->impl->update_count; update++) {
 		((struct simplex_Basis *)basis)->impl->eta_apply_work +=
 			basis->impl->eta_dense_slot[update] < 0
 			? basis->impl->eta_start[update + 1] - basis->impl->eta_start[update]
@@ -909,8 +919,14 @@ static int simplex_basis_ftran_raw(
 static int simplex_basis_btran_raw(
 		const struct simplex_Basis *basis, double *vector)
 {
-	int update;
-	for (update = basis->impl->update_count - 1; update >= 0; update--) {
+	int update, first_update = 0;
+#ifndef LP_SIMPLEX_HAVE_KLU
+	if (!basis->impl->compact_active &&
+	    simplex_sparse_lu_ft_active(&basis->impl->sparse))
+		first_update = basis->impl->sparse.ft_update_count;
+#endif
+	for (update = basis->impl->update_count - 1;
+	     update >= first_update; update--) {
 		((struct simplex_Basis *)basis)->impl->eta_apply_work +=
 			basis->impl->eta_dense_slot[update] < 0
 			? basis->impl->eta_start[update + 1] - basis->impl->eta_start[update]
@@ -1013,25 +1029,51 @@ int simplex_basis_ftran_pair(
 	struct simplex_Basis *mutable = (struct simplex_Basis *)basis;
 	clock_t started = 0;
 	int result = lp_simplex_EXIT_SUCCESS;
-	int update;
+	int update, first_update = 0;
 	if (basis->impl->profile_enabled)
 		started = clock();
 	if (simplex_basis_base_ftran_pair(basis, first, second) ==
 		lp_simplex_EXIT_FAILURE) {
 		result = lp_simplex_EXIT_FAILURE;
 	}
-	if (result == lp_simplex_EXIT_SUCCESS)
-		for (update = 0; update < basis->impl->update_count; update++) {
-			mutable->impl->eta_apply_work += 2L *
-				(basis->impl->eta_dense_slot[update] < 0
-				? basis->impl->eta_start[update + 1] - basis->impl->eta_start[update]
-				: basis->impl->rows);
-			if (simplex_basis_apply_eta_pair(basis, update, first, second) ==
-			    lp_simplex_EXIT_FAILURE) {
-				result = lp_simplex_EXIT_FAILURE;
+	if (result == lp_simplex_EXIT_SUCCESS) {
+#ifndef LP_SIMPLEX_HAVE_KLU
+		if (!basis->impl->compact_active &&
+		    simplex_sparse_lu_ft_active(&basis->impl->sparse)) {
+			first_update = basis->impl->sparse.ft_update_count;
+			for (update = first_update;
+			     update < basis->impl->update_count; update++) {
+				mutable->impl->eta_apply_work += 2L *
+					(basis->impl->eta_dense_slot[update] < 0
+					? basis->impl->eta_start[update + 1] -
+						basis->impl->eta_start[update]
+					: basis->impl->rows);
+				if (simplex_basis_apply_eta_pair(
+						basis, update, first, second) ==
+				    lp_simplex_EXIT_FAILURE) {
+					result = lp_simplex_EXIT_FAILURE;
 					break;
+				}
 			}
+		} else {
+#endif
+			for (update = 0; update < basis->impl->update_count; update++) {
+				mutable->impl->eta_apply_work += 2L *
+					(basis->impl->eta_dense_slot[update] < 0
+					? basis->impl->eta_start[update + 1] -
+						basis->impl->eta_start[update]
+					: basis->impl->rows);
+				if (simplex_basis_apply_eta_pair(
+						basis, update, first, second) ==
+				    lp_simplex_EXIT_FAILURE) {
+					result = lp_simplex_EXIT_FAILURE;
+					break;
+				}
+			}
+#ifndef LP_SIMPLEX_HAVE_KLU
 		}
+#endif
+	}
 	if (basis->impl->profile_enabled) {
 		mutable->impl->profile_ftran_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
@@ -1135,16 +1177,19 @@ static int simplex_basis_update_impl(
 	int sparse;
 	double direction_maximum = 0.;
 	double relative_pivot;
-	/* Deterministic ski-rental reinversion: compare algorithmic entry visits,
-	 * not CPU time.  Instrumentation and machine load must never alter the
-	 * simplex pivot path. */
-	if (basis->impl->update_count > 0 && basis->impl->factor_work > 0 &&
-	    basis->impl->eta_apply_work >= basis->impl->factor_work) {
+	/* On large bases an internal sparse refactorization is orders of magnitude
+	 * dearer than another eta traversal.  Let the numerical hard limit govern
+	 * those chains; smaller bases retain the deterministic ski-rental rule. */
+	if (basis->impl->update_count >= basis->impl->update_limit)
+		return 1;
+	if (basis->impl->rows < 4096 && basis->impl->update_count > 0 &&
+	    basis->impl->factor_work > 0 &&
+	    basis->impl->eta_apply_work /
+		(basis->impl->allow_sparse_eta ? 1 : 2) >=
+		basis->impl->factor_work) {
 		basis->impl->profile_fill_reinversions++;
 		return 1;
 	}
-	if (basis->impl->update_count >= basis->impl->update_limit)
-		return 1;
 	if (__lp_simplex_ABS__(direction[leaving_position]) <= 1e-14)
 		return lp_simplex_EXIT_FAILURE;
 	first = basis->impl->eta_start[basis->impl->update_count];
@@ -1169,13 +1214,34 @@ static int simplex_basis_update_impl(
 	}
 	relative_pivot = __lp_simplex_ABS__(direction[leaving_position]) /
 		__lp_simplex_MAX__(direction_maximum, 1e-300);
-	/* Pivot magnitude is recorded as a stability diagnostic, but it does not
-	 * trigger reinversion by itself: refactorizing the same degenerate basis
-	 * cannot improve that pivot.  Numerical reinversion is driven by the
-	 * residual and alpha-consistency checks in the solve controller. */
 	basis->impl->update_work += nonzeros;
 	basis->impl->minimum_relative_pivot = __lp_simplex_MIN__(
 		basis->impl->minimum_relative_pivot, relative_pivot);
+	/* The basis mapping already describes the post-pivot basis when update() is
+	 * called.  Refactorizing here therefore replaces, rather than repeats, a
+	 * weak eta update and prevents its multiplier growth from contaminating all
+	 * subsequent solves. */
+	if (relative_pivot < SIMPLEX_BASIS_STABILITY_PIVOT) {
+		basis->impl->profile_stability_reinversions++;
+		return 1;
+	}
+#ifndef LP_SIMPLEX_HAVE_KLU
+	if (!basis->impl->compact_active &&
+	    simplex_sparse_lu_ft_active(&basis->impl->sparse) &&
+	    basis->impl->update_count == basis->impl->sparse.ft_update_count &&
+	    basis->impl->rows < 4096) {
+		int result = simplex_sparse_lu_ft_update(
+			&basis->impl->sparse, leaving_position, direction);
+		if (result == lp_simplex_EXIT_SUCCESS) {
+			basis->impl->update_count++;
+			basis->impl->eta_start[basis->impl->update_count] =
+				basis->impl->eta_start[basis->impl->update_count - 1];
+			basis->impl->profile_eta_nonzeros += nonzeros;
+			basis->impl->profile_eta_slots += basis->impl->rows;
+		}
+		return result;
+	}
+#endif
 	sparse =
 		basis->impl->compact_active ||
 		(basis->impl->allow_sparse_eta && nonzeros * 8 <= basis->impl->rows);
@@ -1291,6 +1357,9 @@ void simplex_basis_get_profile(
 	profile->compact_max = basis->impl->profile_compact_max;
 	profile->eta_nonzeros = basis->impl->profile_eta_nonzeros;
 	profile->eta_slots = basis->impl->profile_eta_slots;
+	profile->fill_reinversions = basis->impl->profile_fill_reinversions;
+	profile->stability_reinversions =
+		basis->impl->profile_stability_reinversions;
 	profile->compact_ftran_validations =
 		basis->impl->profile_compact_ftran_validations;
 	profile->compact_btran_validations =
