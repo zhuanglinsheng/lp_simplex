@@ -138,6 +138,15 @@ int simplex_solve_standard(
 
 	for (j = 0; j < n; j++)
 		table[j] = -objective[j];
+	/*
+	 * Slack and surplus columns carry no phase-2 cost, but the objective row
+	 * still holds their phase-1 reduced costs.  Pricing them as-is prices a
+	 * column that does not exist in the caller's objective, so the pivot rule
+	 * can pick a direction that is not improving for the real problem.
+	 * Structural columns above were overwritten; the tail must be cleared.
+	 */
+	for (j = n; j < variable_count; j++)
+		table[j] = 0.;
 	for (i = 0; i < m; i++) {
 		int row = (i + 1) * ld;
 		double ratio = -table[basis[i]];

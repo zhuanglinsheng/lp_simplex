@@ -464,6 +464,37 @@ LP 的近似。
 \(Ax-y\) 残差，并报告最大 primal/dual infeasibility。Presolve 路径随后恢复
 原变量并在原目标上重算 objective。
 
+### 10.1 Success 的出口契约
+
+三条算法路径在返回前都必须经过同一个出口检查：只有当回填的 \(x\) 在**调用者
+自己的模型**上有限且可行（最大违反 \(\le 10\epsilon_p\)），且 `objective`
+有限时，才允许返回 `Success`。任何一项不满足都降级为 `PrecisionError` 并返回
+`lp_simplex_EXIT_FAILURE`。
+
+这条契约不是防御性冗余，而是修复过的两处真实缺陷的边界：
+
+- 可行性度量原先用 `if (violation > maximum)` 累积最大值，`NaN` 会让该比较
+  恒为假，于是 `NaN` 残差被当成"零违反"；现在非有限的 \(x_j\)、行活动或
+  residual 直接判为不可行；
+- presolve 的 implied-bound 传播在极端尺度下可以把界推到 \(10^{307}\)，
+  压缩后的对偶求解溢出并返回 `inf` 目标值，而旧版出口不检查有限性。
+
+因此 `Success` 现在等价于"返回的向量确实是调用者问题的可行点"，而不再只是
+"内核没有报错"。反过来说，`PrecisionError` 是诚实的失败：宁可报错，也不返回
+一个看起来成功但不可行或目标值非有限的解。
+
+### 10.2 目标函数方向
+
+`lp_Model.objective` 始终以**最小化形式**存储。MPS 的 `OBJSENSE MAXIMIZE`
+在读取时把目标系数与常数取反，并置 `objective_sense = -1`；出口再取反一次，
+所以 `result.objective` 恒为调用者定义的（最大化问题的）最大值。
+
+### 10.3 整数变量
+
+MPS 的 `INTORG/INTEND` 标记与 `BV/LI/UI` 界会被解析并写入
+`bounds[].v_type`，但 LP 内核只接受连续变量：`lp_simplex_solve` 会明确拒绝并
+在 stderr 说明原因，而不会静默地把整数模型当松弛求解。
+
 当前不可行判断包含内部 Farkas-gap 尺度保护，但公开 API 尚不导出可独立验证
 的 certificate 或 ray；文档不把这一内部保护描述为完整证书接口。
 

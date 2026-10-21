@@ -99,6 +99,29 @@ options.presolve = 0;
 The solver accepts continuous variables only. `x` must contain at least
 `model->n` elements. Release the model with `lp_model_free` after use.
 
+## Result contract
+
+`lp_simplex_solve` returns `lp_simplex_EXIT_SUCCESS` only when the vector it
+wrote to `x` is finite and feasible for the model that was passed in (maximum
+constraint or bound violation within `10 * options.primal_tolerance`) and the
+reported `result.objective` is finite. Otherwise the call returns
+`lp_simplex_EXIT_FAILURE` and `result.status` says why, typically
+`lp_simplex_PrecisionError`. A successful call is therefore safe to use
+without re-checking feasibility yourself.
+
+`result.objective` is always the value the caller asked for: for a model read
+from an MPS file with `OBJSENSE MAXIMIZE` it is the maximum, not the negated
+minimum.
+
+## Input format
+
+`lp_read_mps` reads fixed-column MPS with `ROWS`, `COLUMNS`, `RHS`, `RANGES`,
+`BOUNDS`, `OBJSENSE` and `ENDATA`. Comment lines (`*` or `$`) and blank lines
+are ignored. Integer declarations (`INTORG`/`INTEND`, `BV`, `LI`, `UI`) are
+parsed but rejected at solve time, because only continuous LPs are supported.
+Free-format MPS, `SOS`, `QUADOBJ` and multiple RHS/RANGES/BOUNDS vectors are
+not supported.
+
 ## Command-line example
 
 When the command-line tools are enabled, bundled MPS instances can be solved

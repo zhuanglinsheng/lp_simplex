@@ -44,12 +44,20 @@ struct optm_LinearConstraint {
  *
  * `coefficients` owns an m-by-n row-major matrix.  Every `constraints[i].coef`
  * points to row i of that matrix and must not be allocated or freed separately.
+ *
+ * `objective` is always stored in minimisation form: it holds the coefficients
+ * the solver actually minimises.  For a maximisation model (`OBJSENSE MAXIMIZE`
+ * in MPS, or `objective_sense = -1`) both `objective` and `objective_offset`
+ * are negated at load time, and the reported objective is negated back, so
+ * `result.objective` is the maximum the caller asked for.
  */
 struct lp_Model {
 	int                           m;             /* number of constraints */
 	int                           n;             /* number of variables */
 	int                           nnz;           /* sparse coefficient count */
 	double                        objective_offset; /* constant objective term */
+	/** +1 for minimise, -1 for maximise. */
+	double                        objective_sense;
 	double                       *objective;
 	double                       *coefficients;  /* row major */
 	struct optm_LinearConstraint *constraints;

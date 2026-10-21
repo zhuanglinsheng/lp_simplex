@@ -15,6 +15,13 @@
 #define __lp_simplex_INF__ (1. / 0.)
 #define __lp_simplex_NINF__ (-1. / 0.)
 
+/*
+ * C90-safe finiteness test.  NaN fails the first comparison; infinities fail
+ * the second because inf - inf is NaN.
+ */
+#define __lp_simplex_ISFINITE__(x) \
+	((x) == (x) && ((x) - (x)) == 0.)
+
 
 int is_in_arri(int idx, const int *idxset, int len);
 

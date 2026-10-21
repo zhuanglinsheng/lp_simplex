@@ -119,6 +119,10 @@ static void dual_propagate_row_bounds(
 		double a = state->matrix.row_value[k];
 		int own_minimum_infinite, own_maximum_infinite;
 		double own_minimum = 0., own_maximum = 0.;
+		/* A caller-supplied sparse model may store explicit zeros; dividing by
+		 * one would install an infinite or NaN bound. */
+		if (a == 0.)
+			continue;
 		own_minimum_infinite =
 			(a > 0. && !dual_bound_has_lower(state->lower[j])) ||
 			(a < 0. && !dual_bound_has_upper(state->upper[j]));
@@ -134,10 +138,17 @@ static void dual_propagate_row_bounds(
 		if (type != optm_CONS_T_GE &&
 		    minimum_infinite - own_minimum_infinite == 0) {
 			double bound = (rhs - (finite_minimum - own_minimum)) / a;
-			if (a > 0. && bound < state->upper[j]) {
+			/* Never install a bound that crosses the opposite one: a crossed
+			 * pair is not a tighter box and breaks the invariants the crash
+			 * phase relies on.  Contradictions are left to the simplex. */
+			if (a > 0. && bound < state->upper[j] &&
+			    (!dual_bound_has_lower(state->lower[j]) ||
+			     bound >= state->lower[j])) {
 				state->upper[j] = bound;
 				changed = 1;
-			} else if (a < 0. && bound > state->lower[j]) {
+			} else if (a < 0. && bound > state->lower[j] &&
+				   (!dual_bound_has_upper(state->upper[j]) ||
+				    bound <= state->upper[j])) {
 				state->lower[j] = bound;
 				changed = 1;
 			}
@@ -145,10 +156,14 @@ static void dual_propagate_row_bounds(
 		if (type != optm_CONS_T_LE &&
 		    maximum_infinite - own_maximum_infinite == 0) {
 			double bound = (rhs - (finite_maximum - own_maximum)) / a;
-			if (a > 0. && bound > state->lower[j]) {
+			if (a > 0. && bound > state->lower[j] &&
+			    (!dual_bound_has_upper(state->upper[j]) ||
+			     bound <= state->upper[j])) {
 				state->lower[j] = bound;
 				changed = 1;
-			} else if (a < 0. && bound < state->upper[j]) {
+			} else if (a < 0. && bound < state->upper[j] &&
+				   (!dual_bound_has_lower(state->lower[j]) ||
+				    bound >= state->lower[j])) {
 				state->upper[j] = bound;
 				changed = 1;
 			}

@@ -10,12 +10,43 @@
 #include <math.h>
 
 
+/*
+ * Largest magnitude a propagated bound may take.
+ *
+ * Implied-bound propagation divides a residual by a row coefficient.  On badly
+ * scaled data (tiny coefficients, free columns that acquire their first finite
+ * bound here) one such division can produce a bound many orders of magnitude
+ * beyond the data that justified it.  Installing it is useless in exact terms
+ * and actively harmful in floating point: the next row activity is then
+ * computed from that bound, so magnitudes compound towards overflow, and the
+ * margin in the contradiction test below -- which is proportional to the
+ * candidate itself -- grows with them.  Contradictions then stop being
+ * detected and the reduced problem overflows instead of being proven
+ * infeasible.
+ *
+ * Propagation is therefore only allowed to install bounds within this range.
+ * Refusing to tighten can make presolve weaker, never wrong: the solved
+ * problem is still checked against the caller's model on exit.
+ */
+#define PRESOLVE_PROPAGATION_LIMIT 1e20
+
+
+static int presolve_candidate_usable(const double candidate)
+{
+	double magnitude;
+	if (!isfinite(candidate))
+		return 0;
+	magnitude = candidate < 0. ? -candidate : candidate;
+	return magnitude <= PRESOLVE_PROPAGATION_LIMIT;
+}
+
+
 static int presolve_apply_implied_lower(
 		struct optm_VariableBound *bound, double candidate,
 		const double tolerance)
 {
 	double margin;
-	if (!isfinite(candidate))
+	if (!presolve_candidate_usable(candidate))
 		return 0;
 	margin = tolerance * (1. + __lp_simplex_ABS__(candidate));
 	candidate -= margin;
@@ -36,7 +67,7 @@ static int presolve_apply_implied_upper(
 		const double tolerance)
 {
 	double margin;
-	if (!isfinite(candidate))
+	if (!presolve_candidate_usable(candidate))
 		return 0;
 	margin = tolerance * (1. + __lp_simplex_ABS__(candidate));
 	candidate += margin;

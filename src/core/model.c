@@ -21,6 +21,7 @@ struct lp_Model *lp_model_create(int m, int n)
 	model->n = n;
 	model->nnz = 0;
 	model->objective_offset = 0.;
+	model->objective_sense = 1.;
 	model->objective = NULL;
 	model->coefficients = NULL;
 	model->constraints = NULL;
@@ -78,6 +79,7 @@ struct lp_Model *lp_model_create_sparse(
 	model->n = n;
 	model->nnz = 0;
 	model->objective_offset = 0.;
+	model->objective_sense = 1.;
 	model->objective = (double *)lp_simplex_malloc((size_t)n * sizeof(double));
 	model->coefficients = NULL;
 	model->constraints = (struct optm_LinearConstraint *)lp_simplex_malloc(

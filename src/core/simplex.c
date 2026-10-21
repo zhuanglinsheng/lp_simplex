@@ -112,6 +112,7 @@ static struct lp_Model *simplex_materialize_dense(
 	lp_simplex_memcpy(dense->objective, model->objective,
 		(size_t)model->n * sizeof(double));
 	dense->objective_offset = model->objective_offset;
+	dense->objective_sense = model->objective_sense;
 	if (model->bounds != NULL)
 		lp_simplex_memcpy(dense->bounds, model->bounds,
 			(size_t)model->n * sizeof(*dense->bounds));
@@ -163,6 +164,11 @@ static double simplex_primal_infeasibility(
 	int i, j, k;
 	for (j = 0; j < model->n; j++) {
 		double violation = 0.;
+		/* A non-finite primal entry cannot be feasible.  Testing it here
+		 * also keeps NaN out of the comparisons below, where every
+		 * "violation > maximum" test would silently be false. */
+		if (!__lp_simplex_ISFINITE__(x[j]))
+			return __lp_simplex_INF__;
 		if (model->bounds == NULL) {
 			if (x[j] < 0.)
 				violation = -x[j];
@@ -176,12 +182,16 @@ static double simplex_primal_infeasibility(
 			    x[j] - model->bounds[j].ub > violation)
 				violation = x[j] - model->bounds[j].ub;
 		}
+		if (!__lp_simplex_ISFINITE__(violation))
+			return __lp_simplex_INF__;
 		if (violation > maximum)
 			maximum = violation;
 	}
 	for (i = 0; i < model->m; i++) {
 		double activity = 0.;
 		double violation;
+		if (!__lp_simplex_ISFINITE__(model->constraints[i].rhs))
+			return __lp_simplex_INF__;
 		if (model->row_start != NULL) {
 			for (k = model->row_start[i]; k < model->row_start[i + 1]; k++)
 				activity += model->row_value[k] * x[model->column_index[k]];
@@ -189,6 +199,8 @@ static double simplex_primal_infeasibility(
 			for (j = 0; j < model->n; j++)
 				activity += model->constraints[i].coef[j] * x[j];
 		}
+		if (!__lp_simplex_ISFINITE__(activity))
+			return __lp_simplex_INF__;
 		violation = activity - model->constraints[i].rhs;
 		if (model->constraints[i].type == optm_CONS_T_EQ)
 			violation = __lp_simplex_ABS__(violation);
@@ -196,10 +208,44 @@ static double simplex_primal_infeasibility(
 			violation = violation < 0. ? -violation : 0.;
 		else
 			violation = violation > 0. ? violation : 0.;
+		if (!__lp_simplex_ISFINITE__(violation))
+			return __lp_simplex_INF__;
 		if (violation > maximum)
 			maximum = violation;
 	}
 	return maximum;
+}
+
+
+/**
+ * Single gate in front of every "solved" return.
+ *
+ * A solver may only claim `lp_simplex_Success` when the vector it hands back
+ * is finite and feasible for the caller's own model.  Without this check the
+ * presolve path can report success while its reduced problem overflowed
+ * (objective inf/NaN) and the tableau path reports success while its
+ * recovered vector violates the constraints outright.
+ */
+static int simplex_finalize_result(
+		const struct lp_Model *model,
+		const struct lp_simplex_Options *options,
+		const double *x, struct lp_simplex_Result *result, int state)
+{
+	double infeasibility;
+
+	if (result->status != lp_simplex_Success)
+		return state;
+	infeasibility = simplex_primal_infeasibility(model, x);
+	result->primal_infeasibility = infeasibility;
+	/* Objective vectors are stored minimisation-form; report the caller's. */
+	result->objective *= model->objective_sense;
+	if (!__lp_simplex_ISFINITE__(result->objective) ||
+	    !__lp_simplex_ISFINITE__(infeasibility) ||
+	    infeasibility > 10. * options->primal_tolerance) {
+		result->status = lp_simplex_PrecisionError;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	return state;
 }
 
 
@@ -386,16 +432,29 @@ int lp_simplex_solve(
 	result->primal_infeasibility = 0.;
 	result->dual_infeasibility = 0.;
 	if (x == NULL || !simplex_validate_model(model) ||
-	    !simplex_validate_options(options))
+	    !simplex_validate_options(options)) {
+		/*
+		 * Integer variables are parsed (MPS INTORG/MARKER, BV/LI/UI) but not
+		 * supported.  Say so, instead of failing with a bare status code that
+		 * looks like a malformed model.
+		 */
+		if (x != NULL && model != NULL && model->bounds != NULL) {
+			int j;
+			for (j = 0; j < model->n; j++)
+				if (model->bounds[j].v_type != optm_VAR_T_REAL) {
+					fprintf(stderr, "lp_simplex: model declares "
+						"integer or binary variables; "
+						"only continuous LPs are supported\n");
+					break;
+				}
+		}
 		return lp_simplex_EXIT_FAILURE;
+	}
 
 	if (options->algorithm == lp_simplex_ALGORITHM_DUAL_REVISED ||
 	    options->algorithm == lp_simplex_ALGORITHM_PAN_BDA) {
 		state = simplex_solve_sparse_presolved(model, options, x, result);
-		if (result->status == lp_simplex_Success)
-			result->primal_infeasibility =
-				simplex_primal_infeasibility(model, x);
-		return state;
+		return simplex_finalize_result(model, options, x, result, state);
 	}
 	if (model->coefficients == NULL) {
 		struct lp_Model *dense = simplex_materialize_dense(model);
@@ -412,8 +471,5 @@ int lp_simplex_solve(
 		model, options, x, &objective, &status, &result->iterations);
 	result->status = status;
 	result->objective = objective + model->objective_offset;
-	if (status == lp_simplex_Success)
-		result->primal_infeasibility =
-			simplex_primal_infeasibility(model, x);
-	return state;
+	return simplex_finalize_result(model, options, x, result, state);
 }

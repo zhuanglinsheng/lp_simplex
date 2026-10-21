@@ -46,3 +46,10 @@ target_include_directories(test_basis_update PRIVATE
 	${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_basis_update PRIVATE lp_simplex)
 add_test(NAME test_basis_update COMMAND test_basis_update)
+
+add_executable(test_regressions test_regressions.c)
+target_compile_definitions(test_regressions PRIVATE
+	SIMPLE_EXAMPLES_DIR="${PROJECT_SOURCE_DIR}/data/simple_examples"
+)
+target_link_libraries(test_regressions PRIVATE lp_simplex)
+add_test(NAME test_regressions COMMAND test_regressions)

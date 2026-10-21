@@ -104,6 +104,10 @@ struct simplex_DualState {
 	/* A leaving row whose complete Harris set had no stable actual FTRAN
 	 * pivot is skipped once so Pan can move along another face direction. */
 	int pan_deferred_row;
+	/* Consecutive step restarts that committed no pivot.  Restarts do not
+	 * count as iterations, so this budget is what stops a cycle between two
+	 * alternating deferred rows from spinning forever inside dual_run(). */
+	int stalled_restarts;
 };
 
 #endif

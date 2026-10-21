@@ -1254,6 +1254,7 @@ static int dual_commit_iteration(
 	    lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	state->pan_deferred_row = -1;
+	state->stalled_restarts = 0;
 	if (!state->pan_enabled)
 		return lp_simplex_EXIT_SUCCESS;
 	pan_step = iteration->theta * iteration->primal_infeasibility;
@@ -1281,6 +1282,17 @@ static int dual_commit_iteration(
 
 static int dual_run(struct simplex_DualState *state, int *status)
 {
+	/*
+	 * A restart commits no pivot, so `iterations` -- and therefore the
+	 * caller's limit -- cannot bound it.  The only legitimate producer is the
+	 * "defer this leaving row once" rule, which fires at most once per row
+	 * before the same row returns and the precision path decides.  With two
+	 * or more violated rows the feasibility queue can hand the two deferred
+	 * rows back and forth, so an explicit budget is required to keep the loop
+	 * finite.  Exceeding it is reported, never silently absorbed.
+	 */
+	int restart_budget = 4 * state->rows + 64;
+
 	while (state->iterations < state->options->iteration_limit) {
 		struct dual_Iteration iteration;
 		int step;
@@ -1291,20 +1303,26 @@ static int dual_run(struct simplex_DualState *state, int *status)
 		if (step == DUAL_STEP_FAILED)
 			return lp_simplex_EXIT_FAILURE;
 		if (step == DUAL_STEP_RESTART)
-			continue;
+			goto RESTART;
 		step = dual_prepare_leaving_row(state, status, &iteration);
 		if (step == DUAL_STEP_FAILED)
 			return lp_simplex_EXIT_FAILURE;
 		if (step == DUAL_STEP_RESTART)
-			continue;
+			goto RESTART;
 		step = dual_select_entering(state, status, &iteration);
 		if (step == DUAL_STEP_FAILED)
 			return lp_simplex_EXIT_FAILURE;
 		if (step == DUAL_STEP_RESTART)
-			continue;
+			goto RESTART;
 		if (dual_commit_iteration(state, status, &iteration) ==
 		    lp_simplex_EXIT_FAILURE)
 			return lp_simplex_EXIT_FAILURE;
+		continue;
+RESTART:
+		if (++state->stalled_restarts > restart_budget) {
+			*status = lp_simplex_PrecisionError;
+			return lp_simplex_EXIT_FAILURE;
+		}
 	}
 	*status = lp_simplex_ExceedIterLimit;
 	return lp_simplex_EXIT_FAILURE;

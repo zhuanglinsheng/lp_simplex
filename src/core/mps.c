@@ -34,6 +34,10 @@ static int change_sect_code(const char *line, int *sect_code)
 		*sect_code = 4;
 	if (lp_simplex_memcmp(line, "BOUNDS", 6) == 0)
 		*sect_code = 5;
+	if (lp_simplex_memcmp(line, "OBJSENSE", 8) == 0)
+		*sect_code = 6;
+	if (lp_simplex_memcmp(line, "OBJNAME", 7) == 0)
+		*sect_code = 7;
 	if (lp_simplex_memcmp(line, "ENDATA", 6) == 0)
 		*sect_code = 9;
 	if (old_code == *sect_code)
@@ -43,13 +47,74 @@ static int change_sect_code(const char *line, int *sect_code)
 }
 
 
+/*
+ * Comment and blank lines.
+ *
+ * MPS dialects put comments in column one as `*`, and some writers use `$`.
+ * Every pass over the file must ignore them identically, otherwise the
+ * counting pass disagrees with the fill pass and the model silently loses
+ * rows or columns.
+ */
+static int mps_line_skippable(const char *line)
+{
+	const char *cursor = line;
+
+	while (*cursor == ' ' || *cursor == '\t' || *cursor == '\r')
+		cursor++;
+	return *cursor == '\0' || *cursor == '*' || *cursor == '$';
+}
+
+
+/*
+ * Integer markers occupy a COLUMNS line but declare no coefficient.
+ *
+ * Two layouts occur in practice: the marker token in the third field
+ * (`    MARKER                 'MARKER'  'INTORG'`) and the token in the third
+ * field with the literal in column 15.  Both must be recognised by every pass,
+ * otherwise the counting pass counts a phantom variable and the model is
+ * rejected.
+ */
+static int mps_line_marker(const char *line)
+{
+	if (strstr(line, "'MARKER'") != NULL)
+		return 1;
+	if (lp_simplex_memcmp(line + 4, "MARKER", 6) == 0 &&
+	    (strstr(line, "'INTORG'") != NULL ||
+	     strstr(line, "'INTEND'") != NULL))
+		return 1;
+	return 0;
+}
+
+
+static int mps_name_has_case_insensitive(const char *text, const char *word)
+{
+	size_t i, j, n = lp_simplex_strlen(text), w = lp_simplex_strlen(word);
+
+	for (i = 0; i + w <= n; i++) {
+		for (j = 0; j < w; j++) {
+			char a = text[i + j];
+			char b = word[j];
+			if (a >= 'a' && a <= 'z')
+				a = (char)(a - 'a' + 'A');
+			if (b >= 'a' && b <= 'z')
+				b = (char)(b - 'a' + 'A');
+			if (a != b)
+				break;
+		}
+		if (j == w)
+			return 1;
+	}
+	return 0;
+}
+
+
 static int mps_has_second_field(const char *line);
 static unsigned long mps_name_hash(const char *name);
 
 
 static int get_mps_info(
 		const char *file, int *nrow, int *nvar, int *entry_capacity,
-		int *range_fields)
+		int *range_fields, int *maximize)
 {
 	char line[128];
 	char last_var[8];
@@ -65,10 +130,14 @@ static int get_mps_info(
 	*nvar = 0;
 	*entry_capacity = 0;
 	*range_fields = 0;
+	*maximize = 0;
 	lp_simplex_memset(last_var, '\0', 8);
 LOOP:
+	if (feof(f))
+		goto END;
 	file_readline(f, line, 128);
-
+	if (mps_line_skippable(line))
+		goto LOOP;
 	if (change_sect_code(line, &sect_code))
 		goto LOOP;
 	switch (sect_code) {
@@ -76,6 +145,8 @@ LOOP:
 		(*nrow)++;
 		break;
 	case 2:
+		if (mps_line_marker(line))
+			break;
 		(*entry_capacity)++;
 		if (mps_has_second_field(line))
 			(*entry_capacity)++;
@@ -89,11 +160,13 @@ LOOP:
 		if (mps_has_second_field(line))
 			(*range_fields)++;
 		break;
+	case 6:
+		if (mps_name_has_case_insensitive(line, "MAX"))
+			*maximize = 1;
+		break;
 	default:
 		break;
 	}
-	if (feof(f))
-		goto END;
 	goto LOOP;
 END:
 	fclose(f);
@@ -203,6 +276,8 @@ static int mps_scan_ranges(
 		goto finish;
 	while (!feof(stream)) {
 		file_readline(stream, line, (int)sizeof(line));
+		if (mps_line_skippable(line))
+			continue;
 		if (change_sect_code(line, &section))
 			continue;
 		if (section == 1) {
@@ -545,6 +620,7 @@ static int fill_sparse_model(
 	struct mps_NameTable rows, columns;
 	FILE *stream;
 	int section = 0, row_count = 0, column = -1, nonzeros = 0;
+	int integer_block = 0;
 	int *range_pair = NULL;
 	int state = lp_simplex_EXIT_FAILURE;
 	rows.slot = columns.slot = NULL;
@@ -571,6 +647,8 @@ static int fill_sparse_model(
 	while (!feof(stream)) {
 		double value;
 		file_readline(stream, line, (int)sizeof(line));
+		if (mps_line_skippable(line))
+			continue;
 		if (change_sect_code(line, &section))
 			continue;
 		if (section == 1) {
@@ -599,8 +677,13 @@ static int fill_sparse_model(
 				row_count++;
 			}
 		} else if (section == 2) {
-			if (strstr(line, "'MARKER'") != NULL)
+			if (mps_line_marker(line)) {
+				if (strstr(line, "'INTORG'") != NULL)
+					integer_block = 1;
+				else if (strstr(line, "'INTEND'") != NULL)
+					integer_block = 0;
 				continue;
+			}
 			if (!mps_name_equal(last_column, line + 4)) {
 				if (column >= 0)
 					model->column_start[column + 1] = nonzeros;
@@ -610,6 +693,10 @@ static int fill_sparse_model(
 				lp_simplex_memset(model->bounds[column].name, 0,
 					sizeof(model->bounds[column].name));
 				lp_simplex_memcpy(model->bounds[column].name, line + 4, 8);
+				/* Variables inside an INTORG block are integer; the LP
+				 * solver refuses them rather than silently relaxing. */
+				if (integer_block)
+					model->bounds[column].v_type = optm_VAR_T_INT;
 				lp_simplex_memcpy(last_column, line + 4, 8);
 				mps_name_table_insert(&columns,
 					model->bounds[column].name, column);
@@ -704,11 +791,25 @@ struct lp_Model *lp_read_mps(const char *file)
 	struct mps_RangeScan range_scan;
 	int m, n;  /* number of constraints and variables */
 	int n_sect_row = 0, n_sect_columns = 0;
-	int entry_capacity = 0, range_fields = 0;
+	int entry_capacity = 0, range_fields = 0, maximize = 0;
 
 	if (get_mps_info(file, &n_sect_row, &n_sect_columns,
-			&entry_capacity, &range_fields) == lp_simplex_EXIT_FAILURE)
+			&entry_capacity, &range_fields, &maximize) ==
+	    lp_simplex_EXIT_FAILURE)
 		return NULL;
+	/*
+	 * A malformed or truncated file must not reach the allocations below:
+	 * `n_sect_row` counts only the lines seen in the ROWS section, so a file
+	 * without that header yields a negative row count, which the casts further
+	 * down would turn into an enormous size_t.
+	 */
+	if (n_sect_row <= 1 || n_sect_columns <= 0) {
+		fprintf(stderr,
+			"lp_simplex: \"%s\" is not a usable MPS file "
+			"(rows=%d, columns=%d)\n",
+			file, n_sect_row - 1, n_sect_columns);
+		return NULL;
+	}
 	m = n_sect_row - 1;  /* the objective is also counted */
 	n = n_sect_columns;
 	if (range_fields > 0) {
@@ -743,5 +844,18 @@ struct lp_Model *lp_read_mps(const char *file)
 	}
 	lp_simplex_free(range_scan.ranged);
 	lp_simplex_free(range_scan.row_type);
+	if (maximize) {
+		int j;
+		/*
+		 * The solver minimises.  Fold the sense into the stored objective so
+		 * every downstream consumer (presolve, scaling, both simplex kernels)
+		 * keeps working on a minimisation problem, and let the result layer
+		 * negate the value back.
+		 */
+		for (j = 0; j < n; j++)
+			model->objective[j] = -model->objective[j];
+		model->objective_offset = -model->objective_offset;
+		model->objective_sense = -1.;
+	}
 	return model;
 }
