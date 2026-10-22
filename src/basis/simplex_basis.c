@@ -56,9 +56,12 @@ struct simplex_BasisImpl {
 	klu_symbolic *symbolic;
 	klu_numeric *numeric;
 	klu_common common;
-#else
-	struct simplex_SparseLu sparse;
 #endif
+	struct simplex_SparseLu sparse;
+	/* Backend actually in use.  When KLU is available both factorizations are
+	 * compiled, so a run that breaks down numerically can be retried with the
+	 * other one instead of being reported as a solve failure. */
+	int backend;
 	double *eta_value;
 	double *dense_eta;
 	double *eta_pivot_value;
@@ -96,6 +99,54 @@ struct simplex_BasisImpl {
 	long profile_compact_ftran_refinements;
 	long profile_compact_btran_refinements;
 };
+
+
+static void simplex_basis_reset_updates(struct simplex_Basis *basis);
+
+
+/* True when the internal sparse LU backs this basis.  Both backends are
+ * compiled when KLU is present, so every backend-specific branch is a runtime
+ * decision; DEFAULT resolves to KLU in that case. */
+static int simplex_basis_uses_internal(const struct simplex_Basis *basis)
+{
+#ifdef LP_SIMPLEX_HAVE_KLU
+	return basis->impl->backend == SIMPLEX_BASIS_BACKEND_INTERNAL;
+#else
+	(void)basis;
+	return 1;
+#endif
+}
+
+
+void simplex_basis_set_backend(struct simplex_Basis *basis, const int backend)
+{
+	if (basis == NULL || basis->impl == NULL)
+		return;
+	basis->impl->backend = backend;
+#ifdef LP_SIMPLEX_HAVE_KLU
+	if (backend == SIMPLEX_BASIS_BACKEND_INTERNAL) {
+		if (basis->impl->numeric != NULL)
+			klu_free_numeric(&basis->impl->numeric,
+				&basis->impl->common);
+		if (basis->impl->symbolic != NULL)
+			klu_free_symbolic(&basis->impl->symbolic,
+				&basis->impl->common);
+	}
+#endif
+	simplex_basis_reset_updates(basis);
+}
+
+
+int simplex_basis_resolved_backend(const struct simplex_Basis *basis)
+{
+	if (basis == NULL || basis->impl == NULL)
+		return SIMPLEX_BASIS_BACKEND_INTERNAL;
+#ifdef LP_SIMPLEX_HAVE_KLU
+	if (basis->impl->backend != SIMPLEX_BASIS_BACKEND_INTERNAL)
+		return SIMPLEX_BASIS_BACKEND_KLU;
+#endif
+	return SIMPLEX_BASIS_BACKEND_INTERNAL;
+}
 
 
 int simplex_basis_create(
@@ -155,9 +206,9 @@ int simplex_basis_create(
 	basis->impl->symbolic = NULL;
 	basis->impl->numeric = NULL;
 	klu_defaults(&basis->impl->common);
-#else
-	lp_simplex_memset(&basis->impl->sparse, 0, sizeof(basis->impl->sparse));
 #endif
+	lp_simplex_memset(&basis->impl->sparse, 0, sizeof(basis->impl->sparse));
+	basis->impl->backend = SIMPLEX_BASIS_BACKEND_DEFAULT;
 	basis->impl->eta_capacity = __lp_simplex_MAX__(matrix->rows * 4, 16);
 	basis->impl->eta_value = (double *)lp_simplex_malloc(
 		(size_t)basis->impl->eta_capacity * sizeof(double));
@@ -247,9 +298,8 @@ void simplex_basis_destroy(struct simplex_Basis *basis)
 	basis->impl->base_column_start = NULL;
 	basis->impl->base_row_index = NULL;
 	basis->impl->base_value = NULL;
-#else
-	simplex_sparse_lu_destroy(&basis->impl->sparse);
 #endif
+	simplex_sparse_lu_destroy(&basis->impl->sparse);
 	lp_simplex_free(basis->impl->eta_value);
 	lp_simplex_free(basis->impl->dense_eta);
 	lp_simplex_free(basis->impl->eta_index);
@@ -374,6 +424,7 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 			basis->impl->profile_compact_max, core_size);
 	}
 #ifdef LP_SIMPLEX_HAVE_KLU
+	if (basis->impl->backend != SIMPLEX_BASIS_BACKEND_INTERNAL) {
 	factor_size = basis->impl->factor_size;
 	if (basis->impl->numeric != NULL)
 		klu_free_numeric(&basis->impl->numeric, &basis->impl->common);
@@ -440,7 +491,8 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 	klu_flops(basis->impl->symbolic, basis->impl->numeric, &basis->impl->common);
 	simplex_basis_reset_updates(basis);
 	return lp_simplex_EXIT_SUCCESS;
-#else
+	}
+#endif
 	if (basis->impl->sparse.dimension != basis->impl->factor_size) {
 		simplex_sparse_lu_destroy(&basis->impl->sparse);
 		if (basis->impl->factor_size > 0 && simplex_sparse_lu_create(
@@ -458,7 +510,6 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 		return lp_simplex_EXIT_SUCCESS;
 	}
 	return lp_simplex_EXIT_FAILURE;
-#endif
 }
 
 
@@ -475,6 +526,9 @@ int simplex_basis_factorize(struct simplex_Basis *basis)
 			elapsed = (double)(clock() - started) /
 				(double)CLOCKS_PER_SEC;
 #ifdef LP_SIMPLEX_HAVE_KLU
+		if (basis->impl->backend == SIMPLEX_BASIS_BACKEND_INTERNAL)
+			basis->impl->factor_work = basis->impl->sparse.factor_work;
+		else
 		basis->impl->factor_work = (long)(basis->impl->common.flops +
 			basis->impl->common.work + basis->impl->factor_size +
 			(basis->impl->base_column_start != NULL
@@ -503,6 +557,10 @@ static int simplex_basis_core_solve(
 	if (basis->impl->factor_size == 0)
 		return lp_simplex_EXIT_SUCCESS;
 #ifdef LP_SIMPLEX_HAVE_KLU
+	if (basis->impl->backend == SIMPLEX_BASIS_BACKEND_INTERNAL)
+		return simplex_sparse_lu_solve(
+			&((struct simplex_Basis *)basis)->impl->sparse,
+			vector, trans == 'T');
 	if (trans == 'N')
 		success = klu_solve(basis->impl->symbolic, basis->impl->numeric,
 			basis->impl->factor_size, 1, vector, (klu_common *)&basis->impl->common);
@@ -524,6 +582,9 @@ static int simplex_basis_core_solve_pair(
 	if (basis->impl->factor_size == 0)
 		return lp_simplex_EXIT_SUCCESS;
 #ifdef LP_SIMPLEX_HAVE_KLU
+	if (basis->impl->backend == SIMPLEX_BASIS_BACKEND_INTERNAL)
+		return simplex_sparse_lu_solve_pair(
+			&((struct simplex_Basis *)basis)->impl->sparse, first, second);
 	if (simplex_basis_core_solve(basis, first, 'N') ==
 	    lp_simplex_EXIT_FAILURE ||
 	    simplex_basis_core_solve(basis, second, 'N') ==
@@ -898,11 +959,10 @@ static int simplex_basis_ftran_raw(
 	int update, first_update = 0;
 	if (simplex_basis_base_ftran(basis, vector) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-#ifndef LP_SIMPLEX_HAVE_KLU
-	if (!basis->impl->compact_active &&
+	if (simplex_basis_uses_internal(basis) &&
+	    !basis->impl->compact_active &&
 	    simplex_sparse_lu_ft_active(&basis->impl->sparse))
 		first_update = basis->impl->sparse.ft_update_count;
-#endif
 	for (update = first_update; update < basis->impl->update_count; update++) {
 		((struct simplex_Basis *)basis)->impl->eta_apply_work +=
 			basis->impl->eta_dense_slot[update] < 0
@@ -920,11 +980,10 @@ static int simplex_basis_btran_raw(
 		const struct simplex_Basis *basis, double *vector)
 {
 	int update, first_update = 0;
-#ifndef LP_SIMPLEX_HAVE_KLU
-	if (!basis->impl->compact_active &&
+	if (simplex_basis_uses_internal(basis) &&
+	    !basis->impl->compact_active &&
 	    simplex_sparse_lu_ft_active(&basis->impl->sparse))
 		first_update = basis->impl->sparse.ft_update_count;
-#endif
 	for (update = basis->impl->update_count - 1;
 	     update >= first_update; update--) {
 		((struct simplex_Basis *)basis)->impl->eta_apply_work +=
@@ -1037,42 +1096,24 @@ int simplex_basis_ftran_pair(
 		result = lp_simplex_EXIT_FAILURE;
 	}
 	if (result == lp_simplex_EXIT_SUCCESS) {
-#ifndef LP_SIMPLEX_HAVE_KLU
-		if (!basis->impl->compact_active &&
-		    simplex_sparse_lu_ft_active(&basis->impl->sparse)) {
+		if (simplex_basis_uses_internal(basis) &&
+		    !basis->impl->compact_active &&
+		    simplex_sparse_lu_ft_active(&basis->impl->sparse))
 			first_update = basis->impl->sparse.ft_update_count;
-			for (update = first_update;
-			     update < basis->impl->update_count; update++) {
-				mutable->impl->eta_apply_work += 2L *
-					(basis->impl->eta_dense_slot[update] < 0
-					? basis->impl->eta_start[update + 1] -
-						basis->impl->eta_start[update]
-					: basis->impl->rows);
-				if (simplex_basis_apply_eta_pair(
-						basis, update, first, second) ==
-				    lp_simplex_EXIT_FAILURE) {
-					result = lp_simplex_EXIT_FAILURE;
-					break;
-				}
+		for (update = first_update;
+		     update < basis->impl->update_count; update++) {
+			mutable->impl->eta_apply_work += 2L *
+				(basis->impl->eta_dense_slot[update] < 0
+				? basis->impl->eta_start[update + 1] -
+					basis->impl->eta_start[update]
+				: basis->impl->rows);
+			if (simplex_basis_apply_eta_pair(
+					basis, update, first, second) ==
+			    lp_simplex_EXIT_FAILURE) {
+				result = lp_simplex_EXIT_FAILURE;
+				break;
 			}
-		} else {
-#endif
-			for (update = 0; update < basis->impl->update_count; update++) {
-				mutable->impl->eta_apply_work += 2L *
-					(basis->impl->eta_dense_slot[update] < 0
-					? basis->impl->eta_start[update + 1] -
-						basis->impl->eta_start[update]
-					: basis->impl->rows);
-				if (simplex_basis_apply_eta_pair(
-						basis, update, first, second) ==
-				    lp_simplex_EXIT_FAILURE) {
-					result = lp_simplex_EXIT_FAILURE;
-					break;
-				}
-			}
-#ifndef LP_SIMPLEX_HAVE_KLU
 		}
-#endif
 	}
 	if (basis->impl->profile_enabled) {
 		mutable->impl->profile_ftran_seconds +=
@@ -1225,8 +1266,8 @@ static int simplex_basis_update_impl(
 		basis->impl->profile_stability_reinversions++;
 		return 1;
 	}
-#ifndef LP_SIMPLEX_HAVE_KLU
-	if (!basis->impl->compact_active &&
+	if (simplex_basis_uses_internal(basis) &&
+	    !basis->impl->compact_active &&
 	    simplex_sparse_lu_ft_active(&basis->impl->sparse) &&
 	    basis->impl->update_count == basis->impl->sparse.ft_update_count &&
 	    basis->impl->rows < 4096) {
@@ -1241,7 +1282,6 @@ static int simplex_basis_update_impl(
 		}
 		return result;
 	}
-#endif
 	sparse =
 		basis->impl->compact_active ||
 		(basis->impl->allow_sparse_eta && nonzeros * 8 <= basis->impl->rows);

@@ -116,7 +116,7 @@ void simplex_dual_state_destroy(struct simplex_DualState *state)
 
 int simplex_dual_state_create(
 		struct simplex_DualState *state, const struct simplex_Problem *problem,
-		const struct lp_simplex_Options *options)
+		const struct lp_simplex_Options *options, const int basis_backend)
 {
 	int variables = problem->columns + problem->rows;
 	lp_simplex_memset(state, 0, sizeof(*state));
@@ -163,6 +163,7 @@ int simplex_dual_state_create(
 	lp_simplex_memset(state->alpha, 0, (size_t)variables * sizeof(double));
 	lp_simplex_memset(state->feasibility_tolerance, 0,
 		(size_t)problem->rows * sizeof(double));
+	simplex_basis_set_backend(&state->factor, basis_backend);
 	simplex_basis_set_sparse_eta(&state->factor,
 		!state->regular_columns || state->modal_column_degree == 1);
 	simplex_degeneracy_initialize(&state->degeneracy);

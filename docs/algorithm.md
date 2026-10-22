@@ -377,6 +377,27 @@ Reinversion 是一个整体事务：重新 factorize 后，同时重算 primal v
 FTRAN 应用更新链时还会跳过主元分量严格为零的 eta；双右端求解只在两个主元
 分量都为零时跳过，从而保持代数等价而减少 hypersparse 右端的无效遍历。
 
+### 8.1 双后端与数值回退
+
+KLU 与内置 sparse-LU 现在在同一个构建里共存，由 `simplex_Basis` 的运行时
+`backend` 字段选择，而不是编译期二选一。两者在极端病态的基上都不是普遍更好
+的：KLU 在 `perold` 上崩掉而内置 Forrest–Tomlin 能解，内置 LU 在 `pilot.we`
+上留下 \(2\times10^{-5}\) 的原始残差而 KLU 能解。因此 `simplex_dual_solve_problem`
+在默认后端返回 `PrecisionError` 或 `Singularity` 时，会清空工作向量并用另一个
+后端重跑一次：
+
+- 只重试数值失败。`Infeasibility`、`Unboundedness` 和 `ExceedIterLimit` 是
+  真实结论，重跑没有意义，也不会被掩盖；
+- 重试成功时把两次迭代数相加，profile 里打印一行
+  `recovered on the internal factorization`；
+- 重试失败时恢复第一次的结果与状态，所以回退是纯增益，不会把一个失败换成
+  另一个（可能错误的）结论。
+
+代价是失败模型多跑一次求解。Release 构建下 63 个 NETLIB 可行实例由此从
+62 个通过变为 63 个，全量耗时从 4.6 秒变为 5.0 秒。注意这条回退不能消除
+构建敏感性：`-O0`（Debug/ASan）下两个后端都会在 `perold` 上失败，该实例需要
+优化构建才能解出来。
+
 ## 9. 两种不同的 Pan 机制
 
 ### 9.1 Dual revised 中的 Pan-inspired anti-stalling

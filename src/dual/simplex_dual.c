@@ -1363,7 +1363,7 @@ static int dual_solve_problem_kernel(
 		const struct simplex_Problem *problem,
 		const struct lp_simplex_Options *options,
 		double *x, double *row_dual, struct lp_simplex_Result *result,
-		const int propagate_bounds)
+		const int propagate_bounds, const int basis_backend)
 {
 	struct simplex_DualState state;
 	int j, status = lp_simplex_CondUnsatisfied;
@@ -1372,7 +1372,7 @@ static int dual_solve_problem_kernel(
 	clock_t profile_started = 0;
 	if (getenv("LP_SIMPLEX_PROFILE") != NULL)
 		profile_started = clock();
-	if (simplex_dual_state_create(&state, problem, options) ==
+	if (simplex_dual_state_create(&state, problem, options, basis_backend) ==
 	    lp_simplex_EXIT_FAILURE) {
 		result->status = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
@@ -1572,6 +1572,54 @@ static double dual_problem_primal_infeasibility(
 }
 
 
+/*
+ * Run the kernel, and if it breaks down numerically with the default backend,
+ * retry once with the internal sparse LU.
+ *
+ * The two factorizations fail on different models (KLU on perold, the internal
+ * LU on pilot.we) because their pivoting differs; neither is uniformly better.
+ * A retry costs one failed run and turns a "precision error" on an otherwise
+ * solvable model into an answer, which is what the caller cares about.  Only
+ * numerical failures are retried: Infeasibility, Unboundedness and the
+ * iteration limit are real answers and must not be re-run.
+ */
+static int dual_solve_with_backend_fallback(
+		const struct simplex_Problem *problem,
+		const struct lp_simplex_Options *options,
+		double *x, double *dual, struct lp_simplex_Result *result,
+		const int propagate_bounds, const int columns, const int rows)
+{
+	struct lp_simplex_Result first;
+	int i, j, state;
+
+	state = dual_solve_problem_kernel(problem, options, x, dual, result,
+		propagate_bounds, SIMPLEX_BASIS_BACKEND_DEFAULT);
+	if (state != lp_simplex_EXIT_FAILURE ||
+	    (result->status != lp_simplex_PrecisionError &&
+	     result->status != lp_simplex_Singularity))
+		return state;
+	first = *result;
+	for (j = 0; j < columns; j++)
+		x[j] = 0.;
+	if (dual != NULL)
+		for (i = 0; i < rows; i++)
+			dual[i] = 0.;
+	state = dual_solve_problem_kernel(problem, options, x, dual, result,
+		propagate_bounds, SIMPLEX_BASIS_BACKEND_INTERNAL);
+	if (result->status != lp_simplex_Success) {
+		/* The retry is an optimisation, never a weaker answer: keep the
+		 * original diagnosis (and its partial solution) when it fails. */
+		*result = first;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	result->iterations += first.iterations;
+	if (getenv("LP_SIMPLEX_PROFILE") != NULL)
+		fprintf(stderr, "dual profile: recovered on the internal "
+			"factorization after %d iterations\n", first.iterations);
+	return state;
+}
+
+
 int simplex_dual_solve_problem(
 		const struct simplex_Problem *problem,
 		const struct lp_simplex_Options *options,
@@ -1583,8 +1631,9 @@ int simplex_dual_solve_problem(
 	double *dual = row_dual;
 	int i, j, state;
 	if (getenv("LP_SIMPLEX_DISABLE_SCALING") != NULL)
-		return dual_solve_problem_kernel(problem, options, x, row_dual,
-			result, propagate_bounds);
+		return dual_solve_with_backend_fallback(problem, options, x,
+			row_dual, result, propagate_bounds,
+			problem->columns, problem->rows);
 	scaled = simplex_scaling_create_problem(problem, &scaling);
 	if (scaled == NULL) {
 		result->status = lp_simplex_MemoryAllocError;
@@ -1606,8 +1655,8 @@ int simplex_dual_solve_problem(
 		x[j] = 0.;
 	for (i = 0; i < problem->rows; i++)
 		dual[i] = 0.;
-	state = dual_solve_problem_kernel(scaled, options, x, dual, result,
-		propagate_bounds);
+	state = dual_solve_with_backend_fallback(scaled, options, x, dual,
+		result, propagate_bounds, scaled->columns, scaled->rows);
 	simplex_scaling_recover_primal(&scaling, x);
 	simplex_scaling_recover_dual(&scaling, dual);
 	result->objective = 0.;

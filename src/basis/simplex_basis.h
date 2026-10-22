@@ -37,6 +37,18 @@ struct simplex_BasisProfile {
 };
 
 
+/* Factorization backends.  DEFAULT resolves to KLU when it is compiled in and
+ * to the internal sparse LU otherwise. */
+#define SIMPLEX_BASIS_BACKEND_DEFAULT  0
+#define SIMPLEX_BASIS_BACKEND_KLU      1
+#define SIMPLEX_BASIS_BACKEND_INTERNAL 2
+
+/** Select the backend.  The caller must factorize again afterwards. */
+void simplex_basis_set_backend(struct simplex_Basis *basis, int backend);
+
+/** Backend resolved from the last selection (never DEFAULT). */
+int simplex_basis_resolved_backend(const struct simplex_Basis *basis);
+
 int simplex_basis_create(
 		struct simplex_Basis *basis,
 		const struct simplex_CscMatrix *matrix,

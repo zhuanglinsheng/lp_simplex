@@ -9,7 +9,7 @@ struct simplex_Problem;
 int simplex_dual_state_create(
 		struct simplex_DualState *state,
 		const struct simplex_Problem *problem,
-		const struct lp_simplex_Options *options);
+		const struct lp_simplex_Options *options, int basis_backend);
 
 void simplex_dual_state_destroy(struct simplex_DualState *state);
 
