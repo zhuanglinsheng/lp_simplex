@@ -102,6 +102,20 @@ When switching algorithms, reinitialize defaults before applying custom settings
 avoid retaining incompatible pricing. Internal experimental environment switches
 are not part of this public options interface.
 
+### AUTO stage transitions
+
+AUTO starts with dual simplex and applies the following rules:
+
+- Continued progress renews the same live basis and factorization, without the former 16384-iteration cutoff. One eighth of the total work budget is reserved for recovery routes.
+- Feasibility restoration and original-objective cleanup track progress separately. Within an observation interval, residual reduction, a decrease in the number of violated constraints, or original-objective improvement must exceed its own noise budget and 1% threshold. Working-bound changes do not erase stagnation history.
+- Material Phase-I cost repairs receive a finite recovery allowance; symbolic tie perturbations alone do not qualify.
+- A negative accumulated feasibility merit triggers a recomputation of row violations. Roundoff alone cannot trigger a route change.
+- An alternate initializer is considered only after dual yields without a feasible point. If finite bounds introduced by presolve substantially expand the equality form, NNLS may search the original model. A candidate must pass feasibility checks on both the original model and its mapped reduced model before entering the hybrid path.
+- Original-objective cleanup trials Devex on the current basis when at least half the pivots in an observation interval have zero step and dual error decreases by less than 1%. Zero steps alone do not justify an exit.
+- A near-optimal feasible point may receive a bounded multiplier correction after failing the dual audit. Failure restores the original multiplier; acceptance still requires the existing componentwise KKT and primal–dual gap checks.
+
+Initialization, multiplier correction and recovery share `iteration_limit`. Local stagnation, numerical failure and resource limits alone prove neither infeasibility, unboundedness nor optimality. Final acceptance requirements are independent of the route.
+
 ## 3. API return values and status codes
 
 ```c
