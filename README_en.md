@@ -10,7 +10,7 @@ Building on this, we explore a novel hybrid solution approach: primal–dual hyb
 
 ## Performance comparison
 
-Overall, lp_simplex and SCIP/SoPlex perform at a similar level, while lp_simplex is slower than HiGHS. See the [benchmark report](docs/benchmarks/README_en.md) for full results.
+In the current benchmarks, lp_simplex and SCIP/SoPlex perform at a similar overall level. Although lp_simplex is slower than HiGHS and Clp, it demonstrates strong robustness on large-scale, highly degenerate problems. See the [benchmark report](docs/benchmarks/README_en.md) for full results.
 
 - The [Netlib dataset](data/netlib/README_en.md) contains 32–232,966 variables and 24–105,127 constraints. See the [Netlib per-instance results](docs/benchmarks/netlib_en.md).
 - The large-scale [PDS dataset](data/pds/README_en.md) contains approximately 106,000–505,000 variables and 34,000–156,000 constraints. See the [PDS per-instance results](docs/benchmarks/pds_en.md).

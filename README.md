@@ -10,7 +10,7 @@
 
 ## 性能对比
 
-总的来说，lp_simplex 与 SCIP/SoPlex 的整体表现处于同一水平，速度落后于 HiGHS。完整结果见[综合性能对比报告](docs/benchmarks/README.md)。
+在当前基准测试中，lp_simplex 与 SCIP/SoPlex 的整体表现处于同一水平，速度落后于 HiGHS 和 Clp，但在大规模、高度退化的问题上具有较强的稳健性。完整结果见[综合性能对比报告](docs/benchmarks/README.md)。
 
 - [Netlib 数据集](data/netlib/README.md)包含 32—232,966 个变量、24—105,127 条约束。逐例测试结果见 [Netlib 问题对比](docs/benchmarks/netlib.md)。
 - 大规模问题 [PDS 数据集](data/pds/README.md)包含约 10.6万—50.5万变量、3.4万—15.6万约束。逐例测试结果见 [PDS 问题对比](docs/benchmarks/pds.md)。
