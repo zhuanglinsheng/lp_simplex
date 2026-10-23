@@ -15,10 +15,10 @@ python3 data/netlib/prepare.py --all
 
 名称需带类别，因为不同类别可能有同名模型。默认恢复到原路径，例如 `data/netlib/feasible/afiro.mps`；用 `--output-dir DIR` 可指定其他输出目录。
 
-本目录的 [`test_netlib.c`](test_netlib.c) 用于单案例求解和参考结果校验。构建后可执行：
+公共驱动 [`../lp_solve_mps.c`](../lp_solve_mps.c) 用于单案例求解和参考结果校验。构建后可执行：
 
 ```sh
-./build/data/netlib/test_netlib data/netlib/feasible/afiro.mps
+./build/data/lp_solve_mps --expected -464.7531429 data/netlib/feasible/afiro.mps
 ```
 
 五个求解器的批量对比由 [`../benchmark.py`](../benchmark.py) 统一调度。

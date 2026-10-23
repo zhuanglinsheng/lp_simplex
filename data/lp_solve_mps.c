@@ -4,14 +4,12 @@
  */
 
 /**
- * @file test_netlib.c
- * @brief Run one Netlib MPS instance and validate its predicted result.
+ * @file lp_solve_mps.c
+ * @brief Solve one MPS model and optionally validate an expected result.
  *
- * The program intentionally accepts one model at a time.  For a model under
- * `feasible/`, it looks up the reference objective in
- * `feasible_gurobi_1e-8.csv`.  A path containing `/infeasible/` is expected to
- * terminate with lp_simplex_Infeasibility.  Command-line options can override
- * either prediction, making the tool useful for arbitrary MPS diagnostics too.
+ * Dataset preparation and reference lookup belong to benchmark.py. This
+ * driver only uses explicit --expected or --infeasible predictions; without
+ * either option, a successful solve is required.
  */
 
 #include <lp_simplex/lp_simplex.h>
@@ -22,11 +20,6 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
-
-#ifndef NETLIB_REFERENCE_CSV
-/** Fallback used when compiling manually from the repository root. */
-#define NETLIB_REFERENCE_CSV "data/netlib/feasible_gurobi_1e-8.csv"
-#endif
 
 #define DEFAULT_ITERATION_LIMIT LP_SIMPLEX_DEFAULT_AUTO_ITERATION_LIMIT
 #define DEFAULT_TOLERANCE 1e-7
@@ -41,11 +34,11 @@ struct Options {
 	int presolve;
 	double tolerance;
 	int print_solution;
+	int progress;
+	double progress_interval;
 	const char *save_point;
-	int expected_kind; /**< 0 = automatic, 1 = objective, 2 = infeasible. */
+	int expected_kind; /**< 0 = success, 1 = objective, 2 = infeasible. */
 	double expected_value;
-	int has_gurobi_time;
-	double gurobi_time;
 };
 
 /** Print command-line documentation. */
@@ -60,10 +53,12 @@ static void print_usage(const char *program)
 	printf("  --no-presolve         bypass presolve for differential diagnostics\n");
 	printf("  --tolerance VALUE     objective relative tolerance (default: %.0e)\n",
 		DEFAULT_TOLERANCE);
-	printf("  --expected VALUE      override the reference objective\n");
+	printf("  --expected VALUE      check the objective against VALUE\n");
 	printf("  --infeasible          expect an infeasible model\n");
 	printf("  --print-solution      print every primal variable\n");
-	printf("  --save-point PATH     save a finite, independently feasible primal point, including on iteration limit\n");
+	printf("  --progress            report original-model bounds and gap to stderr\n");
+	printf("  --progress-interval S positive CPU seconds between reports (default 5)\n");
+	printf("  --save-point PATH     atomically checkpoint improved feasible points during solve\n");
 	printf("  --help                show this help text\n");
 }
 
@@ -117,11 +112,11 @@ static int parse_options(int argc, char **argv, struct Options *options)
 	options->presolve = 1;
 	options->tolerance = DEFAULT_TOLERANCE;
 	options->print_solution = 0;
+	options->progress = 0;
+	options->progress_interval = 5.;
 	options->save_point = NULL;
 	options->expected_kind = 0;
 	options->expected_value = 0.;
-	options->has_gurobi_time = 0;
-	options->gurobi_time = 0.;
 
 	for (i = 1; i < argc; i++) {
 		const char *argument = argv[i];
@@ -130,6 +125,17 @@ static int parse_options(int argc, char **argv, struct Options *options)
 		if (strcmp(argument, "--help") == 0) {
 			print_usage(argv[0]);
 			exit(0);
+		} else if (strcmp(argument, "--progress") == 0) {
+			options->progress = 1;
+		} else if (strcmp(argument, "--progress-interval") == 0) {
+			value = option_value(argc, argv, &i);
+			if (!value ||
+				!parse_double(
+					value, &options->progress_interval) ||
+				!isfinite(options->progress_interval) ||
+				options->progress_interval <= 0.)
+				return 0;
+			options->progress = 1;
 		} else if (strcmp(argument, "--print-solution") == 0) {
 			options->print_solution = 1;
 		} else if (strcmp(argument, "--save-point") == 0) {
@@ -225,38 +231,6 @@ static int model_name_from_path(const char *path, char *name, size_t capacity)
 }
 
 
-/**
- * Find a model objective in the bundled Gurobi reference CSV.
- *
- * @return 1 when found, 0 when absent, and -1 when the CSV cannot be opened.
- */
-static int lookup_reference(
-	const char *model_name, double *objective, double *gurobi_time)
-{
-	char line[512];
-	FILE *file = fopen(NETLIB_REFERENCE_CSV, "r");
-
-	if (file == NULL)
-		return -1;
-	while (fgets(line, sizeof(line), file) != NULL) {
-		char name[128], status[32];
-		double parsed_time, value;
-
-		if (sscanf(line, "%127[^,],%31[^,],%lf,%lf", name, status,
-			    &parsed_time, &value) == 4 &&
-			strcmp(name, model_name) == 0 &&
-			strcmp(status, "OPTIMAL") == 0) {
-			*objective = value;
-			*gurobi_time = parsed_time;
-			fclose(file);
-			return 1;
-		}
-	}
-	fclose(file);
-	return 0;
-}
-
-
 /** Return a stable human-readable label for a public solver code. */
 static const char *solver_code_name(int code)
 {
@@ -298,37 +272,6 @@ static int objectives_match(double actual, double expected, double tolerance)
 	if (scale < 1.)
 		scale = 1.;
 	return difference <= tolerance * scale;
-}
-
-
-/** Infer a reference prediction unless the user supplied an override. */
-static int infer_prediction(struct Options *options, const char *model_name)
-{
-	const char *reference_name = model_name;
-	int lookup;
-
-	if (options->expected_kind != 0)
-		return 1;
-	if (strstr(options->mps_path, "/infeasible/") != NULL ||
-		strstr(options->mps_path, "\\infeasible\\") != NULL) {
-		options->expected_kind = 2;
-		return 1;
-	}
-	/* Presolved files in netlib_grbp use a p_ prefix but retain the model key. */
-	if (model_name[0] == 'p' && model_name[1] == '_')
-		reference_name = model_name + 2;
-	lookup = lookup_reference(reference_name, &options->expected_value,
-		&options->gurobi_time);
-	if (lookup < 0) {
-		fprintf(stderr, "warning: cannot open reference CSV: %s\n",
-			NETLIB_REFERENCE_CSV);
-		return 1;
-	}
-	if (lookup > 0) {
-		options->expected_kind = 1;
-		options->has_gurobi_time = 1;
-	}
-	return 1;
 }
 
 
@@ -453,12 +396,89 @@ static const char *dual_residual_name(int space)
 }
 
 
+struct DriverProgress {
+	const struct Options *options;
+	int columns;
+	int checkpoint_failed;
+};
+
+/* Write a sibling file first: a killed solve cannot truncate the last good
+ * point. rename() replaces it only after every coordinate has been closed. */
+static int checkpoint_point(const char *path, const double *x, int n)
+{
+	char *temporary = malloc(strlen(path) + 5);
+	FILE *stream;
+	int j, written = 1;
+	if (!temporary)
+		return 0;
+	sprintf(temporary, "%s.tmp", path);
+	stream = fopen(temporary, "w");
+	if (!stream) {
+		free(temporary);
+		return 0;
+	}
+	for (j = 0; j < n; j++)
+		if (fprintf(stream, "%.17g\n", x[j]) < 0) {
+			written = 0;
+			break;
+		}
+	if (fclose(stream))
+		written = 0;
+	if (written && rename(temporary, path))
+		written = 0;
+	if (!written)
+		remove(temporary);
+	free(temporary);
+	return written;
+}
+static void print_bound(const char *name, double bound)
+{
+	fprintf(stderr, " %s=", name);
+	if (isfinite(bound))
+		fprintf(stderr, "%.15g", bound);
+	else
+		fprintf(stderr, "unavailable");
+}
+static void driver_progress(void *context, const struct lp_simplex_Progress *p)
+{
+	struct DriverProgress *c = context;
+	if (c->options->progress) {
+		fprintf(stderr,
+			"progress: cpu=%.3f stage=%s stage-iterations=%d",
+			p->cpu_seconds, p->stage, p->stage_iterations);
+		print_bound("lower", p->lower_bound);
+		print_bound("upper", p->upper_bound);
+		if (isfinite(p->relative_gap))
+			fprintf(stderr, " gap=%.9g%% absolute-gap=%.9g",
+				100. * p->relative_gap, p->absolute_gap);
+		else
+			fprintf(stderr, " gap=unavailable");
+		fprintf(stderr, "\n");
+	}
+	if (p->point && c->options->save_point) {
+		if (checkpoint_point(
+			    c->options->save_point, p->point, c->columns)) {
+			c->checkpoint_failed = 0;
+			fprintf(stderr, "saved point: primal=%.6g path=%s\n",
+				p->primal_infeasibility,
+				c->options->save_point);
+		} else {
+			c->checkpoint_failed = 1;
+			fprintf(stderr, "could not checkpoint point %s: %s\n",
+				c->options->save_point, strerror(errno));
+		}
+	}
+	fflush(stderr);
+}
+
+
 int main(int argc, char **argv)
 {
 	struct Options options;
 	struct lp_Model *model;
 	struct lp_simplex_Options solve_options;
 	struct lp_simplex_Result result;
+	struct DriverProgress progress;
 	double *x;
 	double objective = 0.;
 	clock_t started, finished;
@@ -466,7 +486,7 @@ int main(int argc, char **argv)
 	double original_infeasibility = 0.;
 	char model_name[128];
 	int state, worst_row = -1, worst_column = -1;
-	int passed, j;
+	int passed;
 
 	if (!parse_options(argc, argv, &options)) {
 		print_usage(argv[0]);
@@ -477,7 +497,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "error: model filename is too long\n");
 		return 2;
 	}
-	infer_prediction(&options, model_name);
 	model = lp_read_mps(options.mps_path);
 	if (model == NULL) {
 		fprintf(stderr, "[FAIL] %s: could not read MPS model\n",
@@ -491,14 +510,19 @@ int main(int argc, char **argv)
 		lp_model_free(model);
 		return 1;
 	}
-	if (options.save_point)
-		for (j = 0; j < model->n; j++)
-			x[j] = HUGE_VAL;
 
 	started = clock();
 	lp_simplex_default_options(&solve_options, options.algorithm);
 	solve_options.iteration_limit = options.iteration_limit;
 	solve_options.presolve = options.presolve;
+	progress.options = &options;
+	progress.columns = model->n;
+	progress.checkpoint_failed = 0;
+	if (options.progress || options.save_point) {
+		solve_options.progress_callback = driver_progress;
+		solve_options.progress_context = &progress;
+		solve_options.progress_interval = options.progress_interval;
+	}
 	if (options.algorithm == lp_simplex_ALGORITHM_TABLEAU)
 		solve_options.pricing = strcmp(options.criteria, "dantzig") == 0
 						? lp_simplex_PRICING_DANTZIG
@@ -513,45 +537,6 @@ int main(int argc, char **argv)
 	if (state == lp_simplex_EXIT_SUCCESS)
 		original_infeasibility = original_primal_infeasibility(
 			model, x, &worst_row, &worst_column);
-	if (options.save_point) {
-		int finite = 1;
-
-		for (j = 0; j < model->n; j++)
-			if (!isfinite(x[j]))
-				finite = 0;
-		if (finite) {
-			double error = original_primal_infeasibility(
-				model, x, &worst_row, &worst_column);
-
-			if (isfinite(error) &&
-				error <= solve_options.primal_tolerance) {
-				FILE *point = fopen(options.save_point, "w");
-
-				if (point) {
-					int written = 1;
-
-					for (j = 0; j < model->n; j++)
-						if (fprintf(point, "%.17g\n",
-							    x[j]) < 0)
-							written = 0;
-					if (fclose(point))
-						written = 0;
-					if (written)
-						printf("saved point: primal=%.6g status=%d path=%s\n",
-							error, result.status,
-							options.save_point);
-					else
-						fprintf(stderr,
-							"could not finish saving point: %s\n",
-							options.save_point);
-				} else
-					fprintf(stderr,
-						"could not open point output %s: %s\n",
-						options.save_point,
-						strerror(errno));
-			}
-		}
-	}
 	finished = clock();
 	elapsed = (double)(finished - started) / (double)CLOCKS_PER_SEC;
 
@@ -584,13 +569,6 @@ int main(int argc, char **argv)
 		printf("postsolve:  primal=%.3g, worst-row=%d, worst-column=%d\n",
 			original_infeasibility, worst_row, worst_column);
 	printf("time:       %.6f seconds\n", elapsed);
-	if (options.has_gurobi_time) {
-		printf("gurobi:     %.6f seconds (bundled reference)\n",
-			options.gurobi_time);
-		if (options.gurobi_time > 0.)
-			printf("ratio:      %.4gx lp_simplex / Gurobi\n",
-				elapsed / options.gurobi_time);
-	}
 	if (state == lp_simplex_EXIT_SUCCESS)
 		printf("objective:  %.15g\n", objective);
 	if (state == lp_simplex_EXIT_SUCCESS && options.print_solution)
@@ -617,5 +595,5 @@ int main(int argc, char **argv)
 
 	free(x);
 	lp_model_free(model);
-	return passed ? 0 : 1;
+	return passed && !progress.checkpoint_failed ? 0 : 1;
 }

@@ -46,7 +46,7 @@ class BenchmarkTests(unittest.TestCase):
     def test_nested_driver_finds_cmake_build_root(self):
         with TemporaryDirectory() as folder:
             root = Path(folder).resolve()
-            binary = root / 'data/netlib/test_netlib'
+            binary = root / 'data/lp_solve_mps'
             binary.parent.mkdir(parents=True)
             binary.touch()
             (root / 'CMakeCache.txt').write_text('CMAKE_BUILD_TYPE:STRING=Release\n')

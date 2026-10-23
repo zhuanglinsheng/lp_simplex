@@ -21,10 +21,11 @@ Netlib、PDS 和 Railway 只保存 raw 数据及转换所需文件，各目录�
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
-cmake --build build --target test_netlib -j 4
+
+cmake --build build --target lp_solve_mps -j 4
 ```
 
-构建产物为 `build/data/netlib/test_netlib`。单独运行它只需准备好 MPS；从 raw 生成模型还需要 Python 3.9+，PDS 转换器由 Python 调用 C 编译器临时构建。
+构建产物为 `build/data/lp_solve_mps`。单独运行它只需准备好 MPS；从 raw 生成模型还需要 Python 3.9+，PDS 转换器由 Python 调用 C 编译器临时构建。
 
 运行基准还需安装 SCIP、Clp 和 GLPK，并确保 `scip`、`clp` 和 `glpsol` 位于 PATH 中（也可用 `--scip`、`--clp` 和 `--glpk` 指定路径）；Python 环境需包含 NumPy、SciPy，以及 highspy 或兼容的 SciPy HiGHS 绑定。例如：
 
@@ -36,6 +37,7 @@ python3 -m pip install numpy scipy highspy
 
 ## 运行完整基准
 
+
 分别运行三个数据集的全部基准案例：
 
 ```sh
@@ -44,7 +46,7 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-默认每个案例、每个求解器重复 3 次；Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `test_netlib`。
+默认每个案例、每个求解器重复 3 次；Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `lp_solve_mps`。
 
 脚本逐案例执行以下流程：
 
@@ -67,16 +69,17 @@ python3 data/benchmark.py --dataset netlib --cases afiro --repeats 1 --seconds 1
 
 ## 单独检查一个模型
 
-[`netlib/test_netlib.c`](netlib/test_netlib.c) 用于单模型求解和预期结果校验。例如，先生成 Afiro，再求解并打印变量：
+[`lp_solve_mps.c`](lp_solve_mps.c) 用于单模型求解和预期结果校验。例如，先生成 Afiro，再求解并打印变量：
 
 ```sh
 python3 data/netlib/prepare.py feasible/afiro
-./build/data/netlib/test_netlib --print-solution data/netlib/feasible/afiro.mps
+
+./build/data/lp_solve_mps --expected -464.7531429 --print-solution data/netlib/feasible/afiro.mps
 ```
 
 这里 `prepare.py` 需要类别前缀 `feasible/`，以区分 Netlib 中不同类别的同名模型。生成的 MPS 会保留在数据目录中；其他数据集的生成方式见各自 README。
 
-驱动自动查找可用的 Netlib 参考目标；路径包含 `/infeasible/` 时自动预期不可行。也可用 `--expected VALUE` 或 `--infeasible` 明确指定预期。没有参考目标时，只要求求解成功。
+该驱动通用于 Netlib、PDS、Railway 及其他 MPS 模型，不按模型名或目录推断预期结果。用 `--expected VALUE` 指定参考目标，或用 `--infeasible` 预期不可行；未指定时只要求求解成功。数据准备、参考目标选择和独立审核由 `benchmark.py` 管理。
 
 退出码 0 表示匹配预期结果，1 表示读取、求解或结果校验失败，2 表示用法错误。因此，预期不可行且验证通过时也返回 0。
 
@@ -102,7 +105,7 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | --- | --- | --- |
 | `--dataset` | `netlib` | `netlib`、`pds` 或 `railway`；不包含 simple_examples |
 | `--cases` | 所选数据集全集 | 一个或多个 raw 案例名 |
-| `--binary` | `build/data/netlib/test_netlib` | lp_simplex 单模型驱动路径 |
+| `--binary` | `build/data/lp_solve_mps` | lp_simplex 单模型驱动路径 |
 | `--scip` | `scip` | SCIP 可执行文件名称或路径 |
 | `--clp` | `clp` | Clp 可执行文件名称或路径 |
 | `--glpk` | `glpsol` | GLPK 可执行文件名称或路径 |
@@ -117,10 +120,10 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | `--docs-dir` | `docs/benchmarks` | 报告输出目录 |
 | `--report-only DIR` | 不启用 | 从已有记录重建报告，不重新求解 |
 
-### 单模型检查：test_netlib
+### 单模型检查：lp_solve_mps
 
 ```sh
-./build/data/netlib/test_netlib [选项] MODEL.mps
+./build/data/lp_solve_mps [选项] MODEL.mps
 ```
 
 | 参数 | 默认值 | 说明 |
@@ -130,10 +133,12 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | `--iterations` | 300000 | 正整数，覆盖所选算法的工作预算 |
 | `--no-presolve` | 不启用该开关 | 传入时关闭预处理 |
 | `--tolerance` | `1e-7` | 仅控制参考目标的相对比较，不改变求解器 primal/dual tolerance |
-| `--expected VALUE` | 自动查找参考值（若存在） | 覆盖参考目标 |
-| `--infeasible` | 关闭 | 预期模型不可行；路径包含 `/infeasible/` 时也会自动选择此预期 |
+| `--expected VALUE` | 不核对参考目标 | 指定参考目标 |
+| `--infeasible` | 关闭 | 显式预期模型不可行 |
 | `--print-solution` | 关闭 | 打印原始变量 |
-| `--save-point PATH` | 不导出 | 导出通过原始可行性检查的有限点，可能是迭代上限时的候选点；不保证最优 |
+| `--progress` | 关闭 | 将原始模型上下界和 gap 及时输出到 stderr |
+| `--progress-interval S` | 5 个 CPU 秒 | 正数，设置报告间隔并启用进度 |
+| `--save-point PATH` | 不导出 | 求解过程中原子保存新的可行目标改善；不保证最优 |
 | `--help` | — | 查看当前可用参数 |
 
-以上为测试工具的参数。C API 的求解选项及结果字段见[参数与结果说明](../docs/parameters.md)。当前工具支持的参数也可通过 `python3 data/benchmark.py --help` 和 `./build/data/netlib/test_netlib --help` 查看。
+以上为测试工具的参数。C API 的求解选项及结果字段见[参数与结果说明](../docs/parameters.md)。当前工具支持的参数也可通过 `python3 data/benchmark.py --help` 和 `./build/data/lp_solve_mps --help` 查看。

@@ -80,7 +80,7 @@ def capture(command):
 def sources():
     paths = [ROOT / 'CMakeLists.txt', *ROOT.glob('src/**/*.[ch]'),
              *ROOT.glob('include/**/*.h'), ROOT / 'data/CMakeLists.txt',
-             ROOT / 'data/netlib/CMakeLists.txt', ROOT / 'data/netlib/test_netlib.c',
+             ROOT / 'data/netlib/CMakeLists.txt',
              *ROOT.glob('data/*.[ch]'), *ROOT.glob('data/*.py'),
              *ROOT.glob('data/*/prepare.py'), *ROOT.glob('data/*/raw/*.c')]
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(paths)}
@@ -124,7 +124,7 @@ def environment(binary, scip, clp, glpk):
         except (ValueError, OSError):
             memory = 'unknown'
         linkage = capture(['ldd', str(binary)])
-    # test_netlib links the actual shared solver. Record it, not just the launcher.
+    # lp_solve_mps links the actual shared solver. Record it, not just the launcher.
     libraries = {}
     for name in re.findall(r'(/[^\s()]*liblp_simplex[^\s()]*)', linkage):
         p = Path(name)
@@ -860,9 +860,9 @@ def overview(docs_dir):
                'Run from the repository root. Requirements are CMake, a C compiler, BLAS/LAPACK, SCIP, Clp, GLPK, NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding. The script compiles the PDS converter temporarily.'), '',
             '```sh', 'cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON',
             'cmake --build build/benchmark -j 4',
-            'python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/netlib/test_netlib',
-            'python3 data/benchmark.py --dataset pds --binary build/benchmark/data/netlib/test_netlib',
-            'python3 data/benchmark.py --dataset railway --binary build/benchmark/data/netlib/test_netlib', '```', '',
+            'python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/lp_solve_mps',
+            'python3 data/benchmark.py --dataset pds --binary build/benchmark/data/lp_solve_mps',
+            'python3 data/benchmark.py --dataset railway --binary build/benchmark/data/lp_solve_mps', '```', '',
             tr('省略 `--cases` 测试所选数据集全集；短程验证可加 `--cases <实例名> --repeats 1 --seconds 10`。'
                'simple_examples 仅用于功能测试，不参与基准。上方各轮的复现命令保留其案例与具体参数，'
                '二进制路径可换为新构建结果；复核版本及 SHA-256 后再比较耗时。',
@@ -1034,7 +1034,7 @@ def main():
         worker(config, solver, model, Path(prefix))
         return
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--binary', type=Path, default=ROOT / 'build/data/netlib/test_netlib')
+    parser.add_argument('--binary', type=Path, default=ROOT / 'build/data/lp_solve_mps')
     parser.add_argument('--scip', default='scip')
     parser.add_argument('--solvers', nargs='+', choices=SOLVERS, default=list(SOLVERS))
     parser.add_argument('--clp', default='clp')

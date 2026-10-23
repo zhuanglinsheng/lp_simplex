@@ -21,10 +21,11 @@ Build the single-model driver with CMake, a C compiler, and BLAS/LAPACK:
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
-cmake --build build --target test_netlib -j 4
+
+cmake --build build --target lp_solve_mps -j 4
 ```
 
-The executable is `build/data/netlib/test_netlib`. Running it separately requires a prepared MPS file. Generating models from raw inputs also requires Python 3.9+; Python temporarily builds the PDS converter with a C compiler.
+The executable is `build/data/lp_solve_mps`. Running it separately requires a prepared MPS file. Generating models from raw inputs also requires Python 3.9+; Python temporarily builds the PDS converter with a C compiler.
 
 Benchmarks additionally require SCIP, Clp, and GLPK on PATH (or paths supplied with `--scip`, `--clp`, and `--glpk`), plus NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding in the Python environment. On macOS, install Clp and GLPK with `brew install clp glpk`. For example:
 
@@ -34,6 +35,7 @@ python3 -m pip install numpy scipy highspy
 
 ## Run full benchmarks
 
+
 Run every benchmark instance in each dataset:
 
 ```sh
@@ -42,7 +44,7 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-Defaults are 3 repetitions per instance and solver. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `test_netlib`.
+Defaults are 3 repetitions per instance and solver. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `lp_solve_mps`.
 
 For each instance, the script:
 
@@ -65,16 +67,17 @@ After an interruption, retain the old run directory and start a new run with `--
 
 ## Check a single model
 
-[`netlib/test_netlib.c`](netlib/test_netlib.c) solves one model and checks the expected outcome. For example, generate Afiro, then solve it and print its variables:
+[`lp_solve_mps.c`](lp_solve_mps.c) solves one model and checks the expected outcome. For example, generate Afiro, then solve it and print its variables:
 
 ```sh
 python3 data/netlib/prepare.py feasible/afiro
-./build/data/netlib/test_netlib --print-solution data/netlib/feasible/afiro.mps
+
+./build/data/lp_solve_mps --expected -464.7531429 --print-solution data/netlib/feasible/afiro.mps
 ```
 
 Here `prepare.py` requires the `feasible/` category prefix to distinguish Netlib models with the same name in different categories. The generated MPS remains in the dataset directory. See the other dataset READMEs for their preparation commands.
 
-The driver automatically looks up available Netlib reference objectives and expects infeasibility for paths containing `/infeasible/`. Use `--expected VALUE` or `--infeasible` to specify an expectation explicitly. Without a reference objective, only a successful solve is required.
+The driver supports Netlib, PDS, Railway, and other MPS models without inferring expectations from model names or directories. Use `--expected VALUE` to supply a reference objective or `--infeasible` to expect infeasibility; otherwise, only a successful solve is required. Dataset preparation, reference selection, and independent audits are managed by `benchmark.py`.
 
 Exit code 0 means the expected outcome matched, 1 means reading, solving, or validation failed, and 2 means incorrect usage. An expected infeasible result therefore also exits 0 when validated.
 
@@ -94,13 +97,13 @@ The script updates the corresponding dataset reports and summaries in both langu
 
 ## Command-line reference
 
-### Three-solver benchmarks: benchmark.py
+### Solver benchmarks: benchmark.py
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `--dataset` | `netlib` | `netlib`, `pds`, or `railway`; excludes simple_examples |
 | `--cases` | Full selected dataset | One or more raw instance names |
-| `--binary` | `build/data/netlib/test_netlib` | lp_simplex single-model driver |
+| `--binary` | `build/data/lp_solve_mps` | lp_simplex single-model driver |
 | `--scip` | `scip` | SCIP executable name or path |
 | `--clp` | `clp` | Clp executable name or path |
 | `--glpk` | `glpsol` | GLPK executable name or path |
@@ -115,10 +118,10 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--docs-dir` | `docs/benchmarks` | Report destination |
 | `--report-only DIR` | Off | Regenerate reports without solving |
 
-### Single-model checks: test_netlib
+### Single-model checks: lp_solve_mps
 
 ```sh
-./build/data/netlib/test_netlib [options] MODEL.mps
+./build/data/lp_solve_mps [options] MODEL.mps
 ```
 
 | Option | Default | Meaning |
@@ -128,10 +131,12 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--iterations` | 300000 | Positive work budget overriding the selected algorithm's default |
 | `--no-presolve` | Off | Disable presolve |
 | `--tolerance` | `1e-7` | Relative reference-objective comparison only; does not change primal/dual tolerances |
-| `--expected VALUE` | Automatic reference lookup, when available | Override reference objective |
-| `--infeasible` | Off | Expect infeasibility; paths containing `/infeasible/` also select this expectation |
+| `--expected VALUE` | No reference-objective check | Specify a reference objective |
+| `--infeasible` | Off | Explicitly expect infeasibility |
 | `--print-solution` | Off | Print original variables |
-| `--save-point PATH` | No export | Export a finite point passing original primal checks, potentially at an iteration limit; not an optimality guarantee |
+| `--progress` | Off | Flush original-model bounds and gap to stderr |
+| `--progress-interval S` | 5 CPU seconds | Positive report interval; enables progress |
+| `--save-point PATH` | No export | Atomically checkpoint improved feasible points during the solve; not an optimality guarantee |
 | `--help` | — | Show current options |
 
-These options belong to the test tools. See the [parameters and results reference](../docs/parameters_en.md) for C API solver options and result fields. Current tool options are also available through `python3 data/benchmark.py --help` and `./build/data/netlib/test_netlib --help`.
+These options belong to the test tools. See the [parameters and results reference](../docs/parameters_en.md) for C API solver options and result fields. Current tool options are also available through `python3 data/benchmark.py --help` and `./build/data/lp_solve_mps --help`.

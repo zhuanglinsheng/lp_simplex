@@ -153,6 +153,17 @@ order, and expires when the callback returns. Copy or write it during the
 callback. First feasible and stage-exit events bypass the interval; other
 reports occur at kernel checkpoints, not on a strict wall-clock schedule.
 
+```sh
+./build/data/lp_solve_mps --progress --progress-interval 5 \
+  --save-point rail4284.point data/railway/mps/rail4284.mps
+```
+
+The driver flushes progress to stderr. `--save-point` checkpoints improved
+feasible points while solving, writing a sibling temporary file before
+replacing the preceding complete checkpoint. Previously completed checkpoints
+survive process termination. A checkpoint contains only the primal vector,
+not a basis or a resumable solver state.
+
 ## 3. API return values and status codes
 
 ```c

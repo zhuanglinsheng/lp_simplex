@@ -15,10 +15,10 @@ python3 data/netlib/prepare.py --all
 
 Names include a category because different categories may contain the same name. Files are restored to their original paths, such as `data/netlib/feasible/afiro.mps`. Use `--output-dir DIR` to choose another output directory.
 
-[`test_netlib.c`](test_netlib.c) in this directory solves a single model and checks its reference result. After building, run:
+[`../lp_solve_mps.c`](../lp_solve_mps.c) in the parent directory solves a single model and checks its reference result. After building, run:
 
 ```sh
-./build/data/netlib/test_netlib data/netlib/feasible/afiro.mps
+./build/data/lp_solve_mps --expected -464.7531429 data/netlib/feasible/afiro.mps
 ```
 
 [`../benchmark.py`](../benchmark.py) coordinates batch comparisons of the five solvers.
