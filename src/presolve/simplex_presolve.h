@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_presolve.h
+ * @brief Presolve reductions and reduced-problem solve orchestration.
+ */
+
 #ifndef LP_SIMPLEX_PRESOLVE_INTERNAL_H
 #define LP_SIMPLEX_PRESOLVE_INTERNAL_H
 
@@ -66,17 +72,15 @@ struct simplex_Presolve {
 	int status;
 };
 
-int simplex_presolve_run(
-		struct simplex_Presolve *presolve,
-		const struct lp_Model *model, double tolerance);
+int simplex_presolve_run(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, double tolerance);
 
-void simplex_presolve_postsolve(
-		const struct simplex_Presolve *presolve,
-		const double *reduced_x, double *original_x);
+void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
+	const double *reduced_x, double *original_x);
 
 void simplex_presolve_destroy(struct simplex_Presolve *presolve);
 
 void simplex_presolve_print_profile(
-		const struct simplex_Presolve *presolve, double seconds);
+	const struct simplex_Presolve *presolve, double seconds);
 
 #endif

@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_sparse_vector.h
+ * @brief Sparse-vector storage and indexed numerical operations.
+ */
+
 #ifndef LP_SIMPLEX_SPARSE_VECTOR_INTERNAL_H
 #define LP_SIMPLEX_SPARSE_VECTOR_INTERNAL_H
 
@@ -21,23 +27,22 @@ struct simplex_SparseVector {
 
 
 int simplex_sparse_vector_create(
-		struct simplex_SparseVector *vector, int dimension);
+	struct simplex_SparseVector *vector, int dimension);
 
 void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector);
 
 void simplex_sparse_vector_clear(struct simplex_SparseVector *vector);
 
 int simplex_sparse_vector_set(
-		struct simplex_SparseVector *vector, int index, double value);
+	struct simplex_SparseVector *vector, int index, double value);
 
 int simplex_sparse_vector_add(
-		struct simplex_SparseVector *vector, int index, double value);
+	struct simplex_SparseVector *vector, int index, double value);
 
-int simplex_sparse_vector_pack(
-		struct simplex_SparseVector *vector,
-		const double *dense, double tolerance);
+int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
+	const double *dense, double tolerance);
 
 double simplex_sparse_vector_get(
-		const struct simplex_SparseVector *vector, int index);
+	const struct simplex_SparseVector *vector, int index);
 
 #endif

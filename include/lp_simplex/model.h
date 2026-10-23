@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file model.h
+ * @brief Dense and sparse linear-program models and their storage lifecycle.
+ */
+
 #ifndef LP_SIMPLEX_MODEL_H
 #define LP_SIMPLEX_MODEL_H
 
@@ -10,18 +16,18 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define optm_VAR_T_REAL	0	/* variable type: real */
-#define optm_VAR_T_INT	1	/* variable type: integer */
-#define optm_VAR_T_BIN	2	/* variable type: binary */
+#define optm_VAR_T_REAL 0 /* variable type: real */
+#define optm_VAR_T_INT 1 /* variable type: integer */
+#define optm_VAR_T_BIN 2 /* variable type: binary */
 
-#define optm_BOUND_T_FR	0	/* bound type: free */
-#define optm_BOUND_T_UP	1	/* bound type: upper bounded */
-#define optm_BOUND_T_LO	2	/* bound type: lower bounded */
-#define optm_BOUND_T_BS	3	/* bound type: bounded from both sides */
+#define optm_BOUND_T_FR 0 /* bound type: free */
+#define optm_BOUND_T_UP 1 /* bound type: upper bounded */
+#define optm_BOUND_T_LO 2 /* bound type: lower bounded */
+#define optm_BOUND_T_BS 3 /* bound type: bounded from both sides */
 
-#define optm_CONS_T_EQ	0	/* constraint type: equal to */
-#define optm_CONS_T_GE	1	/* constraint type: greater or equal to */
-#define optm_CONS_T_LE	2	/* constraint type: less or equal to */
+#define optm_CONS_T_EQ 0 /* constraint type: equal to */
+#define optm_CONS_T_GE 1 /* constraint type: greater or equal to */
+#define optm_CONS_T_LE 2 /* constraint type: less or equal to */
 
 
 struct optm_VariableBound {
@@ -46,28 +52,28 @@ struct optm_LinearConstraint {
  * points to row i of that matrix and must not be allocated or freed separately.
  *
  * `objective` is always stored in minimisation form: it holds the coefficients
- * the solver actually minimises.  For a maximisation model (`OBJSENSE MAXIMIZE`
- * in MPS, or `objective_sense = -1`) both `objective` and `objective_offset`
- * are negated at load time, and the reported objective is negated back, so
- * `result.objective` is the maximum the caller asked for.
+ * the solver actually minimises.  The MPS reader negates both `objective` and
+ * `objective_offset` for `OBJSENSE MAXIMIZE` and sets `objective_sense = -1`.
+ * For a programmatically constructed maximisation model the caller must do
+ * the same.  The reported objective is negated back to the caller's sense.
  */
 struct lp_Model {
-	int                           m;             /* number of constraints */
-	int                           n;             /* number of variables */
-	int                           nnz;           /* sparse coefficient count */
-	double                        objective_offset; /* constant objective term */
+	int m; /* number of constraints */
+	int n; /* number of variables */
+	int nnz; /* sparse coefficient count */
+	double objective_offset; /* constant objective term */
 	/** +1 for minimise, -1 for maximise. */
-	double                        objective_sense;
-	double                       *objective;
-	double                       *coefficients;  /* row major */
+	double objective_sense;
+	double *objective;
+	double *coefficients; /* row major */
 	struct optm_LinearConstraint *constraints;
-	struct optm_VariableBound    *bounds;
-	int                          *column_start;  /* CSC, n + 1 */
-	int                          *row_index;     /* CSC, nnz */
-	double                       *value;         /* CSC, nnz */
-	int                          *row_start;     /* CSR, m + 1 */
-	int                          *column_index;  /* CSR, nnz */
-	double                       *row_value;     /* CSR, nnz */
+	struct optm_VariableBound *bounds;
+	int *column_start; /* CSC, n + 1 */
+	int *row_index; /* CSC, nnz */
+	double *value; /* CSC, nnz */
+	int *row_start; /* CSR, m + 1 */
+	int *column_index; /* CSR, nnz */
+	double *row_value; /* CSR, nnz */
 };
 
 

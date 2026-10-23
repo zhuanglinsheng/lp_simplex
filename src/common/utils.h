@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file utils.h
+ * @brief Internal allocation, memory, string and array utilities.
+ */
+
 #ifndef LP_SIMPLEX_UTILS_INTERNAL_H
 #define LP_SIMPLEX_UTILS_INTERNAL_H
 
@@ -19,8 +25,7 @@
  * C90-safe finiteness test.  NaN fails the first comparison; infinities fail
  * the second because inf - inf is NaN.
  */
-#define __lp_simplex_ISFINITE__(x) \
-	((x) == (x) && ((x) - (x)) == 0.)
+#define __lp_simplex_ISFINITE__(x) ((x) == (x) && ((x) - (x)) == 0.)
 
 
 int is_in_arri(int idx, const int *idxset, int len);

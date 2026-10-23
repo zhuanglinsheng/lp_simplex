@@ -2,12 +2,19 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_dual_internal.h
+ * @brief Internal dual revised-simplex state and kernel interfaces.
+ */
+
 #ifndef LP_SIMPLEX_DUAL_STATE_INTERNAL_H
 #define LP_SIMPLEX_DUAL_STATE_INTERNAL_H
 
 #include "simplex_basis.h"
 #include "simplex_csc.h"
 #include "simplex_degeneracy.h"
+#include "simplex_recovery.h"
 #include "simplex_dual_feasibility.h"
 #include "simplex_sparse_vector.h"
 
@@ -18,7 +25,7 @@
 #define DUAL_STATUS_LOWER 1
 #define DUAL_STATUS_UPPER 2
 #define DUAL_STATUS_FIXED 3
-#define DUAL_STATUS_FREE  4
+#define DUAL_STATUS_FREE 4
 
 
 struct simplex_DualProfile {
@@ -29,6 +36,11 @@ struct simplex_DualProfile {
 	long rejected_ftran;
 	long bound_flips;
 	long flip_batches;
+	long lex_solves;
+	long lex_choices;
+	long main_pivots;
+	long zero_dual_steps;
+	long flat_objective_steps;
 };
 
 
@@ -48,6 +60,7 @@ struct simplex_DualState {
 	int structural;
 	int variables;
 	int iterations;
+	struct simplex_DualExplore exploration;
 	int reinversions;
 	int structural_basic;
 	const struct lp_simplex_Options *options;
@@ -74,6 +87,7 @@ struct simplex_DualState {
 	int packed_alpha_valid;
 	struct simplex_SparseVector packed_direction;
 	struct simplex_SparseVector flip_rhs;
+	double flip_leaving_change;
 	double *alpha;
 	double *breakpoint;
 	double *direction;
@@ -83,11 +97,14 @@ struct simplex_DualState {
 	int *candidate_sign;
 	int *candidate_index;
 	int candidate_count;
+	int ratio_active_count;
 	int *nonbasic_index;
 	int *nonbasic_slot;
 	int nonbasic_count;
 	struct simplex_DegeneracyControl degeneracy;
 	struct simplex_DegeneracyControl crash_history;
+	struct simplex_Recovery recovery;
+	int original_dual_recompute;
 	int crash_tracking_active;
 	int pan_enabled;
 	int stable_candidate_order;
@@ -97,10 +114,30 @@ struct simplex_DualState {
 	struct simplex_DualProfile profile;
 	double ratio_minimum;
 	int ratio_minimum_valid;
+	int ratio_ordered;
+	int ratio_heap_valid;
 	int pricing_validation_countdown;
 	int cost_shift_active;
 	int cost_shift_count;
-	int cost_shift_allowed;
+	int stable_phase_one;
+	/* Number of deterministic face-perturbation epochs applied to the
+	 * working objective.  Perturbation is repeatable: each epoch shifts only
+	 * variables whose accumulated shift is still below the per-variable cap. */
+	long perturb_epochs;
+	/* Diagnostic gate (environment): LP_SIMPLEX_SINGLE_PERTURB_EPOCH restores
+	 * the legacy one-shot face perturbation. */
+	int perturb_multi_epoch;
+	int primal_cleanup_active;
+	int stop_at_primal_feasible;
+	/* Symbolic cost perturbations are anchored to the nonbasic bound signs
+	 * when lexicographic recovery starts.  Storage is allocated on demand. */
+	void *lex_storage;
+	double *lex_rho;
+	int *lex_candidate;
+	int *lex_slot;
+	unsigned char *lex_anchor_status;
+	int lex_initialized;
+	int ratio_failure_status;
 	/* A leaving row whose complete Harris set had no stable actual FTRAN
 	 * pivot is skipped once so Pan can move along another face direction. */
 	int pan_deferred_row;

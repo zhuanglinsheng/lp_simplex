@@ -1,5 +1,11 @@
 /*
- * Orthogonal part of Pan's dynamic sparse QR.
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
+
+/**
+ * @file pan_multifrontal_qr.c
+ * @brief Orthogonal part of Pan's dynamic sparse QR.
  *
  * SuiteSparseQR supplies a multifrontal sparse-Householder anchor.  Structural
  * modifications after that anchor are represented exactly by right-side
@@ -8,6 +14,7 @@
  * decides when the accumulated local transformations should be folded into a
  * new multifrontal anchor.
  */
+
 #include "pan_multifrontal_qr.h"
 #include "utils.h"
 
@@ -15,17 +22,20 @@
 
 #include <float.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
-static int pan_transform_reserve(
-		struct pan_MultifrontalQR *qr, const int count)
+static int pan_transform_reserve(struct pan_MultifrontalQR *qr, const int count)
 {
 	struct pan_QRTransform *replacement;
 	int capacity;
+
 	if (count <= qr->transform_capacity)
 		return lp_simplex_EXIT_SUCCESS;
-	capacity = qr->transform_capacity > 0 ? 2 * qr->transform_capacity :
-		(qr->dimension > 0 ? qr->dimension : 8);
+	capacity = qr->transform_capacity > 0
+			   ? 2 * qr->transform_capacity
+			   : (qr->dimension > 0 ? qr->dimension : 8);
 	while (capacity < count)
 		capacity *= 2;
 	replacement = (struct pan_QRTransform *)lp_simplex_malloc(
@@ -46,14 +56,16 @@ static int pan_value_reserve(struct pan_MultifrontalQR *qr, const int count)
 {
 	double *replacement;
 	int capacity;
+
 	if (count <= qr->value_capacity)
 		return lp_simplex_EXIT_SUCCESS;
-	capacity = qr->value_capacity > 0 ? 2 * qr->value_capacity :
-		(qr->dimension > 0 ? qr->dimension : 8);
+	capacity = qr->value_capacity > 0
+			   ? 2 * qr->value_capacity
+			   : (qr->dimension > 0 ? qr->dimension : 8);
 	while (capacity < count)
 		capacity *= 2;
-	replacement = (double *)lp_simplex_malloc(
-		(size_t)capacity * sizeof(double));
+	replacement =
+		(double *)lp_simplex_malloc((size_t)capacity * sizeof(double));
 	if (replacement == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	if (qr->value_count > 0)
@@ -66,12 +78,12 @@ static int pan_value_reserve(struct pan_MultifrontalQR *qr, const int count)
 }
 
 
-static void pan_apply_householder(
-		const double *v, const int first, const int length,
-		const double tau, double *x)
+static void pan_apply_householder(const double *v, const int first,
+	const int length, const double tau, double *x)
 {
 	double dot = 0.;
 	int i;
+
 	if (tau == 0.)
 		return;
 	for (i = 0; i < length; i++)
@@ -82,15 +94,13 @@ static void pan_apply_householder(
 }
 
 
-static void pan_apply_transform(
-		const struct pan_MultifrontalQR *qr,
-		const struct pan_QRTransform *transform,
-		const int transpose, double *x)
+static void pan_apply_transform(const struct pan_MultifrontalQR *qr,
+	const struct pan_QRTransform *transform, const int transpose, double *x)
 {
 	if (transform->kind == pan_QR_HOUSEHOLDER) {
-		pan_apply_householder(qr->transform_value +
-			transform->value_offset, transform->first,
-			transform->length, transform->tau, x);
+		pan_apply_householder(
+			qr->transform_value + transform->value_offset,
+			transform->first, transform->length, transform->tau, x);
 	} else {
 		int first = transform->first;
 		double a = x[first];
@@ -108,15 +118,15 @@ static void pan_apply_transform(
 }
 
 
-static int pan_apply_anchor_transpose(
-		const struct pan_MultifrontalQR *qr,
-		const double *vector, double *result)
+static int pan_apply_anchor_transpose(const struct pan_MultifrontalQR *qr,
+	const double *vector, double *result)
 {
 	const cholmod_sparse *h = qr->householder;
 	int i;
+
 	if (h == NULL) {
-		lp_simplex_memcpy(result, vector,
-			(size_t)qr->dimension * sizeof(double));
+		lp_simplex_memcpy(
+			result, vector, (size_t)qr->dimension * sizeof(double));
 		return lp_simplex_EXIT_SUCCESS;
 	}
 	{
@@ -125,11 +135,13 @@ static int pan_apply_anchor_transpose(
 		const double *value = (const double *)h->x;
 		const double *tau = (const double *)qr->householder_tau->x;
 		int column;
+
 		for (i = 0; i < qr->dimension; i++)
 			result[qr->row_permutation[i]] = vector[i];
 		for (column = 0; column < (int)h->ncol; column++) {
 			double dot = 0.;
 			int k;
+
 			for (k = start[column]; k < start[column + 1]; k++)
 				dot += value[k] * result[row[k]];
 			dot *= tau[column];
@@ -141,15 +153,15 @@ static int pan_apply_anchor_transpose(
 }
 
 
-static int pan_apply_anchor(
-		const struct pan_MultifrontalQR *qr,
-		const double *vector, double *result)
+static int pan_apply_anchor(const struct pan_MultifrontalQR *qr,
+	const double *vector, double *result)
 {
 	const cholmod_sparse *h = qr->householder;
 	int i;
+
 	if (h == NULL) {
-		lp_simplex_memcpy(result, vector,
-			(size_t)qr->dimension * sizeof(double));
+		lp_simplex_memcpy(
+			result, vector, (size_t)qr->dimension * sizeof(double));
 		return lp_simplex_EXIT_SUCCESS;
 	}
 	{
@@ -158,11 +170,13 @@ static int pan_apply_anchor(
 		const double *value = (const double *)h->x;
 		const double *tau = (const double *)qr->householder_tau->x;
 		int column;
+
 		lp_simplex_memcpy(qr->work, vector,
 			(size_t)qr->dimension * sizeof(double));
 		for (column = (int)h->ncol - 1; column >= 0; column--) {
 			double dot = 0.;
 			int k;
+
 			for (k = start[column]; k < start[column + 1]; k++)
 				dot += value[k] * qr->work[row[k]];
 			dot *= tau[column];
@@ -176,24 +190,23 @@ static int pan_apply_anchor(
 }
 
 
-int pan_multifrontal_qr_initialize(
-		struct pan_MultifrontalQR *qr, const int dimension,
-		cholmod_common *common)
+int pan_multifrontal_qr_initialize(struct pan_MultifrontalQR *qr,
+	const int dimension, cholmod_common *common)
 {
 	lp_simplex_memset(qr, 0, sizeof(*qr));
+
 	if (dimension <= 0 || common == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	qr->dimension = dimension;
 	qr->common = common;
-	qr->work = (double *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(double));
+	qr->work =
+		(double *)lp_simplex_malloc((size_t)dimension * sizeof(double));
 	qr->parent = (int *)lp_simplex_malloc((size_t)dimension * sizeof(int));
-	qr->front_size = (int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(int));
-	qr->dirty_front = (unsigned char *)lp_simplex_malloc(
-		(size_t)dimension);
+	qr->front_size =
+		(int *)lp_simplex_malloc((size_t)dimension * sizeof(int));
+	qr->dirty_front = (unsigned char *)lp_simplex_malloc((size_t)dimension);
 	if (qr->work == NULL || qr->parent == NULL || qr->front_size == NULL ||
-	    qr->dirty_front == NULL) {
+		qr->dirty_front == NULL) {
 		pan_multifrontal_qr_destroy(qr);
 		return lp_simplex_EXIT_FAILURE;
 	}
@@ -217,6 +230,7 @@ void pan_multifrontal_qr_reset(struct pan_MultifrontalQR *qr)
 {
 	cholmod_free_sparse(&qr->householder, qr->common);
 	cholmod_free_dense(&qr->householder_tau, qr->common);
+
 	if (qr->row_permutation != NULL) {
 		SuiteSparse_free(qr->row_permutation);
 		qr->row_permutation = NULL;
@@ -234,6 +248,7 @@ void pan_multifrontal_qr_destroy(struct pan_MultifrontalQR *qr)
 	if (qr->common != NULL) {
 		cholmod_free_sparse(&qr->householder, qr->common);
 		cholmod_free_dense(&qr->householder_tau, qr->common);
+
 		if (qr->row_permutation != NULL)
 			SuiteSparse_free(qr->row_permutation);
 	}
@@ -248,16 +263,17 @@ void pan_multifrontal_qr_destroy(struct pan_MultifrontalQR *qr)
 
 
 void pan_multifrontal_qr_refresh_structure(
-		struct pan_MultifrontalQR *qr,
-		const struct pan_DynamicSparseQR *factor)
+	struct pan_MultifrontalQR *qr, const struct pan_DynamicSparseQR *factor)
 {
 	int i;
+
 	qr->maximum_front = 0;
 	qr->factor_nonzeros = 0;
 	for (i = 0; i < factor->count; i++) {
 		const struct pan_DynamicSparseRow *row = factor->row + i;
 		int parent = -1;
 		int node = row->head;
+
 		while (node >= 0) {
 			if (factor->node[node].column > i) {
 				parent = factor->node[node].column;
@@ -274,37 +290,72 @@ void pan_multifrontal_qr_refresh_structure(
 }
 
 
-int pan_multifrontal_qr_rebuild(
-		struct pan_MultifrontalQR *qr, cholmod_sparse *matrix,
-		struct pan_DynamicSparseQR *factor, const int *tag,
-		const double rank_tolerance)
+static int pan_multifrontal_qr_rebuild_internal(struct pan_MultifrontalQR *qr,
+	cholmod_sparse *matrix, struct pan_DynamicSparseQR *factor,
+	const int *tag, const double rank_tolerance, const int required_prefix)
 {
 	cholmod_sparse *r = NULL;
 	cholmod_sparse *h = NULL;
 	cholmod_dense *tau = NULL;
+
 	int32_t *permutation = NULL;
 	int32_t *column_permutation = NULL;
 	int32_t rank;
+	int *ordered_tag = NULL;
 	int i;
+
 	if (matrix == NULL || matrix->nrow != (size_t)qr->dimension)
 		return lp_simplex_EXIT_FAILURE;
-	rank = SuiteSparseQR_i_C(SPQR_ORDERING_FIXED, rank_tolerance,
-		(int32_t)matrix->ncol, 0, matrix, NULL, NULL, NULL, NULL,
-		&r, &column_permutation, &h, &permutation, &tau, qr->common);
-	if (rank != (int32_t)matrix->ncol || r == NULL || h == NULL ||
-	    tau == NULL || permutation == NULL)
+	rank = SuiteSparseQR_i_C(SPQR_ORDERING_COLAMD, rank_tolerance,
+		(int32_t)matrix->ncol, 0, matrix, NULL, NULL, NULL, NULL, &r,
+		&column_permutation, &h, &permutation, &tau, qr->common);
+	if (rank < 0 ||
+		(required_prefix < 0 && rank != (int32_t)matrix->ncol) ||
+		r == NULL || h == NULL || tau == NULL || permutation == NULL) {
+		if (getenv("LP_SIMPLEX_PROFILE") != NULL)
+			fprintf(stderr,
+				"pan-bda QR rank failure rank=%d columns=%d status=%d\n",
+				(int)rank, (int)matrix->ncol,
+				qr->common->status);
 		goto failure;
-	if (column_permutation != NULL)
-		for (i = 0; i < (int)matrix->ncol; i++)
-			if (column_permutation[i] != i)
-				goto failure;
+	}
+	ordered_tag = (int *)lp_simplex_malloc(matrix->ncol * sizeof(int));
+	if (ordered_tag == NULL)
+		goto failure;
+	for (i = 0; i < (int)matrix->ncol; i++)
+		ordered_tag[i] =
+			tag[column_permutation != NULL ? column_permutation[i]
+						       : i];
+	if (required_prefix >= 0) {
+		int required_seen = 0;
+
+		for (i = 0; i < rank; i++)
+			if ((column_permutation != NULL ? column_permutation[i]
+							: i) < required_prefix)
+				required_seen++;
+		if (required_seen != required_prefix) {
+			if (getenv("LP_SIMPLEX_PROFILE") != NULL)
+				fprintf(stderr,
+					"pan-bda QR repair rejected: required=%d kept=%d rank=%d\n",
+					required_prefix, required_seen,
+					(int)rank);
+			goto failure;
+		}
+	}
 	if (r->itype != CHOLMOD_INT ||
-	    pan_dynamic_sparse_qr_load_csc(factor, tag, (int)matrix->ncol,
-		(const int *)r->p, (const int *)r->i, (const double *)r->x,
-		rank_tolerance) == lp_simplex_EXIT_FAILURE)
+		pan_dynamic_sparse_qr_load_csc(factor, ordered_tag, (int)rank,
+			(const int *)r->p, (const int *)r->i,
+			(const double *)r->x,
+			rank_tolerance) == lp_simplex_EXIT_FAILURE) {
+		if (getenv("LP_SIMPLEX_PROFILE") != NULL)
+			fprintf(stderr,
+				"pan-bda QR import failure rank=%d columns=%d\n",
+				(int)rank, (int)matrix->ncol);
 		goto failure;
+	}
 	cholmod_free_sparse(&qr->householder, qr->common);
 	cholmod_free_dense(&qr->householder_tau, qr->common);
+
 	if (qr->row_permutation != NULL)
 		SuiteSparse_free(qr->row_permutation);
 	qr->householder = h;
@@ -319,13 +370,17 @@ int pan_multifrontal_qr_rebuild(
 	pan_multifrontal_qr_clear_updates(qr);
 	pan_multifrontal_qr_refresh_structure(qr, factor);
 	cholmod_free_sparse(&r, qr->common);
+
+	lp_simplex_free(ordered_tag);
 	if (column_permutation != NULL)
 		SuiteSparse_free(column_permutation);
 	return lp_simplex_EXIT_SUCCESS;
 failure:
+	lp_simplex_free(ordered_tag);
 	cholmod_free_sparse(&r, qr->common);
 	cholmod_free_sparse(&h, qr->common);
 	cholmod_free_dense(&tau, qr->common);
+
 	if (permutation != NULL)
 		SuiteSparse_free(permutation);
 	if (column_permutation != NULL)
@@ -334,44 +389,64 @@ failure:
 }
 
 
+int pan_multifrontal_qr_rebuild(struct pan_MultifrontalQR *qr,
+	cholmod_sparse *matrix, struct pan_DynamicSparseQR *factor,
+	const int *tag, const double rank_tolerance)
+{
+	return pan_multifrontal_qr_rebuild_internal(
+		qr, matrix, factor, tag, rank_tolerance, -1);
+}
+
+
+int pan_multifrontal_qr_repair_rank(struct pan_MultifrontalQR *qr,
+	cholmod_sparse *matrix, struct pan_DynamicSparseQR *factor,
+	const int *tag, const double rank_tolerance, const int required_prefix)
+{
+	return pan_multifrontal_qr_rebuild_internal(
+		qr, matrix, factor, tag, rank_tolerance, required_prefix);
+}
+
+
 int pan_multifrontal_qr_apply_transpose(
-		struct pan_MultifrontalQR *qr, const double *vector,
-		double *result)
+	struct pan_MultifrontalQR *qr, const double *vector, double *result)
 {
 	int i;
+
 	if (pan_apply_anchor_transpose(qr, vector, result) ==
-	    lp_simplex_EXIT_FAILURE)
+		lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < qr->transform_count; i++)
 		pan_apply_transform(qr, qr->transform + i, 1, result);
 	for (i = 0; i < qr->transform_count; i++)
 		qr->pending_apply_work += qr->transform[i].kind == pan_QR_GIVENS
-			? 6 : 4 * qr->transform[i].length;
+						  ? 6
+						  : 4 * qr->transform[i].length;
 	return lp_simplex_EXIT_SUCCESS;
 }
 
 
 int pan_multifrontal_qr_apply(
-		struct pan_MultifrontalQR *qr, const double *vector,
-		double *result)
+	struct pan_MultifrontalQR *qr, const double *vector, double *result)
 {
 	int i;
-	lp_simplex_memcpy(qr->work, vector,
-		(size_t)qr->dimension * sizeof(double));
+
+	lp_simplex_memcpy(
+		qr->work, vector, (size_t)qr->dimension * sizeof(double));
 	for (i = qr->transform_count - 1; i >= 0; i--)
 		pan_apply_transform(qr, qr->transform + i, 0, qr->work);
 	if (pan_apply_anchor(qr, qr->work, result) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < qr->transform_count; i++)
 		qr->pending_apply_work += qr->transform[i].kind == pan_QR_GIVENS
-			? 6 : 4 * qr->transform[i].length;
+						  ? 6
+						  : 4 * qr->transform[i].length;
 	return lp_simplex_EXIT_SUCCESS;
 }
 
 
-int pan_multifrontal_qr_append(
-		struct pan_MultifrontalQR *qr, const double *column,
-		const int active_count, double *border, double *diagonal)
+int pan_multifrontal_qr_append(struct pan_MultifrontalQR *qr,
+	const double *column, const int active_count, double *border,
+	double *diagonal)
 {
 	struct pan_QRTransform *transform;
 	double alpha;
@@ -382,9 +457,10 @@ int pan_multifrontal_qr_append(
 	int length;
 	int offset;
 	int i;
+
 	if (active_count < 0 || active_count >= qr->dimension ||
-	    pan_multifrontal_qr_apply_transpose(qr, column, qr->work) ==
-	    lp_simplex_EXIT_FAILURE)
+		pan_multifrontal_qr_apply_transpose(qr, column, qr->work) ==
+			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < active_count; i++)
 		border[i] = qr->work[i];
@@ -399,10 +475,18 @@ int pan_multifrontal_qr_append(
 		beta = -copysign(hypot(alpha, tail_norm), alpha);
 		tau = (beta - alpha) / beta;
 	}
+	/* An identity reflector has no storage or future application cost.
+	 * Recording a dense zero tail caused orthogonal singleton extensions to
+	 * trigger repeated, entirely unnecessary multifrontal rebuilds. */
+	if (tau == 0.) {
+		*diagonal = beta;
+		qr->local_retriangularizations++;
+		return lp_simplex_EXIT_SUCCESS;
+	}
 	if (pan_transform_reserve(qr, qr->transform_count + 1) ==
-	    lp_simplex_EXIT_FAILURE ||
-	    pan_value_reserve(qr, qr->value_count + length) ==
-	    lp_simplex_EXIT_FAILURE)
+			lp_simplex_EXIT_FAILURE ||
+		pan_value_reserve(qr, qr->value_count + length) ==
+			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	offset = qr->value_count;
 	qr->transform_value[offset] = 1.;
@@ -428,7 +512,7 @@ int pan_multifrontal_qr_append(
 	norm_error = 0.;
 	for (i = 0; i < length; i++)
 		norm_error += qr->transform_value[offset + i] *
-			qr->transform_value[offset + i];
+			      qr->transform_value[offset + i];
 	norm_error = tau == 0. ? 0. : fabs(tau * norm_error - 2.);
 	if (norm_error > qr->orthogonal_error)
 		qr->orthogonal_error = norm_error;
@@ -438,17 +522,18 @@ int pan_multifrontal_qr_append(
 
 
 int pan_multifrontal_qr_record_givens(
-		struct pan_MultifrontalQR *qr,
-		const struct pan_DynamicSparseQR *factor)
+	struct pan_MultifrontalQR *qr, const struct pan_DynamicSparseQR *factor)
 {
 	int i;
-	if (pan_transform_reserve(qr,
-		qr->transform_count + factor->event_count) ==
-	    lp_simplex_EXIT_FAILURE)
+
+	if (pan_transform_reserve(
+		    qr, qr->transform_count + factor->event_count) ==
+		lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < factor->event_count; i++) {
 		struct pan_QRTransform *transform =
 			qr->transform + qr->transform_count++;
+
 		transform->kind = pan_QR_GIVENS;
 		transform->first = factor->event_row[i];
 		transform->length = 2;
@@ -463,23 +548,23 @@ int pan_multifrontal_qr_record_givens(
 
 
 void pan_multifrontal_qr_mark_path(
-		struct pan_MultifrontalQR *qr, const int first)
+	struct pan_MultifrontalQR *qr, const int first)
 {
 	int front = first;
-	while (front >= 0 && front < qr->dimension &&
-	       !qr->dirty_front[front]) {
+
+	while (front >= 0 && front < qr->dimension && !qr->dirty_front[front]) {
 		qr->dirty_front[front] = 1;
 		front = qr->parent[front];
 	}
 }
 
 
-int pan_multifrontal_qr_should_rebuild(
-		const struct pan_MultifrontalQR *qr)
+int pan_multifrontal_qr_should_rebuild(const struct pan_MultifrontalQR *qr)
 {
 	/* Exact work crossover: another use of the accumulated transforms costs
 	 * more arithmetic than the last measured multifrontal factorization. */
 	long long next_apply = qr->anchor_apply_work + qr->local_update_work;
+
 	if (qr->transform_count == 0)
 		return 0;
 	if (qr->backward_error > DBL_EPSILON * (double)(qr->dimension + 1))
@@ -488,5 +573,5 @@ int pan_multifrontal_qr_should_rebuild(
 		return qr->pending_apply_work >= qr->local_update_work;
 	next_apply = qr->local_update_work;
 	return (double)(qr->pending_apply_work + next_apply) >=
-		qr->anchor_factor_work;
+	       qr->anchor_factor_work;
 }

@@ -40,8 +40,12 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   no-suite-sparse:
-    name: build without SuiteSparse
+    name: build without SuiteSparse (${{ matrix.build_type }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
     steps:
       - uses: actions/checkout@v4
 
@@ -54,11 +58,13 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DLP_SIMPLEX_USE_KLU=OFF \
             -DLP_SIMPLEX_USE_SPQR=OFF
 
       - name: Build and test
+        env:
+          ASAN_OPTIONS: detect_leaks=1
         run: |
           cmake --build build -j "$(nproc)"
           ctest --test-dir build --output-on-failure

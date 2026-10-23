@@ -2,16 +2,21 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_transform.c
+ * @brief Variable-bound transformations and tableau solution recovery.
+ */
+
 #include "simplex_transform.h"
 #include "utils.h"
 
 #include <lp_simplex/status.h>
 
 
-int simplex_transform_alloc(
-		const int M, const int N,
-		double **obj2, double **x2, double **coef2,
-		struct optm_LinearConstraint **constraints2)
+int simplex_transform_alloc(const int M, const int N, double **obj2,
+	double **x2, double **coef2,
+	struct optm_LinearConstraint **constraints2)
 {
 	*obj2 = NULL;
 	*x2 = NULL;
@@ -32,7 +37,8 @@ int simplex_transform_alloc(
 		lp_simplex_free(*x2);
 		return lp_simplex_EXIT_FAILURE;
 	}
-	*constraints2 = lp_simplex_malloc(M * sizeof(struct optm_LinearConstraint));
+	*constraints2 =
+		lp_simplex_malloc(M * sizeof(struct optm_LinearConstraint));
 	if (*constraints2 == NULL) {
 		lp_simplex_free(*obj2);
 		lp_simplex_free(*x2);
@@ -43,12 +49,12 @@ int simplex_transform_alloc(
 }
 
 
-void simplex_transform_free(
-		double *obj2, double *x2, double *coef2,
-		struct optm_LinearConstraint *constraints2)
+void simplex_transform_free(double *obj2, double *x2, double *coef2,
+	struct optm_LinearConstraint *constraints2)
 {
 	if (obj2)
 		lp_simplex_free(obj2);
+
 	if (x2)
 		lp_simplex_free(x2);
 	if (coef2)
@@ -65,9 +71,8 @@ void simplex_transform_free(
  * An upper-only variable is represented as x = ub - y and needs no extra
  * constraint.
  */
-void simplex_transform_size(
-		const struct optm_VariableBound *bounds,
-		const int m, const int n, int *_M, int *_N)
+void simplex_transform_size(const struct optm_VariableBound *bounds,
+	const int m, const int n, int *_M, int *_N)
 {
 	int j;
 	*_M = m;
@@ -90,13 +95,11 @@ void simplex_transform_size(
  *	Original LP: allow for more variable bounds
  *	Standard LP: x >= 0
  */
-void simplex_transform_problem(
-		const double *objective,
-		const struct optm_LinearConstraint *constraints,
-		const struct optm_VariableBound *bounds,
-		const int m, const int n, const int _N,
-		double *obj2, double *obj_diff, double *coef2,
-		struct optm_LinearConstraint *constraints2)
+void simplex_transform_problem(const double *objective,
+	const struct optm_LinearConstraint *constraints,
+	const struct optm_VariableBound *bounds, const int m, const int n,
+	const int _N, double *obj2, double *obj_diff, double *coef2,
+	struct optm_LinearConstraint *constraints2)
 {
 	int i, j;
 	int ctr_var = 0;
@@ -115,7 +118,8 @@ void simplex_transform_problem(
 		if (optm_BOUND_T_UP == bd->b_type) {
 			shift = bd->ub;
 			scale = -1.;
-		} else if (optm_BOUND_T_LO == bd->b_type || optm_BOUND_T_BS == bd->b_type) {
+		} else if (optm_BOUND_T_LO == bd->b_type ||
+			   optm_BOUND_T_BS == bd->b_type) {
 			shift = bd->lb;
 		}
 
@@ -123,6 +127,7 @@ void simplex_transform_problem(
 		*obj_diff += objective[j] * shift;
 		for (i = 0; i < m; i++) {
 			double aij = constraints[i].coef[j];
+
 			coef2[ctr_var + i * _N] = aij * scale;
 			constraints2[i].rhs -= aij * shift;
 		}
@@ -131,10 +136,12 @@ void simplex_transform_problem(
 		if (optm_BOUND_T_FR == bd->b_type) {
 			obj2[ctr_var] = -objective[j];
 			for (i = 0; i < m; i++)
-				coef2[ctr_var + i * _N] = -constraints[i].coef[j];
+				coef2[ctr_var + i * _N] =
+					-constraints[i].coef[j];
 			ctr_var++;
 		} else if (optm_BOUND_T_BS == bd->b_type) {
 			int idx = m + ctr_ubcons;
+
 			constraints2[idx].coef = coef2 + idx * _N;
 			constraints2[idx].rhs = bd->ub - bd->lb;
 			constraints2[idx].type = optm_CONS_T_LE;
@@ -147,10 +154,9 @@ void simplex_transform_problem(
 
 /* Recover original LP solution and value from the standard form
  */
-void simplex_transform_recover(
-		const struct optm_VariableBound *bounds, const int n,
-		const double *x2, const double value2, const double obj_diff,
-		double *x, double *value)
+void simplex_transform_recover(const struct optm_VariableBound *bounds,
+	const int n, const double *x2, const double value2,
+	const double obj_diff, double *x, double *value)
 {
 	int ctr_var;
 	int j;
@@ -163,7 +169,8 @@ void simplex_transform_recover(
 		if (optm_BOUND_T_FR == bd->b_type) {
 			x[j] = x2[ctr_var] - x2[ctr_var + 1];
 			ctr_var++;
-		} else if (optm_BOUND_T_LO == bd->b_type || optm_BOUND_T_BS == bd->b_type) {
+		} else if (optm_BOUND_T_LO == bd->b_type ||
+			   optm_BOUND_T_BS == bd->b_type) {
 			x[j] = x2[ctr_var] + bd->lb;
 		} else if (optm_BOUND_T_UP == bd->b_type) {
 			x[j] = bd->ub - x2[ctr_var];

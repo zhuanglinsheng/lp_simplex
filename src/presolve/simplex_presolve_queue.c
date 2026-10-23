@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_presolve_queue.c
+ * @brief Bounded work queues with duplicate suppression for presolve.
+ */
+
 #include "simplex_presolve_queue.h"
 #include "utils.h"
 
@@ -9,25 +15,25 @@
 
 
 int simplex_presolve_queue_init(
-		struct simplex_PresolveQueue *queue, const int capacity)
+	struct simplex_PresolveQueue *queue, const int capacity)
 {
 	queue->item = NULL;
+
 	queue->present = NULL;
 	queue->capacity = capacity;
 	queue->head = 0;
 	queue->count = 0;
 	if (capacity <= 0)
 		return lp_simplex_EXIT_SUCCESS;
-	queue->item = (int *)lp_simplex_malloc(
-		(size_t)capacity * sizeof(int));
+	queue->item = (int *)lp_simplex_malloc((size_t)capacity * sizeof(int));
 	queue->present = (unsigned char *)lp_simplex_malloc(
 		(size_t)capacity * sizeof(unsigned char));
 	if (queue->item == NULL || queue->present == NULL) {
 		simplex_presolve_queue_destroy(queue);
 		return lp_simplex_EXIT_FAILURE;
 	}
-	lp_simplex_memset(queue->present, 0,
-		(size_t)capacity * sizeof(unsigned char));
+	lp_simplex_memset(
+		queue->present, 0, (size_t)capacity * sizeof(unsigned char));
 	return lp_simplex_EXIT_SUCCESS;
 }
 
@@ -43,9 +49,10 @@ void simplex_presolve_queue_clear(struct simplex_PresolveQueue *queue)
 
 
 int simplex_presolve_queue_push(
-		struct simplex_PresolveQueue *queue, const int item)
+	struct simplex_PresolveQueue *queue, const int item)
 {
 	int tail;
+
 	if (item < 0 || item >= queue->capacity)
 		return lp_simplex_EXIT_FAILURE;
 	if (queue->present[item])
@@ -60,8 +67,7 @@ int simplex_presolve_queue_push(
 }
 
 
-int simplex_presolve_queue_pop(
-		struct simplex_PresolveQueue *queue, int *item)
+int simplex_presolve_queue_pop(struct simplex_PresolveQueue *queue, int *item)
 {
 	if (queue->count == 0)
 		return 0;

@@ -13,6 +13,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_EXTENSIONS OFF)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	# Keep C90 syntax while requesting declarations for the C99 math runtime
+	# (fma, hypot, isfinite, ...), hidden by glibc in strict C90 mode.
+	add_compile_definitions(_ISOC99_SOURCE=1)
+endif()
 if(MSVC)
 	# Force to always compile with W4
 	if(CMAKE_C_FLAGS_DEBUG MATCHES "/W[0-4]")
@@ -80,6 +85,7 @@ set(SOURCES
 	src/core/model.c
 	src/core/mps.c
 	src/core/simplex.c
+	src/core/simplex_auto.c
 	src/core/simplex_problem.c
 	src/core/simplex_scaling.c
 	src/presolve/simplex_presolve.c
@@ -95,9 +101,18 @@ set(SOURCES
 	src/dual/simplex_dual_state.c
 	src/dual/simplex_dual_feasibility.c
 	src/dual/simplex_dual_pricing.c
+	src/dual/simplex_primal_pricing.c
 	src/dual/simplex_singleton_dual.c
 	src/dual/simplex_degeneracy.c
+	src/dual/simplex_recovery.c
+	src/degeneracy/pan/simplex_pan_config.c
 	src/degeneracy/pan/simplex_pan.c
+	src/degeneracy/pan/simplex_pan_bounded.c
+	src/degeneracy/pan/simplex_pan_pdhg.c
+	src/degeneracy/pan/simplex_pan_cone.c
+	src/degeneracy/pan/simplex_pan_recovery.c
+	src/degeneracy/pan/simplex_pan_first_order.c
+	src/degeneracy/pan/simplex_pan_cone_implicit.c
 	src/degeneracy/pan/simplex_pan_basis.c
 	src/degeneracy/pan/simplex_pan_basis_spqr.c
 	src/degeneracy/pan/simplex_pan_phase1.c

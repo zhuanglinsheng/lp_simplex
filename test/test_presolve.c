@@ -1,6 +1,22 @@
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
+
+/**
+ * @file test_presolve.c
+ * @brief Regression tests for presolve reductions and original-variable
+ * reconstruction.
+ */
+
 #include <lp_simplex/lp_simplex.h>
+
 #include "simplex_presolve_queue.h"
+#include "simplex_presolve.h"
+#include "simplex_dual.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 
 
 static double absolute_value(const double value)
@@ -13,19 +29,23 @@ static int exercise_presolve_work_queue(void)
 {
 	struct simplex_PresolveQueue queue;
 	int item;
-	if (simplex_presolve_queue_init(&queue, 3) ==
-	    lp_simplex_EXIT_FAILURE)
+
+	if (simplex_presolve_queue_init(&queue, 3) == lp_simplex_EXIT_FAILURE)
 		return 0;
 	if (simplex_presolve_queue_push(&queue, 0) == lp_simplex_EXIT_FAILURE ||
-	    simplex_presolve_queue_push(&queue, 1) == lp_simplex_EXIT_FAILURE ||
-	    simplex_presolve_queue_push(&queue, 2) == lp_simplex_EXIT_FAILURE ||
-	    simplex_presolve_queue_push(&queue, 1) == lp_simplex_EXIT_FAILURE ||
-	    !simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
-	    simplex_presolve_queue_push(&queue, 0) == lp_simplex_EXIT_FAILURE ||
-	    !simplex_presolve_queue_pop(&queue, &item) || item != 1 ||
-	    !simplex_presolve_queue_pop(&queue, &item) || item != 2 ||
-	    !simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
-	    simplex_presolve_queue_pop(&queue, &item)) {
+		simplex_presolve_queue_push(&queue, 1) ==
+			lp_simplex_EXIT_FAILURE ||
+		simplex_presolve_queue_push(&queue, 2) ==
+			lp_simplex_EXIT_FAILURE ||
+		simplex_presolve_queue_push(&queue, 1) ==
+			lp_simplex_EXIT_FAILURE ||
+		!simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
+		simplex_presolve_queue_push(&queue, 0) ==
+			lp_simplex_EXIT_FAILURE ||
+		!simplex_presolve_queue_pop(&queue, &item) || item != 1 ||
+		!simplex_presolve_queue_pop(&queue, &item) || item != 2 ||
+		!simplex_presolve_queue_pop(&queue, &item) || item != 0 ||
+		simplex_presolve_queue_pop(&queue, &item)) {
 		simplex_presolve_queue_destroy(&queue);
 		return 0;
 	}
@@ -41,6 +61,7 @@ static int solve_fixed_and_empty_column(void)
 	struct lp_simplex_Result result;
 	double x[3];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 is fixed, x2 is an empty bounded column selected by its cost. */
@@ -60,11 +81,11 @@ static int solve_fixed_and_empty_column(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 2.) <= 1e-9 &&
-		absolute_value(x[1] - 3.) <= 1e-9 &&
-		absolute_value(x[2] - 4.) <= 1e-9 &&
-		absolute_value(result.objective + 1.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 2.) <= 1e-9 &&
+	       absolute_value(x[1] - 3.) <= 1e-9 &&
+	       absolute_value(x[2] - 4.) <= 1e-9 &&
+	       absolute_value(result.objective + 1.) <= 1e-9;
 }
 
 
@@ -75,6 +96,7 @@ static int solve_with_redundant_empty_row(void)
 	struct lp_simplex_Result result;
 	double x[1];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->objective[0] = 1.;
@@ -88,8 +110,8 @@ static int solve_with_redundant_empty_row(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 1.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 1.) <= 1e-9;
 }
 
 
@@ -100,6 +122,7 @@ static int detect_infeasible_empty_row(void)
 	struct lp_simplex_Result result;
 	double x[1];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->constraints[0].type = optm_CONS_T_GE;
@@ -112,7 +135,7 @@ static int detect_infeasible_empty_row(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_FAILURE &&
-		result.status == lp_simplex_Infeasibility;
+	       result.status == lp_simplex_Infeasibility;
 }
 
 
@@ -123,6 +146,7 @@ static int solve_singleton_inequality_chain(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 >= 2 tightens its lower bound.  The second singleton tightens x1;
@@ -144,10 +168,10 @@ static int solve_singleton_inequality_chain(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 2.) <= 1e-9 &&
-		absolute_value(x[1] - 3.) <= 1e-9 &&
-		absolute_value(result.objective - 5.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 2.) <= 1e-9 &&
+	       absolute_value(x[1] - 3.) <= 1e-9 &&
+	       absolute_value(result.objective - 5.) <= 1e-9;
 }
 
 
@@ -158,6 +182,7 @@ static int detect_infeasible_activity(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->bounds[0].b_type = optm_BOUND_T_BS;
@@ -175,7 +200,7 @@ static int detect_infeasible_activity(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_FAILURE &&
-		result.status == lp_simplex_Infeasibility;
+	       result.status == lp_simplex_Infeasibility;
 }
 
 
@@ -186,6 +211,7 @@ static int solve_implied_bound_propagation(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* y <= 3 and x + y >= 10 imply x >= 7.  Together with x <= 7,
@@ -207,10 +233,10 @@ static int solve_implied_bound_propagation(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 7.) <= 1e-6 &&
-		absolute_value(x[1] - 3.) <= 1e-6 &&
-		absolute_value(result.objective - 10.) <= 1e-6;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 7.) <= 1e-6 &&
+	       absolute_value(x[1] - 3.) <= 1e-6 &&
+	       absolute_value(result.objective - 10.) <= 1e-6;
 }
 
 
@@ -221,6 +247,7 @@ static int solve_dominated_parallel_row(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->objective[0] = 1.;
@@ -238,8 +265,8 @@ static int solve_dominated_parallel_row(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(result.objective - 3.) <= 1e-7;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(result.objective - 3.) <= 1e-7;
 }
 
 
@@ -250,6 +277,7 @@ static int detect_conflicting_parallel_equalities(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->constraints[0].type = optm_CONS_T_EQ;
@@ -265,7 +293,7 @@ static int detect_conflicting_parallel_equalities(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_FAILURE &&
-		result.status == lp_simplex_Infeasibility;
+	       result.status == lp_simplex_Infeasibility;
 }
 
 
@@ -276,6 +304,7 @@ static int solve_singleton_column_substitution(void)
 	struct lp_simplex_Result result;
 	double x[3];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 occurs only in x0 + x1 = 5.  Since 0 <= x1 <= 5 implies x0 >= 0,
@@ -296,11 +325,11 @@ static int solve_singleton_column_substitution(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0]) <= 1e-8 &&
-		absolute_value(x[1] - 5.) <= 1e-8 &&
-		absolute_value(x[2]) <= 1e-8 &&
-		absolute_value(result.objective) <= 1e-8;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0]) <= 1e-8 &&
+	       absolute_value(x[1] - 5.) <= 1e-8 &&
+	       absolute_value(x[2]) <= 1e-8 &&
+	       absolute_value(result.objective) <= 1e-8;
 }
 
 
@@ -311,6 +340,7 @@ static int solve_forcing_row(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* The minimum activity of x - y is -2.  Requiring x - y <= -2
@@ -332,10 +362,10 @@ static int solve_forcing_row(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0]) <= 1e-9 &&
-		absolute_value(x[1] - 2.) <= 1e-9 &&
-		absolute_value(result.objective + 2.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0]) <= 1e-9 &&
+	       absolute_value(x[1] - 2.) <= 1e-9 &&
+	       absolute_value(result.objective + 2.) <= 1e-9;
 }
 
 
@@ -346,6 +376,7 @@ static int solve_zero_cost_singleton_inequality_column(void)
 	struct lp_simplex_Result result;
 	double x[2];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 appears only in x0 + x1 <= 5 and has zero cost.  Its lower bound
@@ -366,10 +397,10 @@ static int solve_zero_cost_singleton_inequality_column(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0]) <= 1e-9 &&
-		absolute_value(x[1] - 5.) <= 1e-9 &&
-		absolute_value(result.objective + 5.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0]) <= 1e-9 &&
+	       absolute_value(x[1] - 5.) <= 1e-9 &&
+	       absolute_value(result.objective + 5.) <= 1e-9;
 }
 
 
@@ -380,6 +411,7 @@ static int solve_substitution_fixed_point_cascade(void)
 	struct lp_simplex_Result result;
 	double x[3];
 	int state, j;
+
 	if (model == NULL)
 		return 0;
 	for (j = 0; j < 3; j++) {
@@ -404,11 +436,11 @@ static int solve_substitution_fixed_point_cascade(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 2.) <= 1e-9 &&
-		absolute_value(x[1]) <= 1e-9 &&
-		absolute_value(x[2] - 1.) <= 1e-9 &&
-		absolute_value(result.objective) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 2.) <= 1e-9 &&
+	       absolute_value(x[1]) <= 1e-9 &&
+	       absolute_value(x[2] - 1.) <= 1e-9 &&
+	       absolute_value(result.objective) <= 1e-9;
 }
 
 
@@ -419,6 +451,7 @@ static int solve_singleton_equality_projection(void)
 	struct lp_simplex_Result result;
 	double x[4];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 = 5 - x1 - x2 and x0 >= 0 project to x1 + x2 <= 5.  Separate
@@ -444,10 +477,10 @@ static int solve_singleton_equality_projection(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0]) <= 1e-9 &&
-		absolute_value(x[1] + x[2] - 5.) <= 1e-9 &&
-		absolute_value(result.objective + 5.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0]) <= 1e-9 &&
+	       absolute_value(x[1] + x[2] - 5.) <= 1e-9 &&
+	       absolute_value(result.objective + 5.) <= 1e-9;
 }
 
 
@@ -458,6 +491,7 @@ static int solve_degree_two_implied_free_substitution(void)
 	struct lp_simplex_Result result;
 	double x[3];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	/* x0 has degree two.  The first equality and 0 <= x1 <= 5 imply the
@@ -480,11 +514,11 @@ static int solve_degree_two_implied_free_substitution(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 4.) <= 1e-9 &&
-		absolute_value(x[1] - 1.) <= 1e-9 &&
-		absolute_value(x[2]) <= 1e-9 &&
-		absolute_value(result.objective - 1.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 4.) <= 1e-9 &&
+	       absolute_value(x[1] - 1.) <= 1e-9 &&
+	       absolute_value(x[2]) <= 1e-9 &&
+	       absolute_value(result.objective - 1.) <= 1e-9;
 }
 
 
@@ -495,6 +529,7 @@ static int solve_with_objective_offset(void)
 	struct lp_simplex_Result result;
 	double x[1];
 	int state;
+
 	if (model == NULL)
 		return 0;
 	model->objective[0] = 2.;
@@ -507,9 +542,9 @@ static int solve_with_objective_offset(void)
 	state = lp_simplex_solve(model, &options, x, &result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS &&
-		result.status == lp_simplex_Success &&
-		absolute_value(x[0] - 3.) <= 1e-9 &&
-		absolute_value(result.objective + 1.) <= 1e-9;
+	       result.status == lp_simplex_Success &&
+	       absolute_value(x[0] - 3.) <= 1e-9 &&
+	       absolute_value(result.objective + 1.) <= 1e-9;
 }
 
 
@@ -520,6 +555,7 @@ static int solve_dense_presolve_equivalence(void)
 	struct lp_simplex_Result with_presolve, without_presolve;
 	double reduced_x[4], raw_x[4];
 	int first, second, j;
+
 	if (model == NULL)
 		return 0;
 	for (j = 0; j < 4; j++) {
@@ -552,29 +588,100 @@ static int solve_dense_presolve_equivalence(void)
 	second = lp_simplex_solve(model, &options, raw_x, &without_presolve);
 	lp_model_free(model);
 	return first == lp_simplex_EXIT_SUCCESS &&
-		second == lp_simplex_EXIT_SUCCESS &&
-		with_presolve.status == lp_simplex_Success &&
-		without_presolve.status == lp_simplex_Success &&
-		absolute_value(with_presolve.objective -
-			without_presolve.objective) <= 1e-7;
+	       second == lp_simplex_EXIT_SUCCESS &&
+	       with_presolve.status == lp_simplex_Success &&
+	       without_presolve.status == lp_simplex_Success &&
+	       absolute_value(with_presolve.objective -
+			      without_presolve.objective) <= 1e-7;
+}
+
+
+/* Outward-rounded working bounds must not justify dropping x0 >= 0.
+ * Check reduced solve + postsolve directly, so raw-model recovery cannot
+ * conceal a bad reduction.  The former relative implication test admits
+ * x1 = 1000.00005 and reconstructs x0 = -0.00005. */
+static int preserve_nearly_implied_singleton_bound(const int upper_bound)
+{
+	struct lp_Model *model = lp_model_create(2, 4);
+	struct simplex_Presolve presolve;
+	struct lp_simplex_Options options;
+	struct lp_simplex_Result result = {0};
+	double x[4], *reduced_x = NULL;
+	int state, passed = 0;
+
+	if (model == NULL)
+		return 0;
+	model->objective[1] = -1.;
+	if (upper_bound) {
+		model->bounds[0].b_type = optm_BOUND_T_UP;
+		model->bounds[0].ub = 0.;
+	}
+	model->bounds[1].b_type = optm_BOUND_T_BS;
+	model->bounds[1].ub = 1000.00005;
+	model->bounds[2].b_type = optm_BOUND_T_BS;
+	model->bounds[2].ub = 0.00001;
+	model->constraints[0].rhs = 1000.;
+	model->constraints[0].coef[0] = upper_bound ? -1. : 1.;
+	model->constraints[0].coef[1] = 1.;
+	model->constraints[0].coef[2] = 1.;
+	model->constraints[1].type = optm_CONS_T_GE;
+	model->constraints[1].rhs = 500.;
+	model->constraints[1].coef[1] = 1.;
+	model->constraints[1].coef[2] = 1.;
+	model->constraints[1].coef[3] = -1.;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	state = simplex_presolve_run(
+		&presolve, model, options.primal_tolerance);
+	if (state == lp_simplex_EXIT_SUCCESS &&
+		presolve.status == lp_simplex_CondUnsatisfied &&
+		presolve.reduced != NULL) {
+		reduced_x = (double *)calloc(
+			(size_t)presolve.reduced->columns, sizeof(double));
+		if (reduced_x != NULL) {
+			result.status = lp_simplex_CondUnsatisfied;
+			result.iterations = 0;
+			state = simplex_dual_solve_problem(presolve.reduced,
+				&options, reduced_x, NULL, &result, 1);
+			simplex_presolve_postsolve(&presolve, reduced_x, x);
+			passed = state == lp_simplex_EXIT_SUCCESS &&
+				 result.status == lp_simplex_Success &&
+				 (upper_bound ? x[0] <= 1e-7 : x[0] >= -1e-7) &&
+				 x[2] >= -1e-7 && x[2] <= 0.0000101 &&
+				 absolute_value(
+					 model->constraints[0].coef[0] * x[0] +
+					 x[1] + x[2] - 1000.) <= 1e-7 &&
+				 absolute_value(x[1] - 1000.) <= 1e-7;
+		}
+	}
+	free(reduced_x);
+	simplex_presolve_destroy(&presolve);
+	lp_model_free(model);
+	return passed;
 }
 
 
 int main(void)
 {
 	int passed = solve_fixed_and_empty_column() +
-		solve_with_redundant_empty_row() + detect_infeasible_empty_row() +
-		solve_singleton_inequality_chain() + detect_infeasible_activity() +
-		solve_implied_bound_propagation() + solve_dominated_parallel_row() +
-		detect_conflicting_parallel_equalities() +
-		solve_singleton_column_substitution() + solve_forcing_row() +
-		solve_zero_cost_singleton_inequality_column() +
-		solve_substitution_fixed_point_cascade() +
-		solve_singleton_equality_projection() +
-		solve_degree_two_implied_free_substitution() +
-		solve_with_objective_offset() +
-		solve_dense_presolve_equivalence() +
-		exercise_presolve_work_queue();
-	printf("%d/17 presolve reductions passed.\n", passed);
-	return passed == 17 ? 0 : 1;
+		     solve_with_redundant_empty_row() +
+		     detect_infeasible_empty_row() +
+		     solve_singleton_inequality_chain() +
+		     detect_infeasible_activity() +
+		     solve_implied_bound_propagation() +
+		     solve_dominated_parallel_row() +
+		     detect_conflicting_parallel_equalities() +
+		     solve_singleton_column_substitution() +
+		     solve_forcing_row() +
+		     solve_zero_cost_singleton_inequality_column() +
+		     solve_substitution_fixed_point_cascade() +
+		     solve_singleton_equality_projection() +
+		     solve_degree_two_implied_free_substitution() +
+		     solve_with_objective_offset() +
+		     solve_dense_presolve_equivalence() +
+		     exercise_presolve_work_queue() +
+		     preserve_nearly_implied_singleton_bound(0) +
+		     preserve_nearly_implied_singleton_bound(1);
+
+	printf("%d/19 presolve reductions passed.\n", passed);
+	return passed == 19 ? 0 : 1;
 }

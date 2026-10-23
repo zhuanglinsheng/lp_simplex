@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_tableau.c
+ * @brief Tableau allocation, initialization and basis bookkeeping.
+ */
+
 #include "simplex_tableau.h"
 #include "simplex_pivot.h"
 #include "linalg.h"
@@ -13,9 +19,8 @@
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder
  */
-int simplex_tableau_create(
-		double **table, int **basis, int **constypes,
-		const int m, const int nrow, const int ncol)
+int simplex_tableau_create(double **table, int **basis, int **constypes,
+	const int m, const int nrow, const int ncol)
 {
 	*table = NULL;
 	*basis = NULL;
@@ -56,8 +61,8 @@ void simplex_tableau_destroy(double *table, int *basis, int *constypes)
  * "LE" and "GE" types are transformed respectively
  */
 void simplex_tableau_fill_constraint_types(
-		const struct optm_LinearConstraint *constraints,
-		int *constypes, const int m)
+	const struct optm_LinearConstraint *constraints, int *constypes,
+	const int m)
 {
 	int i;
 
@@ -87,10 +92,9 @@ void simplex_tableau_fill_constraint_types(
  *
  * Constraints rhs are transformed to be nonnegative
  */
-void simplex_tableau_fill_constraints(
-		double *table, const int ldtable,
-		const struct optm_LinearConstraint *constraints,
-		const int nrow, const int ncol, const int m, const int n)
+void simplex_tableau_fill_constraints(double *table, const int ldtable,
+	const struct optm_LinearConstraint *constraints, const int nrow,
+	const int ncol, const int m, const int n)
 {
 	int i, j;
 
@@ -102,7 +106,8 @@ void simplex_tableau_fill_constraints(
 
 		if (cons->rhs >= 0) {
 			table[ncol - 1 + row] = cons->rhs;
-			lp_simplex_memcpy(table + row, cons->coef, n * sizeof(double));
+			lp_simplex_memcpy(
+				table + row, cons->coef, n * sizeof(double));
 		} else {
 			table[ncol - 1 + row] = -cons->rhs;
 			for (j = 0; j < n; j++)
@@ -118,8 +123,8 @@ void simplex_tableau_fill_constraints(
  * an additional variable than usual
  */
 void simplex_tableau_compute_size(
-		const struct optm_LinearConstraint *constraints,
-		const int m, const int n, int *nrow, int *ncol)
+	const struct optm_LinearConstraint *constraints, const int m,
+	const int n, int *nrow, int *ncol)
 {
 	int i;
 	*nrow = m + 1;
@@ -139,9 +144,8 @@ void simplex_tableau_compute_size(
 /* Add slack variables (GE, LE) to simplex table
  * Return the number of slack variables
  */
-int simplex_tableau_add_slack(
-		double *table, const int ldtable, const int *constypes,
-		const int m, const int n)
+int simplex_tableau_add_slack(double *table, const int ldtable,
+	const int *constypes, const int m, const int n)
 {
 	int i, nslack = 0;
 
@@ -162,15 +166,14 @@ int simplex_tableau_add_slack(
 /* Add artificial variables (GE, EQ) to simplex table
  * Return the number of artificial variables
  */
-int simplex_tableau_add_artificial(
-		double *table, const int ldtable, const int *constypes,
-		const int m, const int n, const int nslack)
+int simplex_tableau_add_artificial(double *table, const int ldtable,
+	const int *constypes, const int m, const int n, const int nslack)
 {
 	int i, nartif = 0;
 
 	for (i = 0; i < m; i++) {
 		if (optm_CONS_T_LE != constypes[i]) {
-			table[n + nslack + nartif + (i + 1) * ldtable] =  1.;
+			table[n + nslack + nartif + (i + 1) * ldtable] = 1.;
 			table[n + nslack + nartif] = -1.;
 			nartif++;
 		}
@@ -181,9 +184,8 @@ int simplex_tableau_add_artificial(
 
 /* Fill in the basis index set of artificial LP
  */
-void simplex_tableau_initialize_basis(
-		int *basis, const int *constypes,
-		const int m, const int n, const int nslack)
+void simplex_tableau_initialize_basis(int *basis, const int *constypes,
+	const int m, const int n, const int nslack)
 {
 	int i, tmp_nbasis = 0, tmp_nslack = 0, tmp_nartif = 0;
 
@@ -208,9 +210,8 @@ void simplex_tableau_initialize_basis(
 }
 
 
-void simplex_tableau_initialize_phase_one_objective(
-		double *table, const int ldtable, const int *constypes,
-		const int m, const int ncol)
+void simplex_tableau_initialize_phase_one_objective(double *table,
+	const int ldtable, const int *constypes, const int m, const int ncol)
 {
 	int i, rowi;
 
@@ -223,9 +224,8 @@ void simplex_tableau_initialize_phase_one_objective(
 }
 
 
-void simplex_tableau_remove_artificial_basis(
-		double *table, int ldtable, int *basis,
-		const int m, const int nreal, int nvar)
+void simplex_tableau_remove_artificial_basis(double *table, int ldtable,
+	int *basis, const int m, const int nreal, int nvar)
 {
 	int i, j, q = nvar;
 	double ele, maxv;
@@ -234,7 +234,7 @@ void simplex_tableau_remove_artificial_basis(
 	if (maxabs_arri(basis, m, 1) < nreal)
 		return;
 	for (i = 0; i < m; i++) {
-		if (basis[i] <nreal)
+		if (basis[i] < nreal)
 			continue;
 		maxv = 0.;
 		q = nvar;
@@ -249,7 +249,8 @@ void simplex_tableau_remove_artificial_basis(
 		}
 		if (maxv < 1e-9) {
 			table[nvar + (i + 1) * ldtable] = 0.;
-			lp_simplex_memset(table + (i + 1) * ldtable, 0, nreal * sizeof(double));
+			lp_simplex_memset(table + (i + 1) * ldtable, 0,
+				nreal * sizeof(double));
 			continue;
 		}
 		simplex_apply_pivot(table, ldtable, m, nvar, i, q, 1, 1, 0);
@@ -258,13 +259,12 @@ void simplex_tableau_remove_artificial_basis(
 }
 
 
-void simplex_tableau_remove_artificial_columns(
-		double *table, const int ldtable,
-		const int m, const int nreal, const int nartif)
+void simplex_tableau_remove_artificial_columns(double *table, const int ldtable,
+	const int m, const int nreal, const int nartif)
 {
 	int i, rowi;
 
-	if (nartif <= 0)  /* Delete artificial columns */
+	if (nartif <= 0) /* Delete artificial columns */
 		return;
 	for (i = 0; i < m + 1; i++) {
 		rowi = i * ldtable;

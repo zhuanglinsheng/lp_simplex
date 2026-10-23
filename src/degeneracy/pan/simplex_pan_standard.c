@@ -1,9 +1,14 @@
 /*
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
- *
- * Sparse conversion to equality form for Pan's generalized simplex method.
  */
+
+/**
+ * @file simplex_pan_standard.c
+ * @brief Sparse conversion to equality form for Pan's generalized simplex
+ * method.
+ */
+
 #include "simplex_pan_standard.h"
 #include "utils.h"
 
@@ -18,13 +23,14 @@ static int pan_bound_has_width(const struct optm_VariableBound *bound)
 }
 
 
-static int pan_transformed_column_count(
-		const struct simplex_Problem *problem)
+static int pan_transformed_column_count(const struct simplex_Problem *problem)
 {
 	int columns = 0;
 	int j;
+
 	for (j = 0; j < problem->columns; j++) {
 		const struct optm_VariableBound *bound = problem->bounds + j;
+
 		if (bound->b_type == optm_BOUND_T_BS && bound->ub == bound->lb)
 			continue;
 		columns++;
@@ -39,6 +45,7 @@ static int pan_slack_column_count(const struct simplex_Problem *problem)
 {
 	int columns = 0;
 	int i, j;
+
 	for (i = 0; i < problem->rows; i++)
 		if (problem->row_type[i] != optm_CONS_T_EQ)
 			columns++;
@@ -53,6 +60,7 @@ static int pan_extra_bound_rows(const struct simplex_Problem *problem)
 {
 	int rows = 0;
 	int j;
+
 	for (j = 0; j < problem->columns; j++)
 		if (pan_bound_has_width(problem->bounds + j))
 			rows++;
@@ -61,8 +69,7 @@ static int pan_extra_bound_rows(const struct simplex_Problem *problem)
 
 
 static void pan_variable_transform(
-		const struct optm_VariableBound *bound,
-		double *shift, double *scale)
+	const struct optm_VariableBound *bound, double *shift, double *scale)
 {
 	*shift = 0.;
 	*scale = 1.;
@@ -76,15 +83,16 @@ static void pan_variable_transform(
 }
 
 
-static int pan_standard_nonzeros(
-		const struct simplex_Problem *problem)
+static int pan_standard_nonzeros(const struct simplex_Problem *problem)
 {
 	int nonzeros = 0;
 	int j;
+
 	for (j = 0; j < problem->columns; j++) {
 		const struct optm_VariableBound *bound = problem->bounds + j;
 		int count = problem->matrix.column_start[j + 1] -
-			problem->matrix.column_start[j];
+			    problem->matrix.column_start[j];
+
 		if (bound->b_type == optm_BOUND_T_BS && bound->ub == bound->lb)
 			continue;
 		nonzeros += count;
@@ -98,26 +106,33 @@ static int pan_standard_nonzeros(
 }
 
 
-static int pan_standard_allocate(
-		struct simplex_PanStandard *standard,
-		const int rows, const int columns, const int original_columns,
-		const int nonzeros)
+static int pan_standard_allocate(struct simplex_PanStandard *standard,
+	const int rows, const int columns, const int original_columns,
+	const int nonzeros)
 {
 	standard->rows = rows;
+
 	standard->columns = columns;
 	standard->original_columns = original_columns;
 	standard->nonzeros = nonzeros;
-	standard->column_start = (int *)lp_simplex_malloc(
-		(size_t)(columns + 1) * sizeof(int));
-	standard->row_index = nonzeros > 0 ? (int *)lp_simplex_malloc(
-		(size_t)nonzeros * sizeof(int)) : NULL;
-	standard->value = nonzeros > 0 ? (double *)lp_simplex_malloc(
-		(size_t)nonzeros * sizeof(double)) : NULL;
-	standard->normalized_value = nonzeros > 0 ? (double *)lp_simplex_malloc(
-		(size_t)nonzeros * sizeof(double)) : NULL;
+	standard->column_start =
+		(int *)lp_simplex_malloc((size_t)(columns + 1) * sizeof(int));
+	standard->row_index = nonzeros > 0
+				      ? (int *)lp_simplex_malloc(
+						(size_t)nonzeros * sizeof(int))
+				      : NULL;
+	standard->value = nonzeros > 0
+				  ? (double *)lp_simplex_malloc(
+					    (size_t)nonzeros * sizeof(double))
+				  : NULL;
+	standard->normalized_value =
+		nonzeros > 0 ? (double *)lp_simplex_malloc(
+				       (size_t)nonzeros * sizeof(double))
+			     : NULL;
 	standard->column_norm = (double *)lp_simplex_malloc(
 		(size_t)(columns > 0 ? columns : 1) * sizeof(double));
-	standard->rhs = (double *)lp_simplex_malloc((size_t)rows * sizeof(double));
+	standard->rhs =
+		(double *)lp_simplex_malloc((size_t)rows * sizeof(double));
 	standard->objective = (double *)lp_simplex_malloc(
 		(size_t)(columns > 0 ? columns : 1) * sizeof(double));
 	standard->original_column = (int *)lp_simplex_malloc(
@@ -127,29 +142,30 @@ static int pan_standard_allocate(
 	standard->original_shift = (double *)lp_simplex_malloc(
 		(size_t)original_columns * sizeof(double));
 	if (standard->column_start == NULL || standard->rhs == NULL ||
-	    standard->column_norm == NULL || standard->objective == NULL ||
-	    standard->original_column == NULL ||
-	    standard->original_scale == NULL || standard->original_shift == NULL ||
-	    (nonzeros > 0 && (standard->row_index == NULL ||
-	     standard->value == NULL || standard->normalized_value == NULL)))
+		standard->column_norm == NULL || standard->objective == NULL ||
+		standard->original_column == NULL ||
+		standard->original_scale == NULL ||
+		standard->original_shift == NULL ||
+		(nonzeros > 0 && (standard->row_index == NULL ||
+					 standard->value == NULL ||
+					 standard->normalized_value == NULL)))
 		return lp_simplex_EXIT_FAILURE;
 	return lp_simplex_EXIT_SUCCESS;
 }
 
 
-static void pan_append_structural_column(
-		struct simplex_PanStandard *standard,
-		const struct simplex_Problem *problem,
-		const int original, const double scale, const int upper_row,
-		int *column, int *position)
+static void pan_append_structural_column(struct simplex_PanStandard *standard,
+	const struct simplex_Problem *problem, const int original,
+	const double scale, const int upper_row, int *column, int *position)
 {
 	int k;
+
 	standard->column_start[*column] = *position;
 	standard->objective[*column] = scale * problem->objective[original];
 	standard->original_column[*column] = original;
 	standard->original_scale[*column] = scale;
 	for (k = problem->matrix.column_start[original];
-	     k < problem->matrix.column_start[original + 1]; k++) {
+		k < problem->matrix.column_start[original + 1]; k++) {
 		standard->row_index[*position] = problem->matrix.row_index[k];
 		standard->value[*position] = scale * problem->matrix.value[k];
 		(*position)++;
@@ -163,12 +179,11 @@ static void pan_append_structural_column(
 }
 
 
-static void pan_append_slack_column(
-		struct simplex_PanStandard *standard,
-		const int row, const double coefficient,
-		int *column, int *position)
+static void pan_append_slack_column(struct simplex_PanStandard *standard,
+	const int row, const double coefficient, int *column, int *position)
 {
 	standard->column_start[*column] = *position;
+
 	standard->row_index[*position] = row;
 	standard->value[*position] = coefficient;
 	standard->objective[*column] = 0.;
@@ -179,20 +194,20 @@ static void pan_append_slack_column(
 }
 
 
-int simplex_pan_standard_create(
-		struct simplex_PanStandard *standard,
-		const struct simplex_Problem *problem)
+int simplex_pan_standard_create(struct simplex_PanStandard *standard,
+	const struct simplex_Problem *problem)
 {
 	int bound_row, column = 0, position = 0;
 	int transformed, slacks, rows, nonzeros;
 	int i, j, k;
+
 	lp_simplex_memset(standard, 0, sizeof(*standard));
 	transformed = pan_transformed_column_count(problem);
 	slacks = pan_slack_column_count(problem);
 	rows = problem->rows + pan_extra_bound_rows(problem);
 	nonzeros = pan_standard_nonzeros(problem);
 	if (pan_standard_allocate(standard, rows, transformed + slacks,
-		problem->columns, nonzeros) == lp_simplex_EXIT_FAILURE) {
+		    problem->columns, nonzeros) == lp_simplex_EXIT_FAILURE) {
 		simplex_pan_standard_destroy(standard);
 		return lp_simplex_EXIT_FAILURE;
 	}
@@ -206,12 +221,15 @@ int simplex_pan_standard_create(
 		const struct optm_VariableBound *bound = problem->bounds + j;
 		double shift, scale;
 		int upper_row = -1;
-		if (bound->b_type == optm_BOUND_T_BS && bound->ub == bound->lb) {
+
+		if (bound->b_type == optm_BOUND_T_BS &&
+			bound->ub == bound->lb) {
 			shift = bound->lb;
 			standard->original_shift[j] = shift;
-			standard->objective_offset += problem->objective[j] * shift;
+			standard->objective_offset +=
+				problem->objective[j] * shift;
 			for (k = problem->matrix.column_start[j];
-			     k < problem->matrix.column_start[j + 1]; k++)
+				k < problem->matrix.column_start[j + 1]; k++)
 				standard->rhs[problem->matrix.row_index[k]] -=
 					problem->matrix.value[k] * shift;
 			continue;
@@ -220,7 +238,7 @@ int simplex_pan_standard_create(
 		standard->original_shift[j] = shift;
 		standard->objective_offset += problem->objective[j] * shift;
 		for (k = problem->matrix.column_start[j];
-		     k < problem->matrix.column_start[j + 1]; k++)
+			k < problem->matrix.column_start[j + 1]; k++)
 			standard->rhs[problem->matrix.row_index[k]] -=
 				problem->matrix.value[k] * shift;
 		if (pan_bound_has_width(bound)) {
@@ -235,9 +253,11 @@ int simplex_pan_standard_create(
 	}
 	for (i = 0; i < problem->rows; i++) {
 		if (problem->row_type[i] == optm_CONS_T_LE)
-			pan_append_slack_column(standard, i, 1., &column, &position);
+			pan_append_slack_column(
+				standard, i, 1., &column, &position);
 		else if (problem->row_type[i] == optm_CONS_T_GE)
-			pan_append_slack_column(standard, i, -1., &column, &position);
+			pan_append_slack_column(
+				standard, i, -1., &column, &position);
 	}
 	for (i = problem->rows; i < rows; i++)
 		pan_append_slack_column(standard, i, 1., &column, &position);
@@ -250,14 +270,17 @@ int simplex_pan_standard_create(
 	}
 	for (j = 0; j < standard->columns; j++) {
 		double square = 0.;
+
 		for (k = standard->column_start[j];
-		     k < standard->column_start[j + 1]; k++)
-			square += standard->value[k] * standard->value[k];
-		standard->column_norm[j] = square > 0. ? sqrt(square) : 0.;
+			k < standard->column_start[j + 1]; k++)
+			square = hypot(square, standard->value[k]);
+		standard->column_norm[j] = square;
 		for (k = standard->column_start[j];
-		     k < standard->column_start[j + 1]; k++)
-			standard->normalized_value[k] = square > 0.
-				? standard->value[k] / standard->column_norm[j] : 0.;
+			k < standard->column_start[j + 1]; k++)
+			standard->normalized_value[k] =
+				square > 0. ? standard->value[k] /
+						      standard->column_norm[j]
+					    : 0.;
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
@@ -282,14 +305,143 @@ void simplex_pan_standard_destroy(struct simplex_PanStandard *standard)
 
 
 void simplex_pan_standard_recover(
-		const struct simplex_PanStandard *standard,
-		const double *z, double *x)
+	const struct simplex_PanStandard *standard, const double *z, double *x)
 {
 	int j;
+
 	lp_simplex_memcpy(x, standard->original_shift,
 		(size_t)standard->original_columns * sizeof(double));
 	for (j = 0; j < standard->columns; j++)
 		if (standard->original_column[j] >= 0)
 			x[standard->original_column[j]] +=
 				standard->original_scale[j] * z[j];
+}
+
+
+int simplex_pan_standard_encode(const struct simplex_PanStandard *standard,
+	const double *x, double *z, double *residual, const double tolerance)
+{
+	int i, j, k;
+	double *recovered;
+
+	lp_simplex_memcpy(residual, standard->rhs,
+		(size_t)standard->rows * sizeof(double));
+	for (j = 0; j < standard->columns; j++) {
+		int original = standard->original_column[j];
+
+		z[j] = 0.;
+		if (original < 0)
+			continue;
+		if (!isfinite(x[original]))
+			return lp_simplex_EXIT_FAILURE;
+		z[j] = (x[original] - standard->original_shift[original]) *
+		       standard->original_scale[j];
+		/* For a free variable, exactly one of its opposite columns is used.
+		 * Other negative values are caught by the residual/nonnegative audit. */
+		if (z[j] < 0.)
+			z[j] = 0.;
+		if (z[j] <= tolerance * 1e-3)
+			z[j] = 0.;
+		for (k = standard->column_start[j];
+			k < standard->column_start[j + 1]; k++)
+			residual[standard->row_index[k]] -=
+				standard->value[k] * z[j];
+	}
+	for (j = 0; j < standard->columns; j++) {
+		if (standard->original_column[j] >= 0)
+			continue;
+		k = standard->column_start[j];
+		if (standard->column_start[j + 1] - k != 1 ||
+			standard->value[k] == 0.)
+			return lp_simplex_EXIT_FAILURE;
+		i = standard->row_index[k];
+		z[j] = residual[i] / standard->value[k];
+		if (!isfinite(z[j]) || z[j] < -tolerance)
+			return lp_simplex_EXIT_FAILURE;
+		if (z[j] < 0.)
+			z[j] = 0.;
+		if (z[j] <= tolerance * 1e-3)
+			z[j] = 0.;
+		residual[i] -= standard->value[k] * z[j];
+	}
+	for (i = 0; i < standard->rows; i++)
+		if (!isfinite(residual[i]) || fabs(residual[i]) > tolerance)
+			return lp_simplex_EXIT_FAILURE;
+	recovered = (double *)lp_simplex_malloc(
+		(size_t)(standard->original_columns > 0
+				 ? standard->original_columns
+				 : 1) *
+		sizeof(double));
+	if (recovered == NULL)
+		return lp_simplex_EXIT_FAILURE;
+	simplex_pan_standard_recover(standard, z, recovered);
+	for (j = 0; j < standard->original_columns; j++)
+		if (!isfinite(x[j]) || fabs(recovered[j] - x[j]) > tolerance) {
+			lp_simplex_free(recovered);
+			return lp_simplex_EXIT_FAILURE;
+		}
+	lp_simplex_free(recovered);
+	return lp_simplex_EXIT_SUCCESS;
+}
+
+
+double simplex_pan_column_dot(const struct simplex_PanStandard *standard,
+	const int column, const double *vector)
+{
+	double sum = 0., correction = 0.;
+	int k;
+
+	for (k = standard->column_start[column];
+		k < standard->column_start[column + 1]; k++) {
+		double a = standard->value[k],
+		       x = vector[standard->row_index[k]];
+		double product = a * x;
+		double next = sum + product;
+
+		correction +=
+			(fabs(sum) >= fabs(product) ? (sum - next) + product
+						    : (product - next) + sum) +
+			fma(a, x, -product);
+		sum = next;
+	}
+	return sum + correction;
+}
+
+
+double simplex_pan_residual(const struct simplex_PanStandard *standard,
+	const double *value, double *residual, double *correction)
+{
+	double maximum = 0.;
+	int i, j, k;
+
+	lp_simplex_memcpy(residual, standard->rhs,
+		(size_t)standard->rows * sizeof(double));
+	lp_simplex_memset(
+		correction, 0, (size_t)standard->rows * sizeof(double));
+	for (j = 0; j < standard->columns; j++) {
+		if (value[j] == 0.)
+			continue;
+		for (k = standard->column_start[j];
+			k < standard->column_start[j + 1]; k++) {
+			double a = -standard->value[k], product = a * value[j],
+			       next;
+
+			i = standard->row_index[k];
+			next = residual[i] + product;
+			correction[i] +=
+				(fabs(residual[i]) >= fabs(product)
+						? (residual[i] - next) + product
+						: (product - next) +
+							  residual[i]) +
+				fma(a, value[j], -product);
+			residual[i] = next;
+		}
+	}
+	for (i = 0; i < standard->rows; i++) {
+		residual[i] += correction[i];
+		if (!isfinite(residual[i]))
+			return HUGE_VAL;
+		maximum = fmax(maximum, fabs(residual[i]));
+	}
+	return maximum;
 }

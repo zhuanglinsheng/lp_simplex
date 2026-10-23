@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_sparse_vector.c
+ * @brief Sparse-vector storage and indexed numerical operations.
+ */
+
 #include "simplex_sparse_vector.h"
 #include "utils.h"
 
@@ -9,34 +15,46 @@
 
 
 int simplex_sparse_vector_create(
-		struct simplex_SparseVector *vector, const int dimension)
+	struct simplex_SparseVector *vector, const int dimension)
 {
 	if (vector == NULL || dimension < 0)
 		return lp_simplex_EXIT_FAILURE;
+
 	vector->dimension = dimension;
 	vector->count = 0;
 	vector->capacity = dimension;
 	/* Index/slot and value/dense have identical lifetimes.  Store each pair in
 	 * one allocation so a packed workspace has one clear owner per type. */
-	vector->index = dimension > 0 ? (int *)lp_simplex_malloc(
-		(size_t)2 * dimension * sizeof(int)) : NULL;
+	vector->index = dimension > 0
+				? (int *)lp_simplex_malloc(
+					  (size_t)2 * dimension * sizeof(int))
+				: NULL;
 	vector->slot = dimension > 0 && vector->index != NULL
-		? vector->index + dimension : NULL;
-	vector->value = dimension > 0 ? (double *)lp_simplex_malloc(
-		(size_t)2 * dimension * sizeof(double)) : NULL;
+			       ? vector->index + dimension
+			       : NULL;
+	vector->value =
+		dimension > 0 ? (double *)lp_simplex_malloc(
+					(size_t)2 * dimension * sizeof(double))
+			      : NULL;
 	vector->dense = dimension > 0 && vector->value != NULL
-		? vector->value + dimension : NULL;
-	vector->mark = dimension > 0 ? (unsigned int *)lp_simplex_malloc(
-		(size_t)dimension * sizeof(unsigned int)) : NULL;
+				? vector->value + dimension
+				: NULL;
+	vector->mark =
+		dimension > 0
+			? (unsigned int *)lp_simplex_malloc(
+				  (size_t)dimension * sizeof(unsigned int))
+			: NULL;
 	vector->generation = 1;
-	if (dimension > 0 && (vector->index == NULL || vector->value == NULL ||
-	    vector->dense == NULL || vector->mark == NULL || vector->slot == NULL)) {
+	if (dimension > 0 &&
+		(vector->index == NULL || vector->value == NULL ||
+			vector->dense == NULL || vector->mark == NULL ||
+			vector->slot == NULL)) {
 		simplex_sparse_vector_destroy(vector);
 		return lp_simplex_EXIT_FAILURE;
 	}
 	if (dimension > 0) {
-		lp_simplex_memset(vector->dense, 0,
-			(size_t)dimension * sizeof(double));
+		lp_simplex_memset(
+			vector->dense, 0, (size_t)dimension * sizeof(double));
 		lp_simplex_memset(vector->mark, 0,
 			(size_t)dimension * sizeof(unsigned int));
 	}
@@ -66,6 +84,7 @@ void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector)
 void simplex_sparse_vector_clear(struct simplex_SparseVector *vector)
 {
 	int k;
+
 	if (vector == NULL)
 		return;
 	for (k = 0; k < vector->count; k++)
@@ -80,12 +99,12 @@ void simplex_sparse_vector_clear(struct simplex_SparseVector *vector)
 }
 
 
-int simplex_sparse_vector_set(
-		struct simplex_SparseVector *vector, const int index,
-		const double value)
+int simplex_sparse_vector_set(struct simplex_SparseVector *vector,
+	const int index, const double value)
 {
 	if (vector == NULL || index < 0 || index >= vector->dimension)
 		return lp_simplex_EXIT_FAILURE;
+
 	if (vector->mark[index] != vector->generation) {
 		if (value == 0.)
 			return lp_simplex_EXIT_SUCCESS;
@@ -99,6 +118,7 @@ int simplex_sparse_vector_set(
 		vector->count++;
 	} else {
 		int k = vector->slot[index];
+
 		vector->dense[index] = value;
 		vector->value[k] = value;
 	}
@@ -106,29 +126,30 @@ int simplex_sparse_vector_set(
 }
 
 
-int simplex_sparse_vector_add(
-		struct simplex_SparseVector *vector, const int index,
-		const double value)
+int simplex_sparse_vector_add(struct simplex_SparseVector *vector,
+	const int index, const double value)
 {
 	if (vector == NULL || index < 0 || index >= vector->dimension)
 		return lp_simplex_EXIT_FAILURE;
+
 	if (vector->mark[index] != vector->generation)
 		return simplex_sparse_vector_set(vector, index, value);
-	return simplex_sparse_vector_set(vector, index,
-		vector->dense[index] + value);
+	return simplex_sparse_vector_set(
+		vector, index, vector->dense[index] + value);
 }
 
 
-int simplex_sparse_vector_pack(
-		struct simplex_SparseVector *vector, const double *dense,
-		const double tolerance)
+int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
+	const double *dense, const double tolerance)
 {
 	int i;
+
 	if (vector == NULL || dense == NULL || tolerance < 0.)
 		return lp_simplex_EXIT_FAILURE;
 	simplex_sparse_vector_clear(vector);
 	for (i = 0; i < vector->dimension; i++) {
 		double value = dense[i];
+
 		if (__lp_simplex_ABS__(value) <= tolerance)
 			continue;
 		vector->mark[i] = vector->generation;
@@ -143,10 +164,11 @@ int simplex_sparse_vector_pack(
 
 
 double simplex_sparse_vector_get(
-		const struct simplex_SparseVector *vector, const int index)
+	const struct simplex_SparseVector *vector, const int index)
 {
 	if (vector == NULL || index < 0 || index >= vector->dimension ||
-	    vector->mark[index] != vector->generation)
+		vector->mark[index] != vector->generation)
 		return 0.;
+
 	return vector->dense[index];
 }

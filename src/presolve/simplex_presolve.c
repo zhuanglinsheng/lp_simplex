@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_presolve.c
+ * @brief Presolve reductions and reduced-problem solve orchestration.
+ */
+
 #include "simplex_presolve.h"
 #include "simplex_presolve_activity.h"
 #include "simplex_presolve_queue.h"
@@ -19,18 +25,18 @@
  * bound that relaxes that inequality.  This preserves at least every feasible
  * assignment of the remaining variables and cannot alter the objective. */
 static int presolve_choose_singleton_inequality_column(
-		const struct lp_Model *model,
-		const struct optm_VariableBound *bounds,
-		const unsigned char *row_active, const int column, double *value)
+	const struct lp_Model *model, const struct optm_VariableBound *bounds,
+	const unsigned char *row_active, const int column, double *value)
 {
 	int i, k, row = -1;
 	double coefficient = 0.;
 	const struct optm_VariableBound *bound = bounds + column;
+
 	if (model->objective[column] != 0.)
 		return 0;
 	if (model->column_start != NULL) {
 		for (k = model->column_start[column];
-		     k < model->column_start[column + 1]; k++)
+			k < model->column_start[column + 1]; k++)
 			if (row_active[model->row_index[k]]) {
 				row = model->row_index[k];
 				coefficient = model->value[k];
@@ -39,40 +45,43 @@ static int presolve_choose_singleton_inequality_column(
 	} else {
 		for (i = 0; i < model->m; i++)
 			if (row_active[i] &&
-			    model->constraints[i].coef[column] != 0.) {
+				model->constraints[i].coef[column] != 0.) {
 				row = i;
-				coefficient = model->constraints[i].coef[column];
+				coefficient =
+					model->constraints[i].coef[column];
 				break;
 			}
 	}
 	if (row < 0 || coefficient == 0. ||
-	    model->constraints[row].type == optm_CONS_T_EQ)
+		model->constraints[row].type == optm_CONS_T_EQ)
 		return 0;
 	if (model->constraints[row].type == optm_CONS_T_LE) {
 		if (coefficient > 0. && simplex_presolve_has_lower(bound))
 			*value = bound->lb;
 		else if (coefficient < 0. && simplex_presolve_has_upper(bound))
 			*value = bound->ub;
-		else return 0;
+		else
+			return 0;
 	} else {
 		if (coefficient > 0. && simplex_presolve_has_upper(bound))
 			*value = bound->ub;
 		else if (coefficient < 0. && simplex_presolve_has_lower(bound))
 			*value = bound->lb;
-		else return 0;
+		else
+			return 0;
 	}
 	return 1;
 }
 
 
-static void presolve_deactivate_column(
-		const struct lp_Model *model, const int column,
-		const unsigned char *row_active, int *row_degree)
+static void presolve_deactivate_column(const struct lp_Model *model,
+	const int column, const unsigned char *row_active, int *row_degree)
 {
 	int i, k;
+
 	if (model->column_start != NULL) {
 		for (k = model->column_start[column];
-		     k < model->column_start[column + 1]; k++) {
+			k < model->column_start[column + 1]; k++) {
 			i = model->row_index[k];
 			if (row_active[i])
 				row_degree[i]--;
@@ -85,13 +94,14 @@ static void presolve_deactivate_column(
 }
 
 
-static void presolve_deactivate_row(
-		const struct lp_Model *model, const int row,
-		const unsigned char *column_active, int *column_degree)
+static void presolve_deactivate_row(const struct lp_Model *model, const int row,
+	const unsigned char *column_active, int *column_degree)
 {
 	int j, k;
+
 	if (model->row_start != NULL) {
-		for (k = model->row_start[row]; k < model->row_start[row + 1]; k++) {
+		for (k = model->row_start[row]; k < model->row_start[row + 1];
+			k++) {
 			j = model->column_index[k];
 			if (column_active[j])
 				column_degree[j]--;
@@ -104,24 +114,24 @@ static void presolve_deactivate_row(
 }
 
 
-static void presolve_remove_column_from_rhs(
-		const struct lp_Model *model, const int column,
-		const double value, const unsigned char *row_active, double *rhs)
+static void presolve_remove_column_from_rhs(const struct lp_Model *model,
+	const int column, const double value, const unsigned char *row_active,
+	double *rhs)
 {
 	int i, k;
+
 	if (model->column_start != NULL) {
 		for (k = model->column_start[column];
-		     k < model->column_start[column + 1]; k++)
+			k < model->column_start[column + 1]; k++)
 			if (row_active[model->row_index[k]])
-				rhs[model->row_index[k]] -= model->value[k] * value;
+				rhs[model->row_index[k]] -=
+					model->value[k] * value;
 		return;
 	}
 	for (i = 0; i < model->m; i++)
 		if (row_active[i])
 			rhs[i] -= model->constraints[i].coef[column] * value;
 }
-
-
 
 
 struct presolve_RowSignature {
@@ -137,6 +147,7 @@ static int presolve_compare_signature(const void *left, const void *right)
 		(const struct presolve_RowSignature *)left;
 	const struct presolve_RowSignature *b =
 		(const struct presolve_RowSignature *)right;
+
 	if (a->degree != b->degree)
 		return a->degree < b->degree ? -1 : 1;
 	if (a->hash != b->hash)
@@ -145,31 +156,34 @@ static int presolve_compare_signature(const void *left, const void *right)
 }
 
 
-static unsigned long presolve_row_support_hash(
-		const struct lp_Model *model, const int row,
-		const unsigned char *column_active)
+static unsigned long presolve_row_support_hash(const struct lp_Model *model,
+	const int row, const unsigned char *column_active)
 {
 	unsigned long hash = 2166136261UL;
 	int j, k;
+
 	if (model->row_start != NULL) {
-		for (k = model->row_start[row]; k < model->row_start[row + 1]; k++) {
+		for (k = model->row_start[row]; k < model->row_start[row + 1];
+			k++) {
 			j = model->column_index[k];
 			if (column_active[j])
-				hash = (hash ^ (unsigned long)(j + 1)) * 16777619UL;
+				hash = (hash ^ (unsigned long)(j + 1)) *
+				       16777619UL;
 		}
 	} else {
 		for (j = 0; j < model->n; j++)
-			if (column_active[j] && model->constraints[row].coef[j] != 0.)
-				hash = (hash ^ (unsigned long)(j + 1)) * 16777619UL;
+			if (column_active[j] &&
+				model->constraints[row].coef[j] != 0.)
+				hash = (hash ^ (unsigned long)(j + 1)) *
+				       16777619UL;
 	}
 	return hash;
 }
 
 
-static int presolve_parallel_rows(
-		const struct lp_Model *model, const int first, const int second,
-		const unsigned char *column_active, const double tolerance,
-		double *scale)
+static int presolve_parallel_rows(const struct lp_Model *model, const int first,
+	const int second, const unsigned char *column_active,
+	const double tolerance, double *scale)
 {
 	int j, ka, kb;
 	double a, b;
@@ -186,9 +200,10 @@ static int presolve_parallel_rows(
 				continue;
 			if (*scale == 0.)
 				*scale = b / a;
-			else if (__lp_simplex_ABS__(b - *scale * a) > tolerance *
-				(1. + __lp_simplex_ABS__(b) +
-				 __lp_simplex_ABS__(*scale * a)))
+			else if (__lp_simplex_ABS__(b - *scale * a) >
+				 tolerance * (1. + __lp_simplex_ABS__(b) +
+						     __lp_simplex_ABS__(
+							     *scale * a)))
 				return 0;
 		}
 		return *scale != 0.;
@@ -197,13 +212,13 @@ static int presolve_parallel_rows(
 	kb = model->row_start[second];
 	while (1) {
 		while (ka < model->row_start[first + 1] &&
-		       !column_active[model->column_index[ka]])
+			!column_active[model->column_index[ka]])
 			ka++;
 		while (kb < model->row_start[second + 1] &&
-		       !column_active[model->column_index[kb]])
+			!column_active[model->column_index[kb]])
 			kb++;
 		if (ka == model->row_start[first + 1] ||
-		    kb == model->row_start[second + 1])
+			kb == model->row_start[second + 1])
 			break;
 		if (model->column_index[ka] != model->column_index[kb])
 			return 0;
@@ -211,19 +226,19 @@ static int presolve_parallel_rows(
 		b = model->row_value[kb++];
 		if (*scale == 0.)
 			*scale = b / a;
-		else if (__lp_simplex_ABS__(b - *scale * a) > tolerance *
-			(1. + __lp_simplex_ABS__(b) +
-			 __lp_simplex_ABS__(*scale * a)))
+		else if (__lp_simplex_ABS__(b - *scale * a) >
+			 tolerance * (1. + __lp_simplex_ABS__(b) +
+					     __lp_simplex_ABS__(*scale * a)))
 			return 0;
 	}
 	while (ka < model->row_start[first + 1] &&
-	       !column_active[model->column_index[ka]])
+		!column_active[model->column_index[ka]])
 		ka++;
 	while (kb < model->row_start[second + 1] &&
-	       !column_active[model->column_index[kb]])
+		!column_active[model->column_index[kb]])
 		kb++;
 	return ka == model->row_start[first + 1] &&
-		kb == model->row_start[second + 1] && *scale != 0.;
+	       kb == model->row_start[second + 1] && *scale != 0.;
 }
 
 
@@ -235,11 +250,10 @@ static int presolve_normalized_row_type(const int type, const double scale)
 }
 
 
-static int presolve_remove_parallel_rows(
-		const struct lp_Model *model, unsigned char *row_active,
-		const unsigned char *column_active, const int *row_degree,
-		int *column_degree, double *rhs, const double tolerance,
-		int *removed)
+static int presolve_remove_parallel_rows(const struct lp_Model *model,
+	unsigned char *row_active, const unsigned char *column_active,
+	const int *row_degree, int *column_degree, double *rhs,
+	const double tolerance, int *removed)
 {
 	struct presolve_RowSignature *signature;
 	int count = 0, p, q;
@@ -260,17 +274,22 @@ static int presolve_remove_parallel_rows(
 		presolve_compare_signature);
 	for (p = 0; p < count; p++) {
 		int first = signature[p].row;
+
 		if (!row_active[first])
 			continue;
 		for (q = p + 1; q < count &&
-		     signature[q].degree == signature[p].degree &&
-		     signature[q].hash == signature[p].hash; q++) {
+				signature[q].degree == signature[p].degree &&
+				signature[q].hash == signature[p].hash;
+			q++) {
 			int second = signature[q].row;
 			int first_type, second_type;
 			double scale, candidate, margin;
-			if (!row_active[second] || !presolve_parallel_rows(model,
-					first, second, column_active,
-					__lp_simplex_MIN__(tolerance * 1e-4, 1e-12),
+
+			if (!row_active[second] ||
+				!presolve_parallel_rows(model, first, second,
+					column_active,
+					__lp_simplex_MIN__(
+						tolerance * 1e-4, 1e-12),
 					&scale))
 				continue;
 			first_type = model->constraints[first].type;
@@ -279,16 +298,20 @@ static int presolve_remove_parallel_rows(
 			if (first_type != second_type)
 				continue;
 			candidate = rhs[second] / scale;
-			margin = tolerance * (1. + __lp_simplex_ABS__(rhs[first]) +
-				__lp_simplex_ABS__(candidate));
+			margin = tolerance *
+				 (1. + __lp_simplex_ABS__(rhs[first]) +
+					 __lp_simplex_ABS__(candidate));
 			if (first_type == optm_CONS_T_EQ &&
-			    __lp_simplex_ABS__(candidate - rhs[first]) > margin) {
+				__lp_simplex_ABS__(candidate - rhs[first]) >
+					margin) {
 				lp_simplex_free(signature);
 				return lp_simplex_Infeasibility;
 			}
-			if (first_type == optm_CONS_T_GE && candidate > rhs[first])
+			if (first_type == optm_CONS_T_GE &&
+				candidate > rhs[first])
 				rhs[first] = candidate;
-			else if (first_type == optm_CONS_T_LE && candidate < rhs[first])
+			else if (first_type == optm_CONS_T_LE &&
+				 candidate < rhs[first])
 				rhs[first] = candidate;
 			row_active[second] = 0;
 			presolve_deactivate_row(
@@ -302,24 +325,27 @@ static int presolve_remove_parallel_rows(
 
 
 static struct simplex_Problem *presolve_build_sparse_model(
-		const struct lp_Model *model, const int kept_rows,
-		const int kept_columns, const int *column_map, const int *column_kept,
-		const int *row_map, const int *row_kept, const double *adjusted_rhs,
-		const struct optm_VariableBound *bounds)
+	const struct lp_Model *model, const int kept_rows,
+	const int kept_columns, const int *column_map, const int *column_kept,
+	const int *row_map, const int *row_kept, const double *adjusted_rhs,
+	const struct optm_VariableBound *bounds)
 {
 	struct simplex_Problem *reduced;
 	int i, j, k, nonzeros = 0, next = 0;
+
 	for (i = 0; i < kept_rows; i++) {
 		int original_row = row_map[i];
+
 		if (model->row_start != NULL) {
 			for (k = model->row_start[original_row];
-			     k < model->row_start[original_row + 1]; k++)
+				k < model->row_start[original_row + 1]; k++)
 				if (column_kept[model->column_index[k]] >= 0)
 					nonzeros++;
 		} else {
 			for (j = 0; j < model->n; j++)
 				if (column_kept[j] >= 0 &&
-				    model->constraints[original_row].coef[j] != 0.)
+					model->constraints[original_row]
+							.coef[j] != 0.)
 					nonzeros++;
 		}
 	}
@@ -329,22 +355,27 @@ static struct simplex_Problem *presolve_build_sparse_model(
 		return NULL;
 	for (j = 0; j < kept_columns; j++) {
 		int original_column = column_map[j];
+
 		reduced->objective[j] = model->objective[original_column];
 		reduced->bounds[j] = bounds[original_column];
 		reduced->matrix.column_start[j] = next;
 		if (model->column_start != NULL) {
 			for (k = model->column_start[original_column];
-			     k < model->column_start[original_column + 1]; k++) {
+				k < model->column_start[original_column + 1];
+				k++) {
 				int row = row_kept[model->row_index[k]];
+
 				if (row >= 0) {
 					reduced->matrix.row_index[next] = row;
-					reduced->matrix.value[next++] = model->value[k];
+					reduced->matrix.value[next++] =
+						model->value[k];
 				}
 			}
 		} else {
 			for (i = 0; i < kept_rows; i++) {
-				double value = model->constraints[row_map[i]].coef[
-					original_column];
+				double value = model->constraints[row_map[i]]
+						       .coef[original_column];
+
 				if (value != 0.) {
 					reduced->matrix.row_index[next] = i;
 					reduced->matrix.value[next++] = value;
@@ -356,26 +387,33 @@ static struct simplex_Problem *presolve_build_sparse_model(
 	next = 0;
 	for (i = 0; i < kept_rows; i++) {
 		int original_row = row_map[i];
+
 		reduced->rhs[i] = adjusted_rhs[original_row];
 		reduced->row_type[i] =
 			(unsigned char)model->constraints[original_row].type;
 		reduced->matrix.row_start[i] = next;
 		if (model->row_start != NULL) {
 			for (k = model->row_start[original_row];
-			     k < model->row_start[original_row + 1]; k++) {
-				int column = column_kept[model->column_index[k]];
+				k < model->row_start[original_row + 1]; k++) {
+				int column =
+					column_kept[model->column_index[k]];
+
 				if (column >= 0) {
-					reduced->matrix.column_index[next] = column;
-					reduced->matrix.row_value[next++] = model->row_value[k];
+					reduced->matrix.column_index[next] =
+						column;
+					reduced->matrix.row_value[next++] =
+						model->row_value[k];
 				}
 			}
 		} else {
 			for (j = 0; j < kept_columns; j++) {
-				double value = model->constraints[original_row].coef[
-					column_map[j]];
+				double value = model->constraints[original_row]
+						       .coef[column_map[j]];
+
 				if (value != 0.) {
 					reduced->matrix.column_index[next] = j;
-					reduced->matrix.row_value[next++] = value;
+					reduced->matrix.row_value[next++] =
+						value;
 				}
 			}
 		}
@@ -420,51 +458,55 @@ static void presolve_workspace_destroy(struct presolve_Workspace *workspace)
 }
 
 
-static int presolve_workspace_create(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		const double tolerance, struct presolve_Workspace *workspace)
+static int presolve_workspace_create(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance,
+	struct presolve_Workspace *workspace)
 {
 	int i, j, k;
+
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
-	presolve->stats.exact_bound_propagation = model->m <= 2048 &&
-		model->n >= 5 * model->m;
+	presolve->stats.exact_bound_propagation =
+		model->m <= 2048 && model->n >= 5 * model->m;
 	workspace->propagation_tolerance =
 		presolve->stats.exact_bound_propagation ? 0. : tolerance;
-	presolve->column_map = (int *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(int));
-	presolve->row_map = (int *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(int));
-	presolve->eliminated_value = (double *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(double));
+	presolve->column_map =
+		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
+	presolve->row_map =
+		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+	presolve->eliminated_value =
+		(double *)lp_simplex_malloc((size_t)model->n * sizeof(double));
 	presolve->eliminated = (unsigned char *)lp_simplex_malloc(
 		(size_t)model->n * sizeof(unsigned char));
-	workspace->column_kept = (int *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(int));
-	workspace->row_kept = (int *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(int));
-	workspace->adjusted_rhs = (double *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(double));
+	workspace->column_kept =
+		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
+	workspace->row_kept =
+		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+	workspace->adjusted_rhs =
+		(double *)lp_simplex_malloc((size_t)model->m * sizeof(double));
 	workspace->bounds = (struct optm_VariableBound *)lp_simplex_malloc(
 		(size_t)model->n * sizeof(*workspace->bounds));
 	workspace->column_active = (unsigned char *)lp_simplex_malloc(
 		(size_t)model->n * sizeof(unsigned char));
 	workspace->row_active = (unsigned char *)lp_simplex_malloc(
 		(size_t)model->m * sizeof(unsigned char));
-	workspace->column_degree = (int *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(int));
-	workspace->row_degree = (int *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(int));
+	workspace->column_degree =
+		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
+	workspace->row_degree =
+		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
 	if (presolve->column_map == NULL || presolve->row_map == NULL ||
-	    presolve->eliminated_value == NULL || presolve->eliminated == NULL ||
-	    workspace->column_kept == NULL || workspace->row_kept == NULL ||
-	    workspace->adjusted_rhs == NULL || workspace->bounds == NULL ||
-	    workspace->column_active == NULL || workspace->row_active == NULL ||
-	    workspace->column_degree == NULL || workspace->row_degree == NULL)
+		presolve->eliminated_value == NULL ||
+		presolve->eliminated == NULL ||
+		workspace->column_kept == NULL || workspace->row_kept == NULL ||
+		workspace->adjusted_rhs == NULL || workspace->bounds == NULL ||
+		workspace->column_active == NULL ||
+		workspace->row_active == NULL ||
+		workspace->column_degree == NULL ||
+		workspace->row_degree == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	if (simplex_presolve_queue_init(&workspace->column_queue, model->n) ==
-	    lp_simplex_EXIT_FAILURE ||
-	    simplex_presolve_queue_init(&workspace->row_queue, model->m) ==
-	    lp_simplex_EXIT_FAILURE)
+			lp_simplex_EXIT_FAILURE ||
+		simplex_presolve_queue_init(&workspace->row_queue, model->m) ==
+			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	lp_simplex_memset(presolve->eliminated, 0,
 		(size_t)model->n * sizeof(unsigned char));
@@ -476,16 +518,18 @@ static int presolve_workspace_create(
 		(size_t)model->n * sizeof(unsigned char));
 	lp_simplex_memset(workspace->row_active, 1,
 		(size_t)model->m * sizeof(unsigned char));
-	lp_simplex_memset(workspace->column_degree, 0,
-		(size_t)model->n * sizeof(int));
-	lp_simplex_memset(workspace->row_degree, 0,
-		(size_t)model->m * sizeof(int));
+	lp_simplex_memset(
+		workspace->column_degree, 0, (size_t)model->n * sizeof(int));
+	lp_simplex_memset(
+		workspace->row_degree, 0, (size_t)model->m * sizeof(int));
 	if (model->row_start != NULL) {
 		for (i = 0; i < model->m; i++) {
 			workspace->row_degree[i] =
 				model->row_start[i + 1] - model->row_start[i];
-			for (k = model->row_start[i]; k < model->row_start[i + 1]; k++)
-				workspace->column_degree[model->column_index[k]]++;
+			for (k = model->row_start[i];
+				k < model->row_start[i + 1]; k++)
+				workspace->column_degree[model
+						->column_index[k]]++;
 		}
 	} else {
 		for (i = 0; i < model->m; i++)
@@ -498,12 +542,18 @@ static int presolve_workspace_create(
 	if (model->column_start != NULL)
 		for (j = 0; j < model->n; j++)
 			if (workspace->column_degree[j] == 1) {
-				int row = model->row_index[model->column_start[j]];
+				int row = model->row_index[model
+						->column_start[j]];
+
 				presolve->stats.singleton_column_candidates++;
-				if (workspace->bounds[j].b_type == optm_BOUND_T_FR)
-					presolve->stats.free_singleton_columns++;
-				if (model->constraints[row].type == optm_CONS_T_EQ)
-					presolve->stats.equality_singleton_columns++;
+				if (workspace->bounds[j].b_type ==
+					optm_BOUND_T_FR)
+					presolve->stats
+						.free_singleton_columns++;
+				if (model->constraints[row].type ==
+					optm_CONS_T_EQ)
+					presolve->stats
+						.equality_singleton_columns++;
 			}
 	for (j = 0; j < model->n; j++)
 		workspace->column_kept[j] = -1;
@@ -519,15 +569,15 @@ static int presolve_workspace_create(
 }
 
 
-static void presolve_enqueue_column_rows(
-		const struct lp_Model *model, const int column,
-		const unsigned char *row_active,
-		struct simplex_PresolveQueue *row_queue)
+static void presolve_enqueue_column_rows(const struct lp_Model *model,
+	const int column, const unsigned char *row_active,
+	struct simplex_PresolveQueue *row_queue)
 {
 	int i, k;
+
 	if (model->column_start != NULL) {
 		for (k = model->column_start[column];
-		     k < model->column_start[column + 1]; k++) {
+			k < model->column_start[column + 1]; k++) {
 			i = model->row_index[k];
 			if (row_active[i])
 				(void)simplex_presolve_queue_push(row_queue, i);
@@ -540,17 +590,19 @@ static void presolve_enqueue_column_rows(
 }
 
 
-static void presolve_enqueue_row_columns(
-		const struct lp_Model *model, const int row,
-		const unsigned char *column_active,
-		struct simplex_PresolveQueue *column_queue)
+static void presolve_enqueue_row_columns(const struct lp_Model *model,
+	const int row, const unsigned char *column_active,
+	struct simplex_PresolveQueue *column_queue)
 {
 	int j, k;
+
 	if (model->row_start != NULL) {
-		for (k = model->row_start[row]; k < model->row_start[row + 1]; k++) {
+		for (k = model->row_start[row]; k < model->row_start[row + 1];
+			k++) {
 			j = model->column_index[k];
 			if (column_active[j])
-				(void)simplex_presolve_queue_push(column_queue, j);
+				(void)simplex_presolve_queue_push(
+					column_queue, j);
 		}
 		return;
 	}
@@ -560,15 +612,16 @@ static void presolve_enqueue_row_columns(
 }
 
 
-static void presolve_enqueue_bound_neighbors(
-		const struct lp_Model *model, const int row,
-		const struct presolve_Workspace *workspace,
-		struct simplex_PresolveQueue *row_queue,
-		struct simplex_PresolveQueue *column_queue)
+static void presolve_enqueue_bound_neighbors(const struct lp_Model *model,
+	const int row, const struct presolve_Workspace *workspace,
+	struct simplex_PresolveQueue *row_queue,
+	struct simplex_PresolveQueue *column_queue)
 {
 	int j, k;
+
 	if (model->row_start != NULL) {
-		for (k = model->row_start[row]; k < model->row_start[row + 1]; k++) {
+		for (k = model->row_start[row]; k < model->row_start[row + 1];
+			k++) {
 			j = model->column_index[k];
 			if (!workspace->column_active[j])
 				continue;
@@ -580,7 +633,7 @@ static void presolve_enqueue_bound_neighbors(
 	}
 	for (j = 0; j < model->n; j++)
 		if (workspace->column_active[j] &&
-		    model->constraints[row].coef[j] != 0.) {
+			model->constraints[row].coef[j] != 0.) {
 			(void)simplex_presolve_queue_push(column_queue, j);
 			presolve_enqueue_column_rows(
 				model, j, workspace->row_active, row_queue);
@@ -588,12 +641,13 @@ static void presolve_enqueue_bound_neighbors(
 }
 
 
-static int presolve_reduce_column(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		struct presolve_Workspace *workspace, const int column)
+static int presolve_reduce_column(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, struct presolve_Workspace *workspace,
+	const int column)
 {
 	int degree, fixed, singleton_inequality = 0, status;
 	double value = 0.;
+
 	if (!workspace->column_active[column])
 		return lp_simplex_Success;
 	degree = workspace->column_degree[column];
@@ -601,14 +655,16 @@ static int presolve_reduce_column(
 		workspace->bounds[column].lb == workspace->bounds[column].ub;
 	if (fixed)
 		value = workspace->bounds[column].lb;
-	else if (degree == 1 && presolve_choose_singleton_inequality_column(
-			model, workspace->bounds, workspace->row_active,
-			column, &value)) {
+	else if (degree == 1 &&
+		 presolve_choose_singleton_inequality_column(model,
+			 workspace->bounds, workspace->row_active, column,
+			 &value)) {
 		fixed = 1;
 		singleton_inequality = 1;
 	} else if (degree == 0) {
 		status = simplex_presolve_choose_empty_column(
-			model->objective[column], workspace->bounds + column, &value);
+			model->objective[column], workspace->bounds + column,
+			&value);
 		if (status != lp_simplex_Success)
 			return status;
 		fixed = 1;
@@ -626,21 +682,22 @@ static int presolve_reduce_column(
 		presolve->stats.singleton_inequality_columns++;
 	presolve_remove_column_from_rhs(model, column, value,
 		workspace->row_active, workspace->adjusted_rhs);
-	presolve_deactivate_column(model, column, workspace->row_active,
-		workspace->row_degree);
+	presolve_deactivate_column(
+		model, column, workspace->row_active, workspace->row_degree);
 	presolve_enqueue_column_rows(
 		model, column, workspace->row_active, &workspace->row_queue);
 	return lp_simplex_Success;
 }
 
 
-static int presolve_find_singleton(
-		const struct lp_Model *model, const int row,
-		const unsigned char *column_active, int *column, double *coefficient)
+static int presolve_find_singleton(const struct lp_Model *model, const int row,
+	const unsigned char *column_active, int *column, double *coefficient)
 {
 	int j, k;
+
 	if (model->row_start != NULL) {
-		for (k = model->row_start[row]; k < model->row_start[row + 1]; k++) {
+		for (k = model->row_start[row]; k < model->row_start[row + 1];
+			k++) {
 			j = model->column_index[k];
 			if (column_active[j]) {
 				*column = j;
@@ -650,7 +707,8 @@ static int presolve_find_singleton(
 		}
 	} else {
 		for (j = 0; j < model->n; j++)
-			if (column_active[j] && model->constraints[row].coef[j] != 0.) {
+			if (column_active[j] &&
+				model->constraints[row].coef[j] != 0.) {
 				*column = j;
 				*coefficient = model->constraints[row].coef[j];
 				return 1;
@@ -660,14 +718,14 @@ static int presolve_find_singleton(
 }
 
 
-static int presolve_reduce_row(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		const double tolerance, struct presolve_Workspace *workspace,
-		const int row)
+static int presolve_reduce_row(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance,
+	struct presolve_Workspace *workspace, const int row)
 {
 	int entries, singleton = -1, classification;
 	int tightened = 0, forcing = 0, status;
 	double coefficient = 0.;
+
 	if (!workspace->row_active[row])
 		return lp_simplex_Success;
 	entries = workspace->row_degree[row];
@@ -676,14 +734,14 @@ static int presolve_reduce_row(
 			&singleton, &coefficient);
 	if (entries == 0) {
 		if (!simplex_presolve_empty_row_feasible(
-				model->constraints[row].type,
-				workspace->adjusted_rhs[row], tolerance))
+			    model->constraints[row].type,
+			    workspace->adjusted_rhs[row], tolerance))
 			return lp_simplex_Infeasibility;
 		workspace->row_active[row] = 0;
 		presolve_deactivate_row(model, row, workspace->column_active,
 			workspace->column_degree);
-		presolve_enqueue_row_columns(
-			model, row, workspace->column_active, &workspace->column_queue);
+		presolve_enqueue_row_columns(model, row,
+			workspace->column_active, &workspace->column_queue);
 		presolve->stats.removed_rows++;
 		return lp_simplex_Success;
 	}
@@ -697,8 +755,8 @@ static int presolve_reduce_row(
 		workspace->row_active[row] = 0;
 		presolve_deactivate_row(model, row, workspace->column_active,
 			workspace->column_degree);
-		presolve_enqueue_row_columns(
-			model, row, workspace->column_active, &workspace->column_queue);
+		presolve_enqueue_row_columns(model, row,
+			workspace->column_active, &workspace->column_queue);
 		presolve->stats.removed_rows++;
 		presolve->stats.singleton_rows++;
 		presolve->stats.tightened_bounds += tightened;
@@ -719,8 +777,8 @@ static int presolve_reduce_row(
 		workspace->row_active[row] = 0;
 		presolve_deactivate_row(model, row, workspace->column_active,
 			workspace->column_degree);
-		presolve_enqueue_row_columns(
-			model, row, workspace->column_active, &workspace->column_queue);
+		presolve_enqueue_row_columns(model, row,
+			workspace->column_active, &workspace->column_queue);
 		presolve->stats.removed_rows++;
 		presolve->stats.redundant_rows++;
 	} else if (tightened != 0) {
@@ -736,25 +794,26 @@ static int presolve_reduce_row(
 }
 
 
-static int presolve_reduce_to_fixed_point(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		const double tolerance, struct presolve_Workspace *workspace)
+static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance,
+	struct presolve_Workspace *workspace)
 {
 	for (;;) {
 		int column, row, duplicate_removed, status;
 		presolve->stats.queue_epochs++;
 		while (workspace->column_queue.count != 0 ||
-		       workspace->row_queue.count != 0) {
+			workspace->row_queue.count != 0) {
 			while (simplex_presolve_queue_pop(
-					&workspace->column_queue, &column)) {
+				&workspace->column_queue, &column)) {
 				status = presolve_reduce_column(
 					presolve, model, workspace, column);
 				if (status != lp_simplex_Success)
 					return status;
 			}
-			if (simplex_presolve_queue_pop(&workspace->row_queue, &row)) {
-				status = presolve_reduce_row(
-					presolve, model, tolerance, workspace, row);
+			if (simplex_presolve_queue_pop(
+				    &workspace->row_queue, &row)) {
+				status = presolve_reduce_row(presolve, model,
+					tolerance, workspace, row);
 				if (status != lp_simplex_Success)
 					return status;
 			}
@@ -781,10 +840,9 @@ static int presolve_reduce_to_fixed_point(
 }
 
 
-static void presolve_collect_active(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		struct presolve_Workspace *workspace,
-		int *kept_rows, int *kept_columns)
+static void presolve_collect_active(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, struct presolve_Workspace *workspace,
+	int *kept_rows, int *kept_columns)
 {
 	int i, j;
 	*kept_rows = 0;
@@ -802,19 +860,19 @@ static void presolve_collect_active(
 }
 
 
-int simplex_presolve_run(
-		struct simplex_Presolve *presolve, const struct lp_Model *model,
-		const double tolerance)
+int simplex_presolve_run(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance)
 {
 	struct presolve_Workspace workspace;
 	int kept_rows, kept_columns, status;
+
 	if (presolve == NULL || model == NULL || model->bounds == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	lp_simplex_memset(presolve, 0, sizeof(*presolve));
 	presolve->original = model;
 	presolve->status = lp_simplex_CondUnsatisfied;
 	if (presolve_workspace_create(presolve, model, tolerance, &workspace) ==
-	    lp_simplex_EXIT_FAILURE)
+		lp_simplex_EXIT_FAILURE)
 		goto failure;
 	status = presolve_reduce_to_fixed_point(
 		presolve, model, tolerance, &workspace);
@@ -824,20 +882,20 @@ int simplex_presolve_run(
 		presolve->status = status;
 		goto finish;
 	}
-	presolve_collect_active(presolve, model, &workspace,
-		&kept_rows, &kept_columns);
+	presolve_collect_active(
+		presolve, model, &workspace, &kept_rows, &kept_columns);
 	if (kept_rows == 0 || kept_columns == 0) {
 		presolve->status = lp_simplex_Success;
 		goto finish;
 	}
-	presolve->reduced = presolve_build_sparse_model(model,
-		kept_rows, kept_columns, presolve->column_map,
-		workspace.column_kept, presolve->row_map, workspace.row_kept,
-		workspace.adjusted_rhs, workspace.bounds);
+	presolve->reduced = presolve_build_sparse_model(model, kept_rows,
+		kept_columns, presolve->column_map, workspace.column_kept,
+		presolve->row_map, workspace.row_kept, workspace.adjusted_rhs,
+		workspace.bounds);
 	if (presolve->reduced == NULL)
 		goto failure;
 	if (simplex_presolve_substitute_doubletons(presolve, tolerance) ==
-	    lp_simplex_EXIT_FAILURE)
+		lp_simplex_EXIT_FAILURE)
 		goto failure;
 finish:
 	lp_simplex_free(presolve->row_map);

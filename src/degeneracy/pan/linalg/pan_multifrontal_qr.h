@@ -1,4 +1,13 @@
-/* True orthogonal-transform backend layered over the dynamic sparse R. */
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
+
+/**
+ * @file pan_multifrontal_qr.h
+ * @brief True orthogonal-transform backend layered over the dynamic sparse R.
+ */
+
 #ifndef LP_SIMPLEX_PAN_MULTIFRONTAL_QR_H
 #define LP_SIMPLEX_PAN_MULTIFRONTAL_QR_H
 
@@ -28,6 +37,7 @@ struct pan_MultifrontalQR {
 	cholmod_common *common;
 	cholmod_sparse *householder;
 	cholmod_dense *householder_tau;
+
 	int32_t *row_permutation;
 	struct pan_QRTransform *transform;
 	double *transform_value;
@@ -55,8 +65,7 @@ struct pan_MultifrontalQR {
 
 
 int pan_multifrontal_qr_initialize(
-		struct pan_MultifrontalQR *qr, int dimension,
-		cholmod_common *common);
+	struct pan_MultifrontalQR *qr, int dimension, cholmod_common *common);
 
 void pan_multifrontal_qr_destroy(struct pan_MultifrontalQR *qr);
 
@@ -64,35 +73,34 @@ void pan_multifrontal_qr_clear_updates(struct pan_MultifrontalQR *qr);
 
 void pan_multifrontal_qr_reset(struct pan_MultifrontalQR *qr);
 
-int pan_multifrontal_qr_rebuild(
-		struct pan_MultifrontalQR *qr, cholmod_sparse *matrix,
-		struct pan_DynamicSparseQR *factor, const int *tag,
-		double rank_tolerance);
+int pan_multifrontal_qr_rebuild(struct pan_MultifrontalQR *qr,
+	cholmod_sparse *matrix, struct pan_DynamicSparseQR *factor,
+	const int *tag, double rank_tolerance);
+
+/* Keep every column in the required prefix; discard only dependent columns
+ * outside that prefix. The output factor tags identify the retained subset. */
+int pan_multifrontal_qr_repair_rank(struct pan_MultifrontalQR *qr,
+	cholmod_sparse *matrix, struct pan_DynamicSparseQR *factor,
+	const int *tag, double rank_tolerance, int required_prefix);
 
 int pan_multifrontal_qr_apply_transpose(
-		struct pan_MultifrontalQR *qr, const double *vector,
-		double *result);
+	struct pan_MultifrontalQR *qr, const double *vector, double *result);
 
 int pan_multifrontal_qr_apply(
-		struct pan_MultifrontalQR *qr, const double *vector,
-		double *result);
+	struct pan_MultifrontalQR *qr, const double *vector, double *result);
 
-int pan_multifrontal_qr_append(
-		struct pan_MultifrontalQR *qr, const double *column,
-		int active_count, double *border, double *diagonal);
+int pan_multifrontal_qr_append(struct pan_MultifrontalQR *qr,
+	const double *column, int active_count, double *border,
+	double *diagonal);
 
-int pan_multifrontal_qr_record_givens(
-		struct pan_MultifrontalQR *qr,
-		const struct pan_DynamicSparseQR *factor);
+int pan_multifrontal_qr_record_givens(struct pan_MultifrontalQR *qr,
+	const struct pan_DynamicSparseQR *factor);
 
-void pan_multifrontal_qr_mark_path(
-		struct pan_MultifrontalQR *qr, int first);
+void pan_multifrontal_qr_mark_path(struct pan_MultifrontalQR *qr, int first);
 
-void pan_multifrontal_qr_refresh_structure(
-		struct pan_MultifrontalQR *qr,
-		const struct pan_DynamicSparseQR *factor);
+void pan_multifrontal_qr_refresh_structure(struct pan_MultifrontalQR *qr,
+	const struct pan_DynamicSparseQR *factor);
 
-int pan_multifrontal_qr_should_rebuild(
-		const struct pan_MultifrontalQR *qr);
+int pan_multifrontal_qr_should_rebuild(const struct pan_MultifrontalQR *qr);
 
 #endif

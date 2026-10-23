@@ -2,22 +2,27 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_pivot.c
+ * @brief Tableau entering and leaving variable selection and pivot operations.
+ */
+
 #include "simplex_pivot.h"
 #include "linalg.h"
 #include "utils.h"
 
 
 /* Numerically stable staged threshold used by Bland's entering rule. */
-#define __lp_simplex_BLAND_EPS__            1e-3
+#define __lp_simplex_BLAND_EPS__ 1e-3
 
 
 /* Choose the variable to leave basis
  * Return the index of the variable and check weather LP is "bounded"
  */
-static int simplex_pivot_leave_rule(
-		const double *table, const int ldtable,
-		const int *basis, const int m, const int n,
-		const int q, const double pivot_tolerance, int *bounded)
+static int simplex_pivot_leave_rule(const double *table, const int ldtable,
+	const int *basis, const int m, const int n, const int q,
+	const double pivot_tolerance, int *bounded)
 {
 	int i, p = n;
 	double y_i_0, y_i_q, x_iq, min_x_iq = __lp_simplex_INF__;
@@ -33,8 +38,9 @@ static int simplex_pivot_leave_rule(
 			x_iq = y_i_0 / y_i_q;
 
 			if (x_iq < min_x_iq - pivot_tolerance ||
-			    (__lp_simplex_ABS__(x_iq - min_x_iq) <= pivot_tolerance &&
-			     (p == n || basis[i] < basis[p]))) {
+				(__lp_simplex_ABS__(x_iq - min_x_iq) <=
+						pivot_tolerance &&
+					(p == n || basis[i] < basis[p]))) {
 				min_x_iq = x_iq;
 				p = i;
 			}
@@ -53,9 +59,9 @@ static int simplex_pivot_leave_rule(
  *	but numerically, there are many criteriors reporting optimality,
  *	leading to unpredicted results
  */
-static int simplex_pivot_enter_rule_datzig(
-		const double *table, const unsigned char *is_basic, const int n,
-		const double optimality_tolerance)
+static int simplex_pivot_enter_rule_datzig(const double *table,
+	const unsigned char *is_basic, const int n,
+	const double optimality_tolerance)
 {
 	int j, q = n;
 	double beta_j = 0.;
@@ -80,9 +86,9 @@ static int simplex_pivot_enter_rule_datzig(
  *
  * Note: on failure, the algorithm returns n
  */
-static int simplex_pivot_enter_rule_bland(
-		const double *table, const unsigned char *is_basic, const int n,
-		const double optimality_tolerance)
+static int simplex_pivot_enter_rule_bland(const double *table,
+	const unsigned char *is_basic, const int n,
+	const double optimality_tolerance)
 {
 	int j;
 	double epsilon = __lp_simplex_BLAND_EPS__;
@@ -95,7 +101,8 @@ static int simplex_pivot_enter_rule_bland(
 		if (epsilon <= optimality_tolerance)
 			return n;
 		epsilon = epsilon / 10. < optimality_tolerance
-			? optimality_tolerance : epsilon / 10.;
+				  ? optimality_tolerance
+				  : epsilon / 10.;
 	}
 }
 
@@ -111,10 +118,9 @@ static int simplex_pivot_enter_rule_bland(
  *	rule 2. row_i -= row_p * y_i_q
  *	rule 3. row_0 -= row_p * beta_q
  */
-void simplex_apply_pivot(
-		double *table, const int ldtable,
-		const int m, const int n, const int p, const int q,
-		const int rule1, const int rule2, const int rule3)
+void simplex_apply_pivot(double *table, const int ldtable, const int m,
+	const int n, const int p, const int q, const int rule1, const int rule2,
+	const int rule3)
 {
 	int i, ncol = n + 1, rowp = (p + 1) * ldtable;
 	double y_p_q = table[q + rowp];
@@ -124,17 +130,19 @@ void simplex_apply_pivot(
 	if (rule2) {
 		for (i = 0; i < m; i++) {
 			int rowi = (i + 1) * ldtable;
-			double rto =  -table[q + rowi];
+			double rto = -table[q + rowi];
 
 			if (i == p)
 				continue;
 			if (rto == 0.)
 				continue;
-			lp_simplex_linalg_daxpy(ncol, rto, table + rowp, 1, table + rowi, 1);
+			lp_simplex_linalg_daxpy(
+				ncol, rto, table + rowp, 1, table + rowi, 1);
 		}
 	}
 	if (rule3)
-		lp_simplex_linalg_daxpy(ncol, -table[q], table + rowp, 1, table, 1);
+		lp_simplex_linalg_daxpy(
+			ncol, -table[q], table + rowp, 1, table, 1);
 }
 
 
@@ -146,11 +154,10 @@ void simplex_apply_pivot(
  *	2: LP is unbounded
  *	9: numerical precision error
  */
-static int lp_simplex_pivot_on(
-		double *table, const int ldtable, int *basis,
-		unsigned char *is_basic, const int m, const int n,
-		const int use_dantzig, const double optimality_tolerance,
-		const double pivot_tolerance)
+static int lp_simplex_pivot_on(double *table, const int ldtable, int *basis,
+	unsigned char *is_basic, const int m, const int n,
+	const int use_dantzig, const double optimality_tolerance,
+	const double pivot_tolerance)
 {
 	int bounded = 0;
 	int q = 0, p = 0;
@@ -172,8 +179,7 @@ static int lp_simplex_pivot_on(
 	if (use_dantzig) {
 		q = simplex_pivot_enter_rule_datzig(
 			table, is_basic, n, optimality_tolerance);
-	}
-	else {
+	} else {
 		q = simplex_pivot_enter_rule_bland(
 			table, is_basic, n, optimality_tolerance);
 	}
@@ -188,8 +194,8 @@ static int lp_simplex_pivot_on(
 		}
 		return residual ? 9 : 1;
 	}
-	p = simplex_pivot_leave_rule(table, ldtable, basis, m, n, q,
-		pivot_tolerance, &bounded);
+	p = simplex_pivot_leave_rule(
+		table, ldtable, basis, m, n, q, pivot_tolerance, &bounded);
 	if (bounded == 0)
 		return 2;
 	basis[p] = q;
@@ -198,10 +204,9 @@ static int lp_simplex_pivot_on(
 }
 
 
-int simplex_run_pivots(
-		int *epoch, double *table, const int ldtable, int *basis,
-		const int m, const int n, const int nreal,
-		const struct lp_simplex_Options *options)
+int simplex_run_pivots(int *epoch, double *table, const int ldtable, int *basis,
+	const int m, const int n, const int nreal,
+	const struct lp_simplex_Options *options)
 {
 	unsigned char *is_basic;
 	int result = 0;
@@ -212,16 +217,16 @@ int simplex_run_pivots(
 	assert(basis != NULL);
 	assert(epoch != NULL);
 	use_dantzig = options->pricing == lp_simplex_PRICING_DANTZIG;
-	is_basic = (unsigned char *)lp_simplex_malloc((size_t)n * sizeof(unsigned char));
+	is_basic = (unsigned char *)lp_simplex_malloc(
+		(size_t)n * sizeof(unsigned char));
 	if (is_basic == NULL)
 		return 4;
 
 	while (*epoch < options->iteration_limit) {
 		(*epoch)++;
-		switch (lp_simplex_pivot_on(table, ldtable, basis, is_basic,
-					   m, n, use_dantzig,
-					   options->dual_tolerance,
-					   options->pivot_tolerance)) {
+		switch (lp_simplex_pivot_on(table, ldtable, basis, is_basic, m,
+			n, use_dantzig, options->dual_tolerance,
+			options->pivot_tolerance)) {
 		case 0:
 			break;
 		case 1:

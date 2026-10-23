@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_dual.h
+ * @brief Dual revised-simplex iteration and numerical recovery.
+ */
+
 #ifndef LP_SIMPLEX_DUAL_INTERNAL_H
 #define LP_SIMPLEX_DUAL_INTERNAL_H
 
@@ -11,16 +17,18 @@
 #include <lp_simplex/solve.h>
 
 
-int simplex_dual_solve(
-		const struct lp_Model *model,
-		const struct lp_simplex_Options *options,
-		double *x, double *row_dual, struct lp_simplex_Result *result,
-		int propagate_bounds);
+int simplex_dual_solve(const struct lp_Model *model,
+	const struct lp_simplex_Options *options, double *x, double *row_dual,
+	struct lp_simplex_Result *result, int propagate_bounds);
 
-int simplex_dual_solve_problem(
-		const struct simplex_Problem *problem,
-		const struct lp_simplex_Options *options,
-		double *x, double *row_dual, struct lp_simplex_Result *result,
-		int propagate_bounds);
+int simplex_dual_solve_problem(const struct simplex_Problem *problem,
+	const struct lp_simplex_Options *options, double *x, double *row_dual,
+	struct lp_simplex_Result *result, int propagate_bounds);
+
+/* Internal Phase I service: success means only a verified primal feasible
+ * point; result.status remains CondUnsatisfied, never an optimality claim. */
+int simplex_dual_find_feasible(const struct simplex_Problem *problem,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result);
 
 #endif

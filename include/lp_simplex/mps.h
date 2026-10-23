@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file mps.h
+ * @brief Fixed-column MPS parsing and model construction.
+ */
+
 #ifndef LP_SIMPLEX_MPS_H
 #define LP_SIMPLEX_MPS_H
 
@@ -18,7 +24,9 @@ extern "C" {
  * Supported sections are `ROWS`, `COLUMNS`, `RHS`, `RANGES`, `BOUNDS`,
  * `OBJSENSE` and `ENDATA`.  `OBJSENSE MAXIMIZE` is honoured: the stored
  * objective is negated and `objective_sense` is set to -1, so the reported
- * objective is the maximum.  Comment lines (`*` or `$` in the first
+ * objective is the maximum.  The sense may appear on the OBJSENSE line or
+ * the next non-comment, non-blank line; invalid or missing senses are rejected.
+ * Comment lines (`*` or `$` in the first
  * non-blank position) and blank lines are ignored anywhere in the file.
  *
  * Integer declarations (`INTORG`/`INTEND`, `BV`, `LI`, `UI`) are read and

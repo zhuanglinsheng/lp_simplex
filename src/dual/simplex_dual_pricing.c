@@ -2,7 +2,13 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
-/* Nonbasic active set, hypersparse pricing, and dual ratio candidate policy. */
+
+/**
+ * @file simplex_dual_pricing.c
+ * @brief Nonbasic active set, hypersparse pricing, and dual ratio candidate
+ * policy.
+ */
+
 #include "simplex_dual_pricing.h"
 #include "utils.h"
 
@@ -10,29 +16,34 @@
 
 #include <time.h>
 #include <stdio.h>
+#include <math.h>
 
 
 int simplex_dual_pricing_create(struct simplex_DualState *state)
 {
 	int variables = state->variables;
+
 	if (simplex_sparse_vector_create(&state->packed_rho, state->rows) ==
-	    lp_simplex_EXIT_FAILURE ||
-	    simplex_sparse_vector_create(&state->packed_alpha, variables) ==
-	    lp_simplex_EXIT_FAILURE)
+			lp_simplex_EXIT_FAILURE ||
+		simplex_sparse_vector_create(&state->packed_alpha, variables) ==
+			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	state->candidate_sign = (int *)lp_simplex_malloc(
-		(size_t)4 * variables * sizeof(int));
+	state->candidate_sign =
+		(int *)lp_simplex_malloc((size_t)4 * variables * sizeof(int));
 	state->candidate_index = state->candidate_sign != NULL
-		? state->candidate_sign + variables : NULL;
+					 ? state->candidate_sign + variables
+					 : NULL;
 	state->nonbasic_index = state->candidate_sign != NULL
-		? state->candidate_sign + 2 * variables : NULL;
+					? state->candidate_sign + 2 * variables
+					: NULL;
 	state->nonbasic_slot = state->candidate_sign != NULL
-		? state->candidate_sign + 3 * variables : NULL;
+				       ? state->candidate_sign + 3 * variables
+				       : NULL;
 	if (state->candidate_sign == NULL || state->candidate_index == NULL ||
-	    state->nonbasic_index == NULL || state->nonbasic_slot == NULL)
+		state->nonbasic_index == NULL || state->nonbasic_slot == NULL)
 		return lp_simplex_EXIT_FAILURE;
-	lp_simplex_memset(state->candidate_sign, 0,
-		(size_t)variables * sizeof(int));
+	lp_simplex_memset(
+		state->candidate_sign, 0, (size_t)variables * sizeof(int));
 	state->candidate_count = 0;
 	state->nonbasic_count = 0;
 	return lp_simplex_EXIT_SUCCESS;
@@ -44,6 +55,8 @@ void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 	simplex_sparse_vector_destroy(&state->packed_rho);
 	simplex_sparse_vector_destroy(&state->packed_alpha);
 	lp_simplex_free(state->candidate_sign);
+	lp_simplex_free(state->lex_storage);
+	state->lex_storage = NULL;
 	state->candidate_sign = NULL;
 	state->candidate_index = NULL;
 	state->nonbasic_index = NULL;
@@ -54,20 +67,22 @@ void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 
 
 void simplex_dual_nonbasic_add(
-		struct simplex_DualState *state, const int variable)
+	struct simplex_DualState *state, const int variable)
 {
 	if (state->nonbasic_slot[variable] >= 0)
 		return;
+
 	state->nonbasic_slot[variable] = state->nonbasic_count;
 	state->nonbasic_index[state->nonbasic_count++] = variable;
 }
 
 
 void simplex_dual_nonbasic_remove(
-		struct simplex_DualState *state, const int variable)
+	struct simplex_DualState *state, const int variable)
 {
 	int slot = state->nonbasic_slot[variable];
 	int last;
+
 	if (slot < 0)
 		return;
 	last = state->nonbasic_index[--state->nonbasic_count];
@@ -80,23 +95,25 @@ void simplex_dual_nonbasic_remove(
 void simplex_dual_nonbasic_initialize(struct simplex_DualState *state)
 {
 	int j;
+
 	state->nonbasic_count = 0;
 	for (j = 0; j < state->variables; j++)
 		state->nonbasic_slot[j] = -1;
 	for (j = 0; j < state->variables; j++)
 		if (state->position[j] < 0 &&
-		    state->status[j] != DUAL_STATUS_FIXED)
+			state->status[j] != DUAL_STATUS_FIXED)
 			simplex_dual_nonbasic_add(state, j);
 }
 
 
-int simplex_dual_nonbasic_is_consistent(
-		const struct simplex_DualState *state)
+int simplex_dual_nonbasic_is_consistent(const struct simplex_DualState *state)
 {
 	int count = 0, j;
+
 	for (j = 0; j < state->variables; j++) {
 		int expected = state->position[j] < 0 &&
-			state->status[j] != DUAL_STATUS_FIXED;
+			       state->status[j] != DUAL_STATUS_FIXED;
+
 		if (expected)
 			count++;
 		if (expected != (state->nonbasic_slot[j] >= 0))
@@ -107,20 +124,21 @@ int simplex_dual_nonbasic_is_consistent(
 
 
 static double pricing_column_dot(
-		const struct simplex_DualState *state, const int variable)
+	const struct simplex_DualState *state, const int variable)
 {
 	if (variable >= state->structural)
 		return -state->rho[variable - state->structural];
+
 	return simplex_csc_column_dot(&state->matrix, variable, state->rho);
 }
 
 
-static int pricing_candidate_sign(
-		const struct simplex_DualState *state,
-		const int variable, const int kappa, const double alpha)
+static int pricing_candidate_sign(const struct simplex_DualState *state,
+	const int variable, const int kappa, const double alpha)
 {
 	if (state->status[variable] == DUAL_STATUS_LOWER)
 		return 1;
+
 	if (state->status[variable] == DUAL_STATUS_UPPER)
 		return -1;
 	if (state->status[variable] == DUAL_STATUS_FREE)
@@ -130,39 +148,46 @@ static int pricing_candidate_sign(
 
 
 static int pricing_significantly_greater(
-		const double value, const double incumbent)
+	const double value, const double incumbent)
 {
-	return value > incumbent + 1e-12 *
-		(1. + __lp_simplex_MAX__(__lp_simplex_ABS__(value),
-			__lp_simplex_ABS__(incumbent)));
+	return value >
+	       incumbent +
+		       1e-12 * (1. + __lp_simplex_MAX__(
+					     __lp_simplex_ABS__(value),
+					     __lp_simplex_ABS__(incumbent)));
 }
 
 
 static int pricing_nearly_equal(const double left, const double right)
 {
-	return __lp_simplex_ABS__(left - right) <= 1e-12 *
-		(1. + __lp_simplex_MAX__(__lp_simplex_ABS__(left),
-			__lp_simplex_ABS__(right)));
+	return __lp_simplex_ABS__(left - right) <=
+	       1e-12 * (1. + __lp_simplex_MAX__(__lp_simplex_ABS__(left),
+				     __lp_simplex_ABS__(right)));
 }
 
 
-static void pricing_add_candidate(
-		struct simplex_DualState *state, const int j, const int kappa,
-		const int alpha_ready, const int harris_enabled,
-		int *candidates, double *minimum)
+static void pricing_add_candidate(struct simplex_DualState *state, const int j,
+	const int kappa, const int alpha_ready, const int harris_enabled,
+	int *candidates, double *minimum)
 {
 	int sign;
 	double denominator, signed_reduced, theta, relaxed_theta;
+
 	state->candidate_sign[j] = 0;
 	if (!alpha_ready)
 		state->alpha[j] = pricing_column_dot(state, j);
+	/* Non-finite arithmetic cannot certify an empty admissible set. */
+	if (!isfinite(state->alpha[j]) || !isfinite(state->reduced[j])) {
+		state->ratio_failure_status = lp_simplex_PrecisionError;
+		return;
+	}
 	sign = pricing_candidate_sign(state, j, kappa, state->alpha[j]);
 	denominator = -kappa * sign * state->alpha[j];
 	if (denominator <= state->options->pivot_tolerance)
 		return;
 	signed_reduced = sign * state->reduced[j];
 	if (signed_reduced < 0. &&
-	    signed_reduced >= -state->options->dual_tolerance)
+		signed_reduced >= -state->options->dual_tolerance)
 		signed_reduced = 0.;
 	if (signed_reduced < 0.)
 		return;
@@ -171,8 +196,12 @@ static void pricing_add_candidate(
 	 * dual feasibility tolerance.  The second pass can then prefer a much
 	 * stronger pivot anywhere inside this safe step window instead of being
 	 * tied to the exact minimum ratio. */
-	relaxed_theta = (signed_reduced + state->options->dual_tolerance) /
-		denominator;
+	relaxed_theta =
+		(signed_reduced + state->options->dual_tolerance) / denominator;
+	if (!isfinite(theta) || !isfinite(relaxed_theta)) {
+		state->ratio_failure_status = lp_simplex_PrecisionError;
+		return;
+	}
 	state->candidate_sign[j] = sign;
 	state->breakpoint[j] = theta;
 	state->candidate_index[*candidates] = j;
@@ -182,43 +211,54 @@ static void pricing_add_candidate(
 }
 
 
+void simplex_dual_ratio_remove(
+	struct simplex_DualState *state, const int variable)
+{
+	if (state->candidate_sign[variable] != 0) {
+		state->candidate_sign[variable] = 0;
+		state->ratio_active_count--;
+	}
+}
+
+
 int simplex_dual_prepare_ratio_test(
-		struct simplex_DualState *state, const int kappa)
+	struct simplex_DualState *state, const int kappa)
 {
 	int candidate, candidates = 0, i, j;
 	int alpha_ready = 0;
-	int harris_enabled = !simplex_degeneracy_is_stressed(
-		&state->degeneracy);
+	int harris_enabled =
+		!simplex_degeneracy_is_stressed(&state->degeneracy);
 	long row_entries = 0;
 	double minimum = __lp_simplex_INF__;
 	clock_t started = 0;
+
 	if (state->profile.enabled)
 		started = clock();
+	state->ratio_failure_status = lp_simplex_Success;
 	for (candidate = 0; candidate < state->candidate_count; candidate++)
 		state->candidate_sign[state->candidate_index[candidate]] = 0;
 	simplex_sparse_vector_pack(&state->packed_rho, state->rho, 0.);
 	simplex_sparse_vector_clear(&state->packed_alpha);
 	for (i = 0; i < state->packed_rho.count; i++) {
 		int row = state->packed_rho.index[i];
+
 		row_entries += state->matrix.row_start[row + 1] -
-			state->matrix.row_start[row];
+			       state->matrix.row_start[row];
 	}
 	if (row_entries * 4 < state->matrix.nonzeros) {
 		for (i = 0; i < state->packed_rho.count; i++) {
 			int k;
 			int row = state->packed_rho.index[i];
 			double value = state->packed_rho.value[i];
+
 			for (k = state->matrix.row_start[row];
-			     k < state->matrix.row_start[row + 1]; k++)
+				k < state->matrix.row_start[row + 1]; k++)
 				simplex_sparse_vector_add(&state->packed_alpha,
 					state->matrix.column_index[k],
 					value * state->matrix.row_value[k]);
 			simplex_sparse_vector_set(&state->packed_alpha,
 				state->structural + row, -value);
 		}
-		for (i = 0; i < state->packed_alpha.count; i++)
-			state->alpha[state->packed_alpha.index[i]] =
-				state->packed_alpha.value[i];
 		alpha_ready = 1;
 	}
 	state->packed_alpha_valid = alpha_ready;
@@ -226,15 +266,19 @@ int simplex_dual_prepare_ratio_test(
 		if (state->pricing_validation_countdown-- <= 0) {
 			double maximum_error = 0.;
 			int missing = 0;
+
 			for (i = 0; i < state->nonbasic_count; i++) {
 				double exact, packed, error;
+
 				j = state->nonbasic_index[i];
 				exact = pricing_column_dot(state, j);
 				packed = simplex_sparse_vector_get(
 					&state->packed_alpha, j);
 				error = __lp_simplex_ABS__(exact - packed);
-				maximum_error = __lp_simplex_MAX__(maximum_error, error);
-				if (error > 1e-11 * (1. + __lp_simplex_ABS__(exact))) {
+				maximum_error = __lp_simplex_MAX__(
+					maximum_error, error);
+				if (error > 1e-11 * (1. + __lp_simplex_ABS__(
+								  exact))) {
 					simplex_sparse_vector_set(
 						&state->packed_alpha, j, exact);
 					missing++;
@@ -243,24 +287,31 @@ int simplex_dual_prepare_ratio_test(
 			if (state->profile.enabled)
 				fprintf(stderr,
 					"dual profile: hypersparse alpha audit error=%.3g repaired=%d touched=%d/%d\n",
-					maximum_error, missing, state->packed_alpha.count,
+					maximum_error, missing,
+					state->packed_alpha.count,
 					state->nonbasic_count);
 			state->pricing_validation_countdown = 127;
 		}
+		/* Audit repairs and candidate pricing must use the same row.  Copy
+		 * after repair, including any newly discovered sparse entries. */
+		for (i = 0; i < state->packed_alpha.count; i++)
+			state->alpha[state->packed_alpha.index[i]] =
+				state->packed_alpha.value[i];
 		for (i = 0; i < state->packed_alpha.count; i++) {
 			j = state->packed_alpha.index[i];
 			if (state->nonbasic_slot[j] < 0)
 				continue;
 			state->candidate_sign[j] = 0;
-			pricing_add_candidate(state, j, kappa, 1, harris_enabled,
-				&candidates, &minimum);
+			pricing_add_candidate(state, j, kappa, 1,
+				harris_enabled, &candidates, &minimum);
 		}
-	} else for (i = 0; i < state->nonbasic_count; i++) {
-		j = state->nonbasic_index[i];
-		state->candidate_sign[j] = 0;
-		pricing_add_candidate(state, j, kappa, 0, harris_enabled,
-			&candidates, &minimum);
-	}
+	} else
+		for (i = 0; i < state->nonbasic_count; i++) {
+			j = state->nonbasic_index[i];
+			state->candidate_sign[j] = 0;
+			pricing_add_candidate(state, j, kappa, 0,
+				harris_enabled, &candidates, &minimum);
+		}
 	/* A sparse pricing pass is only a fast candidate generator, never an
 	 * infeasibility certificate.  Cancellation and stale sparsity can omit an
 	 * eligible column; certify an empty set with a full CSC dot-product scan. */
@@ -268,116 +319,298 @@ int simplex_dual_prepare_ratio_test(
 		minimum = __lp_simplex_INF__;
 		for (i = 0; i < state->nonbasic_count; i++) {
 			j = state->nonbasic_index[i];
-			pricing_add_candidate(state, j, kappa, 0, harris_enabled,
-				&candidates, &minimum);
+			pricing_add_candidate(state, j, kappa, 0,
+				harris_enabled, &candidates, &minimum);
 		}
 		/* The exact certification pass supersedes the hypersparse alpha.
 		 * Keeping packed_alpha_valid here would update reduced costs for only
 		 * the old sparse support after choosing a column found by the full scan. */
 		state->packed_alpha_valid = 0;
 	}
+	state->ratio_ordered = 0;
+	state->ratio_heap_valid = 0;
 	state->ratio_minimum = minimum;
 	state->ratio_minimum_valid = 1;
 	state->candidate_count = candidates;
+	state->ratio_active_count = candidates;
 	if (state->profile.enabled)
 		state->profile.ratio_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
-	return candidates;
+	return state->ratio_failure_status == lp_simplex_Success
+		       ? candidates
+		       : SIMPLEX_DUAL_RATIO_ERROR;
 }
 
 
-int simplex_dual_next_ratio_candidate(
-		struct simplex_DualState *state, double *chosen_theta,
-		const int pan_perturbation, const int leaving_variable)
+/* Compare symbolic reduced-cost ratios without choosing a numeric epsilon.
+ * At activation, perturb each nonbasic lower/upper cost by +/- eps^j and
+ * leave basic/free/fixed costs unchanged.  Coordinate j of a reduced cost is
+ * sign_j * (delta_qj - e_position(j)^T B^-1 a_q).  Evaluate only coordinates
+ * still needed to distinguish tied candidates, using at most one BTRAN per
+ * basic coordinate, rather than one FTRAN for every tied column. */
+static int pricing_lexicographic_candidate(struct simplex_DualState *state,
+	const double minimum, const int leaving_variable, const int kappa)
+{
+	int count = 0, i, j, coordinate;
+	int leaving_position = state->position[leaving_variable];
+
+	if (state->lex_storage == NULL) {
+		size_t numeric = (size_t)state->rows * sizeof(double);
+		size_t indices = (size_t)2 * state->variables * sizeof(int);
+		unsigned char *storage = (unsigned char *)lp_simplex_malloc(
+			numeric + indices + (size_t)state->variables);
+
+		if (storage == NULL) {
+			state->ratio_failure_status =
+				lp_simplex_MemoryAllocError;
+			return SIMPLEX_DUAL_RATIO_ERROR;
+		}
+		state->lex_storage = storage;
+		state->lex_rho = (double *)storage;
+		state->lex_candidate = (int *)(storage + numeric);
+		state->lex_slot = state->lex_candidate + state->variables;
+		state->lex_anchor_status = storage + numeric + indices;
+	}
+	if (!state->lex_initialized) {
+		lp_simplex_memcpy(state->lex_anchor_status, state->status,
+			(size_t)state->variables);
+		state->lex_initialized = 1;
+	}
+	for (j = 0; j < state->variables; j++)
+		state->lex_slot[j] = -1;
+	for (i = 0; i < state->candidate_count; i++) {
+		j = state->candidate_index[i];
+		/* Symbolic coordinates break exact primary ties.  Harris' numerical
+		 * window must not override the primary objective in this mode. */
+		if (state->candidate_sign[j] != 0 &&
+			state->breakpoint[j] == minimum) {
+			state->lex_slot[j] = count;
+			state->lex_candidate[count++] = j;
+		}
+	}
+	for (coordinate = 0; coordinate < state->variables && count > 1;
+		coordinate++) {
+		int position = state->position[coordinate];
+		int anchor = state->lex_anchor_status[coordinate];
+		double sign;
+
+		if (anchor != DUAL_STATUS_LOWER && anchor != DUAL_STATUS_UPPER)
+			continue;
+		sign = anchor == DUAL_STATUS_LOWER ? 1. : -1.;
+		if (position < 0) {
+			int slot = state->lex_slot[coordinate];
+
+			if (slot >= 0) {
+				double denominator =
+					-kappa * state->alpha[coordinate];
+
+				if (sign / denominator < 0.) {
+					state->lex_candidate[0] = coordinate;
+					count = 1;
+					break;
+				}
+				state->lex_candidate[slot] =
+					state->lex_candidate[--count];
+				state->lex_slot[state->lex_candidate[slot]] =
+					slot;
+				state->lex_slot[coordinate] = -1;
+			}
+		} else {
+			const double *rho = state->rho;
+			long double best = 0.;
+			int old_count = count;
+
+			if (position != leaving_position) {
+				lp_simplex_memset(state->lex_rho, 0,
+					(size_t)state->rows * sizeof(double));
+				state->lex_rho[position] = 1.;
+				if (simplex_basis_btran(
+					    &state->factor, state->lex_rho) !=
+					lp_simplex_EXIT_SUCCESS) {
+					state->ratio_failure_status =
+						lp_simplex_Singularity;
+					return SIMPLEX_DUAL_RATIO_ERROR;
+				}
+				state->profile.lex_solves++;
+				rho = state->lex_rho;
+			}
+			for (i = 0; i < old_count; i++)
+				state->lex_slot[state->lex_candidate[i]] = -1;
+			count = 0;
+			for (i = 0; i < old_count; i++) {
+				double coefficient, denominator;
+				long double key;
+
+				j = state->lex_candidate[i];
+				coefficient =
+					j < state->structural
+						? simplex_csc_column_dot(
+							  &state->matrix, j,
+							  rho)
+						: -rho[j - state->structural];
+				denominator = -kappa * state->alpha[j];
+				key = -(long double)sign * coefficient /
+				      denominator;
+				if (!isfinite(key)) {
+					state->ratio_failure_status =
+						lp_simplex_PrecisionError;
+					return SIMPLEX_DUAL_RATIO_ERROR;
+				}
+				if (count == 0 || key < best) {
+					best = key;
+					count = 0;
+				}
+				if (key == best)
+					state->lex_candidate[count++] = j;
+			}
+			for (i = 0; i < count; i++)
+				state->lex_slot[state->lex_candidate[i]] = i;
+		}
+	}
+	if (count == 0)
+		return -1;
+	j = state->lex_candidate[0];
+	for (i = 1; i < count; i++)
+		if (state->lex_candidate[i] < j)
+			j = state->lex_candidate[i];
+	state->profile.lex_choices++;
+	return j;
+}
+
+
+/* Long-step flips consume breakpoints in increasing order.  Build the heap
+ * only on a retry: the usual single-pivot Harris path keeps its linear scan.
+ * Reuse the candidate array; consumed entries already have candidate_sign=0. */
+static int pricing_ratio_before(
+	const struct simplex_DualState *state, const int left, const int right)
+{
+	if (state->breakpoint[left] != state->breakpoint[right])
+		return state->breakpoint[left] < state->breakpoint[right];
+
+	if (__lp_simplex_ABS__(state->alpha[left]) !=
+		__lp_simplex_ABS__(state->alpha[right]))
+		return __lp_simplex_ABS__(state->alpha[left]) >
+		       __lp_simplex_ABS__(state->alpha[right]);
+	return left < right;
+}
+
+
+static void pricing_ratio_sift(struct simplex_DualState *state, int position)
+{
+	int variable = state->candidate_index[position];
+	int child;
+
+	while ((child = 2 * position + 1) < state->candidate_count) {
+		if (child + 1 < state->candidate_count &&
+			pricing_ratio_before(state,
+				state->candidate_index[child + 1],
+				state->candidate_index[child]))
+			child++;
+		if (!pricing_ratio_before(
+			    state, state->candidate_index[child], variable))
+			break;
+		state->candidate_index[position] =
+			state->candidate_index[child];
+		position = child;
+	}
+	state->candidate_index[position] = variable;
+}
+
+
+static int pricing_next_breakpoint(struct simplex_DualState *state)
+{
+	int i;
+
+	if (!state->ratio_heap_valid) {
+		for (i = state->candidate_count / 2; i > 0; i--)
+			pricing_ratio_sift(state, i - 1);
+		state->ratio_heap_valid = 1;
+	}
+	while (state->candidate_count > 0) {
+		int variable = state->candidate_index[0];
+
+		if (state->candidate_sign[variable] != 0)
+			return variable;
+		state->candidate_index[0] =
+			state->candidate_index[--state->candidate_count];
+		if (state->candidate_count > 0)
+			pricing_ratio_sift(state, 0);
+	}
+	return -1;
+}
+
+
+int simplex_dual_next_ratio_candidate(struct simplex_DualState *state,
+	double *chosen_theta, const int pan_perturbation,
+	const int leaving_variable, const int kappa)
 {
 	int candidate, j, q = -1;
 	int stable_order = state->stable_candidate_order ||
-		simplex_degeneracy_is_stressed(&state->degeneracy);
-	double minimum = state->ratio_minimum_valid
-		? state->ratio_minimum : __lp_simplex_INF__;
+			   simplex_degeneracy_is_stressed(&state->degeneracy);
+	double minimum = state->ratio_minimum_valid ? state->ratio_minimum
+						    : __lp_simplex_INF__;
 	double best_pivot = 0.;
+
+	if (state->ratio_failure_status != lp_simplex_Success)
+		return SIMPLEX_DUAL_RATIO_ERROR;
+	if (state->ratio_ordered) {
+		q = pricing_next_breakpoint(state);
+		if (q < 0)
+			return -1;
+		minimum = state->breakpoint[q];
+		if (pan_perturbation &&
+			simplex_degeneracy_is_lexicographic(&state->degeneracy))
+			q = pricing_lexicographic_candidate(
+				state, minimum, leaving_variable, kappa);
+		if (q >= 0)
+			*chosen_theta = state->breakpoint[q];
+		return q;
+	}
 	if (!state->ratio_minimum_valid)
-		for (candidate = 0; candidate < state->candidate_count; candidate++) {
+		for (candidate = 0; candidate < state->candidate_count;
+			candidate++) {
 			j = state->candidate_index[candidate];
 			if (state->candidate_sign[j] != 0 &&
-			    state->breakpoint[j] < minimum)
+				state->breakpoint[j] < minimum)
 				minimum = state->breakpoint[j];
 		}
 	if (minimum == __lp_simplex_INF__)
 		return -1;
-	if (pan_perturbation && minimum <= 10. * state->options->dual_tolerance) {
-		int pan_candidate = -1;
-		int best_rank_delta = 2;
-		int lexicographic = simplex_degeneracy_is_lexicographic(
-			&state->degeneracy);
-		int structure_enabled =
-			simplex_basis_compact_ever_active(&state->factor) ||
-			(state->rows >= 4096 && state->structural_basic < state->rows);
-		double best_structural_score = -1.;
-		for (candidate = 0; candidate < state->candidate_count; candidate++) {
-			int nonzeros, rank_delta;
-			double structural_score;
-			j = state->candidate_index[candidate];
-			if (state->candidate_sign[j] == 0 ||
-			    state->breakpoint[j] > minimum +
-			    1e-12 * (1. + __lp_simplex_ABS__(minimum)))
-				continue;
-			if (!structure_enabled && !lexicographic)
-				continue;
-			rank_delta = (j < state->structural) -
-				(leaving_variable < state->structural);
-			nonzeros = j < state->structural
-				? state->matrix.column_start[j + 1] -
-				  state->matrix.column_start[j] : 1;
-			structural_score = __lp_simplex_ABS__(state->alpha[j]) /
-				(1. + nonzeros);
-			/* A repeated face state escalates to a Bland-compatible order.
-			 * Keep the absolute pivot safeguard, then select the smallest
-			 * variable id; this ordering is independent of floating scores. */
-			if (lexicographic &&
-			    __lp_simplex_ABS__(state->alpha[j]) >
-			    state->options->pivot_tolerance) {
-				if (pan_candidate < 0 || j < pan_candidate)
-					pan_candidate = j;
-				continue;
-			}
-			if (!lexicographic && (pan_candidate < 0 ||
-			    pricing_significantly_greater(structural_score,
-				best_structural_score) ||
-			    (pricing_nearly_equal(structural_score,
-				best_structural_score) &&
-			     (rank_delta < best_rank_delta ||
-			      (rank_delta == best_rank_delta &&
-			       j < pan_candidate))))) {
-				pan_candidate = j;
-				best_rank_delta = rank_delta;
-				best_structural_score = structural_score;
-			}
-		}
-		if (pan_candidate >= 0) {
-			*chosen_theta = state->breakpoint[pan_candidate];
-			simplex_degeneracy_record_probe(&state->degeneracy);
-			return pan_candidate;
-		}
+	if (pan_perturbation &&
+		simplex_degeneracy_is_lexicographic(&state->degeneracy)) {
+		q = pricing_lexicographic_candidate(
+			state, minimum, leaving_variable, kappa);
+		if (q >= 0)
+			*chosen_theta = state->breakpoint[q];
+		return q;
 	}
+
 	for (candidate = 0; candidate < state->candidate_count; candidate++) {
 		double theta, relaxed;
+
 		j = state->candidate_index[candidate];
 		if (state->candidate_sign[j] == 0)
 			continue;
 		theta = state->breakpoint[j];
 		relaxed = minimum + 1e-12 * (1. + __lp_simplex_ABS__(minimum));
 		if (theta <= relaxed &&
-		    ((!stable_order &&
-		      (__lp_simplex_ABS__(state->alpha[j]) > best_pivot ||
-		       (__lp_simplex_ABS__(state->alpha[j]) == best_pivot &&
-		        (q < 0 || j < q)))) ||
-		     (stable_order &&
-		      (pricing_significantly_greater(
-			__lp_simplex_ABS__(state->alpha[j]), best_pivot) ||
-		       (pricing_nearly_equal(
-			__lp_simplex_ABS__(state->alpha[j]), best_pivot) &&
-		        (q < 0 || j < q)))))) {
+			((!stable_order &&
+				 (__lp_simplex_ABS__(state->alpha[j]) >
+						 best_pivot ||
+					 (__lp_simplex_ABS__(state->alpha[j]) ==
+							 best_pivot &&
+						 (q < 0 || j < q)))) ||
+				(stable_order &&
+					(pricing_significantly_greater(
+						 __lp_simplex_ABS__(
+							 state->alpha[j]),
+						 best_pivot) ||
+						(pricing_nearly_equal(
+							 __lp_simplex_ABS__(
+								 state->alpha
+									 [j]),
+							 best_pivot) &&
+							(q < 0 || j < q)))))) {
 			best_pivot = __lp_simplex_ABS__(state->alpha[j]);
 			q = j;
 			*chosen_theta = theta;

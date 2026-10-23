@@ -33,7 +33,7 @@ endif()
 # Numerical regressions which exercise the raw-model recovery and alternate
 # dual-crash paths.  Keep these as individual tests so a future failure names
 # the affected model directly.
-foreach(model IN ITEMS 25fv47 agg2 bnl1 etamacro grow22 maros scfxm1 share1b)
+foreach(model IN ITEMS 25fv47 agg2 bnl1 etamacro grow22 maros perold pilot.ja pilot.we pilot87 qap8 scfxm1 share1b tuff)
 	if(BUILD_TESTING AND
 	   EXISTS "${PROJECT_SOURCE_DIR}/data/netlib/feasible/${model}.mps")
 		add_test(
@@ -43,3 +43,11 @@ foreach(model IN ITEMS 25fv47 agg2 bnl1 etamacro grow22 maros scfxm1 share1b)
 		)
 	endif()
 endforeach()
+
+add_executable(pan_probe pan_probe.c)
+target_include_directories(pan_probe PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(pan_probe PRIVATE lp_simplex)
+
+add_executable(pan_native_certificate pan_native_certificate.c)
+target_include_directories(pan_native_certificate PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(pan_native_certificate PRIVATE lp_simplex)
