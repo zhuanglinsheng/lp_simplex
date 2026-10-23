@@ -90,6 +90,7 @@ set(SOURCES
 	src/core/simplex_problem.c
 	src/core/simplex_scaling.c
 	src/presolve/simplex_presolve.c
+	src/presolve/simplex_presolve_dominance.c
 	src/presolve/simplex_presolve_activity.c
 	src/presolve/simplex_presolve_postsolve.c
 	src/presolve/simplex_presolve_profile.c

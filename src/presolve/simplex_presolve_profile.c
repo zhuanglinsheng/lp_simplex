@@ -31,6 +31,7 @@ void simplex_presolve_print_profile(
 		"presolve: removed rows=%d columns=%d "
 		"[fixed=%d empty=%d singleton-col=%d singleton-ineq-col=%d "
 		"singleton-row=%d redundant-row=%d duplicate-row=%d "
+		"dominated-row=%d dominated-column=%d "
 		"forcing-row=%d forced-column=%d doubleton=%d "
 		"singleton-column=%d implied-free-column=%d "
 		"singleton-projection=%d tightened=%d epochs=%d "
@@ -40,7 +41,8 @@ void simplex_presolve_print_profile(
 		stats->fixed_columns, stats->empty_columns,
 		stats->singleton_columns, stats->singleton_inequality_columns,
 		stats->singleton_rows, stats->redundant_rows,
-		stats->duplicate_rows, stats->forcing_rows,
+		stats->duplicate_rows, stats->dominated_rows,
+		stats->dominated_columns, stats->forcing_rows,
 		stats->forced_columns, stats->doubleton_rows,
 		stats->singleton_column_rows, stats->implied_free_columns,
 		stats->singleton_projection_columns, stats->tightened_bounds,

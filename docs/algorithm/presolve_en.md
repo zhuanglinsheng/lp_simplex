@@ -60,6 +60,16 @@ imply tighter bounds on $x_j$; division reverses the inequalities when $a_{ij}<0
 
 If two rows satisfy $a_{kj}=\lambda a_{ij}$ for all $j$, with $\lambda\ne0$, divide the bounds of row $k$ by $\lambda$ and intersect them with those of row $i$, exchanging endpoints when $\lambda<0$. An empty intersection proves infeasibility; otherwise, retain the stronger common interval.
 
+### 3.1 Dominance and preservation of the optimum
+
+For nonnegative variables, negate less-than-or-equal rows to obtain covering inequalities. If $0\le a\le d$ componentwise and $b\ge e$, then $a^Tx\ge b$ implies $d^Tx\ge e$, so the latter row can be deleted. Coefficients need not be binary and right-hand sides need not coincide.
+
+For minimization, suppose column $k$ costs no more than column $j$, and decreasing $x_j$ while increasing $x_k$ equally never weakens an inequality or changes an equality activity. If $k$ has no upper bound, $j$ can be fixed at its finite lower bound. This rule permits signed coefficients; coefficients on equality rows must match.
+
+A finite upper bound on $k$ invalidates that argument in general. The implementation permits clipping the transfer only under sufficient conditions: $j$ has lower bound zero, both costs are nonnegative, every affected row is a monotone covering row on nonnegative variables, and $k$ at its upper bound can satisfy every affected row alone. Clipping an overflowing transfer then preserves coverage without increasing cost. Insufficient capacity, negative costs, or incompatible signs cannot use this bounded rule.
+
+Column fixing preserves the optimal value and at least one optimum, not every original feasible point or every optimum. Existing postsolve restores fixed values without aggregating remaining column capacities. The implementation uses exact coefficient comparisons and checks capacity-product rounding. Its bit index is capped at 32 MiB; larger models use sparse posting lists and support fingerprints. Fingerprints only reject impossible candidates; hash collisions never authorize deletion. Compact postings retain movable columns and prioritize cost and support size, while acceptance still checks original coefficients, costs, bounds, and row directions. All fixed-point passes share a finite search budget. Unsorted or duplicate-index sparse views skip these rules, and budget exhaustion only skips reductions that have not been proved.
+
 ## 4. Equality substitution and projection
 
 An equality with nonzero coefficient $a_{ij}$ gives

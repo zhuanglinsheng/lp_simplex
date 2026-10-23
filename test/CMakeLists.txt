@@ -62,6 +62,14 @@ target_include_directories(test_presolve PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DI
 target_link_libraries(test_presolve PRIVATE lp_simplex)
 add_test(NAME test_presolve COMMAND test_presolve)
 
+add_executable(test_presolve_dominance test_presolve_dominance.c)
+target_include_directories(test_presolve_dominance PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_presolve_dominance PRIVATE lp_simplex)
+if(NOT MSVC)
+    target_link_libraries(test_presolve_dominance PRIVATE m)
+endif()
+add_test(NAME test_presolve_dominance COMMAND test_presolve_dominance)
+
 add_executable(test_scaling test_scaling.c)
 target_include_directories(test_scaling PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_scaling PRIVATE lp_simplex)

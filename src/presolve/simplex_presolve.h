@@ -45,6 +45,8 @@ struct simplex_PresolveStats {
 	int singleton_rows;
 	int redundant_rows;
 	int duplicate_rows;
+	int dominated_rows;
+	int dominated_columns;
 	int forcing_rows;
 	int forced_columns;
 	int doubleton_rows;

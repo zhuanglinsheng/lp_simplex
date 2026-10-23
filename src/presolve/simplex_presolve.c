@@ -10,6 +10,7 @@
 
 #include "simplex_presolve.h"
 #include "simplex_presolve_activity.h"
+#include "simplex_presolve_dominance.h"
 #include "simplex_presolve_queue.h"
 #include "simplex_presolve_rules.h"
 #include "simplex_presolve_substitution.h"
@@ -437,6 +438,7 @@ struct presolve_Workspace {
 	struct simplex_PresolveQueue column_queue;
 	struct simplex_PresolveQueue row_queue;
 	double propagation_tolerance;
+	size_t dominance_work;
 };
 
 
@@ -465,6 +467,10 @@ static int presolve_workspace_create(struct simplex_Presolve *presolve,
 	int i, j, k;
 
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
+	/* Shared across fixed-point passes, including failed candidate checks.
+	 * A capped search is optional and never changes acceptance tolerances. */
+	workspace->dominance_work = 64 *
+		((size_t)model->nnz + (size_t)model->m + (size_t)model->n);
 	presolve->stats.exact_bound_propagation =
 		model->m <= 2048 && model->n >= 5 * model->m;
 	workspace->propagation_tolerance =
@@ -800,6 +806,7 @@ static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 {
 	for (;;) {
 		int column, row, duplicate_removed, status;
+		int dominated_rows, dominated_columns;
 		presolve->stats.queue_epochs++;
 		while (workspace->column_queue.count != 0 ||
 			workspace->row_queue.count != 0) {
@@ -824,10 +831,19 @@ static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 			workspace->adjusted_rhs, tolerance, &duplicate_removed);
 		if (status != lp_simplex_Success)
 			return status;
-		if (duplicate_removed == 0)
-			return lp_simplex_Success;
 		presolve->stats.removed_rows += duplicate_removed;
 		presolve->stats.duplicate_rows += duplicate_removed;
+		simplex_presolve_dominance(model, workspace->bounds,
+			workspace->adjusted_rhs, workspace->row_active,
+			workspace->column_active, workspace->row_degree,
+			workspace->column_degree, &workspace->dominance_work,
+			&dominated_rows, &dominated_columns);
+		presolve->stats.removed_rows += dominated_rows;
+		presolve->stats.dominated_rows += dominated_rows;
+		presolve->stats.dominated_columns += dominated_columns;
+		if (duplicate_removed == 0 && dominated_rows == 0 &&
+			dominated_columns == 0)
+			return lp_simplex_Success;
 		for (column = 0; column < model->n; column++)
 			if (workspace->column_active[column])
 				(void)simplex_presolve_queue_push(
