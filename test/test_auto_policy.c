@@ -57,6 +57,52 @@ static int leases(void)
 			&h, i, 5000, i % 3, i / 128, 1., 1e-7, 0);
 		CHECK(h.limit <= 5000);
 	}
+	/* Progress survives the former 16,384-pivot cutoff in one live solve. */
+	memset(&h, 0, sizeof(h));
+	for (i = 0; i <= 32768; i += 128)
+		CHECK(!simplex_dual_explore_yield(
+			&h, i, 60000, 0, 0, 100000. - i, 1e-7, 0));
+	CHECK(h.limit > 32768);
+	/* An upward excursion followed by return to the starting value is
+	 * not improvement over the beginning of the observation lease. */
+	memset(&h, 0, sizeof(h));
+	for (i = 0; i < 1024; i += 128)
+		CHECK(!simplex_dual_explore_yield(
+			&h, i, 10000, 0, 0, i == 512 ? 200. : 100., 1e-7, 0));
+	CHECK(simplex_dual_explore_yield(&h, 1024, 10000, 0, 0, 100., 1e-7, 0));
+	/* Changing working-bound epochs must not erase a plateau. */
+	memset(&h, 0, sizeof(h));
+	for (i = 0; i < 1024; i += 128)
+		CHECK(!simplex_dual_explore_yield(
+			&h, i, 10000, 0, i / 128, 100., 1e-7, 0));
+	CHECK(simplex_dual_explore_yield(&h, 1024, 10000, 0, 9, 100., 1e-7, 0));
+	/* Fewer violated rows is useful feasibility progress even when their
+	 * aggregate magnitude grows. A later plateau still has to yield. */
+	memset(&h, 0, sizeof(h));
+	for (i = 0; i <= 1024; i += 128)
+		CHECK(!simplex_dual_explore_yield_pair(&h, i, 10000, 0, 0,
+			100. + i, 1e-7, 0, 100. - .02 * i, .5));
+	CHECK(h.limit == 2048);
+	for (i = 1152; i < 2048; i += 128)
+		CHECK(!simplex_dual_explore_yield_pair(
+			&h, i, 10000, 0, i, 2000., 1e-7, 0, 79.52, .5));
+	CHECK(simplex_dual_explore_yield_pair(
+		&h, 2048, 10000, 0, 2048, 2000., 1e-7, 0, 79.52, .5));
+	/* Objective progress works with negative objectives, too. */
+	memset(&h, 0, sizeof(h));
+	for (i = 0; i <= 1024; i += 128)
+		CHECK(!simplex_dual_explore_yield_pair(&h, i, 10000, 10, 0,
+			100., 1e-7, 0, -100. - .02 * i, 1e-5));
+	CHECK(h.limit == 2048);
+	/* A numerical Phase-I repair may get finite grace, never a fresh
+	 * allowance for every epoch. Genuine progress remains uncapped. */
+	memset(&h, 0, sizeof(h));
+	h.recovery_until = 4096;
+	for (i = 0; i < 4096; i += 128)
+		CHECK(!simplex_dual_explore_yield(
+			&h, i, 10000, 0, i, 100., 1e-7, 0));
+	CHECK(simplex_dual_explore_yield(
+		&h, 4096, 10000, 0, 4096, 100., 1e-7, 0));
 	return 1;
 }
 

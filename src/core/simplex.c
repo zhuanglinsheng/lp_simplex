@@ -12,6 +12,8 @@
 #include "simplex_dual.h"
 #include "simplex_pan.h"
 #include "simplex_auto.h"
+#include "simplex_pan_phase1.h"
+#include "simplex_pan_basis.h"
 #include "simplex_presolve.h"
 #include "simplex_singleton_dual.h"
 #include "simplex_tableau_solver.h"
@@ -450,6 +452,93 @@ static int simplex_pan_original_form_smaller(
 }
 
 
+/* Presolve may replace a cheap equality feasibility problem by many finite
+ * width rows. Compare that expansion before choosing an initializer. NNLS
+ * returns only a candidate: validate both the original and reduced models. */
+static int simplex_auto_original_seed(const struct lp_Model *model,
+	const struct simplex_Presolve *presolve,
+	const struct lp_simplex_Options *o, double *original, double *reduced,
+	int *iterations)
+{
+	struct simplex_Problem raw;
+	struct simplex_PanStandard a;
+	struct simplex_PanBasis basis;
+	const struct simplex_Problem *p = presolve->reduced;
+	size_t expanded_rows = (size_t)p->rows;
+	double *z;
+	int j, limit, status, state, valid = 0;
+
+	*iterations = 0;
+	for (j = 0; j < p->columns; j++)
+		if (p->bounds[j].b_type == optm_BOUND_T_BS &&
+			p->bounds[j].ub > p->bounds[j].lb)
+			expanded_rows++;
+	if (expanded_rows <= 2 * (size_t)model->m ||
+		o->iteration_limit < SIMPLEX_AUTO_PROBE_CAP ||
+		!simplex_pan_original_form_smaller(model, p) ||
+		simplex_problem_from_model(&raw, model))
+		return 0;
+	if (!simplex_auto_route_allowed(&raw, SIMPLEX_AUTO_CLASSIC)) {
+		simplex_problem_destroy(&raw);
+		return 0;
+	}
+	if (simplex_pan_standard_create(&a, &raw)) {
+		simplex_problem_destroy(&raw);
+		return 0;
+	}
+	if (simplex_pan_basis_create(&basis, &a, o->pivot_tolerance)) {
+		simplex_pan_standard_destroy(&a);
+		simplex_problem_destroy(&raw);
+		return 0;
+	}
+	z = (double *)lp_simplex_malloc(
+		((size_t)a.columns + 1) * sizeof(double));
+	if (z) {
+		lp_simplex_memset(
+			z, 0, ((size_t)a.columns + 1) * sizeof(double));
+		basis.singleton_crash = 1;
+		limit = o->iteration_limit / 16;
+		if (limit > 8 * SIMPLEX_AUTO_PROBE_CAP)
+			limit = 8 * SIMPLEX_AUTO_PROBE_CAP;
+		state = simplex_pan_phase1_run(&basis, z, o->primal_tolerance,
+			o->dual_tolerance, limit, iterations, &status);
+		simplex_pan_standard_recover(&a, z, original);
+		if (!state && simplex_problem_primal_infeasibility(
+				      &raw, original) <= o->primal_tolerance) {
+			for (j = 0; j < p->columns; j++)
+				reduced[j] = original[presolve->column_map[j]];
+			valid = simplex_problem_primal_infeasibility(
+					p, reduced) <= o->primal_tolerance;
+		}
+		lp_simplex_free(z);
+	}
+	if (getenv("LP_SIMPLEX_PROFILE"))
+		fprintf(stderr,
+			"auto: original-feasibility expanded-rows=%lu original-rows=%d work=%d accepted=%d\n",
+			(unsigned long)expanded_rows, raw.rows, *iterations,
+			valid);
+	simplex_pan_basis_destroy(&basis);
+	simplex_pan_standard_destroy(&a);
+	simplex_problem_destroy(&raw);
+	return valid;
+}
+
+
+struct simplex_AutoSeedContext {
+	const struct lp_Model *model;
+	const struct simplex_Presolve *presolve;
+	double *original;
+};
+static int simplex_auto_initialize(void *context,
+	const struct lp_simplex_Options *o, double *seed, int *work)
+{
+	const struct simplex_AutoSeedContext *c =
+		(const struct simplex_AutoSeedContext *)context;
+	return simplex_auto_original_seed(
+		c->model, c->presolve, o, c->original, seed, work);
+}
+
+
 static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
 	struct lp_simplex_Result *result)
@@ -500,14 +589,23 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 		/* Presolve uses outward-rounded bounds for safe elimination.  The crash
 		 * phase then derives exact working bounds on the reduced matrix; these
 		 * bounds guide initialization but do not authorize more elimination. */
-		state = options->algorithm == lp_simplex_ALGORITHM_AUTO
-				? simplex_auto_solve_problem(presolve.reduced,
-					  options, reduced_x, result, 1)
-			: options->algorithm == lp_simplex_ALGORITHM_PAN_BDA
-				? simplex_pan_solve_problem(presolve.reduced,
-					  options, reduced_x, result)
-				: simplex_dual_solve_problem(presolve.reduced,
-					  options, reduced_x, NULL, result, 1);
+		if (options->algorithm == lp_simplex_ALGORITHM_AUTO) {
+			struct simplex_AutoSeedContext context;
+			struct simplex_AutoInitializer initializer;
+
+			context.model = model;
+			context.presolve = &presolve;
+			context.original = x;
+			initializer.context = &context;
+			initializer.run = simplex_auto_initialize;
+			state = simplex_auto_solve_initialized(presolve.reduced,
+				options, reduced_x, result, 1, &initializer);
+		} else if (options->algorithm == lp_simplex_ALGORITHM_PAN_BDA)
+			state = simplex_pan_solve_problem(
+				presolve.reduced, options, reduced_x, result);
+		else
+			state = simplex_dual_solve_problem(presolve.reduced,
+				options, reduced_x, NULL, result, 1);
 		if (result->dual_residual_space == lp_simplex_RESIDUAL_ORIGINAL)
 			result->dual_residual_space =
 				lp_simplex_RESIDUAL_PRESOLVED;

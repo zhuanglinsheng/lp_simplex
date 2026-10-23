@@ -1004,6 +1004,13 @@ static int dual_primal_cleanup_impl(struct simplex_DualState *state,
 	 * by the shared recovery controller. Exact zeros remain a separate metric. */
 	int degenerate_steps = 0;
 	long cleanup_zero_steps = 0, cleanup_flips = 0;
+	int use_devex =
+		weight != NULL && getenv("LP_SIMPLEX_CLEANUP_DEVEX") != NULL;
+	int pricing_checkpoint = 0;
+	long pricing_zeros = 0;
+	double pricing_residual = dual_max_dual_infeasibility(state);
+
+	stats[4] = use_devex;
 
 	while (state->iterations < state->options->iteration_limit) {
 		long double objective_before, objective_activity;
@@ -1047,7 +1054,7 @@ static int dual_primal_cleanup_impl(struct simplex_DualState *state,
 			score = polish_bounds ? violation * dual_bound_weight(
 								    state, i)
 					      : violation;
-			if (weight != NULL && !bland_mode)
+			if (use_devex && !bland_mode)
 				score = violation / sqrt(weight[i]);
 			if (violation <= 0. || score <= entering_violation ||
 				(!polish_bounds &&
@@ -1073,17 +1080,47 @@ static int dual_primal_cleanup_impl(struct simplex_DualState *state,
 			return lp_simplex_EXIT_SUCCESS;
 		}
 
+		/* Zero pivots alone do not imply failure. Trial Devex only when a
+		 * complete observation window also fails to reduce dual error. The
+		 * basis and primal point stay live; the normal lease bounds the trial. */
+		if (!use_devex && weight &&
+			cleanup_iterations - pricing_checkpoint >=
+				SIMPLEX_DUAL_PROGRESS_WINDOW) {
+			double error = dual_max_dual_infeasibility(state);
+
+			if (error > state->options->dual_tolerance &&
+				error >= .99 * pricing_residual &&
+				2 * (cleanup_zero_steps - pricing_zeros) >=
+					cleanup_iterations -
+						pricing_checkpoint) {
+				use_devex = 1;
+				stats[4] = 1;
+				simplex_primal_devex_initialize(
+					state, weight, ref);
+				if (state->profile.enabled)
+					fprintf(stderr,
+						"auto: cleanup pricing=devex reason=stagnant-dual-and-zero-pivots iterations=%d\n",
+						state->iterations);
+			}
+			pricing_checkpoint = cleanup_iterations;
+			pricing_zeros = cleanup_zero_steps;
+			pricing_residual = error;
+		}
+
 		/* Original-objective cleanup uses a dual residual, not the
 		 * Phase-I feasibility merit. Sample only at completed pivots. */
 		if (state->iterations - state->exploration.checkpoint >=
 				SIMPLEX_DUAL_PROGRESS_WINDOW &&
 			dual_auto_checkpoint(state,
 				dual_max_dual_infeasibility(state),
-				10 + polish_bounds,
+				10 + polish_bounds + (use_devex ? 2 : 0),
 				state->options->dual_tolerance,
 				state->recovery.primal_history
 					.repeated_states)) {
-			*status = lp_simplex_ExceedIterLimit;
+			*status = state->exploration.reason ==
+						  SIMPLEX_DUAL_EXPLORE_NUMERICAL
+					  ? lp_simplex_PrecisionError
+					  : lp_simplex_ExceedIterLimit;
 			return lp_simplex_EXIT_FAILURE;
 		}
 
@@ -1226,10 +1263,9 @@ static int dual_primal_cleanup_impl(struct simplex_DualState *state,
 			*status = lp_simplex_Unboundedness;
 			return lp_simplex_EXIT_FAILURE;
 		}
-		if (weight != NULL &&
-			simplex_primal_devex_update(state, weight, ref,
-				entering,
-				leaving_position) == lp_simplex_EXIT_FAILURE) {
+		if (use_devex && simplex_primal_devex_update(state, weight, ref,
+					 entering, leaving_position) ==
+					 lp_simplex_EXIT_FAILURE) {
 			*status = lp_simplex_PrecisionError;
 			return lp_simplex_EXIT_FAILURE;
 		}
@@ -1287,20 +1323,26 @@ static int dual_primal_cleanup_impl(struct simplex_DualState *state,
 int simplex_dual_primal_cleanup(struct simplex_DualState *state, int *status)
 {
 	int result, restored, i;
-	long stats[4] = {0, 0, 0, 0};
+	long stats[5] = {0, 0, 0, 0, 0};
 	double *storage = NULL;
 	double *weight = NULL, *ref = NULL;
 
-	if (getenv("LP_SIMPLEX_CLEANUP_DEVEX") != NULL) {
+	if (getenv("LP_SIMPLEX_CLEANUP_DEVEX") != NULL ||
+		state->options->algorithm == lp_simplex_ALGORITHM_AUTO) {
 		storage = (double *)lp_simplex_malloc(
 			(size_t)state->variables * 2 * sizeof(double));
 		if (storage == NULL) {
-			*status = lp_simplex_MemoryAllocError;
-			return lp_simplex_EXIT_FAILURE;
+			if (getenv("LP_SIMPLEX_CLEANUP_DEVEX") != NULL) {
+				*status = lp_simplex_MemoryAllocError;
+				return lp_simplex_EXIT_FAILURE;
+			}
+			/* Adaptive pricing is optional; retain the live legacy path
+			 * if its extra workspace cannot be allocated. */
+		} else {
+			weight = storage;
+			ref = storage + state->variables;
+			simplex_primal_devex_initialize(state, weight, ref);
 		}
-		weight = storage;
-		ref = storage + state->variables;
-		simplex_primal_devex_initialize(state, weight, ref);
 	}
 	simplex_recovery_begin_primal(&state->recovery);
 	simplex_degeneracy_reset_state(&state->degeneracy);
@@ -1357,8 +1399,8 @@ RESTORE:
 			"dual profile: cleanup summary pricing=%s iterations=%ld "
 			"zero=%ld bland=%ld max_zero_streak=%ld result=%d status=%d "
 			"stalls=%ld cycles=%ld bounds=%ld/%ld repairs=%ld\n",
-			weight != NULL ? "devex" : "dantzig", stats[0],
-			stats[1], stats[2], stats[3], result,
+			stats[4] ? "devex" : "dantzig", stats[0], stats[1],
+			stats[2], stats[3], result,
 			result == lp_simplex_EXIT_SUCCESS ? lp_simplex_Success
 							  : *status,
 			state->recovery.primal_stalls,
@@ -2001,29 +2043,57 @@ static int dual_commit_iteration(struct simplex_DualState *state, int *status,
 static int dual_auto_checkpoint(struct simplex_DualState *s, double residual,
 	int phase, double noise, long cycles)
 {
-	int old_limit, yield;
+	int old_limit, yield, j;
+	double secondary, secondary_noise;
 
 	if (s->options->algorithm != lp_simplex_ALGORITHM_AUTO ||
 		s->stop_at_primal_feasible)
 		return 0;
+	/* Material Phase-I cost repairs temporarily invalidate monotone merit
+	 * comparisons. Give that recovery a finite initial allowance; symbolic
+	 * tie perturbations alone do not qualify, and epochs never reset it. */
+	if (phase == 0 && s->cost_shift_count > 0 &&
+		!s->exploration.recovery_until)
+		s->exploration.recovery_until = SIMPLEX_DUAL_RECOVERY_ALLOWANCE;
 	old_limit = s->exploration.limit;
-	yield = simplex_dual_explore_yield(&s->exploration, s->iterations,
+	secondary = (double)s->feasibility.count;
+	secondary_noise = .5;
+	if (phase != 0) {
+		long double objective = 0.;
+
+		for (j = 0; j < s->variables; j++)
+			objective +=
+				(long double)s->original_cost[j] * s->value[j];
+		secondary = (double)objective;
+		secondary_noise =
+			s->options->dual_tolerance * (1. + fabs(secondary));
+	}
+	yield = simplex_dual_explore_yield_pair(&s->exploration, s->iterations,
 		s->options->iteration_limit, phase,
 		s->recovery.bound_epochs + 2L * s->stable_phase_one, residual,
-		noise, cycles);
+		noise, cycles, secondary, secondary_noise);
 	if (s->profile.enabled && (yield || old_limit != s->exploration.limit))
 		fprintf(stderr,
-			"auto: dual-checkpoint action=%s iterations=%d lease=%d hard=%d phase=%d residual=%.12g\n",
+			"auto: dual-checkpoint action=%s iterations=%d lease=%d hard=%d phase=%d residual=%.12g secondary=%.12g reason=%d\n",
 			yield ? "yield" : "continue", s->iterations,
 			s->exploration.limit, s->options->iteration_limit,
-			phase, residual);
+			phase, residual, secondary, s->exploration.reason);
 	return yield;
 }
 
 
 static int dual_auto_yield(struct simplex_DualState *s)
 {
-	return dual_auto_checkpoint(s, simplex_dual_feasibility_merit(s), 0,
+	double merit = simplex_dual_feasibility_merit(s);
+
+	/* Incremental subtraction can leave a negative aggregate although every
+	 * row merit is nonnegative. Rebuild from physical row violations before
+	 * making a scheduling decision; this does not relax feasibility. */
+	if (merit < 0.) {
+		simplex_dual_feasibility_rebuild(s);
+		merit = simplex_dual_feasibility_merit(s);
+	}
+	return dual_auto_checkpoint(s, merit, 0,
 		(double)s->rows * s->options->primal_tolerance,
 		s->degeneracy.repeated_states);
 }
@@ -2046,7 +2116,10 @@ int simplex_dual_continue(struct simplex_DualState *state, int *status)
 		int step;
 
 		if (dual_auto_yield(state)) {
-			*status = lp_simplex_ExceedIterLimit;
+			*status = state->exploration.reason ==
+						  SIMPLEX_DUAL_EXPLORE_NUMERICAL
+					  ? lp_simplex_PrecisionError
+					  : lp_simplex_ExceedIterLimit;
 			return lp_simplex_EXIT_FAILURE;
 		}
 		if (state->pan_enabled && state->degeneracy.recovery_pending) {

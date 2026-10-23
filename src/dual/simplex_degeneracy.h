@@ -95,18 +95,33 @@ int simplex_degeneracy_record_state(struct simplex_DegeneracyControl *control,
 
 #define SIMPLEX_DUAL_PROGRESS_WINDOW 128
 #define SIMPLEX_DUAL_EXPLORE_INITIAL 1024
-#define SIMPLEX_DUAL_EXPLORE_MAX (16 * SIMPLEX_DUAL_EXPLORE_INITIAL)
+#define SIMPLEX_DUAL_RECOVERY_ALLOWANCE (16 * SIMPLEX_DUAL_EXPLORE_INITIAL)
 
 /* Bounded leases inside one live solve, never a restart. A lease can renew
  * on local residual reduction or once after a change of measurement space.
  * The hard budget belongs to the caller, so oscillations cannot renew forever. */
+enum simplex_DualExploreReason {
+	SIMPLEX_DUAL_EXPLORE_CONTINUE = 0,
+	SIMPLEX_DUAL_EXPLORE_NUMERICAL,
+	SIMPLEX_DUAL_EXPLORE_CYCLE,
+	SIMPLEX_DUAL_EXPLORE_STAGNATION
+};
 struct simplex_DualExplore {
-	int checkpoint, limit, phase, initialized, samples;
+	int checkpoint, limit, phase, initialized;
+	int recovery_until, reason;
 	long epoch, cycles;
-	double peak;
+	/* Separate measurement spaces survive working-bound recovery epochs. */
+	double baseline[5], secondary[5];
+	unsigned int seen, lease_seen;
 };
 int simplex_dual_explore_yield(struct simplex_DualExplore *history,
 	int iterations, int hard_limit, int phase, long epoch, double residual,
 	double noise, long cycles);
+
+/* A second, independently scaled progress signal (violation count or original
+ * objective) can justify continuation even while the maximum residual rises. */
+int simplex_dual_explore_yield_pair(struct simplex_DualExplore *history,
+	int iterations, int hard_limit, int phase, long epoch, double residual,
+	double noise, long cycles, double secondary, double secondary_noise);
 
 #endif

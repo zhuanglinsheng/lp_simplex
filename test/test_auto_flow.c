@@ -32,6 +32,8 @@ static int dual_mock(const struct simplex_Problem *p,
 	r->dual_infeasibility = 1.;
 	r->status = lp_simplex_ExceedIterLimit;
 	x[0] = x[1] = 0.;
+	if (scenario == 8)
+		r->iterations = 2;
 	if (scenario == 0) {
 		r->iterations = 1;
 		r->status = lp_simplex_Infeasibility;
@@ -82,7 +84,7 @@ static int hybrid_mock(const struct simplex_Problem *p,
 	r->status = lp_simplex_ExceedIterLimit;
 	x[0] = .75;
 	x[1] = .25;
-	if (scenario == 1) {
+	if (scenario == 1 || scenario == 8) {
 		x[0] = 1.;
 		x[1] = 0.;
 		r->iterations = 3;
@@ -106,6 +108,22 @@ static int hybrid_mock(const struct simplex_Problem *p,
 	}
 	spent += r->iterations;
 	return r->status == lp_simplex_Success ? 0 : -1;
+}
+
+
+static int initializer_calls, initializer_invalid;
+static int initialize_mock(
+	void *context, const struct lp_simplex_Options *o, double *x, int *work)
+{
+	int *called_after_dual = (int *)context;
+
+	initializer_calls++;
+	*called_after_dual = dual_calls == 1 && hybrid_calls == 0;
+	*work = o->iteration_limit > 4 ? 4 : o->iteration_limit;
+	spent += *work;
+	x[0] = .5;
+	x[1] = initializer_invalid ? HUGE_VAL : .5;
+	return 1;
 }
 
 
@@ -173,6 +191,29 @@ int main(void)
 			printf("AUTO flow scenario=%d state=%d status=%d spent=%d reported=%d calls=%d/%d seed=%d x1=%g\n",
 				scenario, state, r.status, spent, r.iterations,
 				dual_calls, hybrid_calls, seed_seen, x[1]);
+			return 1;
+		}
+	}
+	/* An alternate initializer runs after dual yield, consumes shared work,
+	 * and may hand off only an independently validated point. */
+	for (initializer_invalid = 0; initializer_invalid <= 1;
+		initializer_invalid++) {
+		struct simplex_AutoInitializer initializer;
+		int ordered = 0;
+
+		scenario = 8;
+		dual_calls = hybrid_calls = seed_seen = spent = 0;
+		initializer_calls = 0;
+		o.iteration_limit = 160;
+		initializer.context = &ordered;
+		initializer.run = initialize_mock;
+		state = simplex_auto_run_initialized(
+			&p, &o, x, &r, 0, &k, &initializer);
+		if (state || r.status != lp_simplex_Success ||
+			initializer_calls != 1 || !ordered ||
+			seed_seen != !initializer_invalid ||
+			r.iterations != spent || spent != 9) {
+			puts("AUTO alternate initializer contract failed");
 			return 1;
 		}
 	}

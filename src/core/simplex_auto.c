@@ -274,11 +274,12 @@ int simplex_auto_route_solve(int route, const struct simplex_Problem *p,
 }
 
 
-int simplex_auto_run_routes(const struct simplex_Problem *p,
+static int auto_run_routes(const struct simplex_Problem *p,
 	const struct lp_simplex_Options *o, double *x,
 	struct lp_simplex_Result *result, int propagate_bounds,
 	const struct simplex_AutoKernels *kernels,
-	const struct simplex_AutoRoutes *routes)
+	const struct simplex_AutoRoutes *routes,
+	const struct simplex_AutoInitializer *initializer)
 {
 	static const int order[SIMPLEX_AUTO_ROUTE_COUNT] = {
 		SIMPLEX_AUTO_SINGLETON, SIMPLEX_AUTO_HYBRID,
@@ -306,24 +307,20 @@ int simplex_auto_run_routes(const struct simplex_Problem *p,
 		result->status = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
 	}
-	/* The first lease is an observation window, not a compulsory exit.
-	 * At most four doublings and 1/8 of total work can be spent exploring;
-	 * if no alternative is resource-admissible, run dual without probing. */
-	probe = o->iteration_limit < 16 ? o->iteration_limit
-					: o->iteration_limit / 8;
-	if (probe > SIMPLEX_AUTO_PROBE_MAX)
-		probe = SIMPLEX_AUTO_PROBE_MAX;
+	/* Progress renews the live basis. Keep a recovery reserve, rather than
+	 * imposing an absolute pivot cutoff on a progressing solve. */
+	probe = o->iteration_limit - o->iteration_limit / 8;
 	if (!count) {
 		probe = o->iteration_limit;
 		stage.algorithm = lp_simplex_ALGORITHM_DUAL_REVISED;
 	}
 	stage.iteration_limit = probe;
 	auto_reset(&current);
+	index = -1;
 	auto_trace("dual-explore", "start", probe, used, 0);
 	for (j = 0; j < p->columns; j++)
 		x[j] = HUGE_VAL;
 	state = kernels->dual(p, &stage, x, NULL, &current, propagate_bounds);
-	index = -1;
 	for (;;) {
 		/* A malformed kernel result must not overflow/reset the shared budget
 		 * or authorize success. Charge its entire granted lease. */
@@ -363,7 +360,46 @@ int simplex_auto_run_routes(const struct simplex_Problem *p,
 		remaining = o->iteration_limit - used;
 		if (remaining <= 0 || route == -2 || !count)
 			break;
-		reason = auto_reason(current.status);
+		if (route == -1 && !have_best && initializer) {
+			struct lp_simplex_Options initialization = *o;
+			int work = 0, accepted;
+
+			initialization.iteration_limit = remaining;
+			accepted = initializer->run(initializer->context,
+				&initialization, best, &work);
+			if (work < 0 || work > remaining) {
+				work = remaining;
+				accepted = 0;
+			}
+			used += work;
+			remaining -= work;
+			if (accepted && auto_feasible(p, best, o, &cost)) {
+				have_best = 1;
+				best_cost = cost;
+				best_result.objective = cost;
+				best_result.dual_infeasibility = NAN;
+				best_result.dual_residual_space =
+					lp_simplex_RESIDUAL_UNAVAILABLE;
+				best_result.primal_infeasibility =
+					simplex_problem_primal_infeasibility(
+						p, best);
+				/* A validated point supersedes singleton feasibility work. */
+				index = 0;
+			}
+			auto_trace("feasibility-initializer",
+				have_best ? "validated-seed"
+					  : "no-validated-seed",
+				work, used, have_best);
+			if (remaining <= 0)
+				break;
+		}
+		reason = route == -1 &&
+					 current.status ==
+						 lp_simplex_ExceedIterLimit &&
+					 current.iterations <
+						 stage.iteration_limit
+				 ? "dual-progress-yield"
+				 : auto_reason(current.status);
 		/* Explicit QR is a different numerical representation, so only
 		 * retry it after failure of the implicit representation, not merely
 		 * because a work quota expired. Each route is attempted at most once. */
@@ -448,6 +484,17 @@ done:
 }
 
 
+int simplex_auto_run_routes(const struct simplex_Problem *p,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *result, int propagate_bounds,
+	const struct simplex_AutoKernels *kernels,
+	const struct simplex_AutoRoutes *routes)
+{
+	return auto_run_routes(
+		p, o, x, result, propagate_bounds, kernels, routes, NULL);
+}
+
+
 int simplex_auto_run(const struct simplex_Problem *p,
 	const struct lp_simplex_Options *o, double *x,
 	struct lp_simplex_Result *result, int propagate_bounds,
@@ -470,4 +517,31 @@ int simplex_auto_solve_problem(const struct simplex_Problem *p,
 	routes.solve = simplex_auto_route_solve;
 	return simplex_auto_run_routes(
 		p, o, x, result, propagate_bounds, &kernels, &routes);
+}
+
+
+int simplex_auto_solve_initialized(const struct simplex_Problem *p,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *result, int propagate_bounds,
+	const struct simplex_AutoInitializer *initializer)
+{
+	struct simplex_AutoKernels kernels;
+	struct simplex_AutoRoutes routes;
+
+	kernels.dual = simplex_dual_solve_problem;
+	kernels.hybrid = simplex_pan_bounded_solve;
+	routes.solve = simplex_auto_route_solve;
+	return auto_run_routes(p, o, x, result, propagate_bounds, &kernels,
+		&routes, initializer);
+}
+
+
+int simplex_auto_run_initialized(const struct simplex_Problem *p,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *result, int propagate_bounds,
+	const struct simplex_AutoKernels *kernels,
+	const struct simplex_AutoInitializer *initializer)
+{
+	return auto_run_routes(
+		p, o, x, result, propagate_bounds, kernels, NULL, initializer);
 }

@@ -17,7 +17,6 @@
 #include <lp_simplex/solve.h>
 
 #define SIMPLEX_AUTO_PROBE_CAP SIMPLEX_DUAL_EXPLORE_INITIAL
-#define SIMPLEX_AUTO_PROBE_MAX SIMPLEX_DUAL_EXPLORE_MAX
 #define SIMPLEX_AUTO_DENSE_BYTES (32UL * 1024UL * 1024UL)
 #define SIMPLEX_AUTO_CONVERSION_BYTES (64UL * 1024UL * 1024UL)
 
@@ -43,6 +42,17 @@ int simplex_auto_route_allowed(
 int simplex_auto_solve_problem(const struct simplex_Problem *problem,
 	const struct lp_simplex_Options *options, double *x,
 	struct lp_simplex_Result *result, int propagate_bounds);
+
+/* Optional feasibility search is invoked only after the live dual path
+ * yields without a feasible point. It cannot claim a terminal LP status. */
+struct simplex_AutoInitializer {
+	void *context;
+	int (*run)(void *, const struct lp_simplex_Options *, double *, int *);
+};
+int simplex_auto_solve_initialized(const struct simplex_Problem *problem,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result, int propagate_bounds,
+	const struct simplex_AutoInitializer *initializer);
 
 /* Injectable internal kernel boundary, also used for deterministic failure
  * tests. No callback/global state escapes a solve. */
@@ -74,5 +84,12 @@ int simplex_auto_run(const struct simplex_Problem *problem,
 	const struct lp_simplex_Options *options, double *x,
 	struct lp_simplex_Result *result, int propagate_bounds,
 	const struct simplex_AutoKernels *kernels);
+
+/* Injection boundary for initializer handoff and budget contract tests. */
+int simplex_auto_run_initialized(const struct simplex_Problem *problem,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result, int propagate_bounds,
+	const struct simplex_AutoKernels *kernels,
+	const struct simplex_AutoInitializer *initializer);
 
 #endif

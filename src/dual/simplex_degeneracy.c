@@ -322,48 +322,81 @@ int simplex_degeneracy_record_state(struct simplex_DegeneracyControl *control,
 }
 
 
-int simplex_dual_explore_yield(struct simplex_DualExplore *h, int iterations,
-	int hard_limit, int phase, long epoch, double residual, double noise,
-	long cycles)
+int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
+	int iterations, int hard_limit, int phase, long epoch, double residual,
+	double noise, long cycles, double secondary, double secondary_noise)
 {
-	int changed, next;
+	int changed, next, slot = phase == 0 ? 0 : phase - 9;
+	int secondary_progress;
+	unsigned int bit;
 
-	if (!isfinite(residual) || residual < 0.)
+	if (slot < 0 || slot > 4)
+		slot = 0;
+	bit = 1U << slot;
+
+	h->reason = SIMPLEX_DUAL_EXPLORE_CONTINUE;
+	if (!isfinite(residual) || residual < 0.) {
+		h->reason = SIMPLEX_DUAL_EXPLORE_NUMERICAL;
 		return 1;
+	}
 	if (!h->limit)
 		h->limit = hard_limit < SIMPLEX_DUAL_EXPLORE_INITIAL
 				   ? hard_limit
 				   : SIMPLEX_DUAL_EXPLORE_INITIAL;
+	if (!(h->seen & bit)) {
+		h->baseline[slot] = residual;
+		h->secondary[slot] = secondary;
+		h->seen |= bit;
+		/* The initial measurement starts the first observation lease. */
+		if (!h->initialized)
+			h->lease_seen |= bit;
+	}
 	changed = !h->initialized || h->phase != phase || h->epoch != epoch;
 	if (changed) {
 		h->initialized = 1;
 		h->phase = phase;
 		h->epoch = epoch;
-		h->peak = residual;
-		h->cycles = cycles;
-		h->samples = 0;
 		h->checkpoint = iterations;
 	}
-	if (iterations - h->checkpoint >= SIMPLEX_DUAL_PROGRESS_WINDOW) {
+	if (iterations - h->checkpoint >= SIMPLEX_DUAL_PROGRESS_WINDOW)
 		h->checkpoint = iterations;
-		h->samples++;
-		if (residual > h->peak)
-			h->peak = residual;
-	}
 	if (iterations < h->limit || iterations >= hard_limit)
 		return 0;
-	/* A 1% reduction must also exceed the aggregate arithmetic/tolerance
-	 * noise. This is evidence of local recovery, not a convergence proof.
-	 * A new phase receives at most one lease to establish a baseline. */
-	if (cycles - h->cycles >= 2 ||
-		(h->samples >= 2 && residual > noise &&
-			(h->peak - residual <= noise ||
-				residual >= .99 * h->peak)))
+	/* A phase receives one observation lease. Subsequent renewals must beat
+	 * its best value at the previous lease boundary, even after bound epochs
+	 * or phase oscillations. A return from a worse peak buys no progress. */
+	secondary_progress = isfinite(secondary) &&
+			     isfinite(h->secondary[slot]) &&
+			     h->secondary[slot] - secondary > secondary_noise &&
+			     h->secondary[slot] - secondary >
+				     .01 * (1. + fabs(h->secondary[slot]));
+	if (cycles - h->cycles >= 2) {
+		h->reason = SIMPLEX_DUAL_EXPLORE_CYCLE;
 		return 1;
+	}
+	if ((h->lease_seen & bit) && iterations >= h->recovery_until &&
+		residual > noise && !secondary_progress &&
+		(h->baseline[slot] - residual <= noise ||
+			residual >= .99 * h->baseline[slot])) {
+		h->reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+		return 1;
+	}
 	next = h->limit > hard_limit / 2 ? hard_limit : 2 * h->limit;
 	h->limit = next;
-	h->peak = residual;
 	h->cycles = cycles;
-	h->samples = 0;
+	h->lease_seen = h->seen;
+	if (secondary < h->secondary[slot])
+		h->secondary[slot] = secondary;
+	if (residual < h->baseline[slot])
+		h->baseline[slot] = residual;
 	return 0;
+}
+
+
+int simplex_dual_explore_yield(struct simplex_DualExplore *h, int iterations,
+	int hard_limit, int phase, long epoch, double residual, double noise,
+	long cycles)
+{
+	return simplex_dual_explore_yield_pair(h, iterations, hard_limit, phase,
+		epoch, residual, noise, cycles, HUGE_VAL, 0.);
 }
