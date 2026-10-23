@@ -20,6 +20,43 @@ from benchmark import aggregate, artifact, audit, parse_scip_solution, report
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_glpk_first_timeout_stops_all_subsequent_glpk_runs(self):
+        config = dict(glpk_stop_on_timeout=True, repeats=1)
+        rows = [dict(instance='rail507', solver='glpk', status='PASS'),
+                dict(instance='rail2536', solver='glpk', status='TIMEOUT')]
+        for name in ['rail2536', 'rail2586', 'rail4284', 'rail4872']:
+            self.assertIn('rail2536', benchmark.glpk_skip_reason(config, 'glpk', dict(name=name), rows))
+            for solver in ['lp_simplex', 'scip', 'highs', 'clp']:
+                self.assertIsNone(benchmark.glpk_skip_reason(config, solver, dict(name=name), rows))
+        for status in ['PASS', 'AUDIT_FAILED', 'ERROR']:
+            with self.subTest(status=status):
+                self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'),
+                    [dict(instance='rail2536', solver='glpk', status=status)]))
+
+
+    def test_glpk_gate_only_skips_glpk_after_unsuccessful_gate(self):
+        config = dict(glpk_gate_case='rail507', repeats=1)
+        row = dict(instance='rail507', solver='glpk', repeat=1, status='TIMEOUT', wall_seconds=3600.)
+        self.assertIsNotNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'), [row]))
+        self.assertIsNone(benchmark.glpk_skip_reason(config, 'lp_simplex', dict(name='rail2586'), [row]))
+        self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail507'), []))
+        row['status'] = 'PASS'
+        self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'), [row]))
+        with self.assertRaises(ValueError):
+            benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'), [])
+
+    def test_skips_are_separate_from_timeouts_failures_and_pending(self):
+        results = [dict(instance='a', solver='lp_simplex', repeat=1, status='PASS', wall_seconds=1.),
+                   dict(instance='a', solver='glpk', repeat=1, status='TIMEOUT', wall_seconds=3600.),
+                   dict(instance='b', solver='lp_simplex', repeat=1, status='PASS', wall_seconds=2.),
+                   dict(instance='b', solver='glpk', repeat=1, status='SKIPPED', wall_seconds=None)]
+        stats = benchmark.success_statistics(results, ['a', 'b'], 1, 3600., ['lp_simplex', 'glpk'])
+        self.assertEqual((stats['glpk']['timeouts'], stats['glpk']['failures'],
+                          stats['glpk']['skipped'], stats['glpk']['pending']), (1, 0, 1, 0))
+        self.assertEqual(stats['glpk']['common_count'], 0)
+        self.assertIsNone(stats['glpk']['common_mean'])
+        self.assertEqual(benchmark.aggregate(results, ['b'], 1, 3600., ['glpk'])[0]['glpk']['status'], 'SKIPPED')
+
     def test_overview_migrates_history_to_latest_run_in_both_languages(self):
         with TemporaryDirectory() as folder:
             docs = Path(folder)
@@ -232,6 +269,18 @@ class SummaryTests(unittest.TestCase):
 
 
 class LifecycleTests(unittest.TestCase):
+    def test_gate_skip_does_not_launch_worker(self):
+        models = self.models(['other'])
+        config = dict(models=models, repeats=1, solvers=['lp_simplex', 'glpk'], glpk_gate_case='pilot.ja')
+        self.results.append(dict(instance='pilot.ja', solver='glpk', repeat=1, status='TIMEOUT', wall_seconds=3600.))
+        with patch.object(benchmark, 'run_one', return_value=dict(instance='other', solver='lp_simplex', repeat=1, status='PASS', wall_seconds=1.)) as run:
+            benchmark.benchmark_case(self.config_path, config, models[0], 1, {}, self.results, self.metadata)
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(run.call_args.args[2], 'lp_simplex')
+        skipped = next(r for r in self.results if r['instance'] == 'other' and r['solver'] == 'glpk')
+        self.assertEqual(skipped['status'], 'SKIPPED')
+        self.assertIsNone(skipped['wall_seconds'])
+
     def setUp(self):
         self.directory = TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
@@ -490,9 +539,32 @@ class LifecycleTests(unittest.TestCase):
             report = benchmark.render_report('pds', stored, {}, english=english)
             rows = [line for line in report.splitlines() if line.startswith('| pds-')]
             self.assertEqual(rows, [stored[name] for name in expected])
-        # Other datasets retain their existing lexical ordering.
+        # Netlib retains its existing lexical ordering.
         self.assertEqual(benchmark.ordered_cases('netlib', ['pds-20', 'pds-100']),
                          ['pds-100', 'pds-20'])
+
+    def test_railway_execution_and_reports_use_numeric_case_order(self):
+        base = self.root / 'data/railway/raw'
+        base.mkdir(parents=True)
+        expected = ['rail507', 'rail516', 'rail582', 'rail2536',
+                    'rail2586', 'rail4284', 'rail4872']
+        for name in reversed(expected):
+            (base / (name + '.gz')).write_bytes(gzip.compress(b'raw'))
+        for cases in (None, list(reversed(expected)), sorted(expected)):
+            models = benchmark.select_models(argparse.ArgumentParser(), cases, 'railway')
+            self.assertEqual([m['name'] for m in models], expected)
+        subset = ['rail4872', 'rail516', 'rail2536']
+        models = benchmark.select_models(argparse.ArgumentParser(), subset, 'railway')
+        self.assertEqual([m['name'] for m in models], ['rail516', 'rail2536', 'rail4872'])
+        self.assertEqual(subset, ['rail4872', 'rail516', 'rail2536'])
+        stored = {name: f'| {name} | 1 / 2 / 3 | — | PASS / 2 / 1 |'
+                  for name in sorted(expected)}
+        block = '| 案例范围 | railway 全集；' + ', '.join(sorted(expected)) + ' |\n'
+        for english in (False, True):
+            report = benchmark.render_report('railway', stored, {'old': block}, english=english)
+            rows = [line for line in report.splitlines() if line.startswith('| rail')]
+            self.assertEqual(rows, [stored[name] for name in expected])
+            self.assertIn(', '.join(expected), report)
 
     def test_pds_rejects_missing_invalid_or_duplicate_references(self):
         base = self.root / 'data/pds'

@@ -585,7 +585,8 @@ def success_statistics(results, names, repeats, seconds, solvers=SOLVERS):
         runs = [r for r in results if r['solver'] == solver]
         output[solver] = dict(successes=len(solved[solver]),
             timeouts=sum(r['status'] == 'TIMEOUT' for r in runs),
-            failures=sum(r['status'] not in ('PASS', 'TIMEOUT') for r in runs),
+            failures=sum(r['status'] not in ('PASS', 'TIMEOUT', 'SKIPPED') for r in runs),
+            skipped=sum(r['status'] == 'SKIPPED' for r in runs),
             pending=len(names) * repeats - len(runs),
             lp_common_mean=geometric_mean([solved['lp_simplex'][name] for name in sorted(common)]),
             common_mean=geometric_mean([solved[solver][name] for name in sorted(common)]),
@@ -625,6 +626,10 @@ def run_summary(run_dir, metadata, results):
             info.append((LABELS[solver], versions.get(solver, {}).get('version_output', '未知').splitlines()[0]))
     if 'clp' in solvers:
         info.append(('Clp / GLPK 算法', 'dual simplex / primal simplex；presolve on'))
+    if c.get('glpk_stop_on_timeout'):
+        info.append(('GLPK 跳过策略', f"任一案例超时后跳过后续测试；已跳过 {stats['glpk']['skipped']} 次"))
+    elif c.get('glpk_gate_case'):
+        info.append(('GLPK 跳过策略', f"先测 {c['glpk_gate_case']}；未通过则跳过其余案例；已跳过 {stats['glpk']['skipped']} 次"))
     lines = ['| 测试信息 | 值 |', '| --- | --- |']
     lines.extend(f'| {key} | {clean(value)} |' for key, value in info)
     lines += ['', SUMMARY_HEADER, SUMMARY_SEPARATOR]
@@ -656,6 +661,8 @@ def reproduction_command(config):
         if key in config:
             command.extend([option, str(config[key])])
     command.extend(['--solvers', *config.get('solvers', LEGACY_SOLVERS)])
+    if config.get('glpk_gate_case'):
+        command.extend(['--glpk-gate-case', config['glpk_gate_case']])
     return shlex.join(command)
 
 
@@ -664,8 +671,9 @@ def english_result_row(row):
 
 
 def ordered_cases(dataset, names):
+    pattern = {'pds': r'pds-(\d+)', 'railway': r'rail(\d+)'}.get(dataset)
     def key(name):
-        match = re.fullmatch(r'pds-(\d+)', name) if dataset == 'pds' else None
+        match = re.fullmatch(pattern, name) if pattern else None
         return (0, int(match[1]), name) if match else (1, 0, name)
     return sorted(names, key=key)
 
@@ -694,6 +702,8 @@ def render_report(dataset, stored, blocks, english=False):
            '- Successes count instances; timeouts and other unsuccessful results count individual runs. Statistics apply only to the specified run and case selection. In-progress results do not establish full-suite conclusions.'),
         tr('- NOT_RUN / PENDING / INCOMPLETE 表示从未测试 / 本轮尚未测试 / 未完成全部重复。逐例单元格为“状态 / 秒数中位数 / 复算目标中位数”；非 PASS 的目标值仍须结合状态阅读。',
            '- NOT_RUN / PENDING / INCOMPLETE mean never tested / not yet tested in this run / repetitions incomplete. Instance cells show status / median seconds / median audited objective. Interpret non-PASS objectives together with their status.'),
+        tr('- SKIPPED 表示按预设规则跳过，不计为超时或其他未通过，也不参与耗时统计。',
+           '- SKIPPED means omitted under a predefined rule; it counts as neither a timeout nor another unsuccessful run and is excluded from timing statistics.'),
         tr('- 每行保留该案例最新记录，未选中案例继续保留。不同运行的环境与配置可能不同，不合并计算跨轮速度排名。',
            '- Each row retains the latest record for that instance. Unselected instances are preserved. Environments and settings may differ between runs, so speed rankings are not pooled across runs.'), '',
         tr('## 测试信息与统计', '## Test information and statistics'), '',
@@ -708,6 +718,10 @@ def render_report(dataset, stored, blocks, english=False):
         lines += [english_summary('\n'.join(empty)) if english else '\n'.join(empty), '']
     # Older reports contain multiple run blocks. Keep only the last saved run.
     for name, block in list(blocks.items())[-1:]:
+        block = re.sub(r'^(\| 案例范围 \| [^；\n]*；)([^|\n]+)\|$',
+                       lambda match: match[1] + ', '.join(ordered_cases(
+                           dataset, [case.strip() for case in match[2].split(',')])) + ' |',
+                       block, flags=re.M)
         lines += [f'<!-- benchmark-run:{name} -->',
                   english_summary(block.rstrip()) if english else block.rstrip(),
                   '<!-- /benchmark-run -->', '']
@@ -760,6 +774,7 @@ def english_summary(summary):
         '与 lp_simplex 共同成功数': 'Instances solved by both this solver and lp_simplex',
         '本轮共同成功数': 'Common solved instances in this run',
         'Clp / GLPK 算法': 'Clp / GLPK algorithms', 'Clp': 'Clp', 'GLPK': 'GLPK',
+        'GLPK 跳过策略': 'GLPK skip policy',
         '共同案例几何平均/秒（lp_simplex / 本求解器）': 'Geometric means on common set / s (lp_simplex / solver)',
         '共同案例几何平均/秒': 'Geometric mean on common set / s',
         '相对耗时（lp_simplex / 各求解器）': 'Relative time (lp_simplex / solver)',
@@ -776,6 +791,8 @@ def english_summary(summary):
             text = text.replace(' 秒', ' s')
         elif key == 'Clp / GLPK 算法':
             text = text.replace('；', '; ')
+        elif key == 'GLPK 跳过策略':
+            text = text.replace('任一案例超时后跳过后续测试', 'Skip remaining GLPK runs after its first timeout').replace('先测 ', 'Test first: ').replace('未通过则跳过其余案例', 'skip remaining cases if it does not pass').replace('已跳过 ', 'Skipped runs: ').replace(' 次', '')
         elif key == '资源':
             return 'Serial; one thread per solver; no memory cap or exclusive machine access'
         elif key == '原始记录':
@@ -899,6 +916,23 @@ def prepared_model(model, run_dir):
         yield path
 
 
+def glpk_skip_reason(config, solver, model, results):
+    if solver == 'glpk' and config.get('glpk_stop_on_timeout'):
+        timeout = next((row for row in results if row['solver'] == 'glpk' and row['status'] == 'TIMEOUT'), None)
+        if timeout:
+            return 'GLPK stopped after timeout: ' + timeout['instance']
+    gate = config.get('glpk_gate_case')
+    if solver != 'glpk' or not gate or model['name'] == gate:
+        return None
+    gate_runs = [row for row in results if row['solver'] == 'glpk' and row['instance'] == gate]
+    if len(gate_runs) != config['repeats']:
+        raise ValueError('GLPK gate case must finish before other cases')
+    if any(row['status'] != 'PASS' for row in gate_runs):
+        return 'GLPK gate case did not pass: ' + gate
+    return None
+
+
+
 def benchmark_case(config_path, config, model, case_index, env, results, metadata):
     """Keep only this case's MPS alive; persist results before cleaning it up."""
     run_dir = config_path.parent
@@ -913,7 +947,13 @@ def benchmark_case(config_path, config, model, case_index, env, results, metadat
                     offset = (case_index + repeat) % len(solvers)
                     for solver in solvers[offset:] + solvers[:offset]:
                         try:
-                            row = run_one(config_path, config, solver, model, repeat + 1, env)
+                            reason = glpk_skip_reason(config, solver, model, results)
+                            if reason:
+                                row = dict(instance=model['name'], solver=solver, repeat=repeat + 1,
+                                           status='SKIPPED', wall_seconds=None, reason=reason)
+                                print(f"{model['name']} {solver} #{repeat + 1}: SKIPPED ({reason})", flush=True)
+                            else:
+                                row = run_one(config_path, config, solver, model, repeat + 1, env)
                         except Exception as exc:
                             row = dict(instance=model['name'], solver=solver, repeat=repeat + 1,
                                        status='ERROR', wall_seconds=None, error=str(exc))
@@ -951,7 +991,7 @@ def select_models(parser, cases, dataset='netlib'):
     unknown = set(names) - available.keys()
     if unknown:
         parser.error('unknown cases: ' + ', '.join(sorted(unknown)))
-    if dataset == 'pds':
+    if dataset in ('pds', 'railway'):
         names = ordered_cases(dataset, names)
     references = {}
     reference_file = reference_path(dataset)
@@ -1039,6 +1079,7 @@ def main():
     parser.add_argument('--solvers', nargs='+', choices=SOLVERS, default=list(SOLVERS))
     parser.add_argument('--clp', default='clp')
     parser.add_argument('--glpk', default='glpsol')
+    parser.add_argument('--glpk-gate-case', help='Test this case first; skip subsequent GLPK runs if it does not pass')
     parser.add_argument('--run-dir', type=Path, help='raw artifacts directory (default: tmp/benchmarks/<UTC timestamp>)')
     parser.add_argument('--report-only', type=Path)
     parser.add_argument('--docs-dir', type=Path, default=ROOT / 'docs/benchmarks')
@@ -1060,6 +1101,10 @@ def main():
     if args.repeats < 1 or not math.isfinite(args.seconds) or args.seconds <= 0 or args.iterations < 1:
         parser.error('repeats, seconds, and iterations must be positive')
     models = select_models(parser, args.cases, args.dataset)
+    if args.glpk_gate_case:
+        if 'glpk' not in args.solvers or args.glpk_gate_case not in {m['name'] for m in models}:
+            parser.error('--glpk-gate-case requires GLPK and a case in the selected suite')
+        models.sort(key=lambda model: model['name'] != args.glpk_gate_case)
     binary = args.binary.resolve()
     scip = shutil.which(args.scip)
     clp, glpk = shutil.which(args.clp), shutil.which(args.glpk)
@@ -1072,7 +1117,9 @@ def main():
                   highs_algorithm=args.highs_algorithm, scip_algorithm=args.scip_algorithm,
                   input_metadata_sha256=input_metadata(args.dataset),
                   suite_label=args.dataset + (' 全集' if not args.cases else ' 显式子集'),
-                  models=models)
+                  models=models, glpk_stop_on_timeout=True)
+    if args.glpk_gate_case:
+        config['glpk_gate_case'] = args.glpk_gate_case
     env = {k: v for k, v in os.environ.items() if not k.startswith('LP_SIMPLEX_')}
     env.update(THREADS, LC_ALL='C', PYTHONDONTWRITEBYTECODE='1')
     os.environ.update(THREADS)

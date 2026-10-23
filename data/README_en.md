@@ -35,6 +35,7 @@ python3 -m pip install numpy scipy highspy
 
 ## Run full benchmarks
 
+PDS and Railway run in ascending instance-number order, progressing from smaller to larger models. After the first GLPK timeout, all remaining GLPK runs are marked `SKIPPED`; other solvers continue. Skips count as neither timeouts nor failures and are excluded from timing statistics.
 
 Run every benchmark instance in each dataset:
 
@@ -107,6 +108,7 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--scip` | `scip` | SCIP executable name or path |
 | `--clp` | `clp` | Clp executable name or path |
 | `--glpk` | `glpsol` | GLPK executable name or path |
+| `--glpk-gate-case` | Off | Test this instance first; if GLPK does not pass, skip its remaining instances. Skips are recorded separately from timeouts and failures |
 | `--solvers` | All five solvers | Solver selection; must include `lp_simplex` |
 | `--repeats` | 3 | Repetitions per instance and solver |
 | `--seconds` | Netlib: 60; PDS/Railway: 120 | Per-run wall-clock deadline |

@@ -4,6 +4,8 @@
 
 The collection contains all 7 OR-Library railway set-covering instances, originating from an Italian railway application. This project solves their continuous LP relaxations, with variable bounds `[0, 1]`.
 
+Benchmarks and report rows use ascending numeric order: `rail507`, `rail516`, `rail582`, `rail2536`, `rail2586`, `rail4284`, `rail4872`.
+
 ## Instance sizes
 
 | Instance | Constraints | Variables | Matrix nonzeros |

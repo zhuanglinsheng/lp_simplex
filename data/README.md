@@ -37,6 +37,7 @@ python3 -m pip install numpy scipy highspy
 
 ## 运行完整基准
 
+PDS 和 Railway 按案例编号从小到大执行，作为由小规模到大规模的测试顺序。GLPK 一旦超时，后续 GLPK 测试均标记为 `SKIPPED`；其他求解器继续运行。跳过不计为超时或失败，不参与耗时统计。
 
 分别运行三个数据集的全部基准案例：
 
@@ -109,6 +110,7 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | `--scip` | `scip` | SCIP 可执行文件名称或路径 |
 | `--clp` | `clp` | Clp 可执行文件名称或路径 |
 | `--glpk` | `glpsol` | GLPK 可执行文件名称或路径 |
+| `--glpk-gate-case` | 不启用 | 先测试指定案例；若 GLPK 未通过，则跳过其余案例的 GLPK 测试。跳过单独记录，不计为超时或失败 |
 | `--solvers` | 全部五个求解器 | 选择本轮求解器，须包含 `lp_simplex` |
 | `--repeats` | 3 | 每个案例、每个求解器的重复次数 |
 | `--seconds` | Netlib: 60；PDS/Railway: 120 | 每次运行的墙钟秒数上限 |
