@@ -549,8 +549,56 @@ static void test_wide_bound_objective_accuracy(void)
 }
 
 
+/* Extended-precision MPS numbers must not be truncated to twelve columns.
+ * Check both numeric positions and the RHS/bound paths used by Netlib files. */
+static void test_long_mps_numbers(void)
+{
+	FILE *stream = fopen(TEMP_FILE, "w");
+	struct lp_Model *model;
+
+	if (stream == NULL) {
+		fail("long MPS numbers", "could not write fixture");
+		return;
+	}
+	fputs("NAME          LONGNUM\nROWS\n N  COST\n E  R0\n L  R1\nCOLUMNS\n", stream);
+	fprintf(stream, "    %-8s  %-8s  %s\n", "X0", "COST",
+		"1.2345678901234567e-20");
+	fprintf(stream, "    %-8s  %-8s  %12s   %-8s  %s\n", "X0", "R0",
+		"1.25", "R1", "-0.17999999999999999");
+	fputs("RHS\n", stream);
+	fprintf(stream, "    %-8s  %-8s  %s\n", "RHS1", "R0",
+		"-2447.8299999999999");
+	fprintf(stream, "    %-8s  %-8s  %s\n", "RHS1", "R1",
+		"1.3999999999999999");
+	fputs("BOUNDS\n", stream);
+	fprintf(stream, " FX %-8s  %-8s  %s\n", "BND1", "X0",
+		"12345.678901234567");
+	fputs("ENDATA\n", stream);
+	fclose(stream);
+	model = lp_read_mps(TEMP_FILE);
+	remove(TEMP_FILE);
+	if (model == NULL) {
+		fail("long MPS numbers", "could not read fixture");
+		return;
+	}
+	if (model->m != 2 || model->n != 1 ||
+		model->objective[0] != 1.2345678901234567e-20 ||
+		model->row_value[model->row_start[0]] != 1.25 ||
+		model->row_value[model->row_start[1]] != -0.17999999999999999 ||
+		model->constraints[0].rhs != -2447.8299999999999 ||
+		model->constraints[1].rhs != 1.3999999999999999 ||
+		model->bounds[0].lb != 12345.678901234567 ||
+		model->bounds[0].ub != 12345.678901234567)
+		fail("long MPS numbers", "numeric tokens changed while reading");
+	else
+		pass("long MPS numbers");
+	lp_model_free(model);
+}
+
+
 int main(void)
 {
+	test_long_mps_numbers();
 	test_comments_and_blank_lines();
 	test_objective_senses();
 	test_malformed_without_rows();

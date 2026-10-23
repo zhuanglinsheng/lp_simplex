@@ -202,25 +202,16 @@ BAD_SENSE:
 
 static double get_filed_1_value(const char *line)
 {
-	char value_str[13];
-	double value;
-
-	lp_simplex_memset(value_str, '\0', 13);
-	lp_simplex_memcpy(value_str, line + 24, 12);
-	value = lp_simplex_atof(value_str);
-	return value;
+	/* Some MPS writers preserve fixed name positions but print more than
+	 * twelve characters per number.  Parse the entire whitespace-delimited
+	 * token: truncation silently changes coefficients, RHS values and bounds. */
+	return lp_simplex_atof(line + 24);
 }
 
 
 static double get_field_2_value(const char *line)
 {
-	char value_str[13];
-	double value;
-
-	lp_simplex_memset(value_str, '\0', 13);
-	lp_simplex_memcpy(value_str, line + 49, 12);
-	value = lp_simplex_atof(value_str);
-	return value;
+	return lp_simplex_atof(line + 49);
 }
 
 
