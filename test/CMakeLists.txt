@@ -285,3 +285,8 @@ add_test(NAME test_auto_policy COMMAND test_auto_policy)
 add_test(NAME test_auto_policy_settings COMMAND test_auto_policy)
 set_tests_properties(test_auto_policy_settings PROPERTIES ENVIRONMENT
     "LP_SIMPLEX_PAN_NATIVE_BOUNDS=1;LP_SIMPLEX_PAN_CONE=implicit;LP_SIMPLEX_PAN_DUAL_START=1;LP_SIMPLEX_PAN_COMPLETE_START=1;LP_SIMPLEX_PAN_COMPATIBLE_PRICING=1;LP_SIMPLEX_PAN_STABILIZE=1;LP_SIMPLEX_PAN_FIRST_ORDER=1000")
+
+# Optional manual original-model certificate export for numerical audits.
+add_executable(pan_native_certificate EXCLUDE_FROM_ALL pan_native_certificate.c)
+target_include_directories(pan_native_certificate PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(pan_native_certificate PRIVATE lp_simplex)

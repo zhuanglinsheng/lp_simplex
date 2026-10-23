@@ -24,11 +24,16 @@ jobs:
             cmake ninja-build build-essential \
             libopenblas-dev liblapack-dev libsuitesparse-dev
 
+      - name: Prepare test data
+        run: |
+          python3 data/netlib/prepare.py --all
+          python3 test/test_prepare_data.py
+
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DLP_SIMPLEX_BUILD_TOOLS=ON
+            -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
 
       - name: Build
         run: cmake --build build -j "$(nproc)"
@@ -54,6 +59,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             cmake ninja-build build-essential libopenblas-dev liblapack-dev
+
+      - name: Prepare test data
+        run: |
+          python3 data/netlib/prepare.py --all
+          python3 test/test_prepare_data.py
 
       - name: Configure
         run: |

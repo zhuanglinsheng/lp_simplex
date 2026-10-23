@@ -10,3 +10,8 @@ build-analysis/*
 *.out
 *.so
 *.dylib
+
+# Reproducible local experiments and Python caches
+/tmp/
+__pycache__/
+*.py[cod]
