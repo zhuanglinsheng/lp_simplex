@@ -914,8 +914,7 @@ int simplex_presolve_run(struct simplex_Presolve *presolve,
 		lp_simplex_EXIT_FAILURE)
 		goto failure;
 finish:
-	lp_simplex_free(presolve->row_map);
-	presolve->row_map = NULL;
+	/* Retain the row correspondence for original-model progress bounds. */
 	if (presolve->status != lp_simplex_CondUnsatisfied) {
 		lp_simplex_free(presolve->column_map);
 		presolve->column_map = NULL;

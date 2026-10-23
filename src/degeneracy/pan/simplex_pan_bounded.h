@@ -19,6 +19,7 @@
  * free-variable splits, shifts or fixed-variable eliminations. */
 struct simplex_PanBounded {
 	struct simplex_PanStandard a;
+	const struct simplex_Problem *problem;
 	double *lower, *upper;
 };
 int simplex_pan_bounded_create(

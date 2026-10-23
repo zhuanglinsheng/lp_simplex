@@ -298,3 +298,10 @@ set_tests_properties(test_auto_policy_settings PROPERTIES ENVIRONMENT
 add_executable(pan_native_certificate EXCLUDE_FROM_ALL pan_native_certificate.c)
 target_include_directories(pan_native_certificate PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(pan_native_certificate PRIVATE lp_simplex)
+
+add_executable(test_progress test_progress.c)
+target_include_directories(test_progress PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_progress PRIVATE lp_simplex)
+add_test(NAME test_progress COMMAND test_progress)
+add_test(NAME test_progress_native COMMAND test_progress)
+set_tests_properties(test_progress_native PROPERTIES ENVIRONMENT "LP_SIMPLEX_PAN_NATIVE_BOUNDS=1;LP_SIMPLEX_PAN_NATIVE_PDHG=10000;LP_SIMPLEX_PAN_CONE=implicit")

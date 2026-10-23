@@ -9,6 +9,7 @@
  */
 
 #include "simplex_dual.h"
+#include "simplex_progress.h"
 #include "simplex_scaling.h"
 #include "simplex_dual_bounds.h"
 #include "simplex_dual_internal.h"
@@ -2098,6 +2099,27 @@ static int dual_auto_yield(struct simplex_DualState *s)
 		s->degeneracy.repeated_states);
 }
 
+static void dual_report_progress(struct simplex_DualState *s, int force)
+{
+	const struct simplex_Problem *p = s->progress_problem;
+	const struct simplex_ProgressSink *sink;
+	double *point;
+	int i;
+	if (!p || !(sink = p->progress) ||
+		(!force && !sink->due(sink->context)))
+		return;
+	point = lp_simplex_malloc((size_t)s->variables * sizeof(double));
+	if (!point)
+		return;
+	lp_simplex_memcpy(
+		point, s->value, (size_t)s->variables * sizeof(double));
+	for (i = 0; i < s->rows; i++)
+		point[s->basis[i]] = s->basic_value[i];
+	simplex_progress_emit(p, point, s->pi, -1., "dual", s->iterations, 1);
+	lp_simplex_free(point);
+}
+
+
 int simplex_dual_continue(struct simplex_DualState *state, int *status)
 {
 	/*
@@ -2115,6 +2137,8 @@ int simplex_dual_continue(struct simplex_DualState *state, int *status)
 		struct dual_Iteration iteration;
 		int step;
 
+		if ((state->iterations % 256) == 0)
+			dual_report_progress(state, 0);
 		if (dual_auto_yield(state)) {
 			*status = state->exploration.reason ==
 						  SIMPLEX_DUAL_EXPLORE_NUMERICAL
@@ -2257,6 +2281,7 @@ static int dual_solve_problem_kernel(const struct simplex_Problem *problem,
 		result->status = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
 	}
+	state.progress_problem = problem;
 	state.stop_at_primal_feasible = feasibility_only;
 	simplex_dual_initialize_bounds(&state, problem, propagate_bounds);
 	lp_simplex_memcpy(state.original_cost, state.cost,
@@ -2301,6 +2326,7 @@ static int dual_solve_problem_kernel(const struct simplex_Problem *problem,
 		status = lp_simplex_CondUnsatisfied;
 	}
 
+	dual_report_progress(&state, 1);
 	for (j = 0; j < state.rows; j++)
 		state.value[state.basis[j]] = state.basic_value[j];
 	for (j = 0; j < problem->columns; j++) {
@@ -2512,6 +2538,7 @@ static int dual_solve_problem_mode(const struct simplex_Problem *problem,
 	const int feasibility_only)
 {
 	struct simplex_Scaling scaling;
+	struct simplex_ProgressBridge progress_bridge;
 	struct simplex_Problem *scaled;
 	double *dual = row_dual;
 	int own_dual = 0;
@@ -2561,6 +2588,16 @@ static int dual_solve_problem_mode(const struct simplex_Problem *problem,
 	if (dual != NULL)
 		for (i = 0; i < problem->rows; i++)
 			dual[i] = NAN;
+	if (simplex_progress_bridge(&progress_bridge, problem->progress, NULL,
+		    &scaling, problem->rows, problem->columns)) {
+		result->status = lp_simplex_MemoryAllocError;
+		if (own_dual)
+			lp_simplex_free(dual);
+		simplex_problem_free(scaled);
+		simplex_scaling_destroy(&scaling);
+		return lp_simplex_EXIT_FAILURE;
+	}
+	scaled->progress = problem->progress ? &progress_bridge.sink : NULL;
 	state = dual_solve_with_backend_fallback(scaled, options, x, dual,
 		result, propagate_bounds, scaled->columns, scaled->rows,
 		feasibility_only);
@@ -2584,6 +2621,7 @@ static int dual_solve_problem_mode(const struct simplex_Problem *problem,
 	}
 	if (own_dual)
 		lp_simplex_free(dual);
+	simplex_progress_bridge_destroy(&progress_bridge);
 	simplex_problem_free(scaled);
 	simplex_scaling_destroy(&scaling);
 	return state;

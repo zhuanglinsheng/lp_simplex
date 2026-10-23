@@ -10,6 +10,7 @@
  */
 
 #include "simplex_dual.h"
+#include "simplex_progress.h"
 #include "simplex_pan.h"
 #include "simplex_auto.h"
 #include "simplex_pan_phase1.h"
@@ -51,6 +52,9 @@ void lp_simplex_default_options(
 			? LP_SIMPLEX_DEFAULT_AUTO_ITERATION_LIMIT
 			: SIMPLEX_DEFAULT_ITERATION_LIMIT;
 	options->presolve = 1;
+	options->progress_callback = NULL;
+	options->progress_context = NULL;
+	options->progress_interval = 5.;
 	options->primal_tolerance = SIMPLEX_DEFAULT_PRIMAL_TOLERANCE;
 	options->dual_tolerance = SIMPLEX_DEFAULT_DUAL_TOLERANCE;
 	options->pivot_tolerance = SIMPLEX_DEFAULT_PIVOT_TOLERANCE;
@@ -169,7 +173,11 @@ static int simplex_validate_options(const struct lp_simplex_Options *options)
 		!isfinite(options->dual_tolerance) ||
 		!isfinite(options->pivot_tolerance) ||
 		options->primal_tolerance <= 0. ||
-		options->dual_tolerance <= 0. || options->pivot_tolerance <= 0.)
+		options->dual_tolerance <= 0. ||
+		options->pivot_tolerance <= 0. ||
+		(options->progress_callback &&
+			(!isfinite(options->progress_interval) ||
+				options->progress_interval <= 0.)))
 		return 0;
 	if (options->algorithm == lp_simplex_ALGORITHM_TABLEAU)
 		return options->pricing == lp_simplex_PRICING_BLAND ||
@@ -339,7 +347,8 @@ static int simplex_finalize_result(const struct lp_Model *model,
 
 static int simplex_solve_dual_raw(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
-	struct lp_simplex_Result *result)
+	struct lp_simplex_Result *result,
+	const struct simplex_ProgressSink *progress)
 {
 	int applicable = 0, state;
 
@@ -354,13 +363,26 @@ static int simplex_solve_dual_raw(const struct lp_Model *model,
 	 * with extreme coefficient ranges (ETAMACRO/PILOT) repeated activity
 	 * cancellation can make those optional crash bounds less reliable than the
 	 * original model.  Presolved problems retain propagation below. */
+	if (progress) {
+		struct simplex_Problem problem;
+		if (simplex_problem_from_model(&problem, model)) {
+			result->status = lp_simplex_MemoryAllocError;
+			return lp_simplex_EXIT_FAILURE;
+		}
+		problem.progress = progress;
+		state = simplex_dual_solve_problem(
+			&problem, options, x, NULL, result, 0);
+		simplex_problem_destroy(&problem);
+		return state;
+	}
 	return simplex_dual_solve(model, options, x, NULL, result, 0);
 }
 
 
 static int simplex_solve_pan_raw(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
-	struct lp_simplex_Result *result)
+	struct lp_simplex_Result *result,
+	const struct simplex_ProgressSink *progress)
 {
 	struct simplex_Problem problem;
 	int state;
@@ -370,6 +392,7 @@ static int simplex_solve_pan_raw(const struct lp_Model *model,
 		result->status = lp_simplex_MemoryAllocError;
 		return lp_simplex_EXIT_FAILURE;
 	}
+	problem.progress = progress;
 	state = options->algorithm == lp_simplex_ALGORITHM_AUTO
 			? simplex_auto_solve_problem(
 				  &problem, options, x, result, 0)
@@ -382,12 +405,15 @@ static int simplex_solve_pan_raw(const struct lp_Model *model,
 
 static int simplex_solve_sparse_raw(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
-	struct lp_simplex_Result *result)
+	struct lp_simplex_Result *result,
+	const struct simplex_ProgressSink *progress)
 {
 	return (options->algorithm == lp_simplex_ALGORITHM_PAN_BDA ||
 		       options->algorithm == lp_simplex_ALGORITHM_AUTO)
-		       ? simplex_solve_pan_raw(model, options, x, result)
-		       : simplex_solve_dual_raw(model, options, x, result);
+		       ? simplex_solve_pan_raw(
+				 model, options, x, result, progress)
+		       : simplex_solve_dual_raw(
+				 model, options, x, result, progress);
 }
 
 
@@ -541,9 +567,11 @@ static int simplex_auto_initialize(void *context,
 
 static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
-	struct lp_simplex_Result *result)
+	struct lp_simplex_Result *result,
+	const struct simplex_ProgressSink *progress)
 {
 	struct simplex_Presolve presolve;
+	struct simplex_ProgressBridge bridge;
 	double *reduced_x = NULL;
 	clock_t presolve_started;
 	int j, state;
@@ -551,9 +579,11 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 	if (!options->presolve ||
 		getenv("LP_SIMPLEX_DISABLE_PRESOLVE") != NULL ||
 		model->bounds == NULL) {
-		state = simplex_solve_sparse_raw(model, options, x, result);
+		state = simplex_solve_sparse_raw(
+			model, options, x, result, progress);
 		return state;
 	}
+	lp_simplex_memset(&bridge, 0, sizeof(bridge));
 	presolve_started = clock();
 	if (simplex_presolve_run(&presolve, model, options->primal_tolerance) ==
 		lp_simplex_EXIT_FAILURE)
@@ -576,7 +606,8 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 				   model, presolve.reduced))) {
 		/* With no structural reductions, implied bound tightening only adds
 		 * redundant width rows to Pan's equality form. Keep the original LP. */
-		state = simplex_solve_pan_raw(model, options, x, result);
+		state = simplex_solve_pan_raw(
+			model, options, x, result, progress);
 	} else {
 		reduced_x = (double *)lp_simplex_malloc(
 			(size_t)presolve.reduced->columns * sizeof(double));
@@ -586,6 +617,14 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 		}
 		for (j = 0; j < presolve.reduced->columns; j++)
 			reduced_x[j] = NAN;
+		if (simplex_progress_bridge(&bridge, progress, &presolve, NULL,
+			    model->m, model->n)) {
+			lp_simplex_free(reduced_x);
+			simplex_presolve_destroy(&presolve);
+			result->status = lp_simplex_MemoryAllocError;
+			return lp_simplex_EXIT_FAILURE;
+		}
+		presolve.reduced->progress = progress ? &bridge.sink : NULL;
 		/* Presolve uses outward-rounded bounds for safe elimination.  The crash
 		 * phase then derives exact working bounds on the reduced matrix; these
 		 * bounds guide initialization but do not authorize more elimination. */
@@ -651,7 +690,8 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 				lp_simplex_memset(
 					&retry_result, 0, sizeof(retry_result));
 				retry_state = simplex_solve_sparse_raw(model,
-					&retry_options, x, &retry_result);
+					&retry_options, x, &retry_result,
+					progress);
 				retry_result.iterations +=
 					saved_result.iterations;
 				if (retry_result.status == lp_simplex_Success) {
@@ -670,15 +710,17 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 		}
 	}
 
+	simplex_progress_bridge_destroy(&bridge);
 	lp_simplex_free(reduced_x);
 	simplex_presolve_destroy(&presolve);
 	return state;
 }
 
 
-int lp_simplex_solve(const struct lp_Model *model,
+static int simplex_solve_impl(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
-	struct lp_simplex_Result *result)
+	struct lp_simplex_Result *result,
+	const struct simplex_ProgressSink *progress)
 {
 	int state, j;
 	int status = lp_simplex_CondUnsatisfied;
@@ -721,7 +763,7 @@ int lp_simplex_solve(const struct lp_Model *model,
 		options->algorithm == lp_simplex_ALGORITHM_PAN_BDA ||
 		options->algorithm == lp_simplex_ALGORITHM_AUTO) {
 		state = simplex_solve_sparse_presolved(
-			model, options, x, result);
+			model, options, x, result, progress);
 		return simplex_finalize_result(
 			model, options, x, result, state);
 	}
@@ -732,7 +774,7 @@ int lp_simplex_solve(const struct lp_Model *model,
 			result->status = lp_simplex_MemoryAllocError;
 			return lp_simplex_EXIT_FAILURE;
 		}
-		state = lp_simplex_solve(dense, options, x, result);
+		state = simplex_solve_impl(dense, options, x, result, progress);
 		lp_model_free(dense);
 		return state;
 	}
@@ -742,4 +784,33 @@ int lp_simplex_solve(const struct lp_Model *model,
 	result->status = status;
 	result->objective = objective + model->objective_offset;
 	return simplex_finalize_result(model, options, x, result, state);
+}
+
+
+int lp_simplex_solve(const struct lp_Model *model,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result)
+{
+	struct simplex_ProgressTracker tracker;
+	int state, j;
+	if (!options || !options->progress_callback)
+		return simplex_solve_impl(model, options, x, result, NULL);
+	/* Preserve the existing invalid-input contract without observing it. */
+	if (!result || !x || !simplex_validate_model(model) ||
+		!simplex_validate_options(options))
+		return simplex_solve_impl(model, options, x, result, NULL);
+	if (simplex_progress_init(&tracker, model, options)) {
+		for (j = 0; j < model->n; j++)
+			x[j] = NAN;
+		lp_simplex_memset(result, 0, sizeof(*result));
+		result->status = lp_simplex_MemoryAllocError;
+		result->objective = result->dual_infeasibility = NAN;
+		result->primal_infeasibility = HUGE_VAL;
+		return lp_simplex_EXIT_FAILURE;
+	}
+	state = simplex_solve_impl(model, options, x, result, &tracker.sink);
+	tracker.sink.report(tracker.sink.context, x, NULL, 1., "finish",
+		result->iterations, 1);
+	simplex_progress_destroy(&tracker);
+	return state;
 }

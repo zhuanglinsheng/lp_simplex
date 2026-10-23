@@ -18,6 +18,7 @@
  */
 
 #include "simplex_pan.h"
+#include "simplex_progress.h"
 #include "simplex_pan_config.h"
 #include "simplex_pan_basis.h"
 #include "simplex_pan_phase1.h"
@@ -868,6 +869,8 @@ cleanup:
 		for (j = 0; j < problem->columns; j++)
 			objective += problem->objective[j] * x[j];
 		result->objective = objective;
+		simplex_progress_emit(problem, x, work.anchor, 1., "pan-finish",
+			iterations, 1);
 	}
 	result->status = status;
 	result->dual_infeasibility = NAN;

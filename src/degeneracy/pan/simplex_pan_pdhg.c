@@ -12,6 +12,7 @@
  */
 
 #include "simplex_pan_config.h"
+#include "simplex_progress.h"
 #include "simplex_pan_bounded.h"
 #include "simplex_pan_cone.h"
 #include "utils.h"
@@ -196,6 +197,13 @@ int simplex_pan_bounded_pdhg(const struct simplex_PanBounded *b, double *point,
 	checkpoint = pdhg_merit(b, x, y, scale, tau, sigma, r, work);
 	for (steps = 0; steps < budget && *iterations < phase_limit; steps++) {
 		double weight = 1. / (++epoch);
+
+		if ((steps % 256) == 0 && b->problem) {
+			/* Retained point supplies a feasible incumbent even when x
+			 * and the ergodic iterate are temporarily infeasible. */
+			simplex_progress_emit(b->problem, point, y, scale,
+				"pdhg", *iterations, 0);
+		}
 
 		for (j = 0; j < a->columns; j++) {
 			double g = a->objective[j] / scale +
@@ -411,6 +419,9 @@ int simplex_pan_bounded_pdhg(const struct simplex_PanBounded *b, double *point,
 		}
 	}
 finish:
+	if (b->problem)
+		simplex_progress_emit(b->problem, point, y, scale,
+			"pdhg-finish", *iterations, 1);
 	if (getenv("LP_SIMPLEX_PROFILE"))
 		fprintf(stderr,
 			"pan-bda pdhg summary: steps=%d improvements=%d restarts=%d restore=%d/%d certificate=%d cpu=%.6f\n",

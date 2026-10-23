@@ -9,6 +9,7 @@
  */
 
 #include "simplex_pan_config.h"
+#include "simplex_progress.h"
 #include "simplex_pan_bounded.h"
 #include "simplex_pan_basis.h"
 #include "simplex_pan_phase1.h"
@@ -32,6 +33,7 @@ int simplex_pan_bounded_create(
 	int i, j, k, slacks = 0, pos = 0, column;
 
 	lp_simplex_memset(b, 0, sizeof(*b));
+	b->problem = p;
 	for (i = 0; i < p->rows; i++)
 		slacks += p->row_type[i] != optm_CONS_T_EQ;
 	if (p->columns > INT_MAX - slacks ||
@@ -1205,6 +1207,8 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 		}
 	}
 	have_point = 1;
+	simplex_progress_emit(
+		p, point, y, 1., "native-feasible", iterations, 1);
 	status = lp_simplex_CondUnsatisfied;
 	primal = simplex_pan_bounded_primal(&b, point, r, work);
 	if (getenv("LP_SIMPLEX_PROFILE"))
@@ -1230,6 +1234,7 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 		int blocking = -1, compressed;
 		long double before;
 
+		simplex_progress_emit(p, point, y, 1., "native", iterations, 0);
 		if (config.restore && (steps == 0 || low_progress >= 3)) {
 			(void)native_recover_face(
 				&b, point, y, o, saved, r, work);
@@ -1473,6 +1478,8 @@ done:
 			"pan-bda native trial summary: calls=%d checks=%d accepted=%d\n",
 			trial.calls, trial.checks, trial.accepted);
 	if (have_point) {
+		simplex_progress_emit(
+			p, point, y, 1., "native-finish", iterations, 1);
 		lp_simplex_memcpy(
 			out, point, (size_t)p->columns * sizeof(double));
 		primal = simplex_pan_bounded_primal(&b, point, r, work);

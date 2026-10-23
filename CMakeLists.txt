@@ -88,6 +88,7 @@ set(SOURCES
 	src/core/simplex.c
 	src/core/simplex_auto.c
 	src/core/simplex_problem.c
+	src/core/simplex_progress.c
 	src/core/simplex_scaling.c
 	src/presolve/simplex_presolve.c
 	src/presolve/simplex_presolve_dominance.c

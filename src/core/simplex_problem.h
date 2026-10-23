@@ -29,6 +29,8 @@ struct simplex_Problem {
 	unsigned char *row_type;
 	void *vector_storage;
 	int owns_vectors;
+	/* Borrowed observer; NULL outside an observed solve. */
+	const struct simplex_ProgressSink *progress;
 };
 
 

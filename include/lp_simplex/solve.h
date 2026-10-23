@@ -62,6 +62,31 @@ enum lp_simplex_Pricing {
 	lp_simplex_PRICING_PAN_NORMALIZED = 3
 };
 
+/** Original-model progress. Bounds bracket the optimal objective (including
+ * offset and sense); unavailable bounds are -/+infinity. A missing gap is
+ * infinity, never zero. Feasibility uses primal_tolerance. Reporting does not
+ * change the kernel's optimality tests.
+ *
+ * point is non-NULL only for a newly improved, independently checked feasible
+ * point, in original variable order. Copy it during the callback if needed;
+ * all pointers expire on return. stage_iterations is local to the named
+ * kernel and may restart when AUTO changes route. */
+struct lp_simplex_Progress {
+	const char *stage;
+	int stage_iterations;
+	double cpu_seconds;
+	double lower_bound;
+	double upper_bound;
+	double absolute_gap;
+	/** absolute_gap / max(1, |lower_bound|, |upper_bound|). */
+	double relative_gap;
+	const double *point;
+	double primal_infeasibility;
+};
+
+typedef void (*lp_simplex_ProgressCallback)(
+	void *context, const struct lp_simplex_Progress *progress);
+
 /**
  * @brief Per-call solver configuration.
  *
@@ -95,6 +120,17 @@ struct lp_simplex_Options {
 
 	/**< Exactly 0 disables presolve; exactly 1 enables it (default). */
 	int presolve;
+
+	/** Optional synchronous callback; NULL (default) disables progress work.
+	 * Sparse dual/native Pan and PDHG emit intermediate events. All public
+	 * algorithms emit initial/final events. No optimality assertion is made
+	 * solely from a small reported gap. Do not mutate the model or solver
+	 * storage from the callback. Rebuild callers when upgrading this struct. */
+	lp_simplex_ProgressCallback progress_callback;
+	void *progress_context;
+	/** Positive CPU seconds between intermediate reports; default 5.
+	 * First feasible points and final reports bypass this interval. */
+	double progress_interval;
 };
 
 /**

@@ -85,6 +85,9 @@ options.presolve = 1;
 | `dual_tolerance` | `1e-7` | Kernel search/optimality tolerance, not a universal absolute threshold for public dual diagnostics |
 | `pivot_tolerance` | `1e-9` | Numerical pivot-related tolerance |
 | `presolve` | 1 | Must be 0 or 1: 0 disables presolve, 1 enables it |
+| `progress_callback` | `NULL` | Receives original-model bounds, gap and new feasible points; NULL disables reporting |
+| `progress_context` | `NULL` | Caller context passed to the callback |
+| `progress_interval` | 5 | Finite positive report interval in CPU seconds when a callback is enabled |
 
 All three tolerances must be finite and strictly positive. Zero-initializing the
 structure does not provide valid defaults. The public API has no wall-clock timeout;
@@ -115,6 +118,40 @@ AUTO starts with dual simplex and applies the following rules:
 - A near-optimal feasible point may receive a bounded multiplier correction after failing the dual audit. Failure restores the original multiplier; acceptance still requires the existing componentwise KKT and primal–dual gap checks.
 
 Initialization, multiplier correction and recovery share `iteration_limit`. Local stagnation, numerical failure and resource limits alone prove neither infeasibility, unboundedness nor optimality. Final acceptance requirements are independent of the route.
+
+### Live bounds and gap
+
+Set `options.progress_callback` and `options.progress_context` to receive
+`lp_simplex_Progress`. `progress_interval` defaults to 5 CPU seconds and must
+be finite and positive. Reporting is disabled by default; disabled calls do
+not scan progress or allocate progress vectors. Recompile callers after upgrading the options structure.
+
+Bounds include the original objective sense and offset. For maximization,
+a feasible objective supplies a lower bound. Candidate points are unscaled,
+postsolved and checked against the original rows and variable bounds using
+`primal_tolerance`. The minimization dual bound is the box Lagrangian
+`-bᵀy + Σ min(g[j]*lb[j], g[j]*ub[j])`, with `g = c + Aᵀy`.
+Inequality multipliers are projected onto their allowed signs; arithmetic
+conservatively handles rounding and infinite endpoints. Deleted-row
+multipliers are extended by zero and the bound is recomputed on the original
+model, rather than borrowing auxiliary costs or working bounds.
+
+`absolute_gap = upper_bound - lower_bound` and
+`relative_gap = absolute_gap / max(1, |lower_bound|, |upper_bound|)`.
+Missing bounds or crossed bounds due to feasibility tolerances produce an
+infinite gap. Residuals are never substituted for the gap. These numerical
+diagnostics use the requested feasibility tolerance and do not replace kernel
+acceptance. Incomplete multiplier recovery can weaken the reported bound,
+even on a successful solve; success does not force the reported gap to zero.
+
+Sparse dual, native Pan and PDHG provide intermediate events. All algorithms
+provide initial/final events; classic Pan also reports its exiting multiplier
+bound. `stage_iterations` counts local kernel work and may reset across AUTO
+routes; `cpu_seconds` measures CPU time since this solve began. `point` is
+non-NULL only for a newly improved feasible objective, in original variable
+order, and expires when the callback returns. Copy or write it during the
+callback. First feasible and stage-exit events bypass the interval; other
+reports occur at kernel checkpoints, not on a strict wall-clock schedule.
 
 ## 3. API return values and status codes
 

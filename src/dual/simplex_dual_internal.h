@@ -58,6 +58,7 @@ struct simplex_DualWorkspace {
 struct simplex_DualState {
 	int rows;
 	int structural;
+	const struct simplex_Problem *progress_problem;
 	int variables;
 	int iterations;
 	struct simplex_DualExplore exploration;
