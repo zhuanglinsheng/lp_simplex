@@ -2,7 +2,7 @@
 
 [简体中文](./README.md) | English | [Project home](../../README_en.md) | [Data overview](../README_en.md)
 
-The collection contains 114 feasible LPs, 29 infeasible LPs, and Gurobi 10 presolved variants. Benchmarks use only the original feasible models. Reference objectives are stored in `feasible_gurobi_1e-8.csv`.
+The collection contains 114 feasible LPs, 29 infeasible LPs, and Gurobi 10 presolved variants. Benchmarks use only the original feasible models. Reference objectives are stored in [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv).
 
 ## Prepare models
 

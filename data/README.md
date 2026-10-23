@@ -63,6 +63,8 @@ python3 data/benchmark.py --dataset netlib --cases afiro --repeats 1 --seconds 1
 
 `--cases` 接收案例名，例如 Netlib 的 `afiro`、PDS 的 `pds-30`、Railway 的 `rail507`，不带目录和文件后缀。该选项仅限制本轮测试范围。
 
+中断后继续测试时，保留旧运行目录，用 `--cases` 选择尚未完成的案例并启动新一轮运行；沿用原算法、求解器、预算和限时，且 `--run-dir` 必须使用新目录。已完成且未选中的案例行会保留，各轮统计分别记录。脚本没有原目录断点续跑功能，也不会自动跳过案例内已经完成的求解器或重复；中断的案例会从头运行。`--report-only` 只重建报告，不继续求解。
+
 ## 单独检查一个模型
 
 [`netlib/test_netlib.c`](netlib/test_netlib.c) 用于单模型求解和预期结果校验。例如，先生成 Afiro，再求解并打印变量：

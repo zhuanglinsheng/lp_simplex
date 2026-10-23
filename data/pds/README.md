@@ -4,6 +4,8 @@
 
 收录 Mittelmann PDS 目录的 9 个 LP 实例。PDS 指 Patient Distribution System，即伤员分配与疏散问题。`pds-20` 与 Netlib 同名模型相同，较小的 `pds-02/06/10` 位于 Netlib 目录。
 
+PDS 测试与报告按编号递增排列：`pds-20` 至 `pds-100`，其中 `pds-100` 最后执行、最后显示。
+
 ## 实例规模
 
 | 实例 | 约束数 | 变量数 | 约束矩阵非零元 |
@@ -32,6 +34,8 @@ python3 data/pds/prepare.py --all
 原始格式为 bzip2 压缩的 Netlib MPC。脚本离线解压，通过 `CC`（默认 `cc`）临时编译 `raw/emps.c`，再转换为 MPS。默认输出到 `data/pds/mps/`，可用 `--output-dir DIR` 修改。中间文件自动清理，失败不会覆盖已有输出。
 
 ## 来源与结果
+
+9 个实例的公开参考目标值保存在 [reference_objectives.csv](reference_objectives.csv)，字段为案例名、来源报告的状态、目标值（`pobj`）及来源链接。数值摘自 [COIN-OR 的 CPLEX11-Barrier 与 CLP 对比记录](https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm)中双方均报告最优的条目，两个求解器的目标值一致。这些是数值求解参考值，不是精确数学证书。基准脚本对 PDS 使用此文件，为全部 9 个案例校验参考目标，并记录文件的 SHA-256；新配置仅在新一轮运行启动时载入。
 
 - [Mittelmann PDS 数据目录](https://plato.asu.edu/ftp/lptestset/pds/)及[官方格式说明](https://plato.asu.edu/ftp/lptestset/pds/00README)。
 - [Netlib MPC → MPS 转换器](https://www.netlib.org/lp/data/emps.c)，源码保存在 `raw/emps.c`。

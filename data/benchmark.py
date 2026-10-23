@@ -520,8 +520,7 @@ def report(run_dir, docs_dir, allow_partial=False):
                     previous[3 + SOLVERS.index(solver)] if previous else 'NOT_RUN / — / —'
                     for solver in SOLVERS)]
         stored[name] = '| ' + ' | '.join(values) + ' |'
-    blocks = read_run_blocks(target)
-    blocks[run_dir.name] = run_summary(run_dir, m, results)
+    blocks = {run_dir.name: run_summary(run_dir, m, results)}
     atomic_text(target, render_report(dataset, stored, blocks))
     overview(docs_dir)
 
@@ -529,6 +528,11 @@ def report(run_dir, docs_dir, allow_partial=False):
 TABLE_HEADER = ('| 实例 | 规模（行 / 列 / 非零元） | 参考目标 | ' +
                 ' | '.join(f'{LABELS[k]}（状态 / 秒 / 目标）' for k in SOLVERS) + ' |\n' +
                 '| --- | --- | ---: | ' + ' | '.join(['---'] * len(SOLVERS)) + ' |\n')
+
+
+SUMMARY_HEADER = ('| 求解器 | 成功案例 | 超时次数 | 其他未通过次数 | 与 lp_simplex 共同成功数 | '
+                  '共同案例几何平均/秒（lp_simplex / 本求解器） | 相对耗时（lp_simplex / 各求解器） |')
+SUMMARY_SEPARATOR = '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'
 
 
 def read_table(path):
@@ -575,15 +579,15 @@ def success_statistics(results, names, repeats, seconds, solvers=SOLVERS):
                            and 0 <= r['wall_seconds'] <= seconds
                            for r in results if r['instance'] == row['instance'] and r['solver'] == solver)}
               for solver in solvers}
-    common = set.intersection(*(set(solved[solver]) for solver in solvers))
     output = {}
     for solver in solvers:
+        common = set(solved['lp_simplex']) & set(solved[solver])
         runs = [r for r in results if r['solver'] == solver]
         output[solver] = dict(successes=len(solved[solver]),
             timeouts=sum(r['status'] == 'TIMEOUT' for r in runs),
             failures=sum(r['status'] not in ('PASS', 'TIMEOUT') for r in runs),
             pending=len(names) * repeats - len(runs),
-            own_mean=geometric_mean(list(solved[solver].values())),
+            lp_common_mean=geometric_mean([solved['lp_simplex'][name] for name in sorted(common)]),
             common_mean=geometric_mean([solved[solver][name] for name in sorted(common)]),
             common_count=len(common))
     return output
@@ -604,7 +608,7 @@ def run_summary(run_dir, metadata, results):
         ('状态 / 进度', f'{state}；{done}/{len(names)} 个案例'),
         ('时间（UTC）', metadata.get('created_utc', '未知')),
         ('参与求解器', ', '.join(LABELS[key] for key in solvers)),
-        ('案例范围', c.get('suite_label', c.get('dataset', 'netlib')) + '；' + ', '.join(names)),
+        ('案例范围', c.get('suite_label', c.get('dataset', 'netlib')) + '；' + ', '.join(ordered_cases(c.get('dataset', 'netlib'), names))),
         ('系统 / CPU', f"{e.get('os', '未知')} / {e.get('cpu', '未知')}"),
         ('内存 / 逻辑 CPU', f"{e.get('memory_bytes', '未知')} bytes / {e.get('logical_cpus', '未知')}"),
         ('Python / NumPy / SciPy', f"{e.get('python', '未知').split()[0]} / {e.get('numpy', '未知')} / {e.get('scipy', '未知')}"),
@@ -623,17 +627,21 @@ def run_summary(run_dir, metadata, results):
         info.append(('Clp / GLPK 算法', 'dual simplex / primal simplex；presolve on'))
     lines = ['| 测试信息 | 值 |', '| --- | --- |']
     lines.extend(f'| {key} | {clean(value)} |' for key, value in info)
-    lines += ['', '| 求解器 | 成功案例 | 超时次数 | 其他未通过次数 | 待测次数 | 各自成功案例几何平均/秒 | 本轮共同成功数 | 共同案例几何平均/秒 | 共同案例相对 lp 耗时 |',
-              '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+    lines += ['', SUMMARY_HEADER, SUMMARY_SEPARATOR]
     def number(value):
         return '—' if value is None else f'{value:.6g}'
-    baseline = stats['lp_simplex']['common_mean']
     for solver in solvers:
         value = stats[solver]
-        ratio = value['common_mean'] / baseline if baseline and value['common_mean'] is not None else None
+        if solver == 'lp_simplex':
+            count, means, relative = '—', '—', '—'
+        else:
+            baseline = value['lp_common_mean']
+            ratio = baseline / value['common_mean'] if baseline is not None and value['common_mean'] is not None and value['common_mean'] > 0. else None
+            count = str(value['common_count'])
+            means = f"{number(baseline)} / {number(value['common_mean'])}"
+            relative = number(ratio)
         lines.append(f"| {LABELS[solver]} | {value['successes']}/{len(names)} | {value['timeouts']} | "
-                     f"{value['failures']} | {value['pending']} | {number(value['own_mean'])} | "
-                     f"{value['common_count']} | {number(value['common_mean'])} | {number(ratio)} |")
+                     f"{value['failures']} | {count} | {means} | {relative} |")
     lines += ['', '复现本轮案例与参数（新建运行目录）：', '', '```sh', reproduction_command(c), '```']
     return '\n'.join(lines) + '\n\n'
 
@@ -655,6 +663,13 @@ def english_result_row(row):
     return row
 
 
+def ordered_cases(dataset, names):
+    def key(name):
+        match = re.fullmatch(r'pds-(\d+)', name) if dataset == 'pds' else None
+        return (0, int(match[1]), name) if match else (1, 0, name)
+    return sorted(names, key=key)
+
+
 def render_report(dataset, stored, blocks, english=False):
     def tr(chinese, translated):
         return translated if english else chinese
@@ -673,22 +688,26 @@ def render_report(dataset, stored, blocks, english=False):
            '- PASS requires an optimal solver status and successful audits of original-model rows, bounds, and objective values. Reference objectives are also checked when available, within tolerance times `1 + abs(reference)`. Missing references are shown as `—`; their absence does not establish independent optimality certification.'),
         tr('- 成功案例须全部重复为 PASS 且每次均在限时内；先取各案例重复耗时中位数，再计算普通几何平均（不移位、不对失败加惩罚）。空集合显示 `—`。',
            '- An instance is solved only when every repetition is PASS within the time limit. Take each instance\'s median time, then an ordinary geometric mean, with no shift or failure penalty. Empty sets are shown as `—`.'),
-        tr('- 各自成功案例的均值所用集合可能不同；公平速度比较使用本轮所有求解器共同成功案例的几何平均。相对 lp 耗时大于 1 表示比 lp_simplex 慢。',
-           '- Solvers may have different solved sets. Fair speed comparisons use the geometric mean on instances solved by every solver in the run. Time relative to lp above 1 means slower than lp_simplex.'),
-        tr('- 成功数按案例计，超时、其他未通过及待测数按重复运行计；统计仅属于对应运行的明确案例范围，进行中结果不构成全集结论。',
-           '- Successes count instances; timeouts, other unsuccessful results, and pending work count individual runs. Statistics apply only to the specified run and case selection. In-progress results do not establish full-suite conclusions.'),
+        tr('- 每个求解器分别与 lp_simplex 比较，仅使用双方共同成功的案例。几何平均耗时按“lp_simplex / 本求解器”列出；各行集合可能不同。相对耗时为 lp_simplex 耗时除以本求解器耗时，大于 1 表示本求解器更快；lp_simplex 行不列自比较统计。',
+           '- Each solver is compared separately with lp_simplex on their pairwise intersection of solved instances. Geometric mean times are listed as lp_simplex / solver; sets may differ between rows. Relative time is lp_simplex time divided by the solver time; above 1 means this solver is faster. The lp_simplex row omits self-comparisons.'),
+        tr('- 成功数按案例计，超时与其他未通过数按重复运行计；统计仅属于对应运行的明确案例范围，进行中结果不构成全集结论。',
+           '- Successes count instances; timeouts and other unsuccessful results count individual runs. Statistics apply only to the specified run and case selection. In-progress results do not establish full-suite conclusions.'),
         tr('- NOT_RUN / PENDING / INCOMPLETE 表示从未测试 / 本轮尚未测试 / 未完成全部重复。逐例单元格为“状态 / 秒数中位数 / 复算目标中位数”；非 PASS 的目标值仍须结合状态阅读。',
            '- NOT_RUN / PENDING / INCOMPLETE mean never tested / not yet tested in this run / repetitions incomplete. Instance cells show status / median seconds / median audited objective. Interpret non-PASS objectives together with their status.'),
         tr('- 每行保留该案例最新记录，未选中案例继续保留。不同运行的环境与配置可能不同，不合并计算跨轮速度排名。',
            '- Each row retains the latest record for that instance. Unselected instances are preserved. Environments and settings may differ between runs, so speed rankings are not pooled across runs.'), '',
-        tr('## 测试信息与统计', '## Test information and statistics'), '']
+        tr('## 测试信息与统计', '## Test information and statistics'), '',
+        tr('仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。',
+           'Only the run from the most recent report update is shown; historical records remain in their original run directories.'), '']
     if not blocks:
         empty = ['尚未运行；环境、版本、算法、限时和重复次数尚未记录。', '',
-                 '| 求解器 | 成功案例 | 超时次数 | 其他未通过次数 | 成功案例几何平均/秒 | 本轮共同成功数 | 共同案例几何平均/秒 |',
-                 '| --- | ---: | ---: | ---: | ---: | ---: | ---: |']
-        empty.extend(f'| {LABELS[solver]} | 0/{len(stored)} | 0 | 0 | — | 0 | — |' for solver in SOLVERS)
+                 SUMMARY_HEADER, SUMMARY_SEPARATOR]
+        empty.extend(f"| {LABELS[solver]} | 0/{len(stored)} | 0 | 0 | "
+                     + ('— | — | — |' if solver == 'lp_simplex' else '0 | — / — | — |')
+                     for solver in SOLVERS)
         lines += [english_summary('\n'.join(empty)) if english else '\n'.join(empty), '']
-    for name, block in blocks.items():
+    # Older reports contain multiple run blocks. Keep only the last saved run.
+    for name, block in list(blocks.items())[-1:]:
         lines += [f'<!-- benchmark-run:{name} -->',
                   english_summary(block.rstrip()) if english else block.rstrip(),
                   '<!-- /benchmark-run -->', '']
@@ -696,7 +715,8 @@ def render_report(dataset, stored, blocks, english=False):
               ' | '.join(f'{LABELS[k]} (status / s / objective)' for k in SOLVERS) + ' |\n' +
               TABLE_HEADER.splitlines()[1]) if english else TABLE_HEADER.rstrip()
     lines += [tr('## 逐例最新结果', '## Latest per-instance results'), '', header]
-    lines.extend(english_result_row(stored[name]) if english else stored[name] for name in sorted(stored))
+    lines.extend(english_result_row(stored[name]) if english else stored[name]
+                 for name in ordered_cases(dataset, stored))
     return '\n'.join(lines) + '\n'
 
 
@@ -737,10 +757,12 @@ def english_summary(summary):
         '各自成功案例几何平均/秒': 'Geometric mean on own solved set / s',
         '成功案例几何平均/秒': 'Geometric mean on solved set / s',
         '三方共同成功数': 'Common solved instances',
+        '与 lp_simplex 共同成功数': 'Instances solved by both this solver and lp_simplex',
         '本轮共同成功数': 'Common solved instances in this run',
         'Clp / GLPK 算法': 'Clp / GLPK algorithms', 'Clp': 'Clp', 'GLPK': 'GLPK',
+        '共同案例几何平均/秒（lp_simplex / 本求解器）': 'Geometric means on common set / s (lp_simplex / solver)',
         '共同案例几何平均/秒': 'Geometric mean on common set / s',
-        '共同案例相对 lp 耗时': 'Common-set time relative to lp',
+        '相对耗时（lp_simplex / 各求解器）': 'Relative time (lp_simplex / solver)',
     }
     def value(key, text):
         if key == '状态 / 进度':
@@ -779,6 +801,8 @@ def english_summary(summary):
             lines.append('Reproduce these cases and parameters in a new run directory:')
         elif line == '尚未运行；环境、版本、算法、限时和重复次数尚未记录。':
             lines.append('Not yet run; environment, versions, algorithms, time limits, and repeats are not yet recorded.')
+        elif line == '仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。':
+            lines.append('Only the run from the most recent report update is shown; historical records remain in their original run directories.')
         else:
             lines.append(line)
     return '\n'.join(lines)
@@ -790,13 +814,14 @@ def overview(docs_dir):
     for dataset in DATASETS:
         path = docs_dir / (dataset + '.md')
         if path.exists():
-            summary = path.read_text().partition('## 测试信息与统计\n\n')[2].partition('## 逐例最新结果')[0]
-            if not summary:
+            if '## 测试信息与统计\n\n' not in path.read_text():
                 raise ValueError('Dataset report has no summary section: ' + str(path))
-            summaries[dataset] = re.sub(
-                r'^### (?:运行|Run) `[^`\n]+`\n\n', '', summary, flags=re.M).strip()
+            stored, blocks = read_table(path), read_run_blocks(path)
+            report_text = render_report(dataset, stored, blocks)
+            atomic_text(path, report_text)
+            summaries[dataset] = report_text.partition('## 测试信息与统计\n\n')[2].partition('## 逐例最新结果')[0].strip()
             atomic_text(docs_dir / (dataset + '_en.md'),
-                        render_report(dataset, read_table(path), read_run_blocks(path), english=True))
+                        render_report(dataset, stored, blocks, english=True))
     for english in (False, True):
         def tr(chinese, translated):
             return translated if english else chinese
@@ -810,9 +835,10 @@ def overview(docs_dir):
             tr('逐案例生成临时 MPS，本轮所有求解器完成全部重复后清理，再同步更新数据集报告和本汇总。',
                'A temporary MPS is generated for each instance and removed after all configured solvers finish their repetitions. Dataset reports and this summary are then updated together.'), '',
             tr('成功案例须全部重复 PASS 且每次均在限时内。先取重复耗时中位数，再计算普通几何平均，'
-               '不移位、不对失败加惩罚；空集合为 `—`。各自成功集合可能不同，公平速度比较使用本轮所有求解器共同成功案例。'
-               '相对 lp 耗时大于 1 表示较慢。成功数按案例计，超时、其他未通过及待测数按重复运行计。',
-               'An instance is solved only if every repetition passes within the time limit. Times are medians across repetitions, followed by an ordinary geometric mean, with no shift or failure penalty. Empty sets are shown as `—`. Each solver may solve a different set; fair speed comparisons use instances solved by every solver in the run. Time relative to lp above 1 means slower. Successes count instances; timeouts, other unsuccessful results, and pending work count individual runs.'), '',
+               '不移位、不对失败加惩罚；空集合为 `—`。各求解器分别与 lp_simplex 使用双方共同成功案例比较；'
+               '几何平均按“lp_simplex / 本求解器”列出，各行集合可能不同；lp_simplex 行不列自比较统计。'
+               '相对耗时为 lp_simplex 耗时除以本求解器耗时，大于 1 表示本求解器更快。成功数按案例计，超时与其他未通过数按重复运行计。',
+               'An instance is solved only if every repetition passes within the time limit. Times are medians across repetitions, followed by an ordinary geometric mean, with no shift or failure penalty. Empty sets are shown as `—`. Each solver is compared separately with lp_simplex on their pairwise intersection of solved instances. Geometric means are listed as lp_simplex / solver; sets may differ between rows. The lp_simplex row omits self-comparisons. Relative time is lp_simplex time divided by the solver time; above 1 means this solver is faster. Successes count instances; timeouts and other unsuccessful results count individual runs.'), '',
             tr('计时含模型读取、求解和解导出，不含 MPS 生成/删除、格式兼容处理、公共适配器初始化和独立审核。'
                '串行、单线程，不保证机器独占；CLI 与 Python binding 开销有差异。',
                'Timing includes model loading, solving, and solution export. It excludes MPS preparation and deletion, format compatibility processing, shared adapter initialization, and independent audits. Runs are serial and single-threaded, without guaranteed exclusive machine access. CLI and Python-binding overheads differ.'), '',
@@ -907,6 +933,14 @@ def benchmark_case(config_path, config, model, case_index, env, results, metadat
         dump(run_dir / 'results.json', results)
 
 
+def reference_path(dataset):
+    if dataset == 'netlib':
+        return ROOT / 'data/netlib/feasible_gurobi_1e-8.csv'
+    if dataset == 'pds':
+        return ROOT / 'data/pds/reference_objectives.csv'
+    return None
+
+
 def select_models(parser, cases, dataset='netlib'):
     available = raw_inputs(dataset)
     if not available:
@@ -917,13 +951,23 @@ def select_models(parser, cases, dataset='netlib'):
     unknown = set(names) - available.keys()
     if unknown:
         parser.error('unknown cases: ' + ', '.join(sorted(unknown)))
+    if dataset == 'pds':
+        names = ordered_cases(dataset, names)
     references = {}
-    if dataset in ('netlib', 'pds'):
-        with (ROOT / 'data/netlib/feasible_gurobi_1e-8.csv').open() as stream:
-            for row in csv.DictReader(stream):
-                if row['status'] == 'OPTIMAL':
-                    references[row['name']] = float(row['pobj'])
-    if dataset == 'netlib':
+    reference_file = reference_path(dataset)
+    if reference_file is not None:
+        try:
+            with reference_file.open() as stream:
+                seen = set()
+                for row in csv.DictReader(stream):
+                    name = row['name']
+                    if name in seen:
+                        parser.error('duplicate reference objective: ' + name)
+                    seen.add(name)
+                    if row['status'] == 'OPTIMAL':
+                        references[name] = float(row['pobj'])
+        except (OSError, KeyError, TypeError, ValueError) as exc:
+            parser.error(f'cannot read reference objectives from {reference_file}: {exc}')
         for name in names:
             if name not in references or not math.isfinite(references[name]):
                 parser.error('missing finite reference objective: ' + name)
@@ -950,8 +994,9 @@ def select_models(parser, cases, dataset='netlib'):
 
 def input_metadata(dataset):
     paths = [ROOT / 'data' / dataset / 'manifest.csv']
-    if dataset in ('netlib', 'pds'):
-        paths.append(ROOT / 'data/netlib/feasible_gurobi_1e-8.csv')
+    reference_file = reference_path(dataset)
+    if reference_file is not None:
+        paths.append(reference_file)
     return {str(p.relative_to(ROOT)): sha(p) for p in paths if p.exists()}
 
 

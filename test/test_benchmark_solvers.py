@@ -20,6 +20,29 @@ from benchmark import aggregate, artifact, audit, parse_scip_solution, report
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_overview_migrates_history_to_latest_run_in_both_languages(self):
+        with TemporaryDirectory() as folder:
+            docs = Path(folder)
+            stored = {'afiro': '| afiro | 1 / 2 / 3 | 0 | PASS / 1 / 0 | PASS / 2 / 0 | PASS / 3 / 0 | NOT_RUN / — / — | NOT_RUN / — / — |'}
+            latest = '| 测试信息 | 值 |\n| --- | --- |\n| 原始记录 | tmp/benchmarks/latest |\n'
+            text = benchmark.render_report('netlib', stored, {'latest': latest})
+            # Simulate an old report with a full historical block before the latest.
+            text = text.replace('<!-- benchmark-run:latest -->',
+                                '<!-- benchmark-run:old -->\nOLD RUN\n<!-- /benchmark-run -->\n\n'
+                                '<!-- benchmark-run:latest -->')
+            (docs / 'netlib.md').write_text(text)
+            benchmark.overview(docs)
+            generated = {p.name: p.read_text() for p in docs.iterdir()}
+            for name, content in generated.items():
+                self.assertNotIn('OLD RUN', content, name)
+                self.assertNotIn('benchmark-run:old', content, name)
+                self.assertEqual(content.count('<!-- benchmark-run:latest -->'), 1, name)
+                self.assertIn('tmp/benchmarks/latest', content, name)
+            self.assertEqual(benchmark.read_table(docs / 'netlib.md'), stored)
+            self.assertIn(stored['afiro'], generated['netlib_en.md'])
+            benchmark.overview(docs)
+            self.assertEqual({p.name: p.read_text() for p in docs.iterdir()}, generated)
+
     def test_nested_driver_finds_cmake_build_root(self):
         with TemporaryDirectory() as folder:
             root = Path(folder).resolve()
@@ -139,13 +162,30 @@ class SummaryTests(unittest.TestCase):
                         wall_seconds=elapsed if elapsed is not None else 20.)
                    for name, times in data.items() for solver, elapsed in zip(benchmark.LEGACY_SOLVERS, times)]
         stats = benchmark.success_statistics(results, ['a', 'b', 'c', 'pending'], 1, 20., benchmark.LEGACY_SOLVERS)
-        for solver, own, common in zip(benchmark.LEGACY_SOLVERS, [3., 8., 3.], [1., 4., 9.]):
-            self.assertAlmostEqual(stats[solver]['own_mean'], own)
-            self.assertAlmostEqual(stats[solver]['common_mean'], common)
+        for solver, baseline, other, count in [
+                ('lp_simplex', 3., 3., 2), ('scip', 1., 4., 1), ('highs', 3., 3., 2)]:
+            self.assertAlmostEqual(stats[solver]['lp_common_mean'], baseline)
+            self.assertAlmostEqual(stats[solver]['common_mean'], other)
             self.assertEqual(stats[solver]['successes'], 2)
-            self.assertEqual(stats[solver]['common_count'], 1)
+            self.assertEqual(stats[solver]['common_count'], count)
             self.assertEqual(stats[solver]['pending'], 1)
         self.assertEqual(stats['scip']['timeouts'], 1)
+
+    def test_pairwise_statistics_ignore_unrelated_solver_failures(self):
+        results = [dict(instance=name, solver=solver, repeat=1,
+                        status='PASS', wall_seconds=elapsed)
+                   for name, solver, elapsed in [
+                       ('a', 'lp_simplex', 1.), ('b', 'lp_simplex', 9.),
+                       ('a', 'scip', 4.), ('b', 'scip', 16.)]]
+        # HiGHS has no completed results, so the all-solver intersection
+        # is empty. This must not erase the two valid lp/SCIP comparisons.
+        stats = benchmark.success_statistics(results, ['a', 'b'], 1, 20., benchmark.LEGACY_SOLVERS)
+        self.assertEqual(stats['scip']['common_count'], 2)
+        self.assertAlmostEqual(stats['scip']['lp_common_mean'], 3.)
+        self.assertAlmostEqual(stats['scip']['common_mean'], 8.)
+        self.assertEqual(stats['highs']['common_count'], 0)
+        self.assertIsNone(stats['highs']['lp_common_mean'])
+        self.assertIsNone(stats['highs']['common_mean'])
 
     def test_partial_repeats_and_deadline_do_not_count_as_success(self):
         rows = [dict(instance='m', solver=solver, repeat=repeat, status=status, wall_seconds=elapsed)
@@ -155,8 +195,34 @@ class SummaryTests(unittest.TestCase):
         stats = benchmark.success_statistics(rows, ['m'], 2, 10.)
         for solver in benchmark.SOLVERS:
             self.assertEqual(stats[solver]['successes'], 0)
-            self.assertIsNone(stats[solver]['own_mean'])
+            self.assertIsNone(stats[solver]['lp_common_mean'])
             self.assertIsNone(stats[solver]['common_mean'])
+
+    def test_relative_time_is_lp_divided_by_solver_and_handles_zero(self):
+        config = dict(models=[dict(name='m')], solvers=benchmark.LEGACY_SOLVERS,
+                      repeats=1, seconds=10., lp_algorithm='auto',
+                      scip_algorithm='default', highs_algorithm='choose',
+                      tolerance=1e-7, iterations=100)
+        metadata = dict(config=config, environment={})
+        for lp_time, solver_time, expected in [(1., 4., '0.25'), (0., 2., '0'), (2., 0., '—')]:
+            results = [dict(instance='m', solver=solver, repeat=1,
+                            status='PASS', wall_seconds=elapsed)
+                       for solver, elapsed in [('lp_simplex', lp_time), ('scip', solver_time)]]
+            text = benchmark.run_summary(Path('run'), metadata, results)
+            row = next(line for line in text.splitlines() if line.startswith('| SCIP / SoPlex |'))
+            self.assertEqual(row.strip('|').split('|')[-1].strip(), expected)
+            self.assertNotIn('待测次数', text)
+            self.assertIn('相对耗时（lp_simplex / 各求解器）', text)
+
+    def test_pds_summary_displays_numeric_case_order_without_changing_run_order(self):
+        models = [dict(name=name) for name in ['pds-100', 'pds-80', 'pds-20']]
+        config = dict(dataset='pds', suite_label='pds 全集', models=models,
+                      solvers=['lp_simplex'], repeats=1, seconds=300.,
+                      lp_algorithm='auto', scip_algorithm='default', highs_algorithm='choose',
+                      tolerance=1e-7, iterations=300000)
+        text = benchmark.run_summary(Path('run'), dict(config=config, environment={}), [])
+        self.assertIn('| 案例范围 | pds 全集；pds-20, pds-80, pds-100 |', text)
+        self.assertEqual([model['name'] for model in models], ['pds-100', 'pds-80', 'pds-20'])
 
     def test_geometric_mean_zero_and_empty(self):
         self.assertIsNone(benchmark.geometric_mean([]))
@@ -288,13 +354,18 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('进行中；1/2 个案例', text)
         self.assertIn('## 测试与统计口径', text)
         self.assertIn('test / test', text)
-        self.assertIn('本轮共同成功数', text)
+        self.assertIn('与 lp_simplex 共同成功数', text)
+        self.assertNotIn('各自成功案例几何平均/秒', text)
+        self.assertIn('共同案例几何平均/秒（lp_simplex / 本求解器）', text)
+        self.assertTrue(next(line for line in text.splitlines()
+                             if line.startswith('| lp_simplex |')).endswith('| — | — | — |'))
+        self.assertIn('| SCIP / SoPlex | 1/2 | 0 | 0 | 1 | 1 / 1 | 1 |', text)
         self.assertIn('cc', text)
         index = (docs / 'README.md').read_text()
         self.assertIn('## Netlib feasible', index)
         self.assertIn('## PDS', index)
         self.assertIn('## Railway 连续 LP 松弛', index)
-        self.assertIn('本轮共同成功数', index)
+        self.assertIn('与 lp_simplex 共同成功数', index)
         self.assertIn('test / test', index)
         self.assertIn('--cases other pilot.ja', index)
         self.assertIn('## 复现说明', index)
@@ -331,7 +402,7 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('Not yet run;', english)
         self.assertIn('## Railway continuous LP relaxations', english)
         self.assertIn('unknown bytes / 1', english)
-        self.assertIn('Geometric mean on common set / s', english)
+        self.assertIn('Geometric means on common set / s (lp_simplex / solver)', english)
         self.assertNotRegex(english.replace('简体中文', ''), r'[\u4e00-\u9fff]')
         # Localization preserves solver statistics and reproduction commands verbatim.
         solver_rows = lambda text: [line for line in text.splitlines()
@@ -342,9 +413,16 @@ class LifecycleTests(unittest.TestCase):
                          re.findall(r'```sh\n(.*?)```', english, re.S)[:1])
         self.assertIn('PENDING / — / —', benchmark.read_table(docs / 'netlib.md')['pilot.ja'])
         self.assertNotIn('（已完成 ', text)
+        # A new report replaces older run summaries instead of accumulating them.
+        target = docs / 'netlib.md'
+        target.write_text(target.read_text().replace('<!-- benchmark-run:',
+                          '<!-- benchmark-run:old -->\nOLD RUN\n<!-- /benchmark-run -->\n\n'
+                          '<!-- benchmark-run:', 1))
         metadata['state'] = '已中断'
         benchmark.dump(self.run / 'metadata.json', metadata)
         report(self.run, docs, allow_partial=True)
+        self.assertNotIn('OLD RUN', target.read_text())
+        self.assertEqual(target.read_text().count('<!-- benchmark-run:'), 1)
         self.assertIn('已中断；1/2 个案例', (docs / 'netlib.md').read_text())
         self.assertIn('已中断；1/2 个案例', (docs / 'README.md').read_text())
         self.assertIn('Interrupted; 1/2 instances', (docs / 'README_en.md').read_text())
@@ -375,19 +453,71 @@ class LifecycleTests(unittest.TestCase):
         for name, content in translated_reports.items():
             self.assertEqual((docs / (name + '_en.md')).read_bytes(), content)
 
-    def test_pds_selection_uses_raw_and_manifest_without_requiring_reference(self):
+    def test_pds_selection_uses_its_reference_file_and_manifest(self):
         base = self.root / 'data/pds'
         (base / 'raw').mkdir(parents=True)
         (base / 'raw/pds-30.bz2').write_bytes(bz2.compress(b'raw'))
         (base / 'manifest.csv').write_text(
             'instance,constraints,variables,constraint_nonzeros,mps_sha256\n'
             'pds-30,2,3,4,abc\n')
+        reference = base / 'reference_objectives.csv'
+        reference.write_text('name,status,pobj,source_url\npds-30,OPTIMAL,21385445736,https://example.com\n')
         models = benchmark.select_models(argparse.ArgumentParser(), None, 'pds')
         self.assertEqual([m['name'] for m in models], ['pds-30'])
-        self.assertIsNone(models[0]['reference'])
+        self.assertEqual(models[0]['reference'], 21385445736.)
         self.assertEqual(models[0]['rows'], 2)
         self.assertEqual(models[0]['expected_mps_sha256'], 'abc')
         self.assertEqual(models[0]['dataset'], 'pds')
+        metadata = benchmark.input_metadata('pds')
+        self.assertEqual(metadata['data/pds/reference_objectives.csv'], benchmark.sha(reference))
+        self.assertNotIn('data/netlib/feasible_gurobi_1e-8.csv', metadata)
+
+    def test_pds_execution_and_reports_use_numeric_case_order(self):
+        base = self.root / 'data/pds'
+        (base / 'raw').mkdir(parents=True)
+        for name in ('pds-100', 'pds-90', 'pds-20'):
+            (base / 'raw' / (name + '.bz2')).write_bytes(bz2.compress(b'raw'))
+        (base / 'reference_objectives.csv').write_text(
+            'name,status,pobj\npds-100,OPTIMAL,1\npds-90,OPTIMAL,2\npds-20,OPTIMAL,3\n')
+        expected = ['pds-20', 'pds-90', 'pds-100']
+        for cases in (None, ['pds-100', 'pds-90', 'pds-20']):
+            models = benchmark.select_models(argparse.ArgumentParser(), cases, 'pds')
+            self.assertEqual([m['name'] for m in models], expected)
+        # Display sorting preserves every existing result cell in both languages.
+        stored = {name: f'| {name} | 1 / 2 / 3 | 1 | PASS / 2 / 1 |'
+                  for name in reversed(expected)}
+        for english in (False, True):
+            report = benchmark.render_report('pds', stored, {}, english=english)
+            rows = [line for line in report.splitlines() if line.startswith('| pds-')]
+            self.assertEqual(rows, [stored[name] for name in expected])
+        # Other datasets retain their existing lexical ordering.
+        self.assertEqual(benchmark.ordered_cases('netlib', ['pds-20', 'pds-100']),
+                         ['pds-100', 'pds-20'])
+
+    def test_pds_rejects_missing_invalid_or_duplicate_references(self):
+        base = self.root / 'data/pds'
+        (base / 'raw').mkdir(parents=True)
+        (base / 'raw/pds-30.bz2').write_bytes(bz2.compress(b'raw'))
+        reference = base / 'reference_objectives.csv'
+        invalid = [None, '', 'name,status,pobj\nother,OPTIMAL,1\n',
+                   'name,status,pobj\npds-30,OPTIMAL,nan\n',
+                   'name,status,pobj\npds-30,OPTIMAL,inf\n',
+                   'name,status,pobj\npds-30,OPTIMAL,invalid\n',
+                   'name,status,pobj\npds-30,UNKNOWN,1\n',
+                   'name,status,pobj\npds-30,OPTIMAL,1\npds-30,OPTIMAL,2\n']
+        for text in invalid:
+            with self.subTest(csv=text):
+                if text is not None:
+                    reference.write_text(text)
+                with patch('sys.stderr'), self.assertRaises(SystemExit) as error:
+                    benchmark.select_models(argparse.ArgumentParser(), None, 'pds')
+                self.assertEqual(error.exception.code, 2)
+
+    def test_reference_metadata_keeps_netlib_and_railway_sources_separate(self):
+        netlib = benchmark.input_metadata('netlib')
+        self.assertIn('data/netlib/feasible_gurobi_1e-8.csv', netlib)
+        self.assertIsNone(benchmark.reference_path('railway'))
+        self.assertNotIn('data/netlib/feasible_gurobi_1e-8.csv', benchmark.input_metadata('railway'))
 
     def test_railway_dispatch_generates_continuous_mps_and_cleans_it(self):
         base = self.root / 'data/railway'

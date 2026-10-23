@@ -1,0 +1,10 @@
+name,status,pobj,source_url
+pds-20,OPTIMAL,23821658640,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-30,OPTIMAL,21385445736,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-40,OPTIMAL,18855198824,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-50,OPTIMAL,16603525724,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-60,OPTIMAL,14265904407,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-70,OPTIMAL,12241162812,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-80,OPTIMAL,11469077462,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-90,OPTIMAL,11087561635,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm
+pds-100,OPTIMAL,10928229968,https://www.coin-or.org/GAMSlinks/benchmarks/LP/allSolver_080107/2-CPLEX-1.trc_4-CBC-0.trc_sqr.htm

@@ -61,6 +61,8 @@ python3 data/benchmark.py --dataset netlib --cases afiro --repeats 1 --seconds 1
 
 `--cases` takes instance names without directories or file extensions, such as `afiro` for Netlib, `pds-30` for PDS, or `rail507` for Railway. It limits only the current run's selection.
 
+After an interruption, retain the old run directory and start a new run with `--cases` selecting unfinished instances. Keep the original algorithms, solvers, work budgets, and time limits, and use a new directory for `--run-dir`. Unselected completed instance rows are preserved, while statistics remain separate for each run. The script cannot resume in the original run directory or automatically skip completed solvers or repetitions within an instance; an interrupted instance starts again. `--report-only` rebuilds reports without continuing solver runs.
+
 ## Check a single model
 
 [`netlib/test_netlib.c`](netlib/test_netlib.c) solves one model and checks the expected outcome. For example, generate Afiro, then solve it and print its variables:

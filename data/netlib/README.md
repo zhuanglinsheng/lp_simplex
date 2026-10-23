@@ -2,7 +2,7 @@
 
 简体中文 | [English](./README_en.md) | [项目主页](../../README.md) | [数据总览](../README.md)
 
-收录 114 个可行 LP、29 个不可行 LP，以及 Gurobi 10 预处理版本。性能基准仅使用可行原模型。参考目标值见 `feasible_gurobi_1e-8.csv`。
+收录 114 个可行 LP、29 个不可行 LP，以及 Gurobi 10 预处理版本。性能基准仅使用可行原模型。参考目标值见 [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv)。
 
 ## 准备模型
 
