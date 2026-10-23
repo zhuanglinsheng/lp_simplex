@@ -227,6 +227,109 @@ int simplex_pan_bounded_check_dual(const struct simplex_PanBounded *b,
 }
 
 
+/* Search for a multiplier on the same feasible face. The gap only admits
+ * this bounded repair; it never certifies optimality. Every accepted repair
+ * passes the unchanged componentwise KKT and gap audit. */
+int simplex_pan_bounded_repair_dual(const struct simplex_PanBounded *b,
+	const double *x, double *y, double tolerance, int limit,
+	int *iterations, double *violation)
+{
+	const struct simplex_PanStandard *a = &b->a;
+	long double primal, dual = 0., correction = 0.;
+	double *saved;
+	int i, j, k, pass;
+
+	if (simplex_pan_bounded_check_dual(b, x, y, tolerance, violation))
+		return 1;
+	if (*iterations >= limit)
+		return 0;
+	primal = simplex_pan_cone_cost(a, x);
+	for (i = 0; i < a->rows; i++) {
+		if (!isfinite(y[i]))
+			return 0;
+		native_product(&dual, &correction, -a->rhs[i], y[i]);
+	}
+	for (j = 0; j < a->columns; j++) {
+		double g = a->objective[j] + simplex_pan_column_dot(a, j, y);
+
+		if (!isfinite(g) || !isfinite(x[j]))
+			return 0;
+		if (b->lower[j] == b->upper[j])
+			native_product(&dual, &correction, b->lower[j], g);
+		else if (g >= 0. && isfinite(b->lower[j]))
+			native_product(&dual, &correction, b->lower[j], g);
+		else if (g < 0. && isfinite(b->upper[j]))
+			native_product(&dual, &correction, b->upper[j], g);
+	}
+	dual += correction;
+	if (!isfinite(primal) || !isfinite(dual) ||
+		fabsl(primal - dual) > tolerance * (1. + fabsl(primal)))
+		return 0;
+	saved = (double *)lp_simplex_malloc(
+		((size_t)a->rows + 1) * sizeof(double));
+	if (!saved)
+		return 0;
+	lp_simplex_memcpy(saved, y, (size_t)a->rows * sizeof(double));
+	/* One complete projection sweep is one unit of shared solver work.
+	 * A failed transaction consumes work but restores the original y. */
+	for (pass = 0; pass < 64 && *iterations < limit; pass++) {
+		(*iterations)++;
+		for (j = 0; j < a->columns; j++) {
+			double g, budget, target = 0., step;
+			long double norm = 0.;
+
+			if (b->lower[j] == b->upper[j])
+				continue;
+			budget = tolerance * (1. + fabs(a->objective[j]));
+			g = a->objective[j] + simplex_pan_column_dot(a, j, y);
+			if (x[j] == b->lower[j]) {
+				if (g >= -budget)
+					continue;
+				target = -.25 * budget;
+			} else if (x[j] == b->upper[j]) {
+				if (g <= budget)
+					continue;
+				target = .25 * budget;
+			} else if (fabs(g) <= budget)
+				continue;
+			for (k = a->column_start[j]; k < a->column_start[j + 1];
+				k++)
+				norm += (long double)a->value[k] * a->value[k];
+			if (norm == 0.)
+				continue;
+			step = (double)(((long double)target - g) / norm);
+			for (k = a->column_start[j]; k < a->column_start[j + 1];
+				k++) {
+				i = a->row_index[k];
+				y[i] = fma(step, a->value[k], y[i]);
+			}
+		}
+		if (simplex_pan_bounded_check_dual(
+			    b, x, y, tolerance, violation)) {
+			lp_simplex_free(saved);
+			return 1;
+		}
+	}
+	lp_simplex_memcpy(y, saved, (size_t)a->rows * sizeof(double));
+	lp_simplex_free(saved);
+	(void)simplex_pan_bounded_check_dual(b, x, y, tolerance, violation);
+	return 0;
+}
+
+
+static int native_certificate(const struct simplex_PanBounded *b,
+	const double *x, double *y, const struct lp_simplex_Options *o,
+	int *iterations, double *violation)
+{
+	if (o->algorithm == lp_simplex_ALGORITHM_AUTO)
+		return simplex_pan_bounded_repair_dual(b, x, y,
+			o->dual_tolerance, o->iteration_limit, iterations,
+			violation);
+	return simplex_pan_bounded_check_dual(
+		b, x, y, o->dual_tolerance, violation);
+}
+
+
 static int native_free(
 	const struct simplex_PanBounded *b, const double *x, int j)
 {
@@ -1134,8 +1237,7 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 		}
 		(void)native_clean(
 			&b, point, o->primal_tolerance, saved, r, work);
-		if (simplex_pan_bounded_check_dual(
-			    &b, point, y, o->dual_tolerance, &dual)) {
+		if (native_certificate(&b, point, y, o, &iterations, &dual)) {
 			status = lp_simplex_Success;
 			state = 0;
 			goto done;
@@ -1158,8 +1260,7 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 				}
 				point[j] = target;
 			}
-		if (simplex_pan_bounded_check_dual(
-			    &b, point, y, o->dual_tolerance, &dual)) {
+		if (native_certificate(&b, point, y, o, &iterations, &dual)) {
 			status = lp_simplex_Success;
 			state = 0;
 			goto done;
@@ -1224,8 +1325,7 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 			(void)simplex_pan_cone_first_order(&tangent.a, saved, y,
 				o, &iterations, &dual, NULL, free_mask, 1);
 		}
-		if (simplex_pan_bounded_check_dual(
-			    &b, point, y, o->dual_tolerance, &dual)) {
+		if (native_certificate(&b, point, y, o, &iterations, &dual)) {
 			status = lp_simplex_Success;
 			state = 0;
 			goto done;
@@ -1285,8 +1385,8 @@ int simplex_pan_bounded_solve_certified(const struct simplex_Problem *p,
 			for (i = 0; i < b.a.rows; i++)
 				y[i] += scale * (r[i] / denominator) *
 					row_scale[i];
-			if (simplex_pan_bounded_check_dual(
-				    &b, point, y, o->dual_tolerance, &dual)) {
+			if (native_certificate(
+				    &b, point, y, o, &iterations, &dual)) {
 				status = lp_simplex_Success;
 				state = 0;
 				goto done;

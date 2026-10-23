@@ -31,6 +31,11 @@ double simplex_pan_bounded_primal(const struct simplex_PanBounded *b,
 	const double *x, double *residual, double *work);
 int simplex_pan_bounded_check_dual(const struct simplex_PanBounded *b,
 	const double *x, const double *y, double tolerance, double *violation);
+/* Transactional multiplier search; the audit above remains read-only.
+ * limit and iterations belong to the same cumulative solver budget. */
+int simplex_pan_bounded_repair_dual(const struct simplex_PanBounded *b,
+	const double *x, double *y, double tolerance, int limit,
+	int *iterations, double *violation);
 /* Exports only audited feasible improvements; 1 means full native KKT. */
 int simplex_pan_bounded_pdhg(const struct simplex_PanBounded *b, double *point,
 	double *multiplier, const struct lp_simplex_Options *o, int *iterations,

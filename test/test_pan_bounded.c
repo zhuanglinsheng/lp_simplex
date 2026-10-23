@@ -387,12 +387,69 @@ static int local_restore(void)
 }
 
 
+static int multiplier_repair(void)
+{
+	struct simplex_PanBounded b;
+	int starts[3] = {0, 1, 2}, rows[2] = {0, 0}, used = 0;
+	double values[2] = {1., 1.}, rhs[1] = {0.};
+	double cost[2] = {-2e-7, 0.}, lower[2] = {0., 0.};
+	double upper[2] = {HUGE_VAL, HUGE_VAL}, x[2] = {0., 0.};
+	double y[1] = {0.}, violation;
+	int good;
+
+	memset(&b, 0, sizeof(b));
+	b.a.rows = 1;
+	b.a.columns = 2;
+	b.a.column_start = starts;
+	b.a.row_index = rows;
+	b.a.value = values;
+	b.a.objective = cost;
+	b.a.rhs = rhs;
+	b.lower = lower;
+	b.upper = upper;
+	/* Auditing cannot alter a multiplier or consume solver work. */
+	good = !simplex_pan_bounded_check_dual(&b, x, y, 1e-7, &violation) &&
+	       y[0] == 0.;
+	good = good &&
+	       !simplex_pan_bounded_repair_dual(
+		       &b, x, y, 1e-7, 0, &used, &violation) &&
+	       used == 0 && y[0] == 0.;
+	good = good &&
+	       simplex_pan_bounded_repair_dual(
+		       &b, x, y, 1e-7, 2, &used, &violation) &&
+	       used == 1 &&
+	       simplex_pan_bounded_check_dual(&b, x, y, 1e-7, &violation);
+	/* Inconsistent stationarity equations: failed correction must roll
+	 * back exactly, while still charging the exhausted search budget. */
+	lower[0] = lower[1] = -HUGE_VAL;
+	cost[0] = -1.;
+	cost[1] = 1.;
+	y[0] = .125;
+	used = 0;
+	good = good &&
+	       !simplex_pan_bounded_repair_dual(
+		       &b, x, y, 1e-7, 2, &used, &violation) &&
+	       used == 2 && y[0] == .125;
+	/* A material objective gap is an optimization problem, not polishing. */
+	x[0] = 1.;
+	rhs[0] = 1.;
+	y[0] = 0.;
+	used = 0;
+	good = good &&
+	       !simplex_pan_bounded_repair_dual(
+		       &b, x, y, 1e-7, 2, &used, &violation) &&
+	       used == 0 && y[0] == 0.;
+	return good;
+}
+
+
 int main(void)
 {
 	unsigned int seed;
 
 	if (!representation() || !kkt() || !free_ray() || !bound_exchange() ||
-		!scaled_coordinate() || !local_restore())
+		!scaled_coordinate() || !local_restore() ||
+		!multiplier_repair())
 		return 1;
 	for (seed = 1; seed <= 100; seed++)
 		if (!known(seed, 0) || !known(seed, 1) || !known(seed, 2))
