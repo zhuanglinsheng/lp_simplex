@@ -8,6 +8,7 @@ import struct
 import sys
 import math
 import re
+import shlex
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -33,6 +34,31 @@ class BenchmarkTests(unittest.TestCase):
                 self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'),
                     [dict(instance='rail2536', solver='glpk', status=status)]))
 
+    def test_reproduction_paths_work_from_repository_root(self):
+        with patch.object(benchmark, 'ROOT', Path('/project/lp')):
+            config = dict(dataset='railway', models=[dict(name='rail507')],
+                          binary='/project/lp/build with spaces/test_netlib',
+                          scip='/opt/homebrew/bin/scip', clp='/project/lp/clp',
+                          glpk='glpsol', solvers=['lp_simplex', 'scip'],
+                          seconds=3600, glpk_gate_case='rail507')
+            command = benchmark.reproduction_command(config)
+            args = shlex.split(command)
+            for option, expected in (('--binary', 'build with spaces/test_netlib'),
+                                     ('--scip', 'scip'), ('--clp', './clp'),
+                                     ('--glpk', 'glpsol'), ('--seconds', '3600'),
+                                     ('--glpk-gate-case', 'rail507')):
+                self.assertEqual(args[args.index(option) + 1], expected)
+            self.assertEqual(config['binary'], '/project/lp/build with spaces/test_netlib')
+            legacy = ('```sh\npython3 data/benchmark.py --dataset railway '
+                      '--binary /project/lp/build/test_netlib --scip /opt/bin/scip\n```\n')
+            for english in (False, True):
+                report = benchmark.render_report('railway', {}, {'old': legacy}, english=english)
+                self.assertIn('--binary build/benchmark/data/lp_solve_mps --scip scip', report)
+                self.assertIn('BENCHMARKS=ON\n\ncmake --build', report)
+                self.assertIn('--target lp_solve_mps -j 4\n\npython3', report)
+                self.assertEqual(report.count('cmake --build'), 1)
+                self.assertNotIn('/project/', report)
+                self.assertNotIn('/opt/', report)
 
     def test_glpk_gate_only_skips_glpk_after_unsuccessful_gate(self):
         config = dict(glpk_gate_case='rail507', repeats=1)

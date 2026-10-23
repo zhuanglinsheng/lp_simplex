@@ -647,8 +647,27 @@ def run_summary(run_dir, metadata, results):
             relative = number(ratio)
         lines.append(f"| {LABELS[solver]} | {value['successes']}/{len(names)} | {value['timeouts']} | "
                      f"{value['failures']} | {count} | {means} | {relative} |")
-    lines += ['', '复现本轮案例与参数（新建运行目录）：', '', '```sh', reproduction_command(c), '```']
+    lines += ['', '复现本轮案例与参数（新建运行目录）：', '', '```sh',
+              reproduction_script(reproduction_command(c)), '```']
     return '\n'.join(lines) + '\n\n'
+
+
+def format_reproduction_command(command):
+    """Use repository-relative paths and PATH names for external solvers."""
+    command = list(command)
+    for index in range(1, len(command)):
+        option, value = command[index - 1], command[index]
+        if option not in ('--binary', '--scip', '--clp', '--glpk'):
+            continue
+        path = Path(value)
+        if not path.is_absolute():
+            continue
+        if option != '--binary' and not path.is_relative_to(ROOT):
+            command[index] = path.name
+        else:
+            relative = os.path.relpath(path, ROOT)
+            command[index] = relative if '/' in relative else './' + relative
+    return shlex.join(command)
 
 
 def reproduction_command(config):
@@ -663,7 +682,29 @@ def reproduction_command(config):
     command.extend(['--solvers', *config.get('solvers', LEGACY_SOLVERS)])
     if config.get('glpk_gate_case'):
         command.extend(['--glpk-gate-case', config['glpk_gate_case']])
-    return shlex.join(command)
+    return format_reproduction_command(command)
+
+
+def reproduction_script(command):
+    """Build the driver from the repository root before running the benchmark."""
+    args = shlex.split(command)
+    binary = 'build/benchmark/data/lp_solve_mps'
+    if '--binary' in args:
+        args[args.index('--binary') + 1] = binary
+    else:
+        args.extend(['--binary', binary])
+    return '\n\n'.join([
+        'cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON',
+        'cmake --build build/benchmark --target lp_solve_mps -j 4',
+        format_reproduction_command(args)])
+
+
+def refresh_reproduction_script(match):
+    commands = [line for line in match[1].splitlines()
+                if line.startswith('python3 data/benchmark.py ') and '--dataset ' in line]
+    if len(commands) != 1:
+        return match[0]
+    return '```sh\n' + reproduction_script(commands[0]) + '\n```'
 
 
 def english_result_row(row):
@@ -722,6 +763,9 @@ def render_report(dataset, stored, blocks, english=False):
                        lambda match: match[1] + ', '.join(ordered_cases(
                            dataset, [case.strip() for case in match[2].split(',')])) + ' |',
                        block, flags=re.M)
+        # Upgrade saved instructions too, without requiring original run logs.
+        block = re.sub(r'```sh\n(.*?)\n```', refresh_reproduction_script,
+                       block, flags=re.S)
         lines += [f'<!-- benchmark-run:{name} -->',
                   english_summary(block.rstrip()) if english else block.rstrip(),
                   '<!-- /benchmark-run -->', '']
@@ -876,9 +920,9 @@ def overview(docs_dir):
                '以及 highspy 或兼容的 SciPy HiGHS 绑定。PDS 转换器由脚本临时编译。',
                'Run from the repository root. Requirements are CMake, a C compiler, BLAS/LAPACK, SCIP, Clp, GLPK, NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding. The script compiles the PDS converter temporarily.'), '',
             '```sh', 'cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON',
-            'cmake --build build/benchmark -j 4',
-            'python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/lp_solve_mps',
-            'python3 data/benchmark.py --dataset pds --binary build/benchmark/data/lp_solve_mps',
+            '', 'cmake --build build/benchmark --target lp_solve_mps -j 4', '',
+            'python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/lp_solve_mps', '',
+            'python3 data/benchmark.py --dataset pds --binary build/benchmark/data/lp_solve_mps', '',
             'python3 data/benchmark.py --dataset railway --binary build/benchmark/data/lp_solve_mps', '```', '',
             tr('省略 `--cases` 测试所选数据集全集；短程验证可加 `--cases <实例名> --repeats 1 --seconds 10`。'
                'simple_examples 仅用于功能测试，不参与基准。上方各轮的复现命令保留其案例与具体参数，'
@@ -930,7 +974,6 @@ def glpk_skip_reason(config, solver, model, results):
     if any(row['status'] != 'PASS' for row in gate_runs):
         return 'GLPK gate case did not pass: ' + gate
     return None
-
 
 
 def benchmark_case(config_path, config, model, case_index, env, results, metadata):

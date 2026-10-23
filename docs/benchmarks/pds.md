@@ -52,7 +52,11 @@
 复现本轮案例与参数（新建运行目录）：
 
 ```sh
-python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 --binary /Users/zhuanglinsheng/Documents/Github/lp_simplex/tmp/build-auto-implementation/data/netlib/test_netlib --scip /opt/homebrew/bin/scip --clp /opt/homebrew/bin/clp --glpk /opt/homebrew/bin/glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
 ```
 <!-- /benchmark-run -->
 

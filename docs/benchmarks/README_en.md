@@ -18,6 +18,8 @@ PASS requires an optimal solver status and successful original-model feasibility
 
 [Per-instance results and full report](netlib_en.md)
 
+Only the run from the most recent report update is shown; historical records remain in their original run directories.
+
 <!-- benchmark-run:netlib-auto-current-90s-once -->
 | Test information | Value |
 | --- | --- |
@@ -51,7 +53,11 @@ PASS requires an optimal solver status and successful original-model feasibility
 Reproduce these cases and parameters in a new run directory:
 
 ```sh
-python3 data/benchmark.py --dataset netlib --cases 25fv47 80bau3b adlittle afiro agg agg2 agg3 bandm beaconfd blend bnl1 bnl2 boeing1 boeing2 bore3d brandy capri cre-a cre-b cre-c cre-d cycle czprob d2q06c d6cube degen2 degen3 dfl001 e226 etamacro fffff800 finnis fit1d fit1p fit2d fit2p forplan ganges gfrd-pnc greenbea greenbeb grow15 grow22 grow7 israel kb2 ken-07 ken-11 ken-13 ken-18 lotfi maros-r7 maros modszk1 nesm osa-07 osa-14 osa-30 osa-60 pds-02 pds-06 pds-10 pds-20 perold pilot.ja pilot pilot.we pilot4 pilot87 pilotnov qap12 qap15 qap8 recipe sc105 sc205 sc50a sc50b scagr25 scagr7 scfxm1 scfxm2 scfxm3 scorpion scrs8 scsd1 scsd6 scsd8 sctap1 sctap2 sctap3 seba share1b share2b shell ship04l ship04s ship08l ship08s ship12l ship12s sierra stair standata standgub standmps stocfor1 stocfor2 stocfor3 truss tuff vtp.base wood1p woodw --binary /Users/zhuanglinsheng/Documents/Github/lp_simplex/tmp/netlib-90s-snapshot/build/data/netlib/test_netlib --scip /opt/homebrew/bin/scip --clp /opt/homebrew/bin/clp --glpk /opt/homebrew/bin/glpsol --repeats 1 --seconds 90.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset netlib --cases 25fv47 80bau3b adlittle afiro agg agg2 agg3 bandm beaconfd blend bnl1 bnl2 boeing1 boeing2 bore3d brandy capri cre-a cre-b cre-c cre-d cycle czprob d2q06c d6cube degen2 degen3 dfl001 e226 etamacro fffff800 finnis fit1d fit1p fit2d fit2p forplan ganges gfrd-pnc greenbea greenbeb grow15 grow22 grow7 israel kb2 ken-07 ken-11 ken-13 ken-18 lotfi maros-r7 maros modszk1 nesm osa-07 osa-14 osa-30 osa-60 pds-02 pds-06 pds-10 pds-20 perold pilot.ja pilot pilot.we pilot4 pilot87 pilotnov qap12 qap15 qap8 recipe sc105 sc205 sc50a sc50b scagr25 scagr7 scfxm1 scfxm2 scfxm3 scorpion scrs8 scsd1 scsd6 scsd8 sctap1 sctap2 sctap3 seba share1b share2b shell ship04l ship04s ship08l ship08s ship12l ship12s sierra stair standata standgub standmps stocfor1 stocfor2 stocfor3 truss tuff vtp.base wood1p woodw --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 90.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
 ```
 <!-- /benchmark-run -->
 
@@ -59,7 +65,7 @@ python3 data/benchmark.py --dataset netlib --cases 25fv47 80bau3b adlittle afiro
 
 [Per-instance results and full report](pds_en.md)
 
-仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。
+Only the run from the most recent report update is shown; historical records remain in their original run directories.
 
 <!-- benchmark-run:pds-auto-refined-five-solvers-300s-final -->
 | Test information | Value |
@@ -94,7 +100,11 @@ python3 data/benchmark.py --dataset netlib --cases 25fv47 80bau3b adlittle afiro
 Reproduce these cases and parameters in a new run directory:
 
 ```sh
-python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 --binary /Users/zhuanglinsheng/Documents/Github/lp_simplex/tmp/build-auto-implementation/data/netlib/test_netlib --scip /opt/homebrew/bin/scip --clp /opt/homebrew/bin/clp --glpk /opt/homebrew/bin/glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
 ```
 <!-- /benchmark-run -->
 
@@ -120,10 +130,14 @@ Run from the repository root. Requirements are CMake, a C compiler, BLAS/LAPACK,
 
 ```sh
 cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
-cmake --build build/benchmark -j 4
-python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/netlib/test_netlib
-python3 data/benchmark.py --dataset pds --binary build/benchmark/data/netlib/test_netlib
-python3 data/benchmark.py --dataset railway --binary build/benchmark/data/netlib/test_netlib
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/lp_solve_mps
+
+python3 data/benchmark.py --dataset pds --binary build/benchmark/data/lp_solve_mps
+
+python3 data/benchmark.py --dataset railway --binary build/benchmark/data/lp_solve_mps
 ```
 
 Omit `--cases` to test the full selected dataset. For a short check, add `--cases <instance> --repeats 1 --seconds 10`. The simple_examples models are functional tests, not benchmarks. Commands above preserve each run's cases and parameters. You may replace binary paths with new builds; verify versions and SHA-256 before comparing timings.
