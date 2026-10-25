@@ -150,6 +150,54 @@ static int rejected_and_empty(void)
 	return 0;
 }
 
+/* B is independent although rounding makes B^T B exactly singular. */
+static int gram_rank_loss(void)
+{
+#ifdef TEST_DENSE_BACKEND
+	struct simplex_PanConfig controls;
+	struct simplex_PanStandard a;
+	struct simplex_PanBasis b;
+	int start[4] = {0, 1, 3, 4}, row[4] = {0, 0, 1, 1};
+	double epsilon = ldexp(1., -30), value[4], norm[3];
+	double rhs[2], solution[2], error;
+
+	simplex_pan_config_init(&controls, NULL);
+	memset(&a, 0, sizeof(a));
+	value[0] = value[1] = value[3] = 1.;
+	value[2] = epsilon;
+	norm[0] = norm[2] = 1.;
+	norm[1] = hypot(1., epsilon);
+	a.rows = 2;
+	a.columns = 3;
+	a.nonzeros = 4;
+	a.column_start = start;
+	a.row_index = row;
+	a.value = a.normalized_value = value;
+	a.column_norm = norm;
+	CHECK(!simplex_pan_basis_create_configured(&b, &a, 1e-12, &controls));
+	CHECK(!simplex_pan_basis_add(&b, 0));
+	CHECK(!simplex_pan_basis_add(&b, 1));
+	CHECK(!simplex_pan_basis_factorize(&b) && b.dense_qr);
+	rhs[0] = 2.;
+	rhs[1] = epsilon;
+	CHECK(!simplex_pan_basis_least_squares(&b, rhs, solution, &error));
+	CHECK(error < 1e-12 && fabs(solution[0] - 1.) < 1e-6 &&
+		fabs(solution[1] - 1.) < 1e-6);
+	rhs[0] = 1.;
+	rhs[1] = 1. + epsilon;
+	CHECK(!simplex_pan_basis_minimum_norm(&b, rhs, solution, &error));
+	CHECK(error < 1e-12 && fabs(solution[0] - 1.) < 1e-6 &&
+		fabs(solution[1] - 1.) < 1e-6);
+	CHECK(!simplex_pan_basis_column_projection(&b, 2, solution, &error));
+	CHECK(error < 1e-6 && error == b.projection_solve_error &&
+		fabs(solution[0] * epsilon + 1.) < 1e-6 &&
+		fabs(solution[1] * epsilon - 1.) < 1e-6);
+	CHECK(!simplex_pan_basis_replace_factorized(&b, 1, 2) && !b.dense_qr);
+	simplex_pan_basis_destroy(&b);
+#endif
+	return 0;
+}
+
 static int multiplier_recovery(void)
 {
 	struct lp_Model *m = lp_model_create(3, 3);
@@ -195,5 +243,6 @@ static int multiplier_recovery(void)
 
 int main(void)
 {
-	return rectangular() || rejected_and_empty() || multiplier_recovery();
+	return rectangular() || rejected_and_empty() || gram_rank_loss() ||
+	       multiplier_recovery();
 }
