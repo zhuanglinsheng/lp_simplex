@@ -80,7 +80,7 @@ Check element counts, padding, byte products/sums and backend integer ranges bef
 - **QR:** dynamic append prepares capacity/temporary rows before damaging old columns, preserving their mathematical usability on append refusal. This does not extend transaction guarantees to every deletion, swap or reload.
 - **Presolve:** startup/reduced-output refusal cleans its owners; journal dependencies restore backwards. After dominance fixes a column, the next queue epoch eliminates and records it.
 
-Local limits are not total RSS; work is not CPU time. Dimension/narrow-address probes are not giant LP runs or native 32-bit validation. See [delivery scope](../README_en.md#delivery-and-compatibility-boundary) for platform and deployment boundaries.
+Local limits are not total RSS; work is not CPU time. Dimension/narrow-address probes are not giant LP runs or native 32-bit validation. See [installation](../INSTALL.md) for supported platforms and dependencies.
 
 ## Configuration and reproduction
 

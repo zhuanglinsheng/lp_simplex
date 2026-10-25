@@ -21,3 +21,6 @@ __pycache__/
 *.so
 *.so.*
 *.dylib
+
+# Vendored license text, not a native import library
+!/tools/licenses/windows-runtime/COPYING.LIB
