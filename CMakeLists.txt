@@ -298,12 +298,17 @@ install(FILES LICENSE LICENSE.GPL-3.0
 ###############################################################################
 
 ## (Default) The "Release" mode is for installation.
-if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
+if(NOT MSVC
+   AND CMAKE_BUILD_TYPE
+   AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     # Keep CMake's toolchain-specific Release optimization level (normally -O3).
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wall")
     ##
     ## The "Debug" mode is for unit testings.
-elseif(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+elseif(
+    NOT MSVC
+    AND CMAKE_BUILD_TYPE
+    AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall")
 endif()
 

@@ -7,6 +7,8 @@ from pathlib import Path
 import shutil
 import subprocess
 import tarfile
+import zipfile
+import os
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,14 +18,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('archive', type=Path)
     parser.add_argument('--version', required=True)
-    parser.add_argument('--require-full', action='store_true')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--require-full', action='store_true')
+    group.add_argument('--require-minimal', action='store_true')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='lp-release-') as directory:
         work = Path(directory)
         original = work / 'extracted'
         original.mkdir()
-        with tarfile.open(args.archive.resolve()) as bundle:
-            bundle.extractall(original, filter='data')
+        if args.archive.suffix == '.zip':
+            with zipfile.ZipFile(args.archive.resolve()) as bundle:
+                for member in bundle.namelist():
+                    target = (original / member).resolve()
+                    if not target.is_relative_to(original.resolve()):
+                        raise RuntimeError('Archive path escapes extraction root')
+                bundle.extractall(original)
+        else:
+            with tarfile.open(args.archive.resolve()) as bundle:
+                bundle.extractall(original, filter='data')
         roots = list(original.iterdir())
         if len(roots) != 1 or not roots[0].is_dir():
             raise RuntimeError('Archive must contain exactly one package directory')
@@ -36,6 +48,9 @@ def main():
         if args.require_full and manifest['capabilities'] != {
                 'KLU': 'ON', 'SPQR': 'ON', 'GMP': 'ON'}:
             raise RuntimeError('Release omitted a required numerical backend')
+        if args.require_minimal and manifest['capabilities'] != {
+                'KLU': 'OFF', 'SPQR': 'OFF', 'GMP': 'OFF'}:
+            raise RuntimeError('Minimal release unexpectedly enabled optional backends')
         for name in ['LICENSE', 'LICENSE.GPL-3.0', 'INSTALL.md', 'CHANGELOG.md',
                      'include/lp_simplex/version.h']:
             if not (package / name).is_file():
@@ -54,7 +69,8 @@ def main():
         source = work / 'consumer'
         shutil.copytree(ROOT / 'test/package_consumer', source)
         build = work / 'consumer-build'
-        subprocess.run(['cmake', '-S', str(source), '-B', str(build),
+        subprocess.run(['cmake', *(['-G', 'Ninja'] if os.name == 'nt' else []),
+                        '-S', str(source), '-B', str(build),
                         f'-DPACKAGE_ROOT={package}',
                         f'-DEXPECTED_VERSION={args.version}', '-DTEST_CXX=ON',
                         '-DCMAKE_BUILD_TYPE=Release',
@@ -63,8 +79,14 @@ def main():
                        cwd=work)
         subprocess.run(['cmake', '--build', str(build), '--parallel', '2'],
                        check=True, cwd=work)
+        environment = os.environ.copy()
+        if os.name == 'nt':
+            # Runtime tests must use the archived numerical DLLs, not vcpkg.
+            paths = [entry for entry in environment['PATH'].split(os.pathsep)
+                     if 'vcpkg' not in entry.lower() and 'build-windows' not in entry.lower()]
+            environment['PATH'] = os.pathsep.join([str(package / 'bin'), *paths])
         subprocess.run(['ctest', '--test-dir', str(build), '--output-on-failure'],
-                       check=True, cwd=work)
+                       check=True, cwd=work, env=environment)
     print(f'Extracted and relocated package {args.version}: C/C++ passed')
 
 

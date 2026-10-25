@@ -1704,6 +1704,11 @@ void simplex_basis_use_product_updates(struct simplex_Basis *basis)
 	basis->impl->allow_ft = 0;
 }
 
+void simplex_basis_use_default_updates(struct simplex_Basis *basis)
+{
+	basis->impl->allow_ft = 1;
+}
+
 int simplex_basis_update_count(const struct simplex_Basis *basis)
 {
 	return basis->impl->update_count;

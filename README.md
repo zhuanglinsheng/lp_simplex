@@ -46,7 +46,8 @@ cmake --build build --target install
 
 ### 安装内容
 
-- 库目录（通常 `lib/`）：共享库 `liblp_simplex.so`（Linux）或 `liblp_simplex.dylib`（macOS）。目录由 `CMAKE_INSTALL_LIBDIR` 控制。
+- 库目录（通常 `lib/`）：共享库 `liblp_simplex.so`（Linux）或 `liblp_simplex.dylib`（macOS），以及 Windows 导入库 `lp_simplex.lib`。目录由 `CMAKE_INSTALL_LIBDIR` 控制。
+- Windows 动态库位于 `bin/lp_simplex.dll`；原生 MSVC 构建默认仅依赖 BLAS/LAPACK，步骤见[安装指南](./INSTALL.md)。
 - `include/lp_simplex/`：公开头文件 `lp_simplex.h`、`model.h`、`mps.h`、`solve.h`、`status.h` 和 `version.h`。
 - 库目录下的 `cmake/lp_simplex/`：CMake 包配置与 `lp_simplex::lp_simplex` 导入目标。
 - `share/licenses/lp_simplex/`：LGPL 与所引用的 GPL 条款文本。
@@ -75,4 +76,4 @@ Release 用于交付。非 MSVC 的 Debug 构建启用 AddressSanitizer，外部
 
 ## 交付与兼容性边界
 
-公开接口位于 `include/lp_simplex/`，`src/` 属于私有实现。调用方应使用匹配的头文件重新构建，不承诺跨版本二进制兼容。macOS arm64 已验证 Release/ASAN、可选后端开/关及安装包移位；其他平台以实际 CI 结果为准。工作预算不等于 CPU 超时或总体 RSS 限额。配置和结果含义见[配置边界](./docs/runtime-configuration.md)与[结果参考](./docs/parameters.md)，测量范围见[验证历史](./docs/development/README.md)。
+公开接口位于 `include/lp_simplex/`，`src/` 属于私有实现。调用方应使用匹配的头文件重新构建，不承诺跨版本二进制兼容。发布验收覆盖 Linux x64、macOS x64/arm64 与 Windows x64 的原生构建和安装包移位；Release/Debug 及可选后端配置以[持续集成](https://github.com/zhuanglinsheng/lp_simplex/actions)的实际结果为准。工作预算不等于 CPU 超时或总体 RSS 限额。配置和结果含义见[配置边界](./docs/runtime-configuration.md)与[结果参考](./docs/parameters.md)，测量范围见[验证历史](./docs/development/README.md)。

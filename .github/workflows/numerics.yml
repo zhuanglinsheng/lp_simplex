@@ -14,8 +14,13 @@ jobs:
         include:
           - runner: ubuntu-24.04
             backends: 'OFF'
+            build_type: Release
+          - runner: ubuntu-24.04
+            backends: 'OFF'
+            build_type: Debug
           - runner: macos-15-intel
             backends: 'ON'
+            build_type: Release
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -24,12 +29,13 @@ jobs:
       - name: Build diagnostic driver
         env:
           BACKENDS: ${{ matrix.backends }}
+          BUILD_TYPE: ${{ matrix.build_type }}
         run: |
           python3 data/netlib/prepare.py --all
           if [ "$(uname -s)" = Darwin ]; then
             export CMAKE_PREFIX_PATH="$(brew --prefix)"
           fi
-          cmake -S . -B build-numerics -DCMAKE_BUILD_TYPE=Release \
+          cmake -S . -B build-numerics -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
             -DBUILD_TESTING=OFF -DLP_SIMPLEX_BUILD_EXAMPLES=OFF \
             -DLP_SIMPLEX_USE_KLU="$BACKENDS" -DLP_SIMPLEX_USE_SPQR="$BACKENDS" \
             -DLP_SIMPLEX_USE_GMP="$BACKENDS" -DLP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS=ON
@@ -71,7 +77,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: numerical-diagnostics-${{ matrix.runner }}
+          name: numerical-diagnostics-${{ matrix.runner }}-${{ matrix.build_type }}
           path: |
             build-numerics/*.log
             build-numerics/results.json

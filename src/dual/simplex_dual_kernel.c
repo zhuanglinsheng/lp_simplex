@@ -85,11 +85,12 @@ static int dual_is_finite_upper(double value)
 /* Separate the initial dual face before symmetry has selected a fragile
  * basis.  Unlike later feasibility-restoring shifts, this is a bounded,
  * one-shot change to the original objective, removed by the usual cleanup. */
-static void dual_perturb_initial_cost(struct simplex_DualState *state)
+static void dual_perturb_initial_cost(
+	struct simplex_DualState *state, const int recovery)
 {
 	int j, shifted = 0;
 
-	if (!state->controls.initial_cost_perturb)
+	if (!state->controls.initial_cost_perturb && !recovery)
 		return;
 	for (j = 0; j < state->structural; j++) {
 		unsigned int order = (unsigned int)j + 1U;
@@ -2329,12 +2330,11 @@ static double dual_primal_infeasibility(const struct simplex_DualState *state)
 	return maximum;
 }
 
-/* Change representation once after a numerical breakdown: B=-I is exact,
- * and product updates avoid re-entering the failing FT update path.  A
- * reversible Phase-I objective supplies dual feasibility without a second
- * crash heuristic.  Iteration accounting and original costs are preserved. */
-static int dual_initialize_stable_phase_one(
-	struct simplex_DualState *state, const struct simplex_Problem *problem)
+/* After numerical failure, retain the exact B=-I/product-update recovery,
+ * then allow one separated cold face. Both retain the remaining pivot
+ * grant and restore the original objective before success. */
+static int dual_initialize_stable_phase_one(struct simplex_DualState *state,
+	const struct simplex_Problem *problem, const int separate_costs)
 {
 	/* A representation restart is allowed only after the primal transaction
 	 * has restored every bound. Its one-epoch budget survives this restart. */
@@ -2346,41 +2346,55 @@ static int dual_initialize_stable_phase_one(
 	state->recovery.primal_tracking = 0;
 	state->original_dual_recompute = 0;
 	simplex_degeneracy_reset_state(&state->recovery.primal_history);
-	state->stable_phase_one = 1;
+	state->stable_phase_one = !separate_costs;
 	state->perturb_epochs = 0;
 	state->costs_version++;
 	state->cost_shift_active = 0;
 	state->pan_deferred_row = -1;
 	state->stalled_restarts = 0;
+	/* Row allowances belonged to the discarded basis, not the logical one. */
+	lp_simplex_memset(state->feasibility_tolerance, 0,
+		(size_t)state->rows * sizeof(double));
 	lp_simplex_memcpy(state->cost, state->original_cost,
 		(size_t)state->variables * sizeof(double));
 	simplex_degeneracy_reset_state(&state->degeneracy);
-	simplex_basis_use_product_updates(&state->factor);
+	if (separate_costs)
+		simplex_basis_use_default_updates(&state->factor);
+	else
+		simplex_basis_use_product_updates(&state->factor);
 	dual_initialize_basis(state, problem);
-	dual_perturb_initial_cost(state);
+	/* The failed path supplies evidence for one deterministic face change.
+	 * Its costs are restored and checked before success; the restart retains
+	 * the original pivot grant and cannot restart itself. */
+	dual_perturb_initial_cost(state, separate_costs);
 	if (dual_factorize(state) != lp_simplex_EXIT_SUCCESS ||
+		(separate_costs &&
+			(dual_crash(state) != lp_simplex_EXIT_SUCCESS ||
+				dual_factorize(state) !=
+					lp_simplex_EXIT_SUCCESS)) ||
 		dual_compute_primal_values(state) != lp_simplex_EXIT_SUCCESS ||
 		dual_compute_reduced_costs(state) != lp_simplex_EXIT_SUCCESS)
 		return lp_simplex_EXIT_FAILURE;
 	dual_apply_cost_shifts(state);
 	dual_rebuild_iteration_indexes(state);
 	if (state->profile.enabled)
-		fprintf(stderr,
-			"dual profile: stable logical Phase I at iteration=%d\n",
+		fprintf(stderr, "dual profile: %s Phase I at iteration=%d\n",
+			separate_costs ? "separated cost" : "stable logical",
 			state->iterations);
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-static int dual_start_stable_phase_one(
-	struct simplex_DualState *state, const struct simplex_Problem *problem)
+static int dual_start_stable_phase_one(struct simplex_DualState *state,
+	const struct simplex_Problem *problem, const int separate_costs)
 {
 	struct simplex_StageReport report;
 	struct lp_simplex_Result result;
 	int id = simplex_execution_begin(&problem->execution,
-		SIMPLEX_EXECUTION_STABLE_INITIALIZE, 0,
+		SIMPLEX_EXECUTION_STABLE_INITIALIZE, separate_costs,
 		SIMPLEX_REASON_NUMERICAL_FAILURE,
 		simplex_execution_parent(&problem->execution));
-	int status = dual_initialize_stable_phase_one(state, problem);
+	int status = dual_initialize_stable_phase_one(
+		state, problem, separate_costs);
 
 	simplex_stage_reset(&report);
 	lp_simplex_memset(&result, 0, sizeof(result));
@@ -2519,8 +2533,10 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 	struct simplex_DualBasisSeed *seed)
 {
 	struct simplex_DualState state;
-	int j, status = lp_simplex_CondUnsatisfied;
-	int solve_state, seeded = seed && seed->valid;
+	int j, initialized, status = lp_simplex_CondUnsatisfied;
+	int solve_state, stable_restart_attempted = 0,
+			 cost_restart_attempted = 0;
+	int seeded = seed && seed->valid;
 	double objective = 0.;
 	clock_t profile_started = 0;
 
@@ -2534,6 +2550,7 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 			problem->report->stop = SIMPLEX_STOP_RESOURCE;
 		return lp_simplex_EXIT_FAILURE;
 	}
+	cost_restart_attempted = state.controls.initial_cost_perturb;
 	/* No seed arrays were touched by failed state allocation. Once import
 	 * begins, a rejected/numerically failed attempt must export afresh. */
 	if (seed)
@@ -2562,7 +2579,7 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 		state.seeded_basis = 1;
 	} else {
 		dual_initialize_basis(&state, problem);
-		dual_perturb_initial_cost(&state);
+		dual_perturb_initial_cost(&state, 0);
 		if (dual_factorize(&state) != lp_simplex_EXIT_SUCCESS ||
 			dual_crash(&state) != lp_simplex_EXIT_SUCCESS ||
 			dual_factorize(&state) != lp_simplex_EXIT_SUCCESS ||
@@ -2573,8 +2590,17 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 			if (simplex_basis_storage_failed(&state.factor))
 				return dual_initial_resource_exit(
 					&state, problem, result);
-			if (dual_start_stable_phase_one(&state, problem) !=
-				lp_simplex_EXIT_SUCCESS) {
+			stable_restart_attempted = 1;
+			initialized =
+				dual_start_stable_phase_one(&state, problem, 0);
+			if (initialized != lp_simplex_EXIT_SUCCESS &&
+				!cost_restart_attempted &&
+				!simplex_basis_storage_failed(&state.factor)) {
+				cost_restart_attempted = 1;
+				initialized = dual_start_stable_phase_one(
+					&state, problem, 1);
+			}
+			if (initialized != lp_simplex_EXIT_SUCCESS) {
 				if (simplex_basis_storage_failed(&state.factor))
 					return dual_initial_resource_exit(
 						&state, problem, result);
@@ -2622,9 +2648,8 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 				solve_state = lp_simplex_EXIT_FAILURE;
 			}
 		}
-		/* Stable mode cannot restart itself or reset the caller's budget. */
+		/* Each recovery representation has one grant within the caller budget. */
 		if (solve_state == lp_simplex_EXIT_SUCCESS ||
-			state.stable_phase_one ||
 			state.iterations >= options->iteration_limit ||
 			(seed && seed->accepted &&
 				simplex_basis_resolved_backend(&state.factor) ==
@@ -2632,12 +2657,34 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 			(status != lp_simplex_PrecisionError &&
 				status != lp_simplex_Singularity))
 			break;
-		if (dual_start_stable_phase_one(&state, problem) !=
-			lp_simplex_EXIT_SUCCESS) {
-			status = dual_basis_failure_status(&state, status);
-			break;
+		if (!stable_restart_attempted) {
+			stable_restart_attempted = 1;
+			if (dual_start_stable_phase_one(&state, problem, 0) ==
+				lp_simplex_EXIT_SUCCESS) {
+				status = lp_simplex_CondUnsatisfied;
+				continue;
+			}
+			if (simplex_basis_storage_failed(&state.factor)) {
+				status = lp_simplex_MemoryAllocError;
+				break;
+			}
 		}
-		status = lp_simplex_CondUnsatisfied;
+		/* A failed degenerate trajectory authorizes one cold face change.
+		 * Do not repeat it or spend pivots after the caller's grant expires. */
+		if (!cost_restart_attempted) {
+			cost_restart_attempted = 1;
+			if (dual_start_stable_phase_one(&state, problem, 1) ==
+				lp_simplex_EXIT_SUCCESS) {
+				status = lp_simplex_CondUnsatisfied;
+				continue;
+			}
+			if (simplex_basis_storage_failed(&state.factor)) {
+				status = lp_simplex_MemoryAllocError;
+				break;
+			}
+		}
+		status = dual_basis_failure_status(&state, status);
+		break;
 	}
 
 	dual_report_progress(&state, 1);

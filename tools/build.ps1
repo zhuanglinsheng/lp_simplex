@@ -3,7 +3,7 @@ param(
     [string]$BuildDir = (Join-Path $PSScriptRoot '../build-windows'),
     [string]$VcpkgRoot = (Join-Path $PSScriptRoot '../build-vcpkg'),
     [ValidateSet('Release', 'Debug')][string]$Configuration = 'Release',
-    [switch]$Minimal
+    [switch]$OptionalBackends
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
@@ -15,10 +15,12 @@ $installed = Join-Path $root 'build-vcpkg-installed'
 if (!(Test-Path $toolchain)) {
     throw 'Run tools/install_dependencies.ps1 first.'
 }
-$backends = if ($Minimal) { 'OFF' } else { 'ON' }
+$backends = if ($OptionalBackends) { 'ON' } else { 'OFF' }
+$features = if ($OptionalBackends) { 'optional-backends' } else { '' }
 cmake -S $root -B $BuildDir -G Ninja "-DCMAKE_BUILD_TYPE=$Configuration" `
     "-DCMAKE_TOOLCHAIN_FILE=$toolchain" "-DVCPKG_INSTALLED_DIR=$installed" `
-    -DVCPKG_TARGET_TRIPLET=x64-windows -DLP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS=ON `
+    -DVCPKG_TARGET_TRIPLET=x64-windows "-DVCPKG_MANIFEST_FEATURES=$features" `
+    -DLP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS=ON `
     "-DLP_SIMPLEX_USE_KLU=$backends" "-DLP_SIMPLEX_USE_SPQR=$backends" `
     "-DLP_SIMPLEX_USE_GMP=$backends"
 cmake --build $BuildDir --parallel 3

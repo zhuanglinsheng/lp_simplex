@@ -12,13 +12,14 @@
 #define LP_SIMPLEX_UTILS_INTERNAL_H
 
 #include <assert.h>
+#include <math.h>
 #include <stddef.h>
 
 #define __lp_simplex_ABS__(x) ((x) >= 0 ? (x) : (-(x)))
 #define __lp_simplex_MAX__(x, y) ((x) >= (y) ? (x) : (y))
 #define __lp_simplex_MIN__(x, y) ((x) <= (y) ? (x) : (y))
-#define __lp_simplex_INF__ (1. / 0.)
-#define __lp_simplex_NINF__ (-1. / 0.)
+#define __lp_simplex_INF__ HUGE_VAL
+#define __lp_simplex_NINF__ (-HUGE_VAL)
 
 /*
  * C90-safe finiteness test.  NaN fails the first comparison; infinities fail

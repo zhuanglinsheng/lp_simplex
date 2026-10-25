@@ -2,17 +2,19 @@ name: Windows validation
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
 
 concurrency:
   group: windows-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   msvc:
     runs-on: windows-2022
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,27 +23,49 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: dependencies
         with:
           path: build-vcpkg-installed
-          key: windows-x64-vcpkg-${{ hashFiles('vcpkg.json') }}
+          key: windows-x64-vcpkg-minimal-${{ hashFiles('vcpkg.json') }}
       - name: Install pinned numerical dependencies
         shell: pwsh
         run: ./tools/install_dependencies.ps1
+      - uses: actions/cache/save@v4
+        if: steps.dependencies.outputs.cache-hit != 'true'
+        with:
+          path: build-vcpkg-installed
+          key: windows-x64-vcpkg-minimal-${{ hashFiles('vcpkg.json') }}
       - name: Install test dependencies and prepare data
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python -m pip install numpy scipy
           python data/netlib/prepare.py --all
-      - name: Build and test native MSVC DLL
+      - name: Build and test native minimal MSVC DLL (Release)
         shell: pwsh
         run: ./tools/build.ps1
+      - name: Package and verify Windows DLL archive
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python tools/package_release.py --build-dir build-windows --platform windows-x64 --require-clean --dependency-prefix build-vcpkg-installed/x64-windows
+          $version = ((Get-Content build-windows/CMakeCache.txt | Where-Object { $_.StartsWith('CMAKE_PROJECT_VERSION:STATIC=') }) -split '=', 2)[1]
+          python test/release/verify_package.py "build-dist/lp_simplex-${version}-windows-x64.zip" --version $version --require-minimal
+      - name: Build and test native minimal MSVC DLL (Debug)
+        shell: pwsh
+        run: ./tools/build.ps1 -BuildDir build-windows-debug -Configuration Debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-windows-x64
+          path: build-dist/*.zip
+          if-no-files-found: error
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: windows-test-diagnostics
           path: |
-            build-windows/Testing/Temporary/*.log
+            build-windows*/Testing/Temporary/*.log
             build-vcpkg/buildtrees/**/*.log
           if-no-files-found: warn

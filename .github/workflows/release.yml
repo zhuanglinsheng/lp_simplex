@@ -30,13 +30,19 @@ jobs:
         run: |
           python3 - <<'PY'
           import os
+          import json
           import re
           from pathlib import Path
           source = Path('CMakeLists.txt').read_text()
           version = re.search(r'project\s*\(\s*lp_simplex\s+VERSION\s+(\d+\.\d+\.\d+)', source)[1]
           if os.environ['REF_TYPE'] == 'tag':
               assert os.environ['REF_NAME'] == 'v' + version, 'Tag/version mismatch'
-          assert '## ' + version + ' ' in Path('CHANGELOG.md').read_text()
+          notes = Path('CHANGELOG.md').read_text()
+          heading = re.search(r'^## ' + re.escape(version) + r' .*$', notes, re.M)
+          assert heading, 'Release notes/version mismatch'
+          assert json.loads(Path('vcpkg.json').read_text())['version-string'] == version, 'Dependency manifest/version mismatch'
+          if os.environ['REF_TYPE'] == 'tag':
+              assert 'Unreleased' not in heading[0], 'Finalize release notes before tagging'
           with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
               stream.write('version=' + version + '\n')
           PY
@@ -134,9 +140,13 @@ jobs:
             -DLP_SIMPLEX_USE_KLU="$BACKENDS" -DLP_SIMPLEX_USE_SPQR="$BACKENDS" \
             -DLP_SIMPLEX_USE_GMP="$BACKENDS"
 
+  windows:
+    needs: validate
+    uses: ./.github/workflows/windows.yml
+
   publish:
     if: github.ref_type == 'tag'
-    needs: [validate, package, regression]
+    needs: [validate, package, regression, windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -154,8 +164,8 @@ jobs:
         run: |
           git archive --format=tar --prefix="lp_simplex-$VERSION/" "$GITHUB_SHA" | gzip -n > "build-dist/lp_simplex-$VERSION-source.tar.gz"
           cd build-dist
-          sha256sum *.tar.gz > SHA256SUMS
+          sha256sum *.tar.gz *.zip > SHA256SUMS
           cd ..
-          gh release create "$GITHUB_REF_NAME" build-dist/*.tar.gz build-dist/SHA256SUMS \
+          gh release create "$GITHUB_REF_NAME" build-dist/*.tar.gz build-dist/*.zip build-dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --target "$GITHUB_SHA" \
             --title "lp_simplex $VERSION" --notes-file CHANGELOG.md

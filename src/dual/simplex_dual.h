@@ -22,6 +22,14 @@ int simplex_dual_solve(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x, double *row_dual,
 	struct lp_simplex_Result *result, int propagate_bounds);
 
+/* AUTO identifies this binding by its function address. Native DLL consumers
+ * must load the exported address rather than take a local import-thunk address.
+ * CMake exports the definition through WINDOWS_EXPORT_ALL_SYMBOLS. Renamed
+ * local test implementations are definitions, rather than DLL imports. */
+#if defined(_WIN32) && !defined(lp_simplex_EXPORTS) && \
+	!defined(simplex_dual_solve_problem)
+__declspec(dllimport)
+#endif
 int simplex_dual_solve_problem(const struct simplex_Problem *problem,
 	const struct lp_simplex_Options *options, double *x, double *row_dual,
 	struct lp_simplex_Result *result, int propagate_bounds);
