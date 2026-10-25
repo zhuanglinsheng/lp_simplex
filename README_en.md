@@ -4,8 +4,6 @@
 
 `lp_simplex` is a continuous linear programming solver written in C. It provides a C API and MPS file input, and can be embedded as a standalone library in optimization and scientific computing applications.
 
-The frozen 1.0.0 source is on branch `1.0.0` at tag `v1.0.0`. Download native packages and checksums from the [release](https://github.com/zhuanglinsheng/lp_simplex/releases/tag/v1.0.0). Development continues on `main`.
-
 Compared with common open-source LP solvers such as [HiGHS](https://highs.dev/), [SoPlex](https://soplex.zib.de/), [Clp](https://github.com/coin-or/Clp), and [GLPK](https://www.gnu.org/software/glpk/), this project emphasizes a basis-deficiency-allowing generalized simplex method (BDA). It represents feasible points using linearly independent active columns and allows the active basis dimension to grow or shrink during optimization. At degenerate points, it can directly exploit the problem’s lower-dimensional structure without completing a square basis.
 
 Building on this, we use a hybrid solution flow: primal–dual hybrid gradient (PDHG) advances approximate solutions, least squares restores feasibility, and BDA then continues optimization and checks optimality as needed. This approach connects first-order iterations with dynamic deficient-basis optimization and reduces model expansion through native bound handling.
@@ -75,7 +73,3 @@ Use Release for delivery. Non-MSVC Debug builds enable AddressSanitizer; externa
 Report issues or discuss improvements through [GitHub Issues](https://github.com/zhuanglinsheng/lp_simplex/issues), or submit a pull request. For solver or performance issues, include the model, build environment, runtime parameters, and reproduction steps.
 
 This project is licensed under the [GNU Lesser General Public License v3.0 (LGPL-3.0)](LICENSE). The GNU GPL v3.0 terms incorporated by that license are provided in [LICENSE.GPL-3.0](LICENSE.GPL-3.0).
-
-## Delivery and compatibility boundary
-
-The public interface is `include/lp_simplex/`; `src/` is private. Rebuild consumers against matching headers; cross-version binary compatibility is not promised. Release acceptance covers native Linux x64, macOS x64/arm64 and Windows x64 builds and relocated consumers. See the actual [CI results](https://github.com/zhuanglinsheng/lp_simplex/actions) for Release/Debug and optional-backend configurations. Work limits do not impose CPU timeouts or total RSS caps. See [configuration](./docs/runtime-configuration_en.md), [result interpretation](./docs/parameters_en.md) and [validation history](./docs/development/README.md).
