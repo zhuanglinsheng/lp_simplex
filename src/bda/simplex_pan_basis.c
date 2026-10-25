@@ -11,10 +11,12 @@
 #include "simplex_pan_basis.h"
 #include "simplex_pan_config.h"
 #include "utils.h"
+#include "policy/resources.h"
 
 #include <lp_simplex/status.h>
 
 #include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 
 #ifndef LP_SIMPLEX_HAVE_SPQR
@@ -281,6 +283,23 @@ void simplex_pan_basis_remove_marked(
 	basis->count = destination;
 }
 
+/* Normal equations square the condition number. A failed Gram factor is
+ * not evidence that the admitted original columns are dependent. Validate
+ * them with bounded QR scratch and retain that backend for this working set. */
+static int pan_basis_recover_qr(struct simplex_PanBasis *basis)
+{
+	double error;
+
+	lp_simplex_memset(basis->right_work, 0,
+		(size_t)basis->standard->rows * sizeof(double));
+	basis->factorizations++;
+	if (simplex_pan_basis_least_squares_qr(
+		    basis, basis->right_work, basis->basis_work, &error))
+		return lp_simplex_EXIT_FAILURE;
+	basis->dense_qr = 1;
+	return lp_simplex_EXIT_SUCCESS;
+}
+
 int simplex_pan_basis_factorize(struct simplex_PanBasis *basis)
 {
 	char lower = 'L';
@@ -288,6 +307,7 @@ int simplex_pan_basis_factorize(struct simplex_PanBasis *basis)
 	int i, j, count = basis->count;
 
 	extern void dpotrf_(char *, int *, double *, int *, int *);
+	basis->dense_qr = 0;
 	if (count == 0)
 		return lp_simplex_EXIT_SUCCESS;
 	for (i = 0; i < count; i++) {
@@ -308,14 +328,16 @@ int simplex_pan_basis_factorize(struct simplex_PanBasis *basis)
 		}
 	dpotrf_(&lower, &count, basis->factor, &count, &info);
 	basis->factorizations++;
-	if (info != 0)
+	if (info < 0)
 		return lp_simplex_EXIT_FAILURE;
+	if (info > 0)
+		return pan_basis_recover_qr(basis);
 	for (i = 0; i < count; i++) {
 		double diagonal =
 			__lp_simplex_ABS__(basis->factor[i + i * count]);
 
-		if (diagonal <= basis->rank_tolerance)
-			return lp_simplex_EXIT_FAILURE;
+		if (!isfinite(diagonal) || diagonal <= basis->rank_tolerance)
+			return pan_basis_recover_qr(basis);
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
@@ -370,6 +392,9 @@ int simplex_pan_basis_least_squares(struct simplex_PanBasis *basis,
 {
 	int refinement, i;
 
+	if (basis->dense_qr && basis->count)
+		return simplex_pan_basis_least_squares_qr(
+			basis, right, solution, residual_norm);
 	if (basis->count == 0) {
 		lp_simplex_memcpy(basis->row_work, right,
 			(size_t)basis->standard->rows * sizeof(double));
@@ -426,6 +451,7 @@ int simplex_pan_basis_least_squares_qr(struct simplex_PanBasis *basis,
 	double *work = NULL;
 	double work_size = 0.;
 	double rcond = basis->rank_tolerance;
+	long double bytes;
 	int i, j, k;
 
 	extern void dgelsy_(int *, int *, int *, double *, int *, double *,
@@ -433,6 +459,15 @@ int simplex_pan_basis_least_squares_qr(struct simplex_PanBasis *basis,
 	if (columns == 0)
 		return simplex_pan_basis_least_squares(
 			basis, right, solution, residual_norm);
+	*residual_norm = HUGE_VAL;
+	if (rows < 1 || columns < 0 || columns > rows ||
+		rows > (INT_MAX - 1) / 4 ||
+		(size_t)rows > (size_t)-1 / sizeof(double) / columns)
+		return lp_simplex_EXIT_FAILURE;
+	bytes = ((long double)rows * columns + leading_b) * sizeof(double) +
+		(long double)columns * sizeof(int);
+	if (bytes > SIMPLEX_PAN_MINIMUM_NORM_QR_BYTES)
+		return lp_simplex_EXIT_FAILURE;
 	matrix = (double *)lp_simplex_malloc(
 		(size_t)rows * columns * sizeof(double));
 	right_work =
@@ -457,11 +492,13 @@ int simplex_pan_basis_least_squares_qr(struct simplex_PanBasis *basis,
 	}
 	dgelsy_(&rows, &columns, &one, matrix, &leading_a, right_work,
 		&leading_b, pivot, &rcond, &rank, &work_size, &lwork, &info);
-	if (info != 0)
+	if (info != 0 || !isfinite(work_size) || work_size < 1. ||
+		work_size > INT_MAX)
 		goto failure;
-	lwork = (int)work_size;
-	if (lwork < 1)
-		lwork = 1;
+	lwork = (int)ceil(work_size);
+	if (bytes + (long double)lwork * sizeof(double) >
+		SIMPLEX_PAN_MINIMUM_NORM_QR_BYTES)
+		goto failure;
 	work = (double *)lp_simplex_malloc((size_t)lwork * sizeof(double));
 	if (work == NULL)
 		goto failure;
@@ -509,6 +546,9 @@ int simplex_pan_basis_minimum_norm(struct simplex_PanBasis *basis,
 {
 	int refinement, i;
 
+	if (basis->dense_qr && basis->count)
+		return simplex_pan_basis_minimum_norm_qr(
+			basis, right, solution, residual_norm);
 	if (basis->count == 0) {
 		lp_simplex_memset(solution, 0,
 			(size_t)basis->standard->rows * sizeof(double));
@@ -552,6 +592,18 @@ int simplex_pan_basis_column_projection(struct simplex_PanBasis *basis,
 {
 	int refinement, i, k;
 
+	if (basis->dense_qr && basis->count) {
+		int state;
+
+		lp_simplex_memset(basis->right_work, 0,
+			(size_t)basis->standard->rows * sizeof(double));
+		pan_column_axpy(basis->standard, column, 1., basis->right_work);
+		*residual_norm = HUGE_VAL;
+		state = simplex_pan_basis_least_squares_qr(
+			basis, basis->right_work, coefficient, residual_norm);
+		basis->projection_solve_error = *residual_norm;
+		return state;
+	}
 	if (basis->count == 0) {
 		*residual_norm =
 			simplex_pan_column_norm(basis->standard, column);

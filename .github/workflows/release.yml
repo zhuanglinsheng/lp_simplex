@@ -71,6 +71,23 @@ jobs:
         run: python3 data/netlib/prepare.py --all
       - name: Build and test Release with all numerical backends
         run: sh tools/build.sh build-release
+      - name: Diagnose failed numerical tests
+        if: failure()
+        env:
+          LP_SIMPLEX_PROFILE: '1'
+        run: |
+          mkdir -p build-release
+          if [ -f build-release/Testing/Temporary/LastTest.log ]; then
+            cp build-release/Testing/Temporary/LastTest.log build-release/release-test-failure.log
+          fi
+          ctest --test-dir build-release --rerun-failed --output-on-failure > build-release/release-diagnostics.log 2>&1
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-${{ matrix.platform }}
+          path: build-release/release-*.log
+          if-no-files-found: warn
       - name: Verify archive after extraction and relocation
         env:
           VERSION: ${{ needs.validate.outputs.version }}

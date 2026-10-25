@@ -24,6 +24,7 @@ struct simplex_PanBasis {
 	int capacity;
 	int nnls_block_limit, block_crash, singleton_crash, full_refinement;
 	int implicit_bulk;
+	int dense_qr; /* Dense Gram factor lost rank; use original-column QR. */
 	/* Last cone-oracle failure category; zero means unclassified. */
 	int oracle_failure;
 	int prefer_updates; /* Per-solve implicit cone policy. */
