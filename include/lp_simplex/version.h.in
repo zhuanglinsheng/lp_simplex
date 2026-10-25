@@ -1,0 +1,25 @@
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
+
+#ifndef LP_SIMPLEX_VERSION_H
+#define LP_SIMPLEX_VERSION_H
+
+#define LP_SIMPLEX_VERSION "@PROJECT_VERSION@"
+#define LP_SIMPLEX_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define LP_SIMPLEX_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define LP_SIMPLEX_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Version of the loaded library; compare with the header version above. */
+const char *lp_simplex_version(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -8,8 +8,6 @@ Compared with common open-source LP solvers such as [HiGHS](https://highs.dev/),
 
 Building on this, we use a hybrid solution flow: primal–dual hybrid gradient (PDHG) advances approximate solutions, least squares restores feasibility, and BDA then continues optimization and checks optimality as needed. This approach connects first-order iterations with dynamic deficient-basis optimization and reduces model expansion through native bound handling.
 
-Production solving uses `lp_simplex_solve` with deterministic configuration. Numerical environment experiments explicitly use `lp_simplex_solve_experimental`, with the same Options/result layouts. See [configuration boundaries](./docs/runtime-configuration_en.md).
-
 ## Performance comparison
 
 In the current benchmarks, lp_simplex and SCIP/SoPlex perform at a similar overall level. Although lp_simplex is slower than HiGHS and Clp, it demonstrates strong robustness on large-scale, highly degenerate problems. See the [benchmark report](docs/benchmarks/README_en.md) for full results.
@@ -33,7 +31,7 @@ The public interfaces are defined in the [model header](include/lp_simplex/model
 
 ### Precompiled releases
 
-Download precompiled packages from [Releases](https://github.com/zhuanglinsheng/lp_simplex/releases), or build from source using the steps below.
+Download precompiled packages from [Releases](https://github.com/zhuanglinsheng/lp_simplex/releases), or build from source using the steps below. See [installation and dependencies](INSTALL.md) for platform and numerical-library requirements.
 
 ### Build from source
 
@@ -49,7 +47,7 @@ cmake --build build --target install
 ### Installed files
 
 - Library directory (usually `lib/`): `liblp_simplex.so` (Linux) or `liblp_simplex.dylib` (macOS), controlled by `CMAKE_INSTALL_LIBDIR`.
-- `include/lp_simplex/`: public headers `lp_simplex.h`, `model.h`, `mps.h`, `solve.h`, and `status.h`.
+- `include/lp_simplex/`: public headers `lp_simplex.h`, `model.h`, `mps.h`, `solve.h`, `status.h`, and `version.h`.
 - `cmake/lp_simplex/` under the library directory: package configuration and the `lp_simplex::lp_simplex` imported target.
 - `share/licenses/lp_simplex/`: LGPL and referenced GPL license texts.
 

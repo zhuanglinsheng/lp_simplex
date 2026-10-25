@@ -34,5 +34,6 @@
 #include "mps.h"
 #include "solve.h"
 #include "status.h"
+#include <lp_simplex/version.h>
 
 #endif

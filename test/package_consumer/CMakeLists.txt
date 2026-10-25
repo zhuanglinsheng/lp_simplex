@@ -2,6 +2,19 @@ cmake_minimum_required(VERSION 3.12)
 project(installed_lp_consumer LANGUAGES C)
 include(CTest)
 find_package(lp_simplex CONFIG REQUIRED PATHS "${PACKAGE_ROOT}" NO_DEFAULT_PATH)
+# Exercise the installed version file as well as unversioned discovery.
+find_package(
+    lp_simplex
+    ${lp_simplex_VERSION}
+    EXACT
+    CONFIG
+    REQUIRED
+    PATHS
+    "${PACKAGE_ROOT}"
+    NO_DEFAULT_PATH)
+if(EXPECTED_VERSION AND NOT lp_simplex_VERSION STREQUAL EXPECTED_VERSION)
+    message(FATAL_ERROR "Unexpected package version: ${lp_simplex_VERSION}")
+endif()
 if(NOT TARGET lp_simplex::lp_simplex)
     message(
         FATAL_ERROR "Installed package has no lp_simplex::lp_simplex target")
