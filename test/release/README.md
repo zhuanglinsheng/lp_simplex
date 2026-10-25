@@ -32,9 +32,11 @@ staging directory before repeating a package build. BUILD-INFO.json records
 whether the checkout was dirty; official archives must come from the clean tag.
 
 The release workflow supports manual rehearsals without publishing. Tag pushes
-validate the version, run source gates, build/test three native platforms,
+validate the version, run source gates, build/test Linux x64, macOS x64/arm64 and native Windows x64,
 verify the actual archives after extraction and relocation, then publish the
-native archives, an explicit frozen source archive and SHA256SUMS. Every platform must pass before publication. Versioned
+native TAR/ZIP archives, an explicit frozen source archive and SHA256SUMS.
+Every platform must pass before publication. The tag gate rejects Unreleased
+notes and mismatched CMake/vcpkg versions. Versioned
 CMake discovery, loaded-library/header version agreement, AUTO/Dual/Tableau/BDA
 and progress callbacks are exercised by the installed C/C++ consumers.
 

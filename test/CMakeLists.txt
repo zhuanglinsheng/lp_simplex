@@ -199,6 +199,12 @@ target_include_directories(test_recovery
                            PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_recovery PRIVATE lp_simplex)
 add_test(NAME test_recovery COMMAND test_recovery)
+
+add_executable(test_dual_recovery_restart test_dual_recovery_restart.c)
+target_include_directories(test_dual_recovery_restart
+                           PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_dual_recovery_restart PRIVATE lp_simplex)
+add_test(NAME test_dual_recovery_restart COMMAND test_dual_recovery_restart)
 add_test(NAME test_regressions_bound_recovery COMMAND test_regressions)
 set_tests_properties(
     test_regressions_bound_recovery
