@@ -1,0 +1,78 @@
+name: Numerical diagnostics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qap8:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            backends: 'OFF'
+          - runner: macos-15-intel
+            backends: 'ON'
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install numerical dependencies
+        run: sh tools/install_dependencies.sh
+      - name: Build diagnostic driver
+        env:
+          BACKENDS: ${{ matrix.backends }}
+        run: |
+          python3 data/netlib/prepare.py --all
+          if [ "$(uname -s)" = Darwin ]; then
+            export CMAKE_PREFIX_PATH="$(brew --prefix)"
+          fi
+          cmake -S . -B build-numerics -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTING=OFF -DLP_SIMPLEX_BUILD_EXAMPLES=OFF \
+            -DLP_SIMPLEX_USE_KLU="$BACKENDS" -DLP_SIMPLEX_USE_SPQR="$BACKENDS" \
+            -DLP_SIMPLEX_USE_GMP="$BACKENDS" -DLP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS=ON
+          cmake --build build-numerics --target lp_solve_mps --parallel 3
+      - name: Compare explicit diagnostic controls
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          cases = {
+              'production': {},
+              'cleanup-devex': {'LP_SIMPLEX_CLEANUP_DEVEX': '1'},
+              'initial-cost': {'LP_SIMPLEX_INITIAL_COST_PERTURB': '1'},
+              'stable-klu': {'LP_SIMPLEX_STABLE_KLU': '1'},
+              'devex-initial-cost': {'LP_SIMPLEX_CLEANUP_DEVEX': '1', 'LP_SIMPLEX_INITIAL_COST_PERTURB': '1'},
+          }
+          results = {}
+          for name, controls in cases.items():
+              command = ['build-numerics/data/lp_solve_mps', '--algorithm', 'dual-revised', '--expected', '203.5']
+              if controls:
+                  command.append('--experimental-environment')
+              command.append('data/netlib/feasible/qap8.mps')
+              environment = {**os.environ, **controls, 'LP_SIMPLEX_PROFILE': '1'}
+              path = Path('build-numerics') / (name + '.log')
+              with path.open('w') as stream:
+                  try:
+                      result = subprocess.run(command, env=environment, stdout=stream, stderr=subprocess.STDOUT, timeout=300)
+                      code = result.returncode
+                  except subprocess.TimeoutExpired:
+                      code = 'timeout'
+              text = path.read_text()
+              results[name] = {'returncode': code, 'result': re.findall(r'^result:.*$', text, re.M), 'iterations': re.findall(r'^iterations:.*$', text, re.M)}
+              print(name, results[name])
+          Path('build-numerics/results.json').write_text(json.dumps(results, indent=2) + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: numerical-diagnostics-${{ matrix.runner }}
+          path: |
+            build-numerics/*.log
+            build-numerics/results.json
+          if-no-files-found: warn
