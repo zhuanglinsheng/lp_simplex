@@ -65,7 +65,7 @@ target_link_libraries(my_lp_client PRIVATE lp_simplex::lp_simplex)
 
 Release 用于交付。非 MSVC 的 Debug 构建启用 AddressSanitizer，外部 Debug 程序也需要以 `-fsanitize=address` 链接；安装回归会按对应配置设置 sanitizer。
 
-`ctest --test-dir build --output-on-failure` 包含安装移动后的独立 C/C++ 调用检查。检测到 Python 3 时加入数据准备回归，另检测到 NumPy 时加入基准工具回归；CI 安装这些测试依赖。交叉编译时不运行宿主机安装消费者测试。
+`ctest --test-dir build --output-on-failure` 包含安装移动后的独立 C/C++ 调用检查。检测到 Python 3 时加入数据准备回归，另检测到 NumPy 和 SciPy 时加入基准工具回归；CI 安装这些测试依赖。交叉编译时不运行宿主机安装消费者测试。
 
 ## 参与与许可证
 

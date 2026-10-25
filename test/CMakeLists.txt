@@ -742,17 +742,17 @@ if(Python3_Interpreter_FOUND)
              COMMAND ${Python3_EXECUTABLE}
                      ${CMAKE_CURRENT_SOURCE_DIR}/test_prepare_data.py)
     execute_process(
-        COMMAND ${Python3_EXECUTABLE} -c "import numpy"
-        RESULT_VARIABLE LP_SIMPLEX_TEST_NUMPY
+        COMMAND ${Python3_EXECUTABLE} -c "import numpy, scipy"
+        RESULT_VARIABLE LP_SIMPLEX_TEST_PYTHON_NUMERICS
         OUTPUT_QUIET ERROR_QUIET)
-    if(LP_SIMPLEX_TEST_NUMPY EQUAL 0)
+    if(LP_SIMPLEX_TEST_PYTHON_NUMERICS EQUAL 0)
         add_test(NAME test_benchmark_tools
                  COMMAND ${Python3_EXECUTABLE}
                          ${CMAKE_CURRENT_SOURCE_DIR}/test_benchmark_solvers.py)
     else()
         message(
             STATUS
-                "NumPy unavailable; benchmark-tool Python regression not registered"
+                "NumPy/SciPy unavailable; benchmark-tool Python regression not registered"
         )
     endif()
 endif()
