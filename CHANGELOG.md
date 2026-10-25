@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0 — Unreleased
+## 1.0.0 — 2026-10-26
 
-Candidate for the first stable release of lp_simplex, a continuous linear programming solver with
+First stable release of lp_simplex, a continuous linear programming solver with
 a C90 API, C++ integration and MPS input.
 
 - AUTO orchestration, revised dual simplex, tableau simplex and basis-deficiency
@@ -20,7 +20,9 @@ a C90 API, C++ integration and MPS input.
 Native Windows Release/Debug and relocated ZIP consumers have passed validation.
 Cross-platform release acceptance is tracked in the
 [release rehearsal](https://github.com/zhuanglinsheng/lp_simplex/actions/runs/40226709492).
-No final 1.0.0 tag or release has been created.
+The frozen source is branch `1.0.0` at annotated tag `v1.0.0`.
+This branch is retained unchanged; development continues on `main`, and release
+fixes use a new version branch and tag.
 
 ### Compatibility and limits
 
