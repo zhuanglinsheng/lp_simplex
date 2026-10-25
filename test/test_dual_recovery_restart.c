@@ -76,7 +76,8 @@ static int run_case(int failures, int budget)
 	else
 		valid = valid && code == lp_simplex_EXIT_SUCCESS &&
 			result.status == lp_simplex_Success &&
-			!report.perturbed_costs && report.cost_epoch >= 3 &&
+			!report.perturbed_costs &&
+			(failures == 1 || report.cost_epoch >= 3) &&
 			fabs(x[0] - 1.) < options.primal_tolerance &&
 			fabs(x[1]) < options.primal_tolerance &&
 			fabs(result.objective - 1.) < options.dual_tolerance &&
@@ -132,8 +133,8 @@ static int row_allowance_reset(void)
 
 int main(void)
 {
-	return run_case(1, 20) && run_case(1, 0) && run_case(3, 20) &&
-			       row_allowance_reset()
+	return run_case(1, 20) && run_case(2, 20) && run_case(1, 0) &&
+			       run_case(3, 20) && row_allowance_reset()
 		       ? 0
 		       : 1;
 }

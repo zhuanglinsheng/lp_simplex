@@ -95,6 +95,9 @@ void simplex_basis_set_sparse_eta(struct simplex_Basis *basis, int allowed);
 /* Retain the current factor; append future updates as eta matrices. */
 void simplex_basis_use_product_updates(struct simplex_Basis *basis);
 
+/* Restore normal update selection before a fresh cold factorization. */
+void simplex_basis_use_default_updates(struct simplex_Basis *basis);
+
 int simplex_basis_update_count(const struct simplex_Basis *basis);
 
 int simplex_basis_compact_active(const struct simplex_Basis *basis);

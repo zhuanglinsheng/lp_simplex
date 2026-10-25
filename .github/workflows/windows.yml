@@ -39,6 +39,7 @@ jobs:
       - name: Install test dependencies and prepare data
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python -m pip install numpy scipy
           python data/netlib/prepare.py --all
       - name: Build and test native minimal MSVC DLL (Release)
@@ -47,6 +48,7 @@ jobs:
       - name: Package and verify Windows DLL archive
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python tools/package_release.py --build-dir build-windows --platform windows-x64 --require-clean --dependency-prefix build-vcpkg-installed/x64-windows
           $version = ((Get-Content build-windows/CMakeCache.txt | Where-Object { $_.StartsWith('CMAKE_PROJECT_VERSION:STATIC=') }) -split '=', 2)[1]
           python test/release/verify_package.py "build-dist/lp_simplex-${version}-windows-x64.zip" --version $version --require-minimal

@@ -88,10 +88,10 @@ def main():
         while pending:
             dll = pending.pop()
             for line in output('dumpbin', '/DEPENDENTS', str(dll)).splitlines():
-                name = line.strip()
-                if not re.fullmatch(r'[A-Za-z0-9_.+-]+\.dll', name, re.I):
+                dependency_name = line.strip()
+                if not re.fullmatch(r'[A-Za-z0-9_.+-]+\.dll', dependency_name, re.I):
                     continue
-                key = name.lower()
+                key = dependency_name.lower()
                 if key in bundled:
                     continue
                 if key in available:
@@ -100,10 +100,10 @@ def main():
                     bundled.add(key)
                     pending.append(target)
                     continue
-                if ((system / name).exists() or
+                if ((system / dependency_name).exists() or
                         key.startswith(('api-ms-', 'ext-ms-'))):
                     continue
-                raise RuntimeError(f'Unbundled Windows dependency: {name} ({dll.name})')
+                raise RuntimeError(f'Unbundled Windows dependency: {dependency_name} ({dll.name})')
     elif platform.system() == 'Darwin':
         linkage = output('otool', '-L', str(library))
     else:
