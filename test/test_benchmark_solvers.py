@@ -17,10 +17,170 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'data'))
 import benchmark
+import compare_performance
 from benchmark import aggregate, artifact, audit, parse_scip_solution, report
 
 
+class CliTimingTests(unittest.TestCase):
+    def test_cli_boundary_and_failed_exit_keep_measured_cost(self):
+        process = SimpleNamespace(returncode=7)
+        with patch.object(benchmark, 'child_cpu', side_effect=[(1., 2.), (4., 2.5)]), \
+             patch.object(benchmark.time, 'monotonic', side_effect=[10., 12.]), \
+             patch.object(benchmark.subprocess, 'run', return_value=process):
+            actual, timing = benchmark.run_cli(['solver'], None)
+        self.assertIs(actual, process)
+        self.assertEqual(timing, dict(cli_wall_seconds=2., cli_cpu_seconds=3.5,
+                                      cli_user_seconds=3., cli_system_seconds=.5))
+
+    def test_missing_or_invalid_cpu_is_unknown(self):
+        for samples in [(None, None), ((1., 1.), None),
+                        ((2., 1.), (1., 1.)), ((0., 0.), (math.nan, 1.))]:
+            with self.subTest(samples=samples), \
+                 patch.object(benchmark, 'child_cpu', side_effect=samples), \
+                 patch.object(benchmark.subprocess, 'run', return_value=SimpleNamespace(returncode=0)):
+                _, timing = benchmark.run_cli(['solver'], None)
+            self.assertGreaterEqual(timing['cli_wall_seconds'], 0.)
+            self.assertIsNone(timing['cli_cpu_seconds'])
+            self.assertIsNone(timing['cli_user_seconds'])
+            self.assertIsNone(timing['cli_system_seconds'])
+
+    def test_unsupported_platform_is_unknown_cpu(self):
+        with patch.object(benchmark, 'resource', None):
+            self.assertIsNone(benchmark.child_cpu())
+
+    def test_real_cli_cost_and_output(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / 'output'
+            with path.open('w') as stream:
+                process, timing = benchmark.run_cli(
+                    [sys.executable, '-c', 'print(sum(i*i for i in range(20000)))'], stream)
+            self.assertEqual(process.returncode, 0)
+            self.assertEqual(int(path.read_text()), sum(i*i for i in range(20000)))
+        self.assertGreater(timing['cli_wall_seconds'], 0.)
+        if timing['cli_cpu_seconds'] is not None:
+            self.assertGreaterEqual(timing['cli_user_seconds'], 0.)
+            self.assertGreaterEqual(timing['cli_system_seconds'], 0.)
+            self.assertEqual(timing['cli_cpu_seconds'],
+                             timing['cli_user_seconds'] + timing['cli_system_seconds'])
+
+    def test_paired_metrics_do_not_substitute_legacy_wall(self):
+        rows = [dict(instance='m', variant=v, status='PASS', wall_seconds=w,
+                     cli_wall_seconds=c, cli_cpu_seconds=None)
+                for v, w, c in [('baseline', 10., 2.), ('candidate', 5., 4.)]]
+        models = [dict(name='m')]
+        legacy = compare_performance.summarize(rows, models, 1)
+        cli = compare_performance.summarize(rows, models, 1, 'cli_wall_seconds')
+        unknown = compare_performance.summarize(rows, models, 1, 'cli_cpu_seconds')
+        self.assertEqual(legacy['geometric_mean_speedup'], 2.)
+        self.assertEqual(cli['geometric_mean_speedup'], .5)
+        self.assertIsNone(unknown['geometric_mean_speedup'])
+        self.assertTrue(unknown['all_passed'])  # Math PASS is separate from timing availability.
+        self.assertEqual(unknown['common_passed'], 0)
+
+    def test_missing_failed_nonfinite_and_zero_metrics_are_not_ratios(self):
+        models = [dict(name='m')]
+        for metric in [None, math.nan, math.inf, -1., True, 0.]:
+            rows = [dict(instance='m', variant=v, status='PASS', cli_cpu_seconds=metric)
+                    for v in ('baseline', 'candidate')]
+            summary = compare_performance.summarize(rows, models, 1, 'cli_cpu_seconds')
+            self.assertIsNone(summary['geometric_mean_speedup'])
+        rows = [dict(instance='m', variant=v, status=state, cli_cpu_seconds=1.)
+                for v, state in [('baseline', 'PASS'), ('candidate', 'TIMEOUT')]]
+        self.assertIsNone(compare_performance.summarize(rows, models, 1,
+                                                       'cli_cpu_seconds')['geometric_mean_speedup'])
+
+
 class BenchmarkTests(unittest.TestCase):
+    def test_infeasible_status_requires_explicit_terminal_decision(self):
+        cases = [
+            ('lp_simplex', 'result: state=-1, code=7 (infeasible)', '', 'infeasible'),
+            ('lp_simplex', 'result: state=-1, code=9 (precision error)', '', None),
+            ('scip', '', 'problem is solved [infeasible]', 'infeasible'),
+            ('scip', '', 'problem is solved [infeasible or unbounded]', 'ambiguous'),
+            ('highs', '', 'HighsModelStatus.kInfeasible', 'infeasible'),
+            ('highs', '', 'HighsModelStatus.kUnboundedOrInfeasible', 'ambiguous'),
+            ('clp', 'Primal infeasible - objective value 12', '', 'infeasible'),
+            ('clp', 'Presolve thinks problem is infeasible', '', None),
+            ('glpk', 'PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION', '', 'infeasible'),
+            ('glpk', 'c Status: UNDEFINED', '', None),
+        ]
+        for solver, text, native, expected in cases:
+            with self.subTest(solver=solver, text=text, native=native):
+                self.assertEqual(benchmark.infeasibility_status(solver, text, native), expected)
+                self.assertIsNone(benchmark.infeasibility_status(solver, text, native, 2))
+
+    def test_infeasible_models_are_separate_and_prepared_by_category(self):
+        import argparse
+        models = benchmark.select_models(argparse.ArgumentParser(), ['greenbea'], 'netlib-infeasible')
+        self.assertEqual(models[0]['expected_status'], 'infeasible')
+        self.assertIn('/infeasible/', models[0]['raw_path'])
+        self.assertIsNone(models[0]['reference'])
+        with TemporaryDirectory() as folder:
+            run = Path(folder)
+            (run / 'logs').mkdir()
+            with benchmark.prepared_model(models[0], run) as path:
+                self.assertEqual(path.parent.name, 'infeasible')
+                self.assertTrue(path.is_file())
+            self.assertFalse(path.exists())
+
+    def test_infeasible_report_does_not_claim_solution_or_certificate_audit(self):
+        text = benchmark.render_report('netlib-infeasible', {}, {})
+        english = benchmark.render_report('netlib-infeasible', {}, {}, english=True)
+        self.assertIn('预期状态', text)
+        self.assertIn('未独立验证 Farkas', text)
+        self.assertNotIn('- PASS 要求求解器报告最优', text)
+        self.assertIn('Expected status', english)
+        self.assertIn('not independently verified', english)
+
+    def test_report_reader_ignores_unsuccessful_status_detail_table(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder) / 'report.md'
+            row = '| pang | 361 / 459 / 2000 | INFEASIBLE | WRONG_STATUS / — / — |'
+            path.write_text('| 实例 | 求解器 | 结果 | 终止信息 |\n'
+                            '| --- | --- | --- | --- |\n'
+                            '| pang | lp_simplex | WRONG_STATUS | unbounded |\n\n'
+                            + benchmark.TABLE_HEADER + row + '\n')
+            self.assertEqual(benchmark.read_table(path), {'pang': row})
+
+    def test_solver_selection_defaults_and_optional_executables(self):
+        for selected, algorithm in (([], 'auto'), ([], 'tableau'), (['--solvers', 'highs'], 'auto')):
+            with self.subTest(selected=selected), TemporaryDirectory() as folder:
+                root = Path(folder)
+                binary = root / 'lp_solve_mps'
+                if not selected:
+                    binary.touch()
+                argv = ['benchmark.py', '--binary', str(binary), '--run-dir', str(root / 'run'),
+                        '--docs-dir', str(root / 'docs'), '--lp-algorithm', algorithm, *selected]
+                with patch.object(sys, 'argv', argv), \
+                     patch.object(benchmark, 'select_models', return_value=[dict(name='afiro')]), \
+                     patch.object(benchmark.shutil, 'which', side_effect=AssertionError('unselected executable lookup')), \
+                     patch.object(benchmark, 'environment', return_value={}) as environment, \
+                     patch.object(benchmark, 'sources', return_value={}), \
+                     patch.object(benchmark, 'input_metadata', return_value={}), \
+                     patch.object(benchmark, 'checkpoint'), patch.object(benchmark, 'benchmark_case'):
+                    benchmark.main()
+                config = json.loads((root / 'run/config.json').read_text())
+                self.assertEqual(config['solvers'], ['highs'] if selected else ['lp_simplex'])
+                self.assertEqual(config['lp_algorithm'], algorithm)
+                self.assertEqual(config['repeats'], 1)
+                self.assertFalse(config['glpk_stop_on_timeout'])
+                self.assertEqual(environment.call_args.args, (None if selected else binary.resolve(), None, None, None))
+
+    def test_lp_only_summary_does_not_require_glpk(self):
+        config = dict(models=[dict(name='afiro')], solvers=['lp_simplex'], repeats=1,
+                      seconds=10., tolerance=1e-7, iterations=100, lp_algorithm='auto',
+                      scip_algorithm='default', highs_algorithm='choose', glpk_stop_on_timeout=True)
+        summary = benchmark.run_summary(Path('run'), dict(config=config, environment={}), [])
+        self.assertNotIn('GLPK 跳过策略', summary)
+        self.assertIn('| lp_simplex | 0/1 |', summary)
+
+    def test_competitor_only_statistics_do_not_compare_with_historical_lp(self):
+        results = [dict(instance='afiro', solver='highs', repeat=1, status='PASS', wall_seconds=1.)]
+        stats = benchmark.success_statistics(results, ['afiro'], 1, 10., ['highs'])
+        self.assertEqual(stats['highs']['successes'], 1)
+        self.assertEqual(stats['highs']['common_count'], 0)
+        self.assertIsNone(stats['highs']['lp_common_mean'])
+
     def test_glpk_first_timeout_stops_all_subsequent_glpk_runs(self):
         config = dict(glpk_stop_on_timeout=True, repeats=1)
         rows = [dict(instance='rail507', solver='glpk', status='PASS'),
@@ -447,7 +607,8 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn(benchmark.TABLE_HEADER.splitlines()[0], index)
         self.assertNotIn('## 逐例最新结果', index)
         self.assertEqual({p.name for p in docs.iterdir()}, {'README.md', 'README_en.md', 'netlib.md', 'netlib_en.md',
-                                                                  'pds.md', 'pds_en.md', 'railway.md', 'railway_en.md'})
+                                                                  'pds.md', 'pds_en.md', 'railway.md', 'railway_en.md',
+                                                                  'netlib-infeasible.md', 'netlib-infeasible_en.md'})
         english = (docs / 'README_en.md').read_text()
         self.assertIn('[English](./README_en.md)', index)
         self.assertIn('[简体中文](./README.md)', english)

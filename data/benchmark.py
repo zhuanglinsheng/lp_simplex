@@ -22,8 +22,14 @@ import sys
 import tempfile
 import time
 
+try:
+    import resource
+except ImportError:  # Windows has no getrusage; absence is not zero CPU.
+    resource = None
+
 ROOT = Path(__file__).resolve().parents[1]
-DATASETS = ('netlib', 'pds', 'railway')
+DATASETS = ('netlib', 'netlib-infeasible', 'pds', 'railway')
+LP_ALGORITHMS = ('auto', 'dual-revised', 'pan-bda', 'tableau')
 LEGACY_SOLVERS = ('lp_simplex', 'scip', 'highs')
 SOLVERS = (*LEGACY_SOLVERS, 'clp', 'glpk')
 LABELS = {'lp_simplex': 'lp_simplex', 'scip': 'SCIP / SoPlex', 'highs': 'HiGHS', 'clp': 'Clp', 'glpk': 'GLPK'}
@@ -101,7 +107,7 @@ def environment(binary, scip, clp, glpk):
     if sys.platform == 'darwin':
         cpu = capture(['sysctl', '-n', 'machdep.cpu.brand_string'])
         memory = capture(['sysctl', '-n', 'hw.memsize'])
-        linkage = capture(['otool', '-L', str(binary)])
+        linkage = capture(['otool', '-L', str(binary)]) if binary else ''
         # sysctl can be denied in a sandbox; retain only non-identifying hardware fields.
         if cpu == 'unknown' or memory == 'unknown':
             try:
@@ -123,38 +129,36 @@ def environment(binary, scip, clp, glpk):
             memory = str(os.sysconf('SC_PHYS_PAGES') * os.sysconf('SC_PAGE_SIZE'))
         except (ValueError, OSError):
             memory = 'unknown'
-        linkage = capture(['ldd', str(binary)])
-    # lp_solve_mps links the actual shared solver. Record it, not just the launcher.
-    libraries = {}
-    for name in re.findall(r'(/[^\s()]*liblp_simplex[^\s()]*)', linkage):
-        p = Path(name)
-        if p.is_file():
-            libraries[str(p)] = sha(p)
-    build_dir = build_root(binary)
-    for p in build_dir.glob('liblp_simplex.*'):
-        if p.is_file():
-            libraries[str(p.resolve())] = sha(p)
-    cache = build_dir / 'CMakeCache.txt'
-    config = {}
-    if cache.exists():
-        for line in cache.read_text().splitlines():
-            if re.match(r'(CMAKE_(BUILD_TYPE|C_COMPILER[^:]*|C_FLAGS[^:]*)|LP_SIMPLEX_[^:]+|.*(?:BLAS|LAPACK|SPQR|KLU|CHOLMOD).*):', line):
-                if '=' in line:
-                    k, v = line.split('=', 1)
-                    config[k] = v
-    compiler = config.get('CMAKE_C_COMPILER:FILEPATH', 'cc')
-    versions = {
-        'lp_simplex': {'git_head': capture(['git', 'rev-parse', 'HEAD']),
-                       'git_status': capture(['git', 'status', '--short']),
-                       'binary': str(binary), 'binary_sha256': sha(binary),
-                       'solver_libraries_sha256': libraries, 'linkage': linkage,
-                       'cmake_cache': config,
-                       'compiler': capture([compiler, '--version']).splitlines()[0]},
-        'scip': {'binary': scip, 'binary_sha256': sha(scip),
-                 'version_output': capture([scip, '--version'])},
-        'highs': {'version': h.version(), 'binding': binding,
-                  'binding_file': core.__file__, 'binding_sha256': sha(core.__file__)}}
-    for name, executable in (('clp', clp), ('glpk', glpk)):
+        linkage = capture(['ldd', str(binary)]) if binary else ''
+    versions = {'highs': {'version': h.version(), 'binding': binding,
+                          'binding_file': core.__file__, 'binding_sha256': sha(core.__file__)}}
+    if binary:
+        # Record the actual shared solver as well as its launcher.
+        libraries = {}
+        for name in re.findall(r'(/[^\s()]*liblp_simplex[^\s()]*)', linkage):
+            p = Path(name)
+            if p.is_file():
+                libraries[str(p)] = sha(p)
+        build_dir = build_root(binary)
+        for p in build_dir.glob('liblp_simplex.*'):
+            if p.is_file():
+                libraries[str(p.resolve())] = sha(p)
+        cache = build_dir / 'CMakeCache.txt'
+        config = {}
+        if cache.exists():
+            for line in cache.read_text().splitlines():
+                if re.match(r'(CMAKE_(BUILD_TYPE|C_COMPILER[^:]*|C_FLAGS[^:]*)|LP_SIMPLEX_[^:]+|.*(?:BLAS|LAPACK|SPQR|KLU|CHOLMOD).*):', line):
+                    if '=' in line:
+                        k, v = line.split('=', 1)
+                        config[k] = v
+        compiler = config.get('CMAKE_C_COMPILER:FILEPATH', 'cc')
+        versions['lp_simplex'] = dict(
+            git_head=capture(['git', 'rev-parse', 'HEAD']),
+            git_status=capture(['git', 'status', '--short']),
+            binary=str(binary), binary_sha256=sha(binary),
+            solver_libraries_sha256=libraries, linkage=linkage, cmake_cache=config,
+            compiler=capture([compiler, '--version']).splitlines()[0])
+    for name, executable in (('scip', scip), ('clp', clp), ('glpk', glpk)):
         if not executable:
             continue
         versions[name] = dict(binary=executable, binary_sha256=sha(executable),
@@ -273,21 +277,93 @@ def glpk_input(model):
     return target
 
 
+def infeasibility_status(solver, text='', native_status='', returncode=0):
+    """Require an explicit terminal decision; ambiguous statuses never pass."""
+    if returncode != 0 and not (solver == 'lp_simplex' and returncode == 1):
+        return None
+    if solver == 'highs':
+        if native_status.endswith('kInfeasible'):
+            return 'infeasible'
+        if native_status.endswith('kUnboundedOrInfeasible'):
+            return 'ambiguous'
+        if native_status.endswith('kUnbounded'):
+            return 'unbounded'
+    elif solver == 'lp_simplex':
+        match = re.search(r'^result:.*code=\d+ \(([^)]+)\)', text, re.M)
+        if match and match[1] in ('infeasible', 'unbounded', 'success'):
+            if match[1] == 'infeasible' and returncode != 0:
+                return None
+            return 'optimal' if match[1] == 'success' else match[1]
+    elif solver == 'scip':
+        status = native_status.lower()
+        if 'infeasible or unbounded' in status or 'unbounded or infeasible' in status:
+            return 'ambiguous'
+        if 'infeasible' in status:
+            return 'infeasible'
+        if 'unbounded' in status:
+            return 'unbounded'
+    elif solver == 'clp':
+        if re.search(r'^Primal infeasible(?:\s|$)', text, re.M):
+            return 'infeasible'
+        if re.search(r'^Dual infeasible(?:\s|$)', text, re.M):
+            return 'unbounded'
+    elif solver == 'glpk':
+        if re.search(r'PROBLEM HAS NO PRIMAL FEASIBLE SOLUTION|LP HAS NO PRIMAL FEASIBLE SOLUTION', text):
+            return 'infeasible'
+        if 'PROBLEM HAS UNBOUNDED SOLUTION' in text:
+            return 'unbounded'
+    return None
+
+
+def child_cpu():
+    """The worker launches one CLI synchronously; include its descendants."""
+    if resource is None:
+        return None
+    try:
+        usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+        values = (usage.ru_utime, usage.ru_stime)
+        return values if all(math.isfinite(v) and v >= 0 for v in values) else None
+    except (OSError, ValueError):
+        return None
+
+
+def run_cli(command, stream):
+    """Measure the CLI lifetime, excluding adapter parsing/auditing afterwards."""
+    cpu_before = child_cpu()
+    started = time.monotonic()
+    process = subprocess.run(command, cwd=ROOT, stdout=stream,
+                             stderr=subprocess.STDOUT, check=False)
+    wall = time.monotonic() - started
+    cpu_after = child_cpu()
+    user = system = cpu = None
+    if cpu_before is not None and cpu_after is not None:
+        delta = tuple(b - a for a, b in zip(cpu_before, cpu_after))
+        if all(math.isfinite(v) and v >= 0 for v in delta):
+            user, system = delta
+            cpu = user + system
+    return process, dict(cli_wall_seconds=wall, cli_cpu_seconds=cpu,
+                         cli_user_seconds=user, cli_system_seconds=system)
+
+
 def worker(config, solver, model_info, prefix):
     core, factory, _ = load_highs()
     reader = factory()
     reader.setOptionValue('output_flag', False)
     model = ROOT / model_info['path']
-    if reader.readModel(str(model)) != core.HighsStatus.kOk:
+    reader_status = reader.readModel(str(model))
+    if reader_status not in (core.HighsStatus.kOk, core.HighsStatus.kWarning):
         raise ValueError('Cannot read original MPS')
     lp = reader.getLp()
     if lp.num_col_ != len(set(lp.col_names_)):
         raise ValueError('Original MPS column names must be unique')
     tol, seconds = config['tolerance'], config['seconds']
     point, log = artifact(prefix, '.point'), artifact(prefix, '.log')
-    record = dict(rows=lp.num_row_, columns=lp.num_col_, nonzeros=len(lp.a_matrix_.value_))
+    record = dict(rows=lp.num_row_, columns=lp.num_col_, nonzeros=len(lp.a_matrix_.value_),
+                  reader_status=str(reader_status))
     dump(artifact(prefix, '.model.json'), record)
     reported, x, optimal = math.nan, None, False
+    expects_infeasible = model_info.get('expected_status') == 'infeasible'
+    decision, text = None, ''
     if solver == 'highs':
         h = factory()
         options = dict(output_flag=True, log_to_console=False, log_file=str(log), threads=1, presolve='on',
@@ -305,6 +381,8 @@ def worker(config, solver, model_info, prefix):
             command = [config['binary'], '--algorithm', config['lp_algorithm'],
                        '--iterations', str(config['iterations']),
                        '--save-point', str(point), str(model)]
+            if expects_infeasible:
+                command.insert(1, '--infeasible')
             if model_info['reference'] is not None:
                 command[1:1] = ['--expected', str(model_info['reference'])]
         elif solver == 'clp':
@@ -338,12 +416,13 @@ def worker(config, solver, model_info, prefix):
     start = time.monotonic()
     if solver == 'highs':
         read_status = h.readModel(str(model))
-        if read_status != core.HighsStatus.kOk:
+        if read_status not in (core.HighsStatus.kOk, core.HighsStatus.kWarning):
             raise ValueError('HiGHS read failed')
         run_status = h.run()
         solution, info, status = h.getSolution(), h.getInfo(), h.getModelStatus()
         optimal = run_status == core.HighsStatus.kOk and status == core.HighsModelStatus.kOptimal
         record['solver_status'] = str(status)
+        decision = infeasibility_status(solver, native_status=str(status))
         reported = info.objective_function_value
         if solution.value_valid:
             x = list(solution.col_value)
@@ -352,8 +431,8 @@ def worker(config, solver, model_info, prefix):
             record['status'] = 'TIMEOUT'
     else:
         with log.open('w') as stream:
-            process = subprocess.run(command, cwd=ROOT, stdout=stream,
-                                     stderr=subprocess.STDOUT, check=False)
+            process, timing = run_cli(command, stream)
+        record.update(timing)
         record['returncode'] = process.returncode
         text = log.read_text(errors='replace')
         if solver == 'lp_simplex':
@@ -386,16 +465,25 @@ def worker(config, solver, model_info, prefix):
             optimal = process.returncode == 0 and 'optimal solution found' in record['solver_status']
             if 'time limit' in record['solver_status']:
                 record['status'] = 'TIMEOUT'
-            if point.exists():
+            if point.exists() and optimal:
                 x, reported = parse_scip_solution(point, list(lp.col_names_))
+        decision = infeasibility_status(solver, text, record['solver_status'], process.returncode)
     record['wall_seconds'] = time.monotonic() - start
     dump(artifact(prefix, '.clock.json'), {'done': True})
     if record['wall_seconds'] > seconds:
         record['status'] = 'TIMEOUT'
     record.setdefault('status', 'SOLVER_FAILED')
-    if x is not None:
+    if x is not None and not expects_infeasible:
         record.update(audit(lp, x, reported, model_info['reference'], tol))
-    if record['status'] != 'TIMEOUT' and optimal:
+    if expects_infeasible:
+        record.update(expected_status='infeasible', reported_status=decision,
+                      certificate_verified=False)
+        if record['status'] != 'TIMEOUT':
+            record['status'] = ('PASS' if decision == 'infeasible' else
+                                'AMBIGUOUS' if decision == 'ambiguous' else
+                                'WRONG_STATUS' if optimal or decision in ('optimal', 'unbounded') else
+                                'SOLVER_FAILED')
+    elif record['status'] != 'TIMEOUT' and optimal:
         record['status'] = 'PASS' if record.get('audit_pass') else 'AUDIT_FAILED'
     if point.exists():
         with point.open('rb') as src, gzip.open(str(point) + '.gz', 'wb') as dest:
@@ -453,6 +541,8 @@ def run_one(config_path, config, solver, model, repeat, env):
     result.update(instance=model['name'], solver=solver, repeat=repeat,
                   log=str(artifact(prefix, '.log').relative_to(config_path.parent)),
                   adapter_log=str(artifact(prefix, '.adapter.log').relative_to(config_path.parent)))
+    if model.get('expected_status'):
+        result['expected_status'] = model['expected_status']
     print(f"{model['name']} {solver} #{repeat}: {result['status']} "
           f"{result.get('wall_seconds')}s", flush=True)
     return result
@@ -512,7 +602,8 @@ def report(run_dir, docs_dir, allow_partial=False):
             objective = f'{statistics.median(objectives):.12g}' if objectives else '—'
             return f"{value['status']} / {elapsed} / {objective}"
         model = by_name[name]
-        reference = f"{model['reference']:.12g}" if model.get('reference') is not None else '—'
+        reference = ('INFEASIBLE' if model.get('expected_status') == 'infeasible' else
+                     f"{model['reference']:.12g}" if model.get('reference') is not None else '—')
         prior = stored.get(name, '')
         previous = [v.strip() for v in prior.strip('|').split('|')] if prior else []
         values = [name, ' / '.join(shape), reference,
@@ -540,7 +631,7 @@ def read_table(path):
     if path.exists():
         inside, legacy = False, False
         for line in path.read_text().splitlines():
-            if line.startswith('| 实例 |'):
+            if line.startswith('| 实例 |') and ('规模' in line or '| 行 |' in line):
                 inside, legacy = True, line.startswith('| 实例 | 行 |')
                 continue
             if inside and not line.startswith('|'):
@@ -581,7 +672,7 @@ def success_statistics(results, names, repeats, seconds, solvers=SOLVERS):
               for solver in solvers}
     output = {}
     for solver in solvers:
-        common = set(solved['lp_simplex']) & set(solved[solver])
+        common = set(solved.get('lp_simplex', {})) & set(solved[solver])
         runs = [r for r in results if r['solver'] == solver]
         output[solver] = dict(successes=len(solved[solver]),
             timeouts=sum(r['status'] == 'TIMEOUT' for r in runs),
@@ -624,9 +715,11 @@ def run_summary(run_dir, metadata, results):
     for solver in ('clp', 'glpk'):
         if solver in solvers:
             info.append((LABELS[solver], versions.get(solver, {}).get('version_output', '未知').splitlines()[0]))
+    if c.get('supplemental_run'):
+        info.append(('补测来源', c['supplemental_run']))
     if 'clp' in solvers:
         info.append(('Clp / GLPK 算法', 'dual simplex / primal simplex；presolve on'))
-    if c.get('glpk_stop_on_timeout'):
+    if 'glpk' in solvers and c.get('glpk_stop_on_timeout'):
         info.append(('GLPK 跳过策略', f"任一案例超时后跳过后续测试；已跳过 {stats['glpk']['skipped']} 次"))
     elif c.get('glpk_gate_case'):
         info.append(('GLPK 跳过策略', f"先测 {c['glpk_gate_case']}；未通过则跳过其余案例；已跳过 {stats['glpk']['skipped']} 次"))
@@ -647,6 +740,21 @@ def run_summary(run_dir, metadata, results):
             relative = number(ratio)
         lines.append(f"| {LABELS[solver]} | {value['successes']}/{len(names)} | {value['timeouts']} | "
                      f"{value['failures']} | {count} | {means} | {relative} |")
+    if c.get('dataset') == 'netlib-infeasible':
+        lines += ['', '| 求解器 | 错误判定次数 | 判定不明确次数 | 运行或数值失败次数 | 跳过次数 |',
+                  '| --- | ---: | ---: | ---: | ---: |']
+        for solver in solvers:
+            rows = [r for r in results if r['solver'] == solver]
+            counts = [sum(r['status'] in statuses for r in rows) for statuses in (
+                ('WRONG_STATUS',), ('AMBIGUOUS',), ('SOLVER_FAILED', 'ERROR', 'AUDIT_FAILED', 'PREPARE_FAILED'), ('SKIPPED',))]
+            lines.append('| ' + ' | '.join([LABELS[solver], *map(str, counts)]) + ' |')
+        unsuccessful = [r for r in results if r['status'] not in ('PASS', 'SKIPPED')]
+        if unsuccessful:
+            lines += ['', '| 实例 | 求解器 | 结果 | 终止信息 |', '| --- | --- | --- | --- |']
+            for row in unsuccessful:
+                lines.append('| ' + ' | '.join(clean(value) for value in (
+                    row['instance'], LABELS[row['solver']], row['status'],
+                    row.get('solver_status', row['status']))) + ' |')
     lines += ['', '复现本轮案例与参数（新建运行目录）：', '', '```sh',
               reproduction_script(reproduction_command(c)), '```']
     return '\n'.join(lines) + '\n\n'
@@ -677,7 +785,7 @@ def reproduction_command(config):
                         ('--seconds', 'seconds'), ('--iterations', 'iterations'),
                         ('--lp-algorithm', 'lp_algorithm'), ('--scip-algorithm', 'scip_algorithm'),
                         ('--highs-algorithm', 'highs_algorithm')):
-        if key in config:
+        if config.get(key) is not None:
             command.extend([option, str(config[key])])
     command.extend(['--solvers', *config.get('solvers', LEGACY_SOLVERS)])
     if config.get('glpk_gate_case'):
@@ -722,7 +830,7 @@ def ordered_cases(dataset, names):
 def render_report(dataset, stored, blocks, english=False):
     def tr(chinese, translated):
         return translated if english else chinese
-    title = {'netlib': 'Netlib feasible', 'pds': 'PDS',
+    title = {'netlib': 'Netlib feasible', 'netlib-infeasible': 'Netlib infeasible', 'pds': 'PDS',
              'railway': tr('Railway 连续 LP 松弛', 'Railway continuous LP relaxations')}[dataset]
     navigation = tr(
         f'简体中文 | [English](./{dataset}_en.md) | [项目主页](../../README.md) | [基准测试汇总](./README.md)',
@@ -745,11 +853,20 @@ def render_report(dataset, stored, blocks, english=False):
            '- NOT_RUN / PENDING / INCOMPLETE mean never tested / not yet tested in this run / repetitions incomplete. Instance cells show status / median seconds / median audited objective. Interpret non-PASS objectives together with their status.'),
         tr('- SKIPPED 表示按预设规则跳过，不计为超时或其他未通过，也不参与耗时统计。',
            '- SKIPPED means omitted under a predefined rule; it counts as neither a timeout nor another unsuccessful run and is excluded from timing statistics.'),
-        tr('- 每行保留该案例最新记录，未选中案例继续保留。不同运行的环境与配置可能不同，不合并计算跨轮速度排名。',
-           '- Each row retains the latest record for that instance. Unselected instances are preserved. Environments and settings may differ between runs, so speed rankings are not pooled across runs.'), '',
+        tr('- 未选中的案例及求解器单元格保留历史结果，仅作参考；上方统计只包含本次参与求解器的实测记录，不将历史单元格计入本次排名。',
+           '- Unselected instance and solver cells retain historical results for reference. Statistics above include only measurements from participating solvers in this run; historical cells are excluded from the current ranking.'), '',
         tr('## 测试信息与统计', '## Test information and statistics'), '',
         tr('仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。',
            'Only the run from the most recent report update is shown; historical records remain in their original run directories.'), '']
+    if dataset == 'netlib-infeasible':
+        lines = [line for line in lines if not line.startswith(('- PASS ', '- PASS requires'))]
+        insertion = lines.index(tr('## 测试信息与统计', '## Test information and statistics'))
+        lines[insertion:insertion] = [tr('- PASS 表示明确报告不可行且在限时内结束；预期状态来自 Netlib infeasible 分类。未独立验证 Farkas 证书，PASS 不代表证书审核通过。',
+                     '- PASS means an explicit infeasible status within the time limit, against the Netlib infeasible classification. Farkas certificates are not independently verified; PASS is a status check, not a certificate audit.'),
+                  tr('- WRONG_STATUS 表示报告最优或无界；AMBIGUOUS 表示不可行或无界；SOLVER_FAILED / ERROR 表示未得到明确判定或运行失败。TIMEOUT 优先于其他状态。',
+                     '- WRONG_STATUS means optimal or unbounded; AMBIGUOUS means infeasible or unbounded; SOLVER_FAILED / ERROR means no definitive decision or an execution failure. TIMEOUT takes precedence.'),
+                  tr('- 原始 MPS 按原样交给求解器。greenbea 含多个 BOUNDS 向量及重复界，pang 存在读取器兼容性差异；相关失败包含输入兼容性影响。HiGHS 的读取警告保存在 reader_status，实际求解日志另行保留。',
+                     '- Original MPS files are passed to the solvers unchanged. greenbea contains multiple BOUNDS vectors and duplicate bounds; pang also exposes reader compatibility differences. Related failures include input compatibility effects. HiGHS read warnings are recorded in reader_status; solver logs are retained separately.'), '']
     if not blocks:
         empty = ['尚未运行；环境、版本、算法、限时和重复次数尚未记录。', '',
                  SUMMARY_HEADER, SUMMARY_SEPARATOR]
@@ -772,6 +889,8 @@ def render_report(dataset, stored, blocks, english=False):
     header = ('| Instance | Size (rows / columns / nonzeros) | Reference objective | ' +
               ' | '.join(f'{LABELS[k]} (status / s / objective)' for k in SOLVERS) + ' |\n' +
               TABLE_HEADER.splitlines()[1]) if english else TABLE_HEADER.rstrip()
+    if dataset == 'netlib-infeasible':
+        header = header.replace('参考目标', '预期状态').replace('Reference objective', 'Expected status')
     lines += [tr('## 逐例最新结果', '## Latest per-instance results'), '', header]
     lines.extend(english_result_row(stored[name]) if english else stored[name]
                  for name in ordered_cases(dataset, stored))
@@ -779,21 +898,24 @@ def render_report(dataset, stored, blocks, english=False):
 
 
 def raw_inputs(dataset):
-    directory = ROOT / 'data' / dataset / 'raw'
-    if dataset == 'netlib':
-        return {p.name[:-7]: p for p in sorted((directory / 'feasible').glob('*.mps.gz'))}
+    directory = ROOT / 'data' / ('netlib' if dataset == 'netlib-infeasible' else dataset) / 'raw'
+    if dataset in ('netlib', 'netlib-infeasible'):
+        category = 'infeasible' if dataset == 'netlib-infeasible' else 'feasible'
+        return {p.name[:-7]: p for p in sorted((directory / category).glob('*.mps.gz'))}
     pattern = '*.bz2' if dataset == 'pds' else 'rail*.gz'
     return {p.stem: p for p in sorted(directory.glob(pattern))}
 
 
 def ensure_reports(docs_dir):
-    """Create all three tables without resetting another dataset's experiment rows."""
+    """Create missing tables without resetting other datasets' experiment rows."""
     docs_dir.mkdir(parents=True, exist_ok=True)
     for dataset in DATASETS:
         target = docs_dir / (dataset + '.md')
         if not target.exists():
             pending = ['| ' + ' | '.join([name, '— / — / —', '—', *(['NOT_RUN / — / —'] * len(SOLVERS))]) + ' |'
                        for name in raw_inputs(dataset)]
+            if dataset == 'netlib-infeasible':
+                pending = [line.replace('| — / — / — | — |', '| — / — / — | INFEASIBLE |') for line in pending]
             stored = {line.split('|')[1].strip(): line for line in pending}
             atomic_text(target, render_report(dataset, stored, {}))
 
@@ -819,6 +941,10 @@ def english_summary(summary):
         '本轮共同成功数': 'Common solved instances in this run',
         'Clp / GLPK 算法': 'Clp / GLPK algorithms', 'Clp': 'Clp', 'GLPK': 'GLPK',
         'GLPK 跳过策略': 'GLPK skip policy',
+        '补测来源': 'Supplemental run',
+        '错误判定次数': 'Wrong decisions', '判定不明确次数': 'Ambiguous decisions',
+        '运行或数值失败次数': 'Execution or numerical failures', '跳过次数': 'Skipped runs',
+        '实例': 'Instance', '结果': 'Result', '终止信息': 'Termination information',
         '共同案例几何平均/秒（lp_simplex / 本求解器）': 'Geometric means on common set / s (lp_simplex / solver)',
         '共同案例几何平均/秒': 'Geometric mean on common set / s',
         '相对耗时（lp_simplex / 各求解器）': 'Relative time (lp_simplex / solver)',
@@ -903,11 +1029,13 @@ def overview(docs_dir):
             tr('计时含模型读取、求解和解导出，不含 MPS 生成/删除、格式兼容处理、公共适配器初始化和独立审核。'
                '串行、单线程，不保证机器独占；CLI 与 Python binding 开销有差异。',
                'Timing includes model loading, solving, and solution export. It excludes MPS preparation and deletion, format compatibility processing, shared adapter initialization, and independent audits. Runs are serial and single-threaded, without guaranteed exclusive machine access. CLI and Python-binding overheads differ.'), '',
-            tr('PASS 要求求解器报告最优且原模型可行性、目标复算通过；有参考目标时额外核对。'
+            tr('可行问题的 PASS 要求求解器报告最优且原模型可行性、目标复算通过；有参考目标时额外核对。'
                '缺少参考值不代表独立最优性认证。进行中或子集结果不构成全集结论，'
                '不同运行分别统计，不混合环境、配置或案例集合。',
-               'PASS requires an optimal solver status and successful original-model feasibility and objective audits. Reference objectives are checked when available. A pass without a reference is not an independent optimality certificate. Partial or subset results do not establish full-suite conclusions. Runs are summarized separately, without mixing environments, settings, or case selections.'), '']
-        for dataset, title in (('netlib', 'Netlib feasible'), ('pds', 'PDS'),
+               'For feasible suites, PASS requires an optimal solver status and successful original-model feasibility and objective audits. Reference objectives are checked when available. A pass without a reference is not an independent optimality certificate. Partial or subset results do not establish full-suite conclusions. Runs are summarized separately, without mixing environments, settings, or case selections.'), '']
+        lines += [tr('Netlib infeasible 单独统计：PASS 只核对明确的不可行状态，不代表独立不可行证书验证。',
+                     'Netlib infeasible is summarized separately: PASS checks an explicit infeasible status and does not constitute independent certificate verification.'), '']
+        for dataset, title in (('netlib', 'Netlib feasible'), ('netlib-infeasible', 'Netlib infeasible'), ('pds', 'PDS'),
                                ('railway', tr('Railway 连续 LP 松弛', 'Railway continuous LP relaxations'))):
             lines += [f'## {title}', '',
                       f'[{tr("逐案例结果与完整报告", "Per-instance results and full report")}]({dataset}{"_en" if english else ""}.md)', '']
@@ -948,11 +1076,13 @@ def prepared_model(model, run_dir):
         log = run_dir / 'logs' / (model['name'] + '-prepare.log')
         with log.open('w') as stream:
             dataset = model.get('dataset', 'netlib')
-            name = ('feasible/' if dataset == 'netlib' else '') + model['name']
-            subprocess.run([sys.executable, str(ROOT / 'data' / dataset / 'prepare.py'),
+            category = ('infeasible' if dataset == 'netlib-infeasible' else 'feasible' if dataset == 'netlib' else '')
+            name = (category + '/' if category else '') + model['name']
+            source_dataset = 'netlib' if dataset == 'netlib-infeasible' else dataset
+            subprocess.run([sys.executable, str(ROOT / 'data' / source_dataset / 'prepare.py'),
                             name, '--output-dir', temporary],
                            stdout=stream, stderr=subprocess.STDOUT, check=True)
-        path = Path(temporary) / ('feasible' if dataset == 'netlib' else '') / (model['name'] + '.mps')
+        path = Path(temporary) / category / (model['name'] + '.mps')
         digest = sha(path)
         if model.get('expected_mps_sha256') and digest != model['expected_mps_sha256']:
             raise ValueError('Generated MPS checksum differs from manifest: ' + model['name'])
@@ -1064,6 +1194,8 @@ def select_models(parser, cases, dataset='netlib'):
         row = info.get(name, {})
         model = dict(name=name, dataset=dataset, raw_path=str(available[name].relative_to(ROOT)),
                      raw_sha256=sha(available[name]), reference=references.get(name))
+        if dataset == 'netlib-infeasible':
+            model['expected_status'] = 'infeasible'
         for key, source in (('rows', 'constraints' if dataset == 'pds' else 'rows'),
                             ('columns', 'variables' if dataset == 'pds' else 'columns'),
                             ('nonzeros', 'constraint_nonzeros' if dataset == 'pds' else 'nonzeros')):
@@ -1077,6 +1209,8 @@ def select_models(parser, cases, dataset='netlib'):
 
 def input_metadata(dataset):
     paths = [ROOT / 'data' / dataset / 'manifest.csv']
+    if dataset == 'netlib-infeasible':
+        paths += [ROOT / 'data/netlib/SHA256SUMS', ROOT / 'data/netlib/README.md']
     reference_file = reference_path(dataset)
     if reference_file is not None:
         paths.append(reference_file)
@@ -1087,19 +1221,22 @@ def checkpoint(run_dir, config, metadata, results, binary, scip, docs_dir):
     """Update progress only after temporary MPS cleanup and integrity checks."""
     detected = metadata['environment']
     metadata['source_changed_during_run'] = sources() != metadata['source_sha256']
-    metadata['binary_changed_during_run'] = not binary.is_file() or sha(binary) != detected['versions']['lp_simplex']['binary_sha256']
+    native = detected['versions'].get('lp_simplex', {})
+    metadata['binary_changed_during_run'] = bool(native) and (
+        not binary.is_file() or sha(binary) != native['binary_sha256'])
     metadata['library_changed_during_run'] = any(not Path(p).is_file() or sha(p) != value
-        for p, value in detected['versions']['lp_simplex']['solver_libraries_sha256'].items())
+        for p, value in native.get('solver_libraries_sha256', {}).items())
     metadata['model_changed_during_run'] |= any(not (ROOT / name).is_file() or sha(ROOT / name) != value
         for name, value in config['input_metadata_sha256'].items()) or any(not (ROOT / p['raw_path']).is_file() or
         sha(ROOT / p['raw_path']) != p['raw_sha256'] for p in config['models'])
-    binding = Path(detected['versions']['highs']['binding_file'])
     metadata['competitor_changed_during_run'] = any(
-        not Path(detected['versions'][key]['binary']).is_file() or
-        sha(detected['versions'][key]['binary']) != detected['versions'][key]['binary_sha256']
-        for key in ('clp', 'glpk') if key in detected['versions']) or (
-        not Path(scip).is_file() or sha(scip) != detected['versions']['scip']['binary_sha256'] or
-        not binding.is_file() or sha(binding) != detected['versions']['highs']['binding_sha256'])
+        not Path(version['binary']).is_file() or sha(version['binary']) != version['binary_sha256']
+        for key, version in detected['versions'].items() if key in ('scip', 'clp', 'glpk'))
+    binding = detected['versions'].get('highs', {})
+    if binding:
+        path = Path(binding['binding_file'])
+        metadata['competitor_changed_during_run'] |= (
+            not path.is_file() or sha(path) != binding['binding_sha256'])
     dump(run_dir / 'metadata.json', metadata)
     keys = sorted({k for row in results for k in row if k not in ('command', 'options')})
     with (run_dir / 'results.csv').open('w', newline='') as stream:
@@ -1119,7 +1256,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, default=ROOT / 'build/data/lp_solve_mps')
     parser.add_argument('--scip', default='scip')
-    parser.add_argument('--solvers', nargs='+', choices=SOLVERS, default=list(SOLVERS))
+    parser.add_argument('--solvers', nargs='+', choices=SOLVERS, default=['lp_simplex'],
+                        help='Solvers to execute (default: lp_simplex); unselected report cells are retained')
     parser.add_argument('--clp', default='clp')
     parser.add_argument('--glpk', default='glpsol')
     parser.add_argument('--glpk-gate-case', help='Test this case first; skip subsequent GLPK runs if it does not pass')
@@ -1128,11 +1266,11 @@ def main():
     parser.add_argument('--docs-dir', type=Path, default=ROOT / 'docs/benchmarks')
     parser.add_argument('--dataset', choices=DATASETS, default='netlib', help='Dataset (default: netlib)')
     parser.add_argument('--cases', nargs='+', help='Instance names; omitted means the selected dataset in full')
-    parser.add_argument('--repeats', type=int, default=3)
+    parser.add_argument('--repeats', type=int, default=1)
     parser.add_argument('--seconds', type=float, default=None,
-                        help='wall-clock limit per run (default: Netlib 60 s; PDS/Railway 120 s)')
+                        help='wall-clock limit per run (default: Netlib 60 s; Netlib infeasible 90 s; PDS/Railway 120 s)')
     parser.add_argument('--iterations', type=int, default=300000)
-    parser.add_argument('--lp-algorithm', choices=['auto', 'dual-revised', 'pan-bda'], default='auto')
+    parser.add_argument('--lp-algorithm', choices=LP_ALGORITHMS, default='auto')
     parser.add_argument('--highs-algorithm', choices=['choose', 'simplex', 'ipm'], default='choose')
     parser.add_argument('--scip-algorithm', choices=['default', 'dual'], default='default')
     args = parser.parse_args()
@@ -1140,7 +1278,7 @@ def main():
         report(args.report_only.resolve(), args.docs_dir.resolve(), allow_partial=True)
         return
     if args.seconds is None:
-        args.seconds = 60. if args.dataset == 'netlib' else 120.
+        args.seconds = 90. if args.dataset == 'netlib-infeasible' else 60. if args.dataset == 'netlib' else 120.
     if args.repeats < 1 or not math.isfinite(args.seconds) or args.seconds <= 0 or args.iterations < 1:
         parser.error('repeats, seconds, and iterations must be positive')
     models = select_models(parser, args.cases, args.dataset)
@@ -1148,19 +1286,24 @@ def main():
         if 'glpk' not in args.solvers or args.glpk_gate_case not in {m['name'] for m in models}:
             parser.error('--glpk-gate-case requires GLPK and a case in the selected suite')
         models.sort(key=lambda model: model['name'] != args.glpk_gate_case)
-    binary = args.binary.resolve()
-    scip = shutil.which(args.scip)
-    clp, glpk = shutil.which(args.clp), shutil.which(args.glpk)
-    if len(args.solvers) != len(set(args.solvers)) or 'lp_simplex' not in args.solvers:
-        parser.error('solvers must be unique and include lp_simplex')
-    if not binary.is_file() or not scip or ('clp' in args.solvers and not clp) or ('glpk' in args.solvers and not glpk):
-        parser.error('lp_simplex binary, SCIP, Clp and GLPK (glpsol) executables are required')
-    config = dict(dataset=args.dataset, binary=str(binary), scip=scip, clp=clp, glpk=glpk, solvers=args.solvers, repeats=args.repeats, seconds=args.seconds,
+    if len(args.solvers) != len(set(args.solvers)):
+        parser.error('solvers must be unique')
+    binary = args.binary.resolve() if 'lp_simplex' in args.solvers else None
+    if binary is not None and not binary.is_file():
+        parser.error('lp_simplex executable not found: ' + str(binary))
+    executables = {}
+    for solver, requested in (('scip', args.scip), ('clp', args.clp), ('glpk', args.glpk)):
+        executable = shutil.which(requested) if solver in args.solvers else None
+        if solver in args.solvers and not executable:
+            parser.error(solver + ' executable not found: ' + requested)
+        executables[solver] = executable
+    scip, clp, glpk = (executables[key] for key in ('scip', 'clp', 'glpk'))
+    config = dict(dataset=args.dataset, binary=str(binary) if binary else None, scip=scip, clp=clp, glpk=glpk, solvers=args.solvers, repeats=args.repeats, seconds=args.seconds,
                   tolerance=1e-7, iterations=args.iterations, lp_algorithm=args.lp_algorithm,
                   highs_algorithm=args.highs_algorithm, scip_algorithm=args.scip_algorithm,
                   input_metadata_sha256=input_metadata(args.dataset),
                   suite_label=args.dataset + (' 全集' if not args.cases else ' 显式子集'),
-                  models=models, glpk_stop_on_timeout=True)
+                  models=models, glpk_stop_on_timeout='glpk' in args.solvers)
     if args.glpk_gate_case:
         config['glpk_gate_case'] = args.glpk_gate_case
     env = {k: v for k, v in os.environ.items() if not k.startswith('LP_SIMPLEX_')}
