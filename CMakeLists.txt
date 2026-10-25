@@ -3,7 +3,10 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.12)
-project(lp_simplex LANGUAGES C)
+project(
+    lp_simplex
+    VERSION 1.0.0
+    LANGUAGES C)
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -14,6 +17,10 @@ option(LP_SIMPLEX_USE_KLU "Use SuiteSparse KLU for sparse basis factorizations"
 option(LP_SIMPLEX_USE_GMP
        "Use GMP for exact terminal infeasibility verification" ON)
 option(LP_SIMPLEX_USE_SPQR "Use CHOLMOD/SPQR sparse algebra for Pan/BDA" ON)
+option(LP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS
+       "Fail if a requested optional numerical backend is unavailable" OFF)
+configure_file(include/lp_simplex/version.h.in generated/lp_simplex/version.h
+               @ONLY)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 90)
@@ -88,6 +95,7 @@ set(LP_SIMPLEX_PRIVATE_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/src/common)
 
 set(SOURCES
+    src/core/version.c
     src/core/model.c
     src/core/mps.c
     src/core/simplex.c
@@ -160,14 +168,17 @@ set(SOURCES
     src/common/utils.c)
 add_library(lp_simplex SHARED ${SOURCES})
 add_library(lp_simplex::lp_simplex ALIAS lp_simplex)
-set_target_properties(lp_simplex PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set_target_properties(lp_simplex PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON
+                                            VERSION ${PROJECT_VERSION})
 if(APPLE)
     set_target_properties(lp_simplex PROPERTIES MACOSX_RPATH ON INSTALL_NAME_DIR
                                                                 "@rpath")
 endif()
 target_include_directories(
-    lp_simplex PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+    lp_simplex
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/generated>
+           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_include_directories(lp_simplex
                            PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 
@@ -235,6 +246,14 @@ if(LP_SIMPLEX_USE_KLU)
     endif()
 endif()
 
+if(LP_SIMPLEX_REQUIRE_OPTIONAL_BACKENDS)
+    foreach(backend KLU SPQR GMP)
+        if(LP_SIMPLEX_USE_${backend} AND NOT LP_SIMPLEX_HAVE_${backend})
+            message(FATAL_ERROR "Requested ${backend} backend is unavailable")
+        endif()
+    endforeach()
+endif()
+
 ###############################################################################
 # Installation of the Library
 ###############################################################################
@@ -250,6 +269,12 @@ install(
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING
     PATTERN "*.h")
+install(FILES "${PROJECT_BINARY_DIR}/generated/lp_simplex/version.h"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lp_simplex)
+write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/lp_simplexConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY ExactVersion)
 set(LP_SIMPLEX_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/lp_simplex")
 configure_package_config_file(
     cmake/lp_simplexConfig.cmake.in
@@ -260,6 +285,7 @@ install(
     NAMESPACE lp_simplex::
     DESTINATION ${LP_SIMPLEX_INSTALL_CMAKEDIR})
 install(FILES "${PROJECT_BINARY_DIR}/lp_simplexConfig.cmake"
+              "${PROJECT_BINARY_DIR}/lp_simplexConfigVersion.cmake"
         DESTINATION ${LP_SIMPLEX_INSTALL_CMAKEDIR})
 install(FILES LICENSE LICENSE.GPL-3.0
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/lp_simplex)

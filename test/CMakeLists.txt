@@ -1,3 +1,9 @@
+# Numerical test sources call libm directly; shared-library private linkage
+# does not satisfy those references on Linux linkers.
+if(UNIX AND NOT APPLE)
+    link_libraries(m)
+endif()
+
 add_library(test_problem_header OBJECT test_problem_header.c)
 target_include_directories(
     test_problem_header

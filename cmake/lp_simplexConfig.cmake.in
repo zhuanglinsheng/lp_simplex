@@ -1,5 +1,7 @@
 @PACKAGE_INIT@
 
+set(lp_simplex_VERSION "@PROJECT_VERSION@")
+
 # These describe resolved build capabilities, not requested CMake options.
 set(lp_simplex_WITH_KLU @LP_SIMPLEX_HAVE_KLU@)
 set(lp_simplex_WITH_SPQR @LP_SIMPLEX_HAVE_SPQR@)

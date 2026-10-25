@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate version and source gates
+        id: version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+          source = Path('CMakeLists.txt').read_text()
+          version = re.search(r'project\s*\(\s*lp_simplex\s+VERSION\s+(\d+\.\d+\.\d+)', source)[1]
+          if os.environ['REF_TYPE'] == 'tag':
+              assert os.environ['REF_NAME'] == 'v' + version, 'Tag/version mismatch'
+          assert '## ' + version + ' ' in Path('CHANGELOG.md').read_text()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write('version=' + version + '\n')
+          PY
+          python3 -m pip install "clang-format==$(cat .clang-format-version)" "cmakelang==$(cat .cmake-format-version)"
+          python3 tools/check_style.py
+          python3 tools/check_architecture.py
+          python3 tools/check_docs.py
+
+  package:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux-x64
+          - runner: macos-15-intel
+            platform: macos-x64
+          - runner: macos-15
+            platform: macos-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build and test dependencies
+        run: |
+          sh tools/install_dependencies.sh
+          python3 -m pip install numpy
+      - name: Prepare numerical regression data
+        run: python3 data/netlib/prepare.py --all
+      - name: Build and test Release with all numerical backends
+        run: sh tools/build.sh build-release
+      - name: Verify archive after extraction and relocation
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          python3 tools/package_release.py --build-dir build-release --platform "$PLATFORM" --require-clean
+          python3 test/release/verify_package.py "build-dist/lp_simplex-$VERSION-$PLATFORM.tar.gz" --version "$VERSION" --require-full
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.platform }}
+          path: build-dist/*.tar.gz
+          if-no-files-found: error
+
+  regression:
+    needs: validate
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build_type: Debug
+            backends: 'ON'
+          - build_type: Release
+            backends: 'OFF'
+          - build_type: Debug
+            backends: 'OFF'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and prepare data
+        run: |
+          sh tools/install_dependencies.sh
+          python3 -m pip install numpy
+          python3 data/netlib/prepare.py --all
+      - name: Configure, build and test
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          BUILD_TYPE: ${{ matrix.build_type }}
+          BACKENDS: ${{ matrix.backends }}
+        run: |
+          sh tools/build.sh build-regression -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DLP_SIMPLEX_USE_KLU="$BACKENDS" -DLP_SIMPLEX_USE_SPQR="$BACKENDS" \
+            -DLP_SIMPLEX_USE_GMP="$BACKENDS"
+
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [validate, package, regression]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: build-dist
+          merge-multiple: true
+      - name: Publish immutable version assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          cd build-dist
+          sha256sum *.tar.gz > SHA256SUMS
+          cd ..
+          gh release create "$GITHUB_REF_NAME" build-dist/*.tar.gz build-dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --target "$GITHUB_SHA" \
+            --title "lp_simplex $VERSION" --notes-file CHANGELOG.md

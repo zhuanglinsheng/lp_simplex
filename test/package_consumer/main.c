@@ -6,6 +6,7 @@
 
 #include <lp_simplex/lp_simplex.h>
 #include <stdio.h>
+#include <string.h>
 
 static void progress(void *context, const struct lp_simplex_Progress *event)
 {
@@ -24,6 +25,10 @@ int main(void)
 	struct lp_simplex_Result r;
 	double x[2];
 	int i, calls;
+	if (strcmp(lp_simplex_version(), LP_SIMPLEX_VERSION) != 0) {
+		lp_model_free(m);
+		return 3;
+	}
 	if (!m)
 		return 1;
 	m->constraints[0].type = optm_CONS_T_GE;
