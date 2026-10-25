@@ -741,6 +741,10 @@ find_package(
     COMPONENTS Interpreter
     QUIET)
 if(Python3_Interpreter_FOUND)
+    add_test(
+        NAME test_release_packaging
+        COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/release/test_package_release.py)
     add_test(NAME test_architecture
              COMMAND ${Python3_EXECUTABLE}
                      ${PROJECT_SOURCE_DIR}/tools/check_architecture.py)
