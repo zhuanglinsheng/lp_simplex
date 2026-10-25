@@ -85,11 +85,12 @@ static int dual_is_finite_upper(double value)
 /* Separate the initial dual face before symmetry has selected a fragile
  * basis.  Unlike later feasibility-restoring shifts, this is a bounded,
  * one-shot change to the original objective, removed by the usual cleanup. */
-static void dual_perturb_initial_cost(struct simplex_DualState *state)
+static void dual_perturb_initial_cost(
+	struct simplex_DualState *state, const int recovery)
 {
 	int j, shifted = 0;
 
-	if (!state->controls.initial_cost_perturb)
+	if (!state->controls.initial_cost_perturb && !recovery)
 		return;
 	for (j = 0; j < state->structural; j++) {
 		unsigned int order = (unsigned int)j + 1U;
@@ -2357,7 +2358,10 @@ static int dual_initialize_stable_phase_one(
 	simplex_degeneracy_reset_state(&state->degeneracy);
 	simplex_basis_use_product_updates(&state->factor);
 	dual_initialize_basis(state, problem);
-	dual_perturb_initial_cost(state);
+	/* The failed path supplies evidence for one deterministic face change.
+	 * Its costs are restored and checked before success; the restart retains
+	 * the original pivot grant and cannot restart itself. */
+	dual_perturb_initial_cost(state, 1);
 	if (dual_factorize(state) != lp_simplex_EXIT_SUCCESS ||
 		dual_compute_primal_values(state) != lp_simplex_EXIT_SUCCESS ||
 		dual_compute_reduced_costs(state) != lp_simplex_EXIT_SUCCESS)
@@ -2562,7 +2566,7 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 		state.seeded_basis = 1;
 	} else {
 		dual_initialize_basis(&state, problem);
-		dual_perturb_initial_cost(&state);
+		dual_perturb_initial_cost(&state, 0);
 		if (dual_factorize(&state) != lp_simplex_EXIT_SUCCESS ||
 			dual_crash(&state) != lp_simplex_EXIT_SUCCESS ||
 			dual_factorize(&state) != lp_simplex_EXIT_SUCCESS ||
