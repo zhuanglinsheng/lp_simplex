@@ -13,9 +13,13 @@ a C90 API, C++ integration and MPS input.
   infeasibility verification; BLAS and LAPACK are required.
 - Relocatable CMake installation, public version metadata and runtime version
   query, independent C/C++ consumer verification and platform release archives.
+- Native Windows x64 MSVC Release/Debug validation and ZIP packages with bundled
+  numerical DLLs; the Windows baseline requires only BLAS/LAPACK.
 - Bilingual usage, algorithm, parameter and benchmark documentation.
 
-Windows support and cross-platform numerical validation are in progress.
+Native Windows Release/Debug and relocated ZIP consumers have passed validation.
+Cross-platform release acceptance is tracked in the
+[release rehearsal](https://github.com/zhuanglinsheng/lp_simplex/actions/runs/40226709492).
 No final 1.0.0 tag or release has been created.
 
 ### Compatibility and limits
@@ -29,6 +33,7 @@ Only continuous LPs are supported. Callers must inspect the solve return code
 and result status before consuming a solution. Work budgets are not CPU timeouts
 or total RSS limits. Numerical backend availability affects capabilities.
 
-Precompiled archives require compatible host numerical shared libraries; see
+Linux/macOS archives require compatible host numerical shared libraries; Windows
+archives bundle numerical DLLs and require the MSVC runtime. See
 [INSTALL.md](INSTALL.md). No new full-suite performance measurement is claimed
 for 1.0.0; published benchmark tables retain their historical measurement scope.

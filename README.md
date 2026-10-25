@@ -76,4 +76,4 @@ Release 用于交付。非 MSVC 的 Debug 构建启用 AddressSanitizer，外部
 
 ## 交付与兼容性边界
 
-公开接口位于 `include/lp_simplex/`，`src/` 属于私有实现。调用方应使用匹配的头文件重新构建，不承诺跨版本二进制兼容。macOS arm64 已验证 Release/ASAN、可选后端开/关及安装包移位；其他平台以实际 CI 结果为准。工作预算不等于 CPU 超时或总体 RSS 限额。配置和结果含义见[配置边界](./docs/runtime-configuration.md)与[结果参考](./docs/parameters.md)，测量范围见[验证历史](./docs/development/README.md)。
+公开接口位于 `include/lp_simplex/`，`src/` 属于私有实现。调用方应使用匹配的头文件重新构建，不承诺跨版本二进制兼容。发布验收覆盖 Linux x64、macOS x64/arm64 与 Windows x64 的原生构建和安装包移位；Release/Debug 及可选后端配置以[持续集成](https://github.com/zhuanglinsheng/lp_simplex/actions)的实际结果为准。工作预算不等于 CPU 超时或总体 RSS 限额。配置和结果含义见[配置边界](./docs/runtime-configuration.md)与[结果参考](./docs/parameters.md)，测量范围见[验证历史](./docs/development/README.md)。
