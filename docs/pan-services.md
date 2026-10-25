@@ -1,6 +1,6 @@
 # BDA 阶段契约
 
-简体中文 | [English](./pan-services_en.md) | [文档](./README.md) | [AUTO](./auto-policy.md)
+简体中文 | [English](./pan-services_en.md) | [文档](./README.md) | [AUTO 调度](./auto-policy.md)
 
 BDA 拥有自己的调用状态。NNLS、PDHG、切锥、恢复和对偶修整是内部角色；标准形/原生界属于表示，显式/隐式属于 oracle 实现，QR 属于数值后端。
 

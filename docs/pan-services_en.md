@@ -1,6 +1,6 @@
 # BDA phase contracts
 
-[简体中文](./pan-services.md) | English | [Documentation](./README_en.md) | [AUTO](./auto-policy_en.md)
+[简体中文](./pan-services.md) | English | [Documentation](./README_en.md) | [AUTO Scheduling](./auto-policy_en.md)
 
 BDA owns its invocation state. NNLS, PDHG, cones, restoration and dual refinement are internal roles. Standard/native bounds are representations; explicit/implicit are oracle implementations; QR is a numerical backend.
 
