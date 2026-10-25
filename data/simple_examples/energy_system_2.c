@@ -1,7 +1,10 @@
-/*
- * MPS input version of energy_system.mps.
+/**
+ * @file energy_system_2.c
+ * @brief MPS input version of energy_system.mps.
+ *
  * Read the paired model file and solve it through the public C API.
  */
+
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>

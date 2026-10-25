@@ -10,6 +10,7 @@
  */
 
 #include "simplex_recovery.h"
+#include "simplex_dual_kernel.h"
 #include "simplex_dual_internal.h"
 #include "simplex_dual_state.h"
 #include "simplex_problem.h"
@@ -21,7 +22,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
 
 static int test_policy_priority(void)
 {
@@ -63,7 +63,6 @@ static int test_policy_priority(void)
 	simplex_degeneracy_destroy(&recovery.primal_history);
 	return valid;
 }
-
 
 static int test_bound_snapshot_and_fixed_restore(void)
 {
@@ -124,7 +123,6 @@ static int test_bound_snapshot_and_fixed_restore(void)
 	simplex_recovery_destroy(&state);
 	return valid;
 }
-
 
 /* Optimize -x1 subject to x0+x1=0, x>=0 from the primal-feasible x0 basis.
  * Perturbed cleanup can improve its working objective below zero; restoring
@@ -208,7 +206,6 @@ static int test_cleanup_transaction(const int limit, const int backend)
 	simplex_problem_free(problem);
 	return valid;
 }
-
 
 /* A near-degenerate original vertex needs an actual dual repair after the
  * relaxed optimum is snapped back to its original nonbasic bounds. */
@@ -321,7 +318,6 @@ static int test_primal_to_dual_handoff(const int backend, const int exhaust)
 	return valid;
 }
 
-
 /* A tolerance-sized wrong-sign cached reduced cost used to change c[q] when
  * a zero ratio was accepted. Original-domain dual repair must preserve c and
  * recompute the real reduced costs after exchanging the basis. */
@@ -377,7 +373,6 @@ static int test_sealed_objective_ratio_clip(const int backend)
 	simplex_problem_free(problem);
 	return valid;
 }
-
 
 int main(void)
 {

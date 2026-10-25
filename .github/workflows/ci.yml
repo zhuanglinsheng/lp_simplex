@@ -7,6 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  style:
+    name: Source formatting and script whitespace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the pinned formatters
+        run: python -m pip install "clang-format==$(cat .clang-format-version)" "cmakelang==$(cat .cmake-format-version)"
+      - name: Check formatting and file headers
+        run: python tools/check_style.py
+      - name: Check source ownership boundaries
+        run: python tools/check_architecture.py
+
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -22,7 +37,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             cmake ninja-build build-essential \
-            libopenblas-dev liblapack-dev libsuitesparse-dev
+            libopenblas-dev liblapack-dev libsuitesparse-dev libgmp-dev python3-numpy
 
       - name: Prepare test data
         run: |
@@ -58,7 +73,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cmake ninja-build build-essential libopenblas-dev liblapack-dev
+            cmake ninja-build build-essential libopenblas-dev liblapack-dev python3-numpy
 
       - name: Prepare test data
         run: |
@@ -78,3 +93,19 @@ jobs:
         run: |
           cmake --build build -j "$(nproc)"
           ctest --test-dir build --output-on-failure
+
+  macos-package:
+    name: macOS release package relocation
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure C API package with system numerical libraries
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DLP_SIMPLEX_USE_KLU=OFF -DLP_SIMPLEX_USE_SPQR=OFF \
+            -DLP_SIMPLEX_USE_GMP=OFF -DLP_SIMPLEX_BUILD_BENCHMARKS=OFF \
+            -DLP_SIMPLEX_BUILD_EXAMPLES=OFF
+      - name: Build and verify relocated C and C++ consumers
+        run: |
+          cmake --build build -j 3
+          ctest --test-dir build -R '^test_install_package$' --output-on-failure

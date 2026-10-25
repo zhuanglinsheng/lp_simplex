@@ -13,7 +13,6 @@
 
 #include <lp_simplex/model.h>
 
-
 /* Return -1 for infeasible, 1 for redundant, and 0 when the row must stay. */
 int simplex_presolve_analyze_row(const struct lp_Model *model, int row,
 	const unsigned char *column_active, struct optm_VariableBound *bounds,

@@ -8,12 +8,12 @@
  * @brief Row activity classification and implied-bound propagation.
  */
 
+#include "policy/resources.h"
 #include "simplex_presolve_activity.h"
 #include "simplex_presolve_rules.h"
 #include "utils.h"
 
 #include <math.h>
-
 
 /*
  * Largest magnitude a propagated bound may take.
@@ -33,8 +33,6 @@
  * Refusing to tighten can make presolve weaker, never wrong: the solved
  * problem is still checked against the caller's model on exit.
  */
-#define PRESOLVE_PROPAGATION_LIMIT 1e20
-
 
 static int presolve_candidate_usable(const double candidate)
 {
@@ -45,7 +43,6 @@ static int presolve_candidate_usable(const double candidate)
 	magnitude = candidate < 0. ? -candidate : candidate;
 	return magnitude <= PRESOLVE_PROPAGATION_LIMIT;
 }
-
 
 static int presolve_apply_implied_lower(struct optm_VariableBound *bound,
 	double candidate, const double tolerance)
@@ -67,7 +64,6 @@ static int presolve_apply_implied_lower(struct optm_VariableBound *bound,
 	return 1;
 }
 
-
 static int presolve_apply_implied_upper(struct optm_VariableBound *bound,
 	double candidate, const double tolerance)
 {
@@ -88,7 +84,6 @@ static int presolve_apply_implied_upper(struct optm_VariableBound *bound,
 	return 1;
 }
 
-
 /* Analyze one sparse row and propagate bounds from its residual activity.
  * Return -1 for infeasible, 1 for redundant, and 0 when the row must stay. */
 struct presolve_RowActivity {
@@ -102,7 +97,6 @@ struct presolve_RowActivity {
 	int type;
 };
 
-
 static double presolve_row_entry(const struct lp_Model *model, const int row,
 	const int position, int *column)
 {
@@ -114,7 +108,6 @@ static double presolve_row_entry(const struct lp_Model *model, const int row,
 
 	return model->constraints[row].coef[position];
 }
-
 
 static void presolve_compute_row_activity(const struct lp_Model *model,
 	const int row, const unsigned char *column_active,
@@ -171,7 +164,6 @@ static void presolve_compute_row_activity(const struct lp_Model *model,
 	}
 }
 
-
 static int presolve_classify_row_activity(
 	const struct presolve_RowActivity *activity, const double rhs,
 	const double tolerance, int *force_minimum, int *force_maximum)
@@ -210,7 +202,6 @@ static int presolve_classify_row_activity(
 	return 0;
 }
 
-
 static int presolve_force_row_bounds(const struct lp_Model *model,
 	const int row, const unsigned char *column_active,
 	struct optm_VariableBound *bounds,
@@ -239,7 +230,6 @@ static int presolve_force_row_bounds(const struct lp_Model *model,
 	}
 	return tightened;
 }
-
 
 static int presolve_propagate_row_bounds(const struct lp_Model *model,
 	const int row, const unsigned char *column_active,
@@ -316,7 +306,6 @@ static int presolve_propagate_row_bounds(const struct lp_Model *model,
 	}
 	return 0;
 }
-
 
 /* Analyze one row and propagate bounds from its residual activity.
  * Return -1 for infeasible, 1 for redundant, and 0 when the row must stay. */

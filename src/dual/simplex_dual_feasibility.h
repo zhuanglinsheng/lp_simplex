@@ -11,7 +11,6 @@
 #ifndef LP_SIMPLEX_DUAL_FEASIBILITY_INTERNAL_H
 #define LP_SIMPLEX_DUAL_FEASIBILITY_INTERNAL_H
 
-
 struct simplex_DualState;
 struct simplex_SparseVector;
 
@@ -32,7 +31,6 @@ struct simplex_DualFeasibility {
 	long rebuilds;
 	long incremental_updates;
 };
-
 
 int simplex_dual_feasibility_create(
 	struct simplex_DualFeasibility *feasibility, int rows);

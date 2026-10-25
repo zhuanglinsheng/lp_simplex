@@ -5,13 +5,13 @@
 
 /**
  * @file linalg.c
- * @brief BLAS and LAPACK wrappers with portable numerical fallbacks.
+ * @brief BLAS/LAPACK wrappers and compensated sparse arithmetic.
  */
 
 #include "linalg.h"
 
 #include <assert.h>
-
+#include <math.h>
 
 void lp_simplex_linalg_daxpy(
 	int n, double a, double *x, int incx, double *y, int incy)
@@ -32,7 +32,6 @@ void lp_simplex_linalg_daxpy(
 	}
 #endif
 }
-
 
 double lp_simplex_linalg_ddot(
 	int n, const double *x, int incx, const double *y, int incy)
@@ -56,7 +55,6 @@ double lp_simplex_linalg_ddot(
 #endif
 }
 
-
 void lp_simplex_linalg_dscal(int n, double scale, double *array, int increment)
 {
 #if USE_BLAS
@@ -70,7 +68,6 @@ void lp_simplex_linalg_dscal(int n, double scale, double *array, int increment)
 		array[i] *= scale;
 #endif
 }
-
 
 void lp_simplex_linalg_dlarfg(
 	int n, double *alpha, double *x, int incx, double *tau)
@@ -86,4 +83,42 @@ void lp_simplex_linalg_dlarfg(
 	(void)incx;
 	(void)tau;
 #endif
+}
+
+double lp_simplex_linalg_sparse_dot(int first, int end, const int *index,
+	const double *value, const double *vector)
+{
+	double sum = 0., correction = 0.;
+	int k;
+	int count = end - first;
+
+	/* Signed unit products are exact, including subnormals. For one or two
+	 * such terms the compensated expression rounds to the same finite sum.
+	 * Keep arbitrary coefficients and longer supports on the full path: a
+	 * rounded FMA remainder can change even a one-term result near underflow. */
+	if (count == 1 && fabs(value[first]) == 1.) {
+		double product = value[first] * vector[index[first]];
+		if (isfinite(product))
+			return product == 0. ? 0. : product;
+	}
+	if (count == 2 && fabs(value[first]) == 1. &&
+		fabs(value[first + 1]) == 1.) {
+		double pair = value[first] * vector[index[first]] +
+			      value[first + 1] * vector[index[first + 1]];
+		if (isfinite(pair))
+			return pair == 0. ? 0. : pair;
+	}
+
+	for (k = first; k < end; k++) {
+		double a = value[k], x = vector[index[k]];
+		double product = a * x;
+		double next = sum + product;
+
+		correction +=
+			(fabs(sum) >= fabs(product) ? (sum - next) + product
+						    : (product - next) + sum) +
+			fma(a, x, -product);
+		sum = next;
+	}
+	return sum + correction;
 }

@@ -8,15 +8,18 @@
  * @brief Fixed-column MPS parsing and model construction.
  */
 
+#include "policy/controls.h"
 #include "utils.h"
 
 #include <lp_simplex/mps.h>
 #include <lp_simplex/status.h>
 
 #include <stdio.h>
+#include <errno.h>
+#include <ctype.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 static void file_readline(FILE *f, char *line, const int n)
 {
@@ -24,7 +27,6 @@ static void file_readline(FILE *f, char *line, const int n)
 	fgets(line, n, f);
 	line[lp_simplex_strcspn(line, "\r\n")] = '\0';
 }
-
 
 static int change_sect_code(const char *line, int *sect_code)
 {
@@ -52,7 +54,6 @@ static int change_sect_code(const char *line, int *sect_code)
 		return 1;
 }
 
-
 /*
  * Comment and blank lines.
  *
@@ -67,9 +68,10 @@ static int mps_line_skippable(const char *line)
 
 	while (*cursor == ' ' || *cursor == '\t' || *cursor == '\r')
 		cursor++;
-	return *cursor == '\0' || *cursor == '*' || *cursor == '$';
+	/* Comment markers belong in column one. A marker in a fixed name
+	 * field is part of a declared row, column or vector name. */
+	return *cursor == '\0' || line[0] == '*' || line[0] == '$';
 }
-
 
 /*
  * Integer markers occupy a COLUMNS line but declare no coefficient.
@@ -90,7 +92,6 @@ static int mps_line_marker(const char *line)
 		return 1;
 	return 0;
 }
-
 
 static int mps_read_objective_sense(const char *text, int *maximize)
 {
@@ -113,13 +114,11 @@ static int mps_read_objective_sense(const char *text, int *maximize)
 	return 1;
 }
 
-
 static int mps_has_second_field(const char *line);
 static unsigned long mps_name_hash(const char *name);
 
-
 static int get_mps_info(const char *file, int *nrow, int *nvar,
-	int *entry_capacity, int *range_fields, int *maximize)
+	int *entry_capacity, int *range_fields, int *maximize, int *free_rows)
 {
 	char line[128];
 	char last_var[8];
@@ -132,6 +131,7 @@ static int get_mps_info(const char *file, int *nrow, int *nvar,
 		return lp_simplex_EXIT_FAILURE;
 	}
 	*nrow = 0;
+	*free_rows = 0;
 	*nvar = 0;
 	*entry_capacity = 0;
 	*range_fields = 0;
@@ -163,7 +163,13 @@ LOOP:
 		goto LOOP;
 	switch (sect_code) {
 	case 1:
-		(*nrow)++;
+		/* The first N row is the objective; later N rows are free rows,
+		 * not constraints. All passes must count the same model. */
+		if (line[1] == 'N' || (line[1] == ' ' && line[2] == 'N')) {
+			if ((*free_rows)++ == 0)
+				(*nrow)++;
+		} else
+			(*nrow)++;
 		break;
 	case 2:
 		if (mps_line_marker(line))
@@ -199,36 +205,51 @@ BAD_SENSE:
 	return lp_simplex_EXIT_FAILURE;
 }
 
+/* Do not let atof's zero-on-error behavior silently change the input LP.
+ * Read one complete whitespace-delimited token, preserving long decimals. */
+static double mps_read_number(const char *text)
+{
+	char *end;
+	double value;
+	errno = 0;
+	value = strtod(text, &end);
+	if (end == text || !isfinite(value) ||
+		(*end && !isspace((unsigned char)*end)) ||
+		(errno == ERANGE && value == 0.))
+		return NAN;
+	return value;
+}
 
 static double get_filed_1_value(const char *line)
 {
 	/* Some MPS writers preserve fixed name positions but print more than
 	 * twelve characters per number.  Parse the entire whitespace-delimited
 	 * token: truncation silently changes coefficients, RHS values and bounds. */
-	return lp_simplex_atof(line + 24);
+	return mps_read_number(line + 24);
 }
-
 
 static double get_field_2_value(const char *line)
 {
-	return lp_simplex_atof(line + 49);
+	return mps_read_number(line + 49);
 }
-
 
 static int mps_has_second_field(const char *line)
 {
-	int i, fields = 0, inside = 0;
-
-	for (i = 0; line[i] != '\0'; i++) {
-		int whitespace = line[i] == ' ' || line[i] == '\t';
-
-		if (!whitespace && !inside)
-			fields++;
-		inside = !whitespace;
-	}
-	return fields >= 5;
+	const char *end = line + 24;
+	int i;
+	while (*end && isspace((unsigned char)*end))
+		end++;
+	while (*end && !isspace((unsigned char)*end))
+		end++;
+	/* Long first values can occupy the second name's columns. A second
+	 * name without its numeric token is still present, and must be rejected. */
+	if (end > line + 39)
+		return 0;
+	for (i = 39; i < 47; i++)
+		if (line[i] && !isspace((unsigned char)line[i]))
+			return 1;
+	return 0;
 }
-
 
 /* MPS names occupy eight columns and may be padded with spaces or NULs. */
 static int mps_name_equal(const char *left, const char *right)
@@ -245,7 +266,6 @@ static int mps_name_equal(const char *left, const char *right)
 	return 1;
 }
 
-
 struct mps_RangeScan {
 	int original_rows;
 	int ranged_rows;
@@ -253,7 +273,6 @@ struct mps_RangeScan {
 	unsigned char *ranged;
 	unsigned char *row_type;
 };
-
 
 /* Identify ranged rows before allocating the final sparse model.  A ranged
  * MPS row is represented internally by two ordinary one-sided constraints,
@@ -383,10 +402,15 @@ finish:
 	return state;
 }
 
-
 static int apply_model_bound(struct optm_VariableBound *bound, const char *line)
 {
 	double value = get_filed_1_value(line);
+
+	if (!isfinite(value) && lp_simplex_memcmp(line + 1, "FR", 2) &&
+		lp_simplex_memcmp(line + 1, "MI", 2) &&
+		lp_simplex_memcmp(line + 1, "PL", 2) &&
+		lp_simplex_memcmp(line + 1, "BV", 2))
+		return lp_simplex_EXIT_FAILURE;
 
 	if (lp_simplex_memcmp(line + 1, "FR", 2) == 0) {
 		bound->lb = __lp_simplex_NINF__;
@@ -433,18 +457,15 @@ static int apply_model_bound(struct optm_VariableBound *bound, const char *line)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 struct mps_NameTable {
 	int *slot;
 	int capacity;
 };
 
-
 struct mps_SparseEntry {
 	int row;
 	double value;
 };
-
 
 static int mps_compare_sparse_entry(const void *left, const void *right)
 {
@@ -453,7 +474,6 @@ static int mps_compare_sparse_entry(const void *left, const void *right)
 
 	return a->row < b->row ? -1 : a->row != b->row;
 }
-
 
 static int mps_sort_csc_columns(struct lp_Model *model)
 {
@@ -491,7 +511,6 @@ static int mps_sort_csc_columns(struct lp_Model *model)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static unsigned long mps_name_hash(const char *name)
 {
 	unsigned long hash = 2166136261UL;
@@ -505,7 +524,6 @@ static unsigned long mps_name_hash(const char *name)
 	}
 	return hash;
 }
-
 
 static int mps_name_table_create(struct mps_NameTable *table, const int entries)
 {
@@ -523,7 +541,6 @@ static int mps_name_table_create(struct mps_NameTable *table, const int entries)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void mps_name_table_insert(
 	struct mps_NameTable *table, const char *name, const int index)
 {
@@ -535,7 +552,6 @@ static void mps_name_table_insert(
 			(position + 1) & (unsigned long)(table->capacity - 1);
 	table->slot[position] = index;
 }
-
 
 static int mps_name_table_find(const struct mps_NameTable *table,
 	const char *name, const struct lp_Model *model, const int rows)
@@ -556,18 +572,33 @@ static int mps_name_table_find(const struct mps_NameTable *table,
 	return -1;
 }
 
+/* Free rows are declared names, not unknown references. */
+static int mps_is_free_row(const char (*names)[9], int count, const char *name)
+{
+	int i;
+	for (i = 0; i < count; i++)
+		if (mps_name_equal(names[i], name))
+			return 1;
+	return 0;
+}
 
 static int mps_sparse_add_field(struct lp_Model *model,
 	const struct mps_NameTable *rows, const char *objective_name,
 	const char *field_name, const double value, const int column,
-	const int *range_pair, int *nonzeros, const int capacity)
+	const int *range_pair, int *nonzeros, const int capacity,
+	const char (*free_names)[9], int free_count)
 {
 	int row, targets[2], count, target_index;
+
+	if (!isfinite(value))
+		return lp_simplex_EXIT_FAILURE;
 
 	if (mps_name_equal(field_name, objective_name)) {
 		model->objective[column] = value;
 		return lp_simplex_EXIT_SUCCESS;
 	}
+	if (mps_is_free_row(free_names, free_count, field_name))
+		return lp_simplex_EXIT_SUCCESS;
 	row = mps_name_table_find(rows, field_name, model, 1);
 	if (row < 0)
 		return lp_simplex_EXIT_FAILURE;
@@ -595,7 +626,6 @@ static int mps_sparse_add_field(struct lp_Model *model,
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static void mps_apply_range(struct lp_Model *model, const int row,
 	const int pair, const int original_type, const double range)
@@ -627,6 +657,30 @@ static void mps_apply_range(struct lp_Model *model, const int row,
 	}
 }
 
+/* RHS cards share objective, free-row and ranged-row semantics regardless
+ * of whether the name occurs in the first or second numeric field. */
+static int mps_set_rhs_field(struct lp_Model *model,
+	const struct mps_NameTable *rows, const char *objective_name,
+	const char *name, double value, const int *range_pair,
+	const char (*free_names)[9], int free_count)
+{
+	int row;
+	if (!isfinite(value))
+		return lp_simplex_EXIT_FAILURE;
+	if (mps_name_equal(name, objective_name)) {
+		model->objective_offset = -value;
+		return lp_simplex_EXIT_SUCCESS;
+	}
+	if (mps_is_free_row(free_names, free_count, name))
+		return lp_simplex_EXIT_SUCCESS;
+	row = mps_name_table_find(rows, name, model, 1);
+	if (row < 0)
+		return lp_simplex_EXIT_FAILURE;
+	model->constraints[row].rhs = value;
+	if (range_pair[row] >= 0)
+		model->constraints[range_pair[row]].rhs = value;
+	return lp_simplex_EXIT_SUCCESS;
+}
 
 static int mps_build_csr(struct lp_Model *model, const int nonzeros)
 {
@@ -655,19 +709,25 @@ static int mps_build_csr(struct lp_Model *model, const int nonzeros)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static int fill_sparse_model(const char *file, struct lp_Model *model,
-	const int entry_capacity, const struct mps_RangeScan *range_scan)
+	const int entry_capacity, const struct mps_RangeScan *range_scan,
+	const int free_capacity)
 {
 	char line[128], objective_name[9], last_column[9];
+	char (*free_names)[9] = NULL;
+	int free_count = 0;
 	struct mps_NameTable rows, columns;
 	FILE *stream;
 	int section = 0, row_count = 0, column = -1, nonzeros = 0;
-	int integer_block = 0;
+	int integer_block = 0, i;
 	int *range_pair = NULL;
 	int state = lp_simplex_EXIT_FAILURE;
 
 	rows.slot = columns.slot = NULL;
+	free_names = (char (*)[9])lp_simplex_malloc(
+		(size_t)(free_capacity + 1) * sizeof(*free_names));
+	if (free_names == NULL)
+		goto finish;
 	range_pair = (int *)lp_simplex_malloc(
 		(size_t)range_scan->original_rows * sizeof(int));
 	if (range_pair == NULL)
@@ -702,7 +762,13 @@ static int fill_sparse_model(const char *file, struct lp_Model *model,
 		if (section == 1) {
 			char kind = line[1] == ' ' ? line[2] : line[1];
 
-			if (kind == 'N') {
+			if (kind == 'N' && objective_name[0] != '\0') {
+				if (free_count >= free_capacity)
+					goto close;
+				lp_simplex_memset(free_names[free_count], 0, 9);
+				lp_simplex_memcpy(
+					free_names[free_count++], line + 4, 8);
+			} else if (kind == 'N') {
 				lp_simplex_memset(objective_name, 0,
 					sizeof(objective_name));
 				lp_simplex_memcpy(objective_name, line + 4, 8);
@@ -763,55 +829,31 @@ static int fill_sparse_model(const char *file, struct lp_Model *model,
 			value = get_filed_1_value(line);
 			if (mps_sparse_add_field(model, &rows, objective_name,
 				    line + 14, value, column, range_pair,
-				    &nonzeros,
-				    entry_capacity) == lp_simplex_EXIT_FAILURE)
+				    &nonzeros, entry_capacity, free_names,
+				    free_count) == lp_simplex_EXIT_FAILURE)
 				goto close;
 			if (mps_has_second_field(line)) {
 				value = get_field_2_value(line);
 				if (mps_sparse_add_field(model, &rows,
 					    objective_name, line + 39, value,
 					    column, range_pair, &nonzeros,
-					    entry_capacity) ==
+					    entry_capacity, free_names,
+					    free_count) ==
 					lp_simplex_EXIT_FAILURE)
 					goto close;
 			}
 		} else if (section == 3) {
-			int row;
-
-			if (mps_name_equal(line + 14, objective_name)) {
-				model->objective_offset =
-					-get_filed_1_value(line);
-			} else {
-				row = mps_name_table_find(
-					&rows, line + 14, model, 1);
-				if (row < 0)
-					goto close;
-				model->constraints[row].rhs =
-					get_filed_1_value(line);
-				if (range_pair[row] >= 0)
-					model->constraints[range_pair[row]]
-						.rhs =
-						model->constraints[row].rhs;
-			}
-			if (mps_has_second_field(line)) {
-				if (mps_name_equal(line + 39, objective_name)) {
-					model->objective_offset =
-						-get_field_2_value(line);
-				} else {
-					row = mps_name_table_find(
-						&rows, line + 39, model, 1);
-					if (row < 0)
-						goto close;
-					model->constraints[row].rhs =
-						get_field_2_value(line);
-					if (range_pair[row] >= 0)
-						model->constraints
-							[range_pair[row]]
-								.rhs =
-							model->constraints[row]
-								.rhs;
-				}
-			}
+			if (mps_set_rhs_field(model, &rows, objective_name,
+				    line + 14, get_filed_1_value(line),
+				    range_pair, free_names,
+				    free_count) == lp_simplex_EXIT_FAILURE)
+				goto close;
+			if (mps_has_second_field(line) &&
+				mps_set_rhs_field(model, &rows, objective_name,
+					line + 39, get_field_2_value(line),
+					range_pair, free_names,
+					free_count) == lp_simplex_EXIT_FAILURE)
+				goto close;
 		} else if (section == 4) {
 			int fields = mps_has_second_field(line) ? 2 : 1;
 			int field;
@@ -825,7 +867,8 @@ static int fill_sparse_model(const char *file, struct lp_Model *model,
 					field == 0 ? get_filed_1_value(line)
 						   : get_field_2_value(line);
 
-				if (row < 0 || range_pair[row] < 0)
+				if (!isfinite(range) || row < 0 ||
+					range_pair[row] < 0)
 					goto close;
 				mps_apply_range(model, row, range_pair[row],
 					range_scan->row_type[row], range);
@@ -842,13 +885,16 @@ static int fill_sparse_model(const char *file, struct lp_Model *model,
 	}
 	if (column + 1 != model->n || row_count != range_scan->original_rows)
 		goto close;
+	for (i = 0; i < model->m; i++)
+		if (!isfinite(model->constraints[i].rhs))
+			goto close;
 	model->column_start[model->n] = nonzeros;
 	if (mps_sort_csc_columns(model) == lp_simplex_EXIT_FAILURE)
 		goto close;
 	state = mps_build_csr(model, nonzeros);
 close:
 	if (state == lp_simplex_EXIT_FAILURE &&
-		getenv("LP_SIMPLEX_PROFILE") != NULL)
+		getenv(SIMPLEX_ENV_PROFILE) != NULL)
 		fprintf(stderr,
 			"mps sparse parse failure: section=%d rows=%d/%d "
 			"columns=%d/%d nonzeros=%d/%d line=%.80s\n",
@@ -856,12 +902,12 @@ close:
 			nonzeros, entry_capacity, line);
 	fclose(stream);
 finish:
+	lp_simplex_free(free_names);
 	lp_simplex_free(range_pair);
 	lp_simplex_free(rows.slot);
 	lp_simplex_free(columns.slot);
 	return state;
 }
-
 
 struct lp_Model *lp_read_mps(const char *file)
 {
@@ -869,10 +915,11 @@ struct lp_Model *lp_read_mps(const char *file)
 	struct mps_RangeScan range_scan;
 	int m, n; /* number of constraints and variables */
 	int n_sect_row = 0, n_sect_columns = 0;
-	int entry_capacity = 0, range_fields = 0, maximize = 0;
+	int entry_capacity = 0, range_fields = 0, maximize = 0, free_rows = 0;
 
 	if (get_mps_info(file, &n_sect_row, &n_sect_columns, &entry_capacity,
-		    &range_fields, &maximize) == lp_simplex_EXIT_FAILURE)
+		    &range_fields, &maximize,
+		    &free_rows) == lp_simplex_EXIT_FAILURE)
 		return NULL;
 	/*
 	 * A malformed or truncated file must not reach the allocations below:
@@ -912,8 +959,8 @@ struct lp_Model *lp_read_mps(const char *file)
 		lp_simplex_free(range_scan.row_type);
 		return NULL;
 	}
-	if (fill_sparse_model(file, model, entry_capacity, &range_scan) ==
-		lp_simplex_EXIT_FAILURE) {
+	if (fill_sparse_model(file, model, entry_capacity, &range_scan,
+		    free_rows) == lp_simplex_EXIT_FAILURE) {
 		lp_model_free(model);
 		lp_simplex_free(range_scan.ranged);
 		lp_simplex_free(range_scan.row_type);

@@ -11,6 +11,7 @@
  * No presolve, reference objective or external solver is used.
  */
 
+#include "simplex_pan_config.h"
 #include <lp_simplex/lp_simplex.h>
 
 #include "simplex_pan_bounded.h"
@@ -21,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 
 static int write_vector(
 	const char *prefix, const char *suffix, const double *x, int count)
@@ -46,9 +46,9 @@ static int write_vector(
 	return good;
 }
 
-
 int main(int argc, char **argv)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *model;
 	struct simplex_Problem p;
 	struct lp_simplex_Options o;
@@ -99,8 +99,13 @@ int main(int argc, char **argv)
 	if (o.iteration_limit < 0)
 		goto done;
 	begun = clock();
-	state = simplex_pan_bounded_solve_certified(
-		&p, &o, argc == 5 ? start : NULL, x, y, &result);
+	simplex_pan_config_resolve(&controls, &p, &o);
+	controls.model_form = SIMPLEX_PAN_NATIVE_BOUNDS;
+	controls.direction_method = SIMPLEX_PAN_CONE_DIRECTION;
+	if (controls.oracle == SIMPLEX_PAN_NO_ORACLE)
+		controls.oracle = SIMPLEX_PAN_EXPLICIT_ORACLE;
+	state = simplex_pan_bounded_solve_certified_configured(
+		&p, &o, argc == 5 ? start : NULL, x, y, &result, &controls);
 	good = state == 0 && result.status == lp_simplex_Success;
 	if (good)
 		good = write_vector(argv[3], "-primal.txt", x, p.columns) &&

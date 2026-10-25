@@ -30,7 +30,6 @@
 #ifndef LP_SIMPLEX_H
 #define LP_SIMPLEX_H
 
-
 #include "model.h"
 #include "mps.h"
 #include "solve.h"

@@ -8,17 +8,18 @@
  * @brief Sparse substitution and dependent-row presolve reductions.
  */
 
+#include "policy/factorization.h"
 #include "simplex_presolve_substitution.h"
 #include "simplex_presolve.h"
 #include "simplex_presolve_queue.h"
 #include "simplex_presolve_record.h"
+#include "simplex_presolve_growth.h"
 #include "simplex_presolve_rules.h"
 #include "utils.h"
 
 #include <lp_simplex/status.h>
 
 #include <math.h>
-
 
 struct presolve_MutableRow {
 	int *column;
@@ -28,19 +29,21 @@ struct presolve_MutableRow {
 	unsigned char active;
 };
 
-
 struct presolve_Incidence {
 	int *row;
 	int count;
 	int capacity;
 };
 
-
 static int substitution_append_incidence(
 	struct presolve_Incidence *incidence, const int row)
 {
 	int capacity, k;
+	size_t bytes;
 	int *grown;
+	if (incidence->count < 0 || incidence->capacity < 0 ||
+		incidence->count > incidence->capacity)
+		return lp_simplex_EXIT_FAILURE;
 	/* Removed coefficients leave a harmless tombstone in the incidence list.
 	 * Reusing that row/column pair must not append another copy: duplicates
 	 * inflate scans and can repeatedly schedule the same structural rule. */
@@ -51,9 +54,10 @@ static int substitution_append_incidence(
 		incidence->row[incidence->count++] = row;
 		return lp_simplex_EXIT_SUCCESS;
 	}
-	capacity = incidence->capacity == 0 ? 4 : incidence->capacity * 2;
-	grown = (int *)lp_simplex_realloc(
-		incidence->row, (size_t)capacity * sizeof(int));
+	if (!simplex_presolve_growth(incidence->capacity, incidence->count, 1,
+		    4, sizeof(int), (size_t)-1, &capacity, &bytes))
+		return lp_simplex_EXIT_FAILURE;
+	grown = (int *)lp_simplex_realloc(incidence->row, bytes);
 	if (grown == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	incidence->row = grown;
@@ -61,7 +65,6 @@ static int substitution_append_incidence(
 	incidence->row[incidence->count++] = row;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int substitution_find_column(
 	const struct presolve_MutableRow *row, const int column)
@@ -74,13 +77,15 @@ static int substitution_find_column(
 	return -1;
 }
 
-
 static int substitution_add_to_row(struct presolve_MutableRow *row,
 	const int column, const double delta, int *inserted, int *removed)
 {
-	int position = substitution_find_column(row, column);
+	int position;
 	*inserted = 0;
 	*removed = 0;
+	if (row->count < 0 || row->capacity < 0 || row->count > row->capacity)
+		return lp_simplex_EXIT_FAILURE;
+	position = substitution_find_column(row, column);
 	if (position >= 0) {
 		row->value[position] += delta;
 		if (row->value[position] == 0.) {
@@ -94,11 +99,18 @@ static int substitution_add_to_row(struct presolve_MutableRow *row,
 	if (delta == 0.)
 		return lp_simplex_EXIT_SUCCESS;
 	if (row->count == row->capacity) {
-		int capacity = row->capacity == 0 ? 4 : row->capacity * 2;
-		int *columns = (int *)lp_simplex_realloc(
-			row->column, (size_t)capacity * sizeof(int));
+		int capacity;
+		size_t bytes;
+		size_t width = sizeof(int) > sizeof(double) ? sizeof(int)
+							    : sizeof(double);
+		int *columns;
 		double *values;
 
+		if (!simplex_presolve_growth(row->capacity, row->count, 1, 4,
+			    width, (size_t)-1, &capacity, &bytes))
+			return lp_simplex_EXIT_FAILURE;
+		columns = (int *)lp_simplex_realloc(
+			row->column, (size_t)capacity * sizeof(int));
 		if (columns == NULL)
 			return lp_simplex_EXIT_FAILURE;
 		row->column = columns;
@@ -115,7 +127,6 @@ static int substitution_add_to_row(struct presolve_MutableRow *row,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void substitution_remove_from_row(
 	struct presolve_MutableRow *row, const int position)
 {
@@ -124,7 +135,6 @@ static void substitution_remove_from_row(
 	row->column[position] = row->column[row->count];
 	row->value[position] = row->value[row->count];
 }
-
 
 static int substitution_transfer_bounds(
 	const struct optm_VariableBound *eliminated,
@@ -171,7 +181,6 @@ static int substitution_transfer_bounds(
 		       : lp_simplex_Success;
 }
 
-
 static void substitution_destroy_rows(struct presolve_MutableRow *rows,
 	const int count, struct presolve_Incidence *incidence,
 	const int columns)
@@ -189,7 +198,6 @@ static void substitution_destroy_rows(struct presolve_MutableRow *rows,
 	lp_simplex_free(rows);
 	lp_simplex_free(incidence);
 }
-
 
 static void substitution_expression_bound_flags(
 	const struct simplex_Problem *problem,
@@ -257,7 +265,6 @@ static void substitution_expression_bound_flags(
 		*upper_implied = 1;
 }
 
-
 static int substitution_remove_singleton_columns(
 	struct simplex_Presolve *presolve, struct simplex_Problem *problem,
 	struct presolve_MutableRow *rows, struct presolve_Incidence *incidence,
@@ -306,7 +313,8 @@ static int substitution_remove_singleton_columns(
 					__lp_simplex_ABS__(
 						candidate_row->value[u]));
 			if (__lp_simplex_ABS__(candidate_coefficient) <
-				1e-10 * __lp_simplex_MAX__(
+				SIMPLEX_PRESOLVE_SUBSTITUTION_RELATIVE *
+					__lp_simplex_MAX__(
 						1., candidate_maximum))
 				continue;
 			candidate_constant =
@@ -335,7 +343,8 @@ static int substitution_remove_singleton_columns(
 			maximum = __lp_simplex_MAX__(
 				maximum, __lp_simplex_ABS__(row->value[t]));
 		if (__lp_simplex_ABS__(coefficient) <
-			1e-10 * __lp_simplex_MAX__(1., maximum))
+			SIMPLEX_PRESOLVE_SUBSTITUTION_RELATIVE *
+				__lp_simplex_MAX__(1., maximum))
 			continue;
 		constant = problem->rhs[row_index] / coefficient;
 		if (!isfinite(constant))
@@ -455,7 +464,6 @@ static int substitution_remove_singleton_columns(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void substitution_eliminate_fixed_column(
 	struct simplex_Presolve *presolve, struct simplex_Problem *problem,
 	struct presolve_MutableRow *rows, struct presolve_Incidence *incidence,
@@ -489,7 +497,6 @@ static void substitution_eliminate_fixed_column(
 	(*active_columns)--;
 	(*removed_columns)++;
 }
-
 
 /* Close the cheap presolve rules exposed by substitution without rebuilding
  * an intermediate model.  Row/column degrees are updated in place and every
@@ -737,7 +744,6 @@ finish:
 	return result;
 }
 
-
 struct substitution_Workspace {
 	struct simplex_Problem *problem;
 	struct presolve_MutableRow *rows;
@@ -754,7 +760,6 @@ struct substitution_Workspace {
 	int closed_rows;
 	int closed_columns;
 };
-
 
 static void substitution_workspace_destroy(
 	struct substitution_Workspace *workspace)
@@ -776,29 +781,37 @@ static void substitution_workspace_destroy(
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
 }
 
-
 static int substitution_workspace_create(struct simplex_Problem *problem,
 	struct substitution_Workspace *workspace)
 {
 	int i, j, k;
+	size_t row_bytes, incidence_bytes, flag_bytes, degree_bytes,
+		index_bytes, value_bytes;
 
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
+	if (problem->rows < 0 || problem->columns < 0 ||
+		!simplex_storage_bytes((size_t)problem->rows,
+			sizeof(*workspace->rows), (size_t)-1, &row_bytes) ||
+		!simplex_storage_bytes((size_t)problem->columns,
+			sizeof(*workspace->incidence), (size_t)-1,
+			&incidence_bytes) ||
+		!simplex_storage_bytes((size_t)problem->columns,
+			sizeof(unsigned char), (size_t)-1, &flag_bytes) ||
+		!simplex_storage_bytes((size_t)problem->columns, sizeof(int),
+			(size_t)-1, &degree_bytes))
+		return lp_simplex_EXIT_FAILURE;
 	workspace->problem = problem;
-	workspace->rows = (struct presolve_MutableRow *)lp_simplex_malloc(
-		(size_t)problem->rows * sizeof(*workspace->rows));
-	workspace->incidence = (struct presolve_Incidence *)lp_simplex_malloc(
-		(size_t)problem->columns * sizeof(*workspace->incidence));
-	workspace->column_active = (unsigned char *)lp_simplex_malloc(
-		(size_t)problem->columns * sizeof(unsigned char));
-	workspace->column_degree = (int *)lp_simplex_malloc(
-		(size_t)problem->columns * sizeof(int));
+	workspace->rows =
+		(struct presolve_MutableRow *)lp_simplex_malloc(row_bytes);
+	workspace->incidence =
+		(struct presolve_Incidence *)lp_simplex_malloc(incidence_bytes);
+	workspace->column_active =
+		(unsigned char *)lp_simplex_malloc(flag_bytes);
+	workspace->column_degree = (int *)lp_simplex_malloc(degree_bytes);
 	if (workspace->rows != NULL)
-		lp_simplex_memset(workspace->rows, 0,
-			(size_t)problem->rows * sizeof(*workspace->rows));
+		lp_simplex_memset(workspace->rows, 0, row_bytes);
 	if (workspace->incidence != NULL)
-		lp_simplex_memset(workspace->incidence, 0,
-			(size_t)problem->columns *
-				sizeof(*workspace->incidence));
+		lp_simplex_memset(workspace->incidence, 0, incidence_bytes);
 	if (workspace->rows == NULL || workspace->incidence == NULL ||
 		workspace->column_active == NULL ||
 		workspace->column_degree == NULL)
@@ -808,10 +821,8 @@ static int substitution_workspace_create(struct simplex_Problem *problem,
 		simplex_presolve_queue_init(&workspace->singleton_queue,
 			problem->columns) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	lp_simplex_memset(workspace->column_active, 1,
-		(size_t)problem->columns * sizeof(unsigned char));
-	lp_simplex_memset(workspace->column_degree, 0,
-		(size_t)problem->columns * sizeof(int));
+	lp_simplex_memset(workspace->column_active, 1, flag_bytes);
+	lp_simplex_memset(workspace->column_degree, 0, degree_bytes);
 	/* The immutable input already provides exact column degrees.  Reserve the
 	 * initial incidence storage once instead of growing every column through
 	 * several reallocations while copying rows. */
@@ -819,9 +830,12 @@ static int substitution_workspace_create(struct simplex_Problem *problem,
 		int count = problem->matrix.column_start[j + 1] -
 			    problem->matrix.column_start[j];
 
+		if (count < 0 || !simplex_storage_bytes((size_t)count,
+					 sizeof(int), (size_t)-1, &index_bytes))
+			return lp_simplex_EXIT_FAILURE;
 		workspace->incidence[j].capacity = count;
 		workspace->incidence[j].row =
-			(int *)lp_simplex_malloc((size_t)count * sizeof(int));
+			(int *)lp_simplex_malloc(index_bytes);
 		if (count != 0 && workspace->incidence[j].row == NULL)
 			return lp_simplex_EXIT_FAILURE;
 	}
@@ -829,12 +843,18 @@ static int substitution_workspace_create(struct simplex_Problem *problem,
 		int count = problem->matrix.row_start[i + 1] -
 			    problem->matrix.row_start[i];
 
+		if (count < 0 ||
+			!simplex_storage_bytes((size_t)count, sizeof(int),
+				(size_t)-1, &index_bytes) ||
+			!simplex_storage_bytes((size_t)count, sizeof(double),
+				(size_t)-1, &value_bytes))
+			return lp_simplex_EXIT_FAILURE;
 		workspace->rows[i].active = 1;
 		workspace->rows[i].count = workspace->rows[i].capacity = count;
 		workspace->rows[i].column =
-			(int *)lp_simplex_malloc((size_t)count * sizeof(int));
-		workspace->rows[i].value = (double *)lp_simplex_malloc(
-			(size_t)count * sizeof(double));
+			(int *)lp_simplex_malloc(index_bytes);
+		workspace->rows[i].value =
+			(double *)lp_simplex_malloc(value_bytes);
 		if (count != 0 && (workspace->rows[i].column == NULL ||
 					  workspace->rows[i].value == NULL))
 			return lp_simplex_EXIT_FAILURE;
@@ -861,7 +881,6 @@ static int substitution_workspace_create(struct simplex_Problem *problem,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void substitution_rebuild_doubleton_queue(
 	struct substitution_Workspace *workspace)
 {
@@ -875,7 +894,6 @@ static void substitution_rebuild_doubleton_queue(
 			(void)simplex_presolve_queue_push(
 				&workspace->doubleton_queue, i);
 }
-
 
 static int substitution_eliminate_doubletons(struct simplex_Presolve *presolve,
 	struct substitution_Workspace *workspace, const double tolerance)
@@ -908,7 +926,8 @@ static int substitution_eliminate_doubletons(struct simplex_Presolve *presolve,
 		eliminate_coefficient = row->value[eliminate_position];
 		keep_coefficient = row->value[1 - eliminate_position];
 		if (__lp_simplex_ABS__(eliminate_coefficient) <
-			1e-10 * __lp_simplex_MAX__(1.,
+			SIMPLEX_PRESOLVE_SUBSTITUTION_RELATIVE *
+				__lp_simplex_MAX__(1.,
 					__lp_simplex_ABS__(keep_coefficient)))
 			continue;
 		constant = problem->rhs[row_index] / eliminate_coefficient;
@@ -983,7 +1002,6 @@ static int substitution_eliminate_doubletons(struct simplex_Presolve *presolve,
 	return lp_simplex_Success;
 }
 
-
 static struct simplex_Problem *substitution_compact_problem(
 	struct simplex_Presolve *presolve,
 	const struct substitution_Workspace *workspace)
@@ -992,22 +1010,30 @@ static struct simplex_Problem *substitution_compact_problem(
 	struct simplex_Problem *reduced = NULL;
 	int *column_position = NULL, *cursor = NULL;
 	int i, j, k, nonzeros = 0, next = 0, new_row = 0, new_column = 0;
+	size_t column_bytes, cursor_bytes, start_bytes;
 
-	column_position = (int *)lp_simplex_malloc(
-		(size_t)problem->columns * sizeof(int));
+	if (problem->columns < 0 || workspace->active_columns < 0 ||
+		!simplex_storage_bytes((size_t)problem->columns, sizeof(int),
+			(size_t)-1, &column_bytes) ||
+		!simplex_storage_bytes((size_t)workspace->active_columns,
+			sizeof(int), (size_t)-1, &cursor_bytes) ||
+		!simplex_storage_bytes((size_t)workspace->active_columns + 1,
+			sizeof(int), (size_t)-1, &start_bytes))
+		return NULL;
+	column_position = (int *)lp_simplex_malloc(column_bytes);
 	if (column_position == NULL)
 		return NULL;
 	for (j = 0; j < problem->columns; j++) {
 		column_position[j] = -1;
 		if (workspace->column_active[j]) {
 			column_position[j] = new_column++;
-			presolve->column_map[new_column - 1] =
-				presolve->column_map[j];
 		}
 	}
 	for (i = 0; i < problem->rows; i++)
 		if (workspace->rows[i].active) {
-			presolve->row_map[new_row++] = presolve->row_map[i];
+			if (workspace->rows[i].count < 0 ||
+				workspace->rows[i].count > INT_MAX - nonzeros)
+				goto failure;
 			nonzeros += workspace->rows[i].count;
 		}
 	reduced = simplex_problem_create_sparse(
@@ -1037,20 +1063,17 @@ static struct simplex_Problem *substitution_compact_problem(
 			new_row++;
 		}
 	reduced->matrix.row_start[workspace->active_rows] = next;
-	lp_simplex_memset(reduced->matrix.column_start, 0,
-		(size_t)(workspace->active_columns + 1) * sizeof(int));
+	lp_simplex_memset(reduced->matrix.column_start, 0, start_bytes);
 	for (k = 0; k < nonzeros; k++)
 		reduced->matrix
 			.column_start[reduced->matrix.column_index[k] + 1]++;
 	for (j = 0; j < workspace->active_columns; j++)
 		reduced->matrix.column_start[j + 1] +=
 			reduced->matrix.column_start[j];
-	cursor = (int *)lp_simplex_malloc(
-		(size_t)workspace->active_columns * sizeof(int));
+	cursor = (int *)lp_simplex_malloc(cursor_bytes);
 	if (cursor == NULL)
 		goto failure;
-	lp_simplex_memcpy(cursor, reduced->matrix.column_start,
-		(size_t)workspace->active_columns * sizeof(int));
+	lp_simplex_memcpy(cursor, reduced->matrix.column_start, cursor_bytes);
 	for (i = 0; i < workspace->active_rows; i++)
 		for (k = reduced->matrix.row_start[i];
 			k < reduced->matrix.row_start[i + 1]; k++) {
@@ -1061,6 +1084,15 @@ static struct simplex_Problem *substitution_compact_problem(
 			reduced->matrix.value[destination] =
 				reduced->matrix.row_value[k];
 		}
+	/* All fallible work is complete before publishing the new correspondence. */
+	new_row = 0;
+	for (j = 0; j < problem->columns; j++)
+		if (workspace->column_active[j])
+			presolve->column_map[column_position[j]] =
+				presolve->column_map[j];
+	for (i = 0; i < problem->rows; i++)
+		if (workspace->rows[i].active)
+			presolve->row_map[new_row++] = presolve->row_map[i];
 	lp_simplex_free(cursor);
 	lp_simplex_free(column_position);
 	return reduced;
@@ -1071,15 +1103,16 @@ failure:
 	return NULL;
 }
 
-
 static int substitution_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 	struct substitution_Workspace *workspace, const double tolerance)
 {
 	struct simplex_Problem *problem = workspace->problem;
 
 	for (;;) {
-		int before = workspace->substitutions + workspace->projections +
-			     workspace->closed_rows + workspace->closed_columns;
+		int before_substitutions = workspace->substitutions;
+		int before_projections = workspace->projections;
+		int before_rows = workspace->closed_rows;
+		int before_columns = workspace->closed_columns;
 		int j, status;
 
 		if (substitution_remove_singleton_columns(presolve, problem,
@@ -1111,10 +1144,10 @@ static int substitution_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 			&workspace->closed_columns);
 		if (status != lp_simplex_Success)
 			return status;
-		if (before == workspace->substitutions +
-					workspace->projections +
-					workspace->closed_rows +
-					workspace->closed_columns ||
+		if ((before_substitutions == workspace->substitutions &&
+			    before_projections == workspace->projections &&
+			    before_rows == workspace->closed_rows &&
+			    before_columns == workspace->closed_columns) ||
 			workspace->active_rows <= 1 ||
 			workspace->active_columns <= 1)
 			return lp_simplex_Success;
@@ -1127,7 +1160,6 @@ static int substitution_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 					&workspace->singleton_queue, j);
 	}
 }
-
 
 int simplex_presolve_substitute_doubletons(
 	struct simplex_Presolve *presolve, const double tolerance)
@@ -1180,5 +1212,6 @@ success:
 	return lp_simplex_EXIT_SUCCESS;
 failure:
 	substitution_workspace_destroy(&workspace);
+	presolve->status = lp_simplex_MemoryAllocError;
 	return lp_simplex_EXIT_FAILURE;
 }

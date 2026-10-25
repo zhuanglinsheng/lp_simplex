@@ -1,7 +1,10 @@
-/*
- * MPS input version of degenerate_pivot.mps.
+/**
+ * @file degenerate_pivot_2.c
+ * @brief MPS input version of degenerate_pivot.mps.
+ *
  * Read the paired model file and solve it through the public C API.
  */
+
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>

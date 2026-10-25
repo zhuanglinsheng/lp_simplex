@@ -8,6 +8,7 @@
  * @brief Regression tests for Pan degenerate-face control and transition rules.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_cone.h"
 #include "simplex_pan_basis.h"
 #include "simplex_pan.h"
@@ -20,9 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 
-
 static int compression(void)
 {
+	struct simplex_PanConfig controls;
 	struct simplex_PanStandard a;
 	struct lp_simplex_Options options;
 	int start[5] = {0, 1, 2, 4, 5}, row[5] = {0, 1, 0, 1, 2};
@@ -47,7 +48,9 @@ static int compression(void)
 	a.rhs = rhs;
 	a.objective = cost;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
-	state = simplex_pan_support_compress(&a, point, &options);
+	simplex_pan_config_init(&controls, &options);
+	state = simplex_pan_support_compress_configured(
+		&a, point, &options, &controls);
 	for (j = 0; j < 4; j++)
 		if (point[j] > 0.)
 			support++;
@@ -57,12 +60,13 @@ static int compression(void)
 	       simplex_pan_residual(&a, point, r, work) < 1e-12;
 }
 
-
 /* A weak positive coordinate must decrease to reach the optimum. Restricting
  * its direction initially is safe only if failed original complementarity
  * reopens it. Separate rows keep this positive support independent. */
 static int reopen(void)
 {
+	struct simplex_PanConfig basis_controls;
+	struct simplex_PanConfig controls;
 	struct simplex_PanStandard a;
 	struct simplex_PanBasis basis;
 	struct lp_simplex_Options options;
@@ -74,6 +78,7 @@ static int reopen(void)
 	       point[3] = {1e-9, 1., 0.}, pi[2], dual;
 	int iterations = 0, status = -1, state;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&a, 0, sizeof(a));
 	a.rows = 2;
 	a.columns = 3;
@@ -86,19 +91,20 @@ static int reopen(void)
 	a.rhs = rhs;
 	a.objective = cost;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
+	simplex_pan_config_init(&controls, &options);
 	options.primal_tolerance = 1e-12;
 	options.dual_tolerance = 1e-12;
 	options.iteration_limit = 1000;
-	if (simplex_pan_basis_create(&basis, &a, options.pivot_tolerance))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &a, options.pivot_tolerance, &basis_controls))
 		return 0;
-	state = simplex_pan_cone_phase2(
-		&a, &basis, point, pi, &options, &iterations, &status, &dual);
+	state = simplex_pan_cone_phase2_configured(&a, &basis, point, pi,
+		&options, &iterations, &status, &dual, &controls);
 	simplex_pan_basis_destroy(&basis);
 	return state == 0 && status == lp_simplex_Success &&
 	       fabs(point[0]) < 1e-12 && fabs(point[2] - 1e-9) < 1e-12 &&
 	       fabs(point[1] + point[2] - 1.) < 1e-12 && dual < 1e-12;
 }
-
 
 static int minimum_norm_newton(void)
 {
@@ -124,9 +130,9 @@ static int minimum_norm_newton(void)
 	       fabs(delta[0] + .5) < 1e-12 && fabs(delta[1] + .5) < 1e-12;
 }
 
-
 static int rollback(void)
 {
+	struct simplex_PanConfig controls;
 	struct simplex_PanStandard a;
 	struct lp_simplex_Options options;
 	int start[3] = {0, 1, 2}, row[2] = {0, 0};
@@ -145,12 +151,13 @@ static int rollback(void)
 	a.rhs = rhs;
 	a.objective = cost;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
+	simplex_pan_config_init(&controls, &options);
 	/* Both finite support-reducing endpoints increase cost. Compression must
 	 * restore the point and leave recession-ray handling to the LP solver. */
-	return simplex_pan_support_compress(&a, point, &options) == -1 &&
+	return simplex_pan_support_compress_configured(
+		       &a, point, &options, &controls) == -1 &&
 	       point[0] == 1. && point[1] == 1.;
 }
-
 
 static int dependent_warm_point(void)
 {
@@ -185,11 +192,11 @@ static int dependent_warm_point(void)
 	return good;
 }
 
-
 /* An equivalent large dual shift can round away the original cost difference.
  * Both orientations must still compress toward the true lower-cost endpoint. */
 static int original_objective_audit(void)
 {
+	struct simplex_PanConfig controls;
 	struct simplex_PanStandard a;
 	struct lp_simplex_Options options;
 	int start[3] = {0, 1, 2}, row[2] = {0, 0}, orientation;
@@ -210,11 +217,13 @@ static int original_objective_audit(void)
 	a.objective_offset = -1e18;
 	a.audit_objective = original;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
+	simplex_pan_config_init(&controls, &options);
 	for (orientation = 0; orientation < 2; orientation++) {
 		original[0] = orientation ? 0. : 1.;
 		original[1] = orientation ? 1. : 0.;
 		point[0] = point[1] = .5;
-		if (simplex_pan_support_compress(&a, point, &options) != 1 ||
+		if (simplex_pan_support_compress_configured(
+			    &a, point, &options, &controls) != 1 ||
 			fabs(point[0] + point[1] - 1.) > 1e-12 ||
 			point[0] < 0. || point[1] < 0. ||
 			original[0] * point[0] + original[1] * point[1] > 1e-12)
@@ -223,9 +232,9 @@ static int original_objective_audit(void)
 	return 1;
 }
 
-
 static int select_required(void)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard a;
 	struct simplex_PanBasis b;
 	int starts[5] = {0, 1, 2, 4, 5}, rows[5] = {0, 1, 0, 1, 0},
@@ -237,6 +246,7 @@ static int select_required(void)
 	double required[4] = {0., 0., 0., 1.};
 	int good;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&a, 0, sizeof(a));
 	a.rows = 2;
 	a.columns = 4;
@@ -246,7 +256,7 @@ static int select_required(void)
 	a.value = values;
 	a.column_norm = norm;
 	a.normalized_value = normalized;
-	if (simplex_pan_basis_create(&b, &a, 1e-10))
+	if (simplex_pan_basis_create_configured(&b, &a, 1e-10, &basis_controls))
 		return 0;
 	good = simplex_pan_basis_select_columns(&b, columns, 4, required) ==
 		       0 &&
@@ -254,7 +264,6 @@ static int select_required(void)
 	simplex_pan_basis_destroy(&b);
 	return good;
 }
-
 
 int main(void)
 {

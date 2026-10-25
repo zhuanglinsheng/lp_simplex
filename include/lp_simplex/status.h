@@ -11,7 +11,6 @@
 #ifndef LP_SIMPLEX_STATUS_H
 #define LP_SIMPLEX_STATUS_H
 
-
 /**
  * Detailed termination reason, reported in lp_simplex_Result.status.
  * These values are distinct from the function return codes below. Only

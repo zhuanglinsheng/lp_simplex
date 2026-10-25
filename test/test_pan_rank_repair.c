@@ -8,6 +8,7 @@
  * @brief Regression tests for dependent support and Pan basis rank repair.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_basis.h"
 
 #include <lp_simplex/status.h>
@@ -16,9 +17,9 @@
 #include <stdio.h>
 #include <string.h>
 
-
 static int check_repair(const int required_dependent)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[4] = {0, 1, 2, 4}, row[4] = {0, 1, 0, 1};
@@ -30,6 +31,7 @@ static int check_repair(const int required_dependent)
 	       residual;
 	int i, result, valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	standard.rows = 3;
 	standard.columns = 3;
@@ -39,7 +41,8 @@ static int check_repair(const int required_dependent)
 	standard.value = entry;
 	standard.normalized_value = normalized;
 	standard.column_norm = norm;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-10))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-10, &basis_controls))
 		return 0;
 	for (i = 0; i < 3; i++)
 		if (simplex_pan_basis_add(&basis, i))
@@ -62,9 +65,9 @@ static int check_repair(const int required_dependent)
 	return valid;
 }
 
-
 static int check_completion(int scaled)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[6] = {0, 1, 2, 3, 5, 7}, row[7] = {0, 1, 2, 0, 1, 1, 2};
@@ -76,6 +79,7 @@ static int check_completion(int scaled)
 	       solution[3], residual;
 	int i, valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	if (scaled) {
 		a[3] *= 1e-12;
@@ -91,7 +95,8 @@ static int check_completion(int scaled)
 	standard.value = a;
 	standard.normalized_value = normalized;
 	standard.column_norm = norm;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-10))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-10, &basis_controls))
 		return 0;
 	if (simplex_pan_basis_add(&basis, 3) ||
 		simplex_pan_basis_add(&basis, 4) ||
@@ -113,15 +118,16 @@ static int check_completion(int scaled)
 	return valid;
 }
 
-
 static int check_stability(void)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[3] = {0, 1, 3}, row[3] = {0, 0, 1};
 	double a[3] = {1., 1., 1e-10}, norm[2] = {1., 1.}, value[2] = {1., 0.};
 	int valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	standard.rows = 2;
 	standard.columns = 2;
@@ -131,7 +137,8 @@ static int check_stability(void)
 	standard.value = a;
 	standard.normalized_value = a;
 	standard.column_norm = norm;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-14))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-14, &basis_controls))
 		return 0;
 	if (simplex_pan_basis_add(&basis, 0) ||
 		simplex_pan_basis_add(&basis, 1) ||
@@ -146,7 +153,6 @@ static int check_stability(void)
 	simplex_pan_basis_destroy(&basis);
 	return valid;
 }
-
 
 int main(void)
 {

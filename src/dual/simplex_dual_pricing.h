@@ -14,9 +14,7 @@
 /* Distinguish numerical/allocation failure from an empty admissible set. */
 #define SIMPLEX_DUAL_RATIO_ERROR (-2)
 
-
 #include "simplex_dual_internal.h"
-
 
 int simplex_dual_pricing_create(struct simplex_DualState *state);
 

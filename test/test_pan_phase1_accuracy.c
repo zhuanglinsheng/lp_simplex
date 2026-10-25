@@ -8,6 +8,7 @@
  * @brief Regression tests for Pan Phase I feasibility accuracy.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_phase1.h"
 
 #include <lp_simplex/status.h>
@@ -16,9 +17,9 @@
 #include <stdio.h>
 #include <string.h>
 
-
 static int small_positive(void)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[2] = {0, 2}, row[2] = {0, 1};
@@ -27,6 +28,7 @@ static int small_positive(void)
 	double norm[1] = {1.4142135623730950488e8}, rhs[2] = {1., 1.}, x[1];
 	int steps = 0, status = -1, state, valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	standard.rows = 2;
 	standard.columns = 1;
@@ -37,7 +39,8 @@ static int small_positive(void)
 	standard.normalized_value = normalized;
 	standard.column_norm = norm;
 	standard.rhs = rhs;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-10))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-10, &basis_controls))
 		return 0;
 	state = simplex_pan_phase1_run(
 		&basis, x, 1e-7, 1e-7, 10, &steps, &status);
@@ -50,14 +53,15 @@ static int small_positive(void)
 	return valid;
 }
 
-
 static int infeasible_witness(void)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[2] = {0, 1}, row[1] = {0}, steps = 0, status = -1, state;
 	double a[1] = {-1.}, norm[1] = {1.}, rhs[1] = {1e-4}, x[1];
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	standard.rows = 1;
 	standard.columns = 1;
@@ -68,7 +72,8 @@ static int infeasible_witness(void)
 	standard.normalized_value = a;
 	standard.column_norm = norm;
 	standard.rhs = rhs;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-10))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-10, &basis_controls))
 		return 0;
 	state = simplex_pan_phase1_run(
 		&basis, x, 1e-7, 1e-7, 10, &steps, &status);
@@ -76,7 +81,6 @@ static int infeasible_witness(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       status == lp_simplex_Infeasibility;
 }
-
 
 int main(void)
 {

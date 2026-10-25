@@ -13,7 +13,6 @@
 
 #include <lp_simplex/solve.h>
 
-
 void simplex_apply_pivot(double *table, int ld, int m, int n, int leaving_row,
 	int entering_column, int normalize, int eliminate_rows,
 	int eliminate_objective);

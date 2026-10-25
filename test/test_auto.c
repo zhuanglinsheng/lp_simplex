@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 static int solve_status(int kind, int presolve, int budget)
 {
 	struct lp_Model *m = lp_model_create(2, 2);
@@ -71,12 +70,12 @@ static int solve_status(int kind, int presolve, int budget)
 	return ok;
 }
 
-
 static int mixed_hybrid(void)
 {
 	struct lp_Model *m = lp_model_create(2, 3);
 	struct simplex_Problem p;
-	struct lp_simplex_Options o;
+	struct lp_simplex_Options o, stage;
+	struct simplex_PanConfig controls;
 	struct lp_simplex_Result r;
 	double x[3], start[3] = {2., -1., 1.};
 	int state;
@@ -105,13 +104,17 @@ static int mixed_hybrid(void)
 		lp_model_free(m);
 		return 0;
 	}
-	state = simplex_pan_bounded_solve(&p, &o, start, x, &r);
+	/* AUTO's production BDA defaults, with an explicit kernel algorithm. */
+	simplex_pan_config_resolve(&controls, &p, &o);
+	stage = o;
+	stage.algorithm = lp_simplex_ALGORITHM_PAN_BDA;
+	state = simplex_pan_bounded_solve_certified_configured(
+		&p, &stage, start, x, NULL, &r, &controls);
 	simplex_problem_destroy(&p);
 	lp_model_free(m);
 	return state == 0 && r.status == lp_simplex_Success &&
 	       fabs(r.objective) < 1e-7 && r.iterations <= o.iteration_limit;
 }
-
 
 static int primal_check(void)
 {
@@ -142,7 +145,6 @@ static int primal_check(void)
 	return ok;
 }
 
-
 int main(void)
 {
 	int kind, pre;
@@ -153,8 +155,9 @@ int main(void)
 	if (o.pricing != lp_simplex_PRICING_DUAL_STEEPEST_EDGE || !o.presolve)
 		return 1;
 	simplex_pan_config_init(&config, &o);
-	if (!config.implicit_cone || !config.implicit_updates ||
-		!config.restore || config.dual_polish_iterations != 8192 ||
+	if (config.oracle != SIMPLEX_PAN_IMPLICIT_ORACLE ||
+		!config.implicit_updates || !config.restore ||
+		config.dual_polish_iterations != 8192 ||
 		config.pdhg_iterations != 500000 || config.predict ||
 		config.implicit_bulk || config.full_refinement ||
 		config.dual_center || config.newton_qr ||

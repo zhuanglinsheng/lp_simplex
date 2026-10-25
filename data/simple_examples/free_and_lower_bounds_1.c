@@ -1,12 +1,17 @@
-/*
- * free_and_lower_bounds.mps: A free X1 combined with the lower bound X2 >= -3.
+/**
+ * @file free_and_lower_bounds_1.c
+ * @brief free_and_lower_bounds.mps: A free X1 combined with the lower bound X2
+ * >= -3.
+ *
  * Manual modeling version: construct and solve the LP through the C API.
  * This standalone example needs only the public lp_simplex API.
  */
+
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static struct lp_Model *create_model(void)
 {
@@ -20,8 +25,8 @@ static struct lp_Model *create_model(void)
 	if (model == NULL)
 		return NULL;
 	/* Column j represents the same variable in C and in the MPS file. */
-	sprintf(model->bounds[0].name, "%s", "X1");
-	sprintf(model->bounds[1].name, "%s", "X2");
+	memcpy(model->bounds[0].name, "X1", sizeof("X1"));
+	memcpy(model->bounds[1].name, "X2", sizeof("X2"));
 	for (j = 0; j < 2; j++)
 		model->objective[j] = c[j];
 	for (i = 0; i < 2; i++) {

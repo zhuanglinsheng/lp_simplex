@@ -10,40 +10,43 @@
 
 #include "simplex_sparse_vector.h"
 #include "utils.h"
+#include "simplex_storage.h"
 
 #include <lp_simplex/status.h>
-
+#include <math.h>
 
 int simplex_sparse_vector_create(
 	struct simplex_SparseVector *vector, const int dimension)
 {
-	if (vector == NULL || dimension < 0)
+	size_t indices, values, marks;
+	if (vector == NULL)
 		return lp_simplex_EXIT_FAILURE;
-
+	lp_simplex_memset(vector, 0, sizeof(*vector));
+	if (dimension < 0 ||
+		!simplex_storage_bytes((size_t)dimension, 2 * sizeof(int),
+			(size_t)-1, &indices) ||
+		!simplex_storage_bytes((size_t)dimension, 2 * sizeof(double),
+			(size_t)-1, &values) ||
+		!simplex_storage_bytes((size_t)dimension, sizeof(unsigned int),
+			(size_t)-1, &marks))
+		return lp_simplex_EXIT_FAILURE;
 	vector->dimension = dimension;
 	vector->count = 0;
 	vector->capacity = dimension;
 	/* Index/slot and value/dense have identical lifetimes.  Store each pair in
 	 * one allocation so a packed workspace has one clear owner per type. */
-	vector->index = dimension > 0
-				? (int *)lp_simplex_malloc(
-					  (size_t)2 * dimension * sizeof(int))
-				: NULL;
+	vector->index =
+		dimension > 0 ? (int *)lp_simplex_malloc(indices) : NULL;
 	vector->slot = dimension > 0 && vector->index != NULL
 			       ? vector->index + dimension
 			       : NULL;
 	vector->value =
-		dimension > 0 ? (double *)lp_simplex_malloc(
-					(size_t)2 * dimension * sizeof(double))
-			      : NULL;
+		dimension > 0 ? (double *)lp_simplex_malloc(values) : NULL;
 	vector->dense = dimension > 0 && vector->value != NULL
 				? vector->value + dimension
 				: NULL;
 	vector->mark =
-		dimension > 0
-			? (unsigned int *)lp_simplex_malloc(
-				  (size_t)dimension * sizeof(unsigned int))
-			: NULL;
+		dimension > 0 ? (unsigned int *)lp_simplex_malloc(marks) : NULL;
 	vector->generation = 1;
 	if (dimension > 0 &&
 		(vector->index == NULL || vector->value == NULL ||
@@ -60,7 +63,6 @@ int simplex_sparse_vector_create(
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector)
 {
@@ -80,7 +82,6 @@ void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector)
 	vector->generation = 0;
 }
 
-
 void simplex_sparse_vector_clear(struct simplex_SparseVector *vector)
 {
 	int k;
@@ -97,7 +98,6 @@ void simplex_sparse_vector_clear(struct simplex_SparseVector *vector)
 		vector->generation = 1;
 	}
 }
-
 
 int simplex_sparse_vector_set(struct simplex_SparseVector *vector,
 	const int index, const double value)
@@ -125,7 +125,6 @@ int simplex_sparse_vector_set(struct simplex_SparseVector *vector,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 int simplex_sparse_vector_add(struct simplex_SparseVector *vector,
 	const int index, const double value)
 {
@@ -138,14 +137,15 @@ int simplex_sparse_vector_add(struct simplex_SparseVector *vector,
 		vector, index, vector->dense[index] + value);
 }
 
-
-int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
-	const double *dense, const double tolerance)
+static int sparse_vector_pack(struct simplex_SparseVector *vector,
+	const double *dense, const double tolerance, double *maximum)
 {
 	int i;
 
 	if (vector == NULL || dense == NULL || tolerance < 0.)
 		return lp_simplex_EXIT_FAILURE;
+	if (maximum != NULL)
+		*maximum = 0.;
 	simplex_sparse_vector_clear(vector);
 	for (i = 0; i < vector->dimension; i++) {
 		double value = dense[i];
@@ -158,10 +158,26 @@ int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
 		vector->value[vector->count] = value;
 		vector->dense[i] = value;
 		vector->count++;
+		if (maximum != NULL)
+			*maximum = isfinite(value)
+					   ? __lp_simplex_MAX__(*maximum,
+						     __lp_simplex_ABS__(value))
+					   : HUGE_VAL;
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
 
+int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
+	const double *dense, const double tolerance)
+{
+	return sparse_vector_pack(vector, dense, tolerance, NULL);
+}
+
+int simplex_sparse_vector_pack_maximum(struct simplex_SparseVector *vector,
+	const double *dense, const double tolerance, double *maximum)
+{
+	return sparse_vector_pack(vector, dense, tolerance, maximum);
+}
 
 double simplex_sparse_vector_get(
 	const struct simplex_SparseVector *vector, const int index)

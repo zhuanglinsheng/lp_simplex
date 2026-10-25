@@ -14,7 +14,6 @@
 #include "model.h"
 #include "status.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -208,7 +207,9 @@ void lp_simplex_default_options(
  * Initialise options with lp_simplex_default_options(), then apply overrides.
  * Input dimensions must be positive; row types, bounds and sparse storage must
  * be valid. Integer/binary variables are rejected rather than relaxed.
- * Use finite matrix entries, costs, objective offset and RHS values. When both
+ * Use finite matrix entries, costs, objective offset, RHS and active bound
+ * endpoints; encode absent bounds with FR/LO/UP types. Inactive endpoints are
+ * ignored. objective_sense must be +1 or -1. When both
  * dense and sparse storage exist, keep all representations consistent.
  *
  * x is output only, not a warm start. After input validation it is initialised
@@ -221,6 +222,9 @@ void lp_simplex_default_options(
  * finite, but its space may differ from the original model. On any failure,
  * inspect result.status; never treat a finite x or objective alone as success.
  * No primal ray, row multipliers or infeasibility certificate is exported.
+ * Numerical LP_SIMPLEX_* environment controls are ignored. Use the explicit
+ * experimental entry below when reproducing legacy environment experiments;
+ * LP_SIMPLEX_PROFILE remains diagnostic in either entry.
  *
  * @param model Non-NULL input model; retained by the caller and not modified.
  * @param options Non-NULL valid solver configuration; not modified.
@@ -232,6 +236,17 @@ void lp_simplex_default_options(
  * lp_simplex_Success; otherwise lp_simplex_EXIT_FAILURE (-1).
  */
 int lp_simplex_solve(const struct lp_Model *model,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result);
+
+/** Experimental compatibility entry. Explicitly opt into LP_SIMPLEX_*
+ * numerical environment controls, captured at the start of this call.
+ * The normal lp_simplex_solve entry ignores those controls; PROFILE remains
+ * diagnostic in both entries. Algorithm/options/result contracts are identical.
+ * Experimental switches are not a stable capability/configuration API.
+ * AUTO retains its deterministic BDA route configurations in this entry too.
+ * No environment variables are modified. */
+int lp_simplex_solve_experimental(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,
 	struct lp_simplex_Result *result);
 

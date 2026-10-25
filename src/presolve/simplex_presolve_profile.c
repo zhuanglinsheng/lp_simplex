@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 
-
 void simplex_presolve_print_profile(
 	const struct simplex_Presolve *presolve, const double seconds)
 {

@@ -32,6 +32,7 @@ struct Options {
 	int algorithm;
 	int iteration_limit;
 	int presolve;
+	int experimental_environment;
 	double tolerance;
 	int print_solution;
 	int progress;
@@ -50,6 +51,7 @@ static void print_usage(const char *program)
 	printf("  --criteria RULE       manual tableau/Pan pricing: dantzig, normalized, bland\n");
 	printf("  --iterations N        total work limit (default: %d)\n",
 		DEFAULT_ITERATION_LIMIT);
+	printf("  --experimental-environment  opt into legacy numerical LP_SIMPLEX_* controls\n");
 	printf("  --no-presolve         bypass presolve for differential diagnostics\n");
 	printf("  --tolerance VALUE     objective relative tolerance (default: %.0e)\n",
 		DEFAULT_TOLERANCE);
@@ -62,7 +64,6 @@ static void print_usage(const char *program)
 	printf("  --help                show this help text\n");
 }
 
-
 /** Parse a complete decimal floating-point argument. */
 static int parse_double(const char *text, double *value)
 {
@@ -72,7 +73,6 @@ static int parse_double(const char *text, double *value)
 	*value = strtod(text, &end);
 	return errno == 0 && end != text && *end == '\0';
 }
-
 
 /** Parse a positive decimal integer argument. */
 static int parse_positive_int(const char *text, int *value)
@@ -89,7 +89,6 @@ static int parse_positive_int(const char *text, int *value)
 	return 1;
 }
 
-
 /** Consume the argument following an option, or report a missing value. */
 static const char *option_value(int argc, char **argv, int *index)
 {
@@ -98,7 +97,6 @@ static const char *option_value(int argc, char **argv, int *index)
 	(*index)++;
 	return argv[*index];
 }
-
 
 /** Parse command-line arguments; return 1 on success, 0 on a usage error. */
 static int parse_options(int argc, char **argv, struct Options *options)
@@ -110,6 +108,7 @@ static int parse_options(int argc, char **argv, struct Options *options)
 	options->algorithm = lp_simplex_ALGORITHM_AUTO;
 	options->iteration_limit = DEFAULT_ITERATION_LIMIT;
 	options->presolve = 1;
+	options->experimental_environment = 0;
 	options->tolerance = DEFAULT_TOLERANCE;
 	options->print_solution = 0;
 	options->progress = 0;
@@ -144,6 +143,9 @@ static int parse_options(int argc, char **argv, struct Options *options)
 				return 0;
 		} else if (strcmp(argument, "--infeasible") == 0) {
 			options->expected_kind = 2;
+		} else if (strcmp(argument, "--experimental-environment") ==
+			   0) {
+			options->experimental_environment = 1;
 		} else if (strcmp(argument, "--no-presolve") == 0) {
 			options->presolve = 0;
 		} else if (strcmp(argument, "--algorithm") == 0) {
@@ -200,7 +202,6 @@ static int parse_options(int argc, char **argv, struct Options *options)
 	return options->mps_path != NULL;
 }
 
-
 /** Return the filename component of a POSIX or Windows path. */
 static const char *path_basename(const char *path)
 {
@@ -213,7 +214,6 @@ static const char *path_basename(const char *path)
 	}
 	return name;
 }
-
 
 /** Copy the MPS basename without its extension into fixed storage. */
 static int model_name_from_path(const char *path, char *name, size_t capacity)
@@ -229,7 +229,6 @@ static int model_name_from_path(const char *path, char *name, size_t capacity)
 	name[length] = '\0';
 	return 1;
 }
-
 
 /** Return a stable human-readable label for a public solver code. */
 static const char *solver_code_name(int code)
@@ -260,7 +259,6 @@ static const char *solver_code_name(int code)
 	}
 }
 
-
 /** Compare objectives with a combined absolute and relative tolerance. */
 static int objectives_match(double actual, double expected, double tolerance)
 {
@@ -274,7 +272,6 @@ static int objectives_match(double actual, double expected, double tolerance)
 	return difference <= tolerance * scale;
 }
 
-
 /** Print the primal vector when requested. */
 static void print_solution(const struct lp_Model *model, const double *x)
 {
@@ -284,7 +281,6 @@ static void print_solution(const struct lp_Model *model, const double *x)
 	for (i = 0; i < model->n; i++)
 		printf("  %-8.8s = %.15g\n", model->bounds[i].name, x[i]);
 }
-
 
 /** Measure the returned point against the public model, after postsolve. */
 static double original_primal_infeasibility(const struct lp_Model *model,
@@ -375,7 +371,6 @@ static double original_primal_infeasibility(const struct lp_Model *model,
 	return maximum;
 }
 
-
 /** Load, solve, report, and validate one MPS model. */
 static const char *dual_residual_name(int space)
 {
@@ -395,7 +390,6 @@ static const char *dual_residual_name(int space)
 	}
 }
 
-
 struct DriverProgress {
 	const struct Options *options;
 	int columns;
@@ -406,12 +400,17 @@ struct DriverProgress {
  * point. rename() replaces it only after every coordinate has been closed. */
 static int checkpoint_point(const char *path, const double *x, int n)
 {
-	char *temporary = malloc(strlen(path) + 5);
+	size_t length = strlen(path);
+	char *temporary;
 	FILE *stream;
 	int j, written = 1;
+	if (length > (size_t)-1 - 5)
+		return 0;
+	temporary = malloc(length + 5);
 	if (!temporary)
 		return 0;
-	sprintf(temporary, "%s.tmp", path);
+	memcpy(temporary, path, length);
+	memcpy(temporary + length, ".tmp", sizeof(".tmp"));
 	stream = fopen(temporary, "w");
 	if (!stream) {
 		free(temporary);
@@ -431,6 +430,7 @@ static int checkpoint_point(const char *path, const double *x, int n)
 	free(temporary);
 	return written;
 }
+
 static void print_bound(const char *name, double bound)
 {
 	fprintf(stderr, " %s=", name);
@@ -439,6 +439,7 @@ static void print_bound(const char *name, double bound)
 	else
 		fprintf(stderr, "unavailable");
 }
+
 static void driver_progress(void *context, const struct lp_simplex_Progress *p)
 {
 	struct DriverProgress *c = context;
@@ -470,7 +471,6 @@ static void driver_progress(void *context, const struct lp_simplex_Progress *p)
 	}
 	fflush(stderr);
 }
-
 
 int main(int argc, char **argv)
 {
@@ -532,7 +532,10 @@ int main(int argc, char **argv)
 			strcmp(options.criteria, "normalized") == 0
 				? lp_simplex_PRICING_PAN_NORMALIZED
 				: lp_simplex_PRICING_DANTZIG;
-	state = lp_simplex_solve(model, &solve_options, x, &result);
+	state = options.experimental_environment
+			? lp_simplex_solve_experimental(
+				  model, &solve_options, x, &result)
+			: lp_simplex_solve(model, &solve_options, x, &result);
 	objective = result.objective;
 	if (state == lp_simplex_EXIT_SUCCESS)
 		original_infeasibility = original_primal_infeasibility(
@@ -561,6 +564,9 @@ int main(int argc, char **argv)
 			: "dual-steepest-edge");
 	printf("result:     state=%d, code=%d (%s)\n", state, result.status,
 		solver_code_name(result.status));
+	printf("configuration: %s\n", options.experimental_environment
+					      ? "experimental-environment"
+					      : "production");
 	printf("iterations: %d\n", result.iterations);
 	printf("residuals:  primal=%.3g, dual=%.3g (%s)\n",
 		result.primal_infeasibility, result.dual_infeasibility,

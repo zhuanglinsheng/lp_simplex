@@ -13,7 +13,6 @@
 
 #include <lp_simplex/model.h>
 
-
 int simplex_presolve_has_lower(const struct optm_VariableBound *bound);
 
 int simplex_presolve_has_upper(const struct optm_VariableBound *bound);

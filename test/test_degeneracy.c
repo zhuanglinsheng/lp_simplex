@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 static int test_face_entry_and_progress_exit(void)
 {
 	struct simplex_DegeneracyControl control;
@@ -36,7 +35,6 @@ static int test_face_entry_and_progress_exit(void)
 	return valid;
 }
 
-
 static int test_repeated_state_escalates(void)
 {
 	int basis[3] = {3, 1, 4};
@@ -57,7 +55,6 @@ static int test_repeated_state_escalates(void)
 	return valid;
 }
 
-
 static int test_merit_progress_retains_face_history(void)
 {
 	int basis[1] = {1};
@@ -77,7 +74,6 @@ static int test_merit_progress_retains_face_history(void)
 	simplex_degeneracy_destroy(&control);
 	return valid;
 }
-
 
 static int test_incremental_fingerprint_and_growth(void)
 {
@@ -112,7 +108,6 @@ static int test_incremental_fingerprint_and_growth(void)
 	return valid;
 }
 
-
 static int test_recovery_event(void)
 {
 	struct simplex_DegeneracyControl control;
@@ -131,7 +126,6 @@ static int test_recovery_event(void)
 	return valid;
 }
 
-
 static int test_progress_does_not_consume_numeric_recovery(void)
 {
 	struct simplex_DegeneracyControl control;
@@ -149,7 +143,6 @@ static int test_progress_does_not_consume_numeric_recovery(void)
 	simplex_degeneracy_destroy(&control);
 	return valid;
 }
-
 
 int main(void)
 {

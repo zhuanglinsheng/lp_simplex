@@ -13,13 +13,11 @@
 
 #include "simplex_csc.h"
 
-
 struct simplex_BasisImpl;
 
 struct simplex_Basis {
 	struct simplex_BasisImpl *impl;
 };
-
 
 struct simplex_BasisProfile {
 	int factor_size;
@@ -42,7 +40,6 @@ struct simplex_BasisProfile {
 	long compact_btran_refinements;
 };
 
-
 /* Factorization backends.  DEFAULT resolves to KLU when it is compiled in and
  * to the internal sparse LU otherwise. */
 #define SIMPLEX_BASIS_BACKEND_DEFAULT 0
@@ -54,6 +51,10 @@ void simplex_basis_set_backend(struct simplex_Basis *basis, int backend);
 
 /** Backend resolved from the last selection (never DEFAULT). */
 int simplex_basis_resolved_backend(const struct simplex_Basis *basis);
+
+int simplex_basis_create_configured(struct simplex_Basis *basis,
+	const struct simplex_CscMatrix *matrix, int structural_columns,
+	int *index, int stable_klu);
 
 int simplex_basis_create(struct simplex_Basis *basis,
 	const struct simplex_CscMatrix *matrix, int structural_columns,
@@ -84,6 +85,10 @@ int simplex_basis_update(struct simplex_Basis *basis, int leaving_position,
 int simplex_basis_update_packed(struct simplex_Basis *basis,
 	int leaving_position, const double *direction, const int *index,
 	int nonzeros);
+
+/* Last factor-build or eta/FT-update size/allocation failure. Cleared when
+ * an operation begins or the update chain is reset. Not a numerical proof. */
+int simplex_basis_storage_failed(const struct simplex_Basis *basis);
 
 void simplex_basis_set_sparse_eta(struct simplex_Basis *basis, int allowed);
 

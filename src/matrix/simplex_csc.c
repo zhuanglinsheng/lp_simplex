@@ -9,17 +9,23 @@
  */
 
 #include "simplex_csc.h"
+#include "simplex_csc_storage.h"
 #include "utils.h"
+#include <limits.h>
 
 #include <lp_simplex/status.h>
-
 
 int simplex_csc_from_model(
 	const struct lp_Model *model, struct simplex_CscMatrix *matrix)
 {
 	int i, j, k, nonzeros = 0;
 	int *next = NULL;
+	struct simplex_CscStorage storage;
+	size_t counted = 0;
 
+	lp_simplex_memset(matrix, 0, sizeof(*matrix));
+	if (model->m < 0 || model->n < 0)
+		return lp_simplex_EXIT_FAILURE;
 	matrix->rows = model->m;
 	matrix->columns = model->n;
 	matrix->nonzeros = 0;
@@ -31,6 +37,8 @@ int simplex_csc_from_model(
 	matrix->row_value = NULL;
 	matrix->owns_storage = 0;
 	if (model->column_start != NULL && model->row_start != NULL) {
+		if (model->nnz < 0)
+			return lp_simplex_EXIT_FAILURE;
 		/* The model owns immutable CSC and CSR caches for the entire solve. */
 		matrix->column_start = model->column_start;
 		matrix->row_index = model->row_index;
@@ -41,20 +49,31 @@ int simplex_csc_from_model(
 		matrix->nonzeros = model->nnz;
 		return lp_simplex_EXIT_SUCCESS;
 	}
+	if (!simplex_csc_storage(model->m, model->n, 0, (size_t)-1, &storage))
+		return lp_simplex_EXIT_FAILURE;
 	matrix->owns_storage = SIMPLEX_CSC_OWNS_ALL;
 	for (j = 0; j < model->n; j++) {
 		for (i = 0; i < model->m; i++) {
 			if (model->constraints[i].coef[j] != 0.)
-				nonzeros++;
+				counted++;
+		}
+		/* At most INT_MAX before this column plus at most INT_MAX rows:
+		 * size_t can count the whole column before the int-index check. */
+		if (counted > INT_MAX) {
+			simplex_csc_destroy(matrix);
+			return lp_simplex_EXIT_FAILURE;
 		}
 	}
-	matrix->column_start =
-		(int *)lp_simplex_malloc((size_t)(model->n + 1) * sizeof(int));
+	nonzeros = (int)counted;
+	if (!simplex_csc_storage(
+		    model->m, model->n, nonzeros, (size_t)-1, &storage)) {
+		simplex_csc_destroy(matrix);
+		return lp_simplex_EXIT_FAILURE;
+	}
+	matrix->column_start = (int *)lp_simplex_malloc(storage.columns);
 	if (nonzeros > 0) {
-		matrix->row_index = (int *)lp_simplex_malloc(
-			(size_t)nonzeros * sizeof(int));
-		matrix->value = (double *)lp_simplex_malloc(
-			(size_t)nonzeros * sizeof(double));
+		matrix->row_index = (int *)lp_simplex_malloc(storage.indices);
+		matrix->value = (double *)lp_simplex_malloc(storage.values);
 	}
 	if (matrix->column_start == NULL ||
 		(nonzeros > 0 &&
@@ -62,17 +81,13 @@ int simplex_csc_from_model(
 		simplex_csc_destroy(matrix);
 		return lp_simplex_EXIT_FAILURE;
 	}
-	matrix->row_start =
-		(int *)lp_simplex_malloc((size_t)(model->m + 1) * sizeof(int));
-	matrix->column_index = nonzeros > 0
-				       ? (int *)lp_simplex_malloc(
-						 (size_t)nonzeros * sizeof(int))
-				       : NULL;
-	matrix->row_value = nonzeros > 0
-				    ? (double *)lp_simplex_malloc(
-					      (size_t)nonzeros * sizeof(double))
-				    : NULL;
-	next = (int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+	matrix->row_start = (int *)lp_simplex_malloc(storage.rows);
+	matrix->column_index =
+		nonzeros > 0 ? (int *)lp_simplex_malloc(storage.indices) : NULL;
+	matrix->row_value =
+		nonzeros > 0 ? (double *)lp_simplex_malloc(storage.values)
+			     : NULL;
+	next = (int *)lp_simplex_malloc(storage.cursor);
 	if (matrix->row_start == NULL || next == NULL ||
 		(nonzeros > 0 && (matrix->column_index == NULL ||
 					 matrix->row_value == NULL))) {
@@ -95,8 +110,7 @@ int simplex_csc_from_model(
 	}
 	matrix->column_start[model->n] = k;
 	matrix->nonzeros = k;
-	lp_simplex_memset(
-		matrix->row_start, 0, (size_t)(model->m + 1) * sizeof(int));
+	lp_simplex_memset(matrix->row_start, 0, storage.rows);
 	for (k = 0; k < nonzeros; k++)
 		matrix->row_start[matrix->row_index[k] + 1]++;
 	for (i = 0; i < model->m; i++) {
@@ -113,7 +127,6 @@ int simplex_csc_from_model(
 	lp_simplex_free(next);
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 void simplex_csc_destroy(struct simplex_CscMatrix *matrix)
 {
@@ -140,7 +153,6 @@ void simplex_csc_destroy(struct simplex_CscMatrix *matrix)
 	matrix->owns_storage = 0;
 }
 
-
 double simplex_csc_column_dot(const struct simplex_CscMatrix *matrix,
 	const int column, const double *vector)
 {
@@ -152,7 +164,6 @@ double simplex_csc_column_dot(const struct simplex_CscMatrix *matrix,
 		result += vector[matrix->row_index[k]] * matrix->value[k];
 	return result;
 }
-
 
 void simplex_csc_column_to_dense(const struct simplex_CscMatrix *matrix,
 	const int structural_columns, const int variable, double *dense)
@@ -168,7 +179,6 @@ void simplex_csc_column_to_dense(const struct simplex_CscMatrix *matrix,
 		k < matrix->column_start[variable + 1]; k++)
 		dense[matrix->row_index[k]] = matrix->value[k];
 }
-
 
 void simplex_csc_column_axpy(const struct simplex_CscMatrix *matrix,
 	const int structural_columns, const int variable, const double scale,

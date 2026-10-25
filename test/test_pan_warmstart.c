@@ -16,8 +16,9 @@
 #include <lp_simplex/lp_simplex.h>
 
 #include <math.h>
+#include <float.h>
+#include <string.h>
 #include <stdio.h>
-
 
 static int check_warm_point(int kind)
 {
@@ -72,7 +73,6 @@ static int check_warm_point(int kind)
 	return valid;
 }
 
-
 static int check_compensated_dot(void)
 {
 	struct simplex_PanStandard standard;
@@ -85,6 +85,46 @@ static int check_compensated_dot(void)
 	return simplex_pan_column_dot(&standard, 0, vector) == 1.;
 }
 
+static int check_unit_short_dot(void)
+{
+	struct simplex_PanStandard a;
+	int start[2] = {0, 2}, index[3] = {0, 1, 2};
+	double value[3] = {1., -1., 1.};
+	double vector[3] = {DBL_MAX, DBL_MAX, 0.};
+	double actual, expected, product;
+	a.column_start = start;
+	a.row_index = index;
+	a.value = value;
+	actual = simplex_pan_column_dot(&a, 0, vector);
+	if (actual != 0. || signbit(actual))
+		return 0;
+	start[1] = 1;
+	value[0] = -1.;
+	vector[0] = 0.;
+	actual = simplex_pan_column_dot(&a, 0, vector);
+	if (actual != 0. || signbit(actual))
+		return 0;
+	vector[0] = nextafter(0., 1.);
+	if (simplex_pan_column_dot(&a, 0, vector) != -vector[0])
+		return 0;
+	/* Arbitrary single-term products retain the FMA compensation. */
+	value[0] = -4.8402008894536506e-147;
+	vector[0] = 3.8797243627375895e-161;
+	product = value[0] * vector[0];
+	expected = product + fma(value[0], vector[0], -product);
+	actual = simplex_pan_column_dot(&a, 0, vector);
+	if (memcmp(&expected, &actual, sizeof(double)))
+		return 0;
+	/* Two non-unit products need their exact product remainders. */
+	start[1] = 2;
+	value[0] = 1. + ldexp(1., -27);
+	value[1] = -1.;
+	vector[0] = 1. - ldexp(1., -27);
+	vector[1] = 1.;
+	if (simplex_pan_column_dot(&a, 0, vector) != -ldexp(1., -54))
+		return 0;
+	return 1;
+}
 
 static int check_tiny_nonzero_column(void)
 {
@@ -101,7 +141,7 @@ static int check_tiny_nonzero_column(void)
 	model->objective[0] = -1.;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
 	options.presolve = 0;
-	state = lp_simplex_solve(model, &options, x, &result);
+	state = lp_simplex_solve_experimental(model, &options, x, &result);
 	valid = state == lp_simplex_EXIT_SUCCESS &&
 		result.status == lp_simplex_Success && fabs(x[0]) < 1e-12;
 	if (!valid)
@@ -110,7 +150,6 @@ static int check_tiny_nonzero_column(void)
 	lp_model_free(model);
 	return valid;
 }
-
 
 static int check_required_tiny_value(void)
 {
@@ -128,7 +167,7 @@ static int check_required_tiny_value(void)
 	model->objective[0] = 1.;
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
 	options.presolve = 0;
-	state = lp_simplex_solve(model, &options, x, &result);
+	state = lp_simplex_solve_experimental(model, &options, x, &result);
 	valid = state == lp_simplex_EXIT_SUCCESS &&
 		result.status == lp_simplex_Success &&
 		fabs(1e12 * x[0] - 1.) <= options.primal_tolerance;
@@ -136,13 +175,12 @@ static int check_required_tiny_value(void)
 	return valid;
 }
 
-
 int main(void)
 {
 	int valid = check_required_tiny_value() &&
 		    check_tiny_nonzero_column() && check_compensated_dot() &&
-		    check_warm_point(0) && check_warm_point(1) &&
-		    check_warm_point(2);
+		    check_unit_short_dot() && check_warm_point(0) &&
+		    check_warm_point(1) && check_warm_point(2);
 
 	printf("Pan feasible-start regression %s\n",
 		valid ? "passed" : "failed");

@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 int is_in_arri(const int idx, const int *idxset, const int len)
 {
 	int i;
@@ -24,7 +23,6 @@ int is_in_arri(const int idx, const int *idxset, const int len)
 	}
 	return 0;
 }
-
 
 int maxabs_arri(const int *arr, const int len, const int inc)
 {
@@ -38,54 +36,45 @@ int maxabs_arri(const int *arr, const int len, const int inc)
 	return maximum;
 }
 
-
 void *lp_simplex_malloc(size_t size)
 {
 	return malloc(size);
 }
-
 
 void *lp_simplex_realloc(void *ptr, size_t size)
 {
 	return realloc(ptr, size);
 }
 
-
 void lp_simplex_free(void *ptr)
 {
 	free(ptr);
 }
-
 
 void *lp_simplex_memset(void *str, int c, size_t n)
 {
 	return memset(str, c, n);
 }
 
-
 void *lp_simplex_memcpy(void *dest, const void *src, size_t n)
 {
 	return memcpy(dest, src, n);
 }
-
 
 int lp_simplex_memcmp(const void *left, const void *right, size_t n)
 {
 	return memcmp(left, right, n);
 }
 
-
 size_t lp_simplex_strcspn(const char *left, const char *right)
 {
 	return strcspn(left, right);
 }
 
-
 size_t lp_simplex_strlen(const char *text)
 {
 	return strlen(text);
 }
-
 
 double lp_simplex_atof(const char *text)
 {

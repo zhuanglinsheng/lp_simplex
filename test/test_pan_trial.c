@@ -8,6 +8,7 @@
  * @brief Regression tests for finite tangent-cone trial-step acceptance.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_cone.h"
 #include "simplex_pan_phase1.h"
 
@@ -16,7 +17,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
 
 static int actual_step(void)
 {
@@ -82,7 +82,6 @@ static int actual_step(void)
 	       used == o.iteration_limit;
 }
 
-
 static int exhaust(void *context, const double *direction)
 {
 	int *used = (int *)context;
@@ -92,9 +91,9 @@ static int exhaust(void *context, const double *direction)
 	return 0;
 }
 
-
 static int callback_budget(int implicit)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard a;
 	struct simplex_PanBasis b;
 	int starts[3] = {0, 1, 2}, rows[3] = {0, 0, 0}, used = 0, status = -1,
@@ -104,6 +103,7 @@ static int callback_budget(int implicit)
 	double rhs[2] = {0., -1.}, cost[2] = {1., 0.}, d[2], r[2];
 	unsigned char free_mask[2] = {1, 0};
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&a, 0, sizeof(a));
 	a.rows = 1;
 	a.columns = 2;
@@ -124,7 +124,8 @@ static int callback_budget(int implicit)
 	a.column_norm = norm;
 	a.rhs = rhs;
 	a.objective = cost;
-	if (simplex_pan_basis_create(&b, &a, 1e-10) ||
+	if (simplex_pan_basis_create_configured(
+		    &b, &a, 1e-10, &basis_controls) ||
 		simplex_pan_basis_add(&b, 0) || simplex_pan_basis_rebuild(&b))
 		return 0;
 	state = implicit ? simplex_pan_cone_implicit_audited(&b, d, free_mask,
@@ -135,7 +136,6 @@ static int callback_budget(int implicit)
 	simplex_pan_basis_destroy(&b);
 	return state < 0 && status == lp_simplex_ExceedIterLimit && used == 1;
 }
-
 
 int main(void)
 {

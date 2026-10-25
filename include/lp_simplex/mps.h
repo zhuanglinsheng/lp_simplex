@@ -13,7 +13,6 @@
 
 #include "model.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +24,9 @@ extern "C" {
  * the fixed-column, eight-character MPS layout; numeric tokens retain long
  * decimal values rather than being truncated to twelve characters. Returned
  * names may retain fixed-column padding. Default objective sense is minimise.
+ * Required numeric fields must contain complete finite tokens. Overflow,
+ * underflow to zero, missing numbers and nonfinite ranged-row endpoints are
+ * rejected; representable subnormal numbers and long decimals are retained.
  *
  * Supported sections are `ROWS`, `COLUMNS`, `RHS`, `RANGES`, `BOUNDS`,
  * `OBJSENSE` and `ENDATA`.  `OBJSENSE MAXIMIZE` is honoured: the stored

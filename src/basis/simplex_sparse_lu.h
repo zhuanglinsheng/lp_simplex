@@ -13,7 +13,6 @@
 
 #include "simplex_csc.h"
 
-
 struct simplex_SparseRow {
 	int count;
 	int capacity;
@@ -29,6 +28,10 @@ struct simplex_SparseColumnRows {
 
 struct simplex_SparseLu {
 	int dimension;
+	/* Factor builds invalidate old solves; failed FT reservations preserve
+	 * the current factor. Resource classification is independent of validity. */
+	int factor_valid;
+	int storage_failed;
 	int *integer_storage;
 	double *numeric_storage;
 	int *permutation;

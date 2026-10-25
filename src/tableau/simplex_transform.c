@@ -10,44 +10,45 @@
 
 #include "simplex_transform.h"
 #include "utils.h"
+#include "simplex_tableau_storage.h"
 
 #include <lp_simplex/status.h>
-
 
 int simplex_transform_alloc(const int M, const int N, double **obj2,
 	double **x2, double **coef2,
 	struct optm_LinearConstraint **constraints2)
 {
+	size_t objective_bytes, matrix_bytes, constraint_bytes;
 	*obj2 = NULL;
 	*x2 = NULL;
 	*coef2 = NULL;
 	*constraints2 = NULL;
-
-	*obj2 = lp_simplex_malloc(N * sizeof(double));
-	if (*obj2 == NULL)
+	if (!simplex_tableau_storage_size(
+		    M, N, sizeof(double), &matrix_bytes) ||
+		!simplex_tableau_storage_size(
+			1, N, sizeof(double), &objective_bytes) ||
+		!simplex_tableau_storage_size(
+			1, M, sizeof(**constraints2), &constraint_bytes))
 		return lp_simplex_EXIT_FAILURE;
-	*x2 = lp_simplex_malloc(N * sizeof(double));
-	if (*x2 == NULL) {
-		lp_simplex_free(*obj2);
-		return lp_simplex_EXIT_FAILURE;
-	}
-	*coef2 = lp_simplex_malloc(M * N * sizeof(double));
-	if (*coef2 == NULL) {
-		lp_simplex_free(*obj2);
-		lp_simplex_free(*x2);
-		return lp_simplex_EXIT_FAILURE;
-	}
-	*constraints2 =
-		lp_simplex_malloc(M * sizeof(struct optm_LinearConstraint));
-	if (*constraints2 == NULL) {
-		lp_simplex_free(*obj2);
-		lp_simplex_free(*x2);
-		lp_simplex_free(*coef2);
-		return lp_simplex_EXIT_FAILURE;
-	}
+	*obj2 = lp_simplex_malloc(objective_bytes);
+	if (!*obj2)
+		goto FAILURE;
+	*x2 = lp_simplex_malloc(objective_bytes);
+	if (!*x2)
+		goto FAILURE;
+	*coef2 = lp_simplex_malloc(matrix_bytes);
+	if (!*coef2)
+		goto FAILURE;
+	*constraints2 = lp_simplex_malloc(constraint_bytes);
+	if (!*constraints2)
+		goto FAILURE;
 	return lp_simplex_EXIT_SUCCESS;
+FAILURE:
+	simplex_transform_free(*obj2, *x2, *coef2, *constraints2);
+	*obj2 = *x2 = *coef2 = NULL;
+	*constraints2 = NULL;
+	return lp_simplex_EXIT_FAILURE;
 }
-
 
 void simplex_transform_free(double *obj2, double *x2, double *coef2,
 	struct optm_LinearConstraint *constraints2)
@@ -63,7 +64,6 @@ void simplex_transform_free(double *obj2, double *x2, double *coef2,
 		lp_simplex_free(constraints2);
 }
 
-
 /* Get the size of standard form LP.
  *
  * A free variable needs two nonnegative variables.  Only a variable bounded
@@ -71,23 +71,34 @@ void simplex_transform_free(double *obj2, double *x2, double *coef2,
  * An upper-only variable is represented as x = ub - y and needs no extra
  * constraint.
  */
-void simplex_transform_size(const struct optm_VariableBound *bounds,
-	const int m, const int n, int *_M, int *_N)
+int simplex_transform_size(const struct optm_VariableBound *bounds, const int m,
+	const int n, int *_M, int *_N)
 {
-	int j;
-	*_M = m;
-	*_N = n;
-
+	int j, rows = m, columns = n;
+	size_t bytes;
+	*_M = *_N = 0;
+	if (!bounds ||
+		!simplex_tableau_storage_size(m, n, sizeof(double), &bytes))
+		return lp_simplex_EXIT_FAILURE;
 	for (j = 0; j < n; j++) {
-		const struct optm_VariableBound *bd = bounds + j;
-
-		if (optm_BOUND_T_FR == bd->b_type)
-			(*_N)++;
-		if (optm_BOUND_T_BS == bd->b_type)
-			(*_M)++;
+		if (bounds[j].b_type == optm_BOUND_T_FR) {
+			if (columns == INT_MAX)
+				return lp_simplex_EXIT_FAILURE;
+			columns++;
+		}
+		if (bounds[j].b_type == optm_BOUND_T_BS) {
+			if (rows == INT_MAX)
+				return lp_simplex_EXIT_FAILURE;
+			rows++;
+		}
 	}
+	if (!simplex_tableau_storage_size(
+		    rows, columns, sizeof(double), &bytes))
+		return lp_simplex_EXIT_FAILURE;
+	*_M = rows;
+	*_N = columns;
+	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 /* Transform original LP into standard form
  *
@@ -150,7 +161,6 @@ void simplex_transform_problem(const double *objective,
 		}
 	}
 }
-
 
 /* Recover original LP solution and value from the standard form
  */

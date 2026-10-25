@@ -8,12 +8,13 @@
  * @brief Hypersparse maintenance of primal-infeasible basic rows.
  */
 
+#include "policy/factorization.h"
 #include "simplex_dual_feasibility.h"
 #include "simplex_dual_internal.h"
 #include "utils.h"
+#include "simplex_storage.h"
 
 #include <lp_simplex/status.h>
-
 
 static int feasibility_better(const struct simplex_DualFeasibility *feasibility,
 	const int left, const int right)
@@ -22,7 +23,6 @@ static int feasibility_better(const struct simplex_DualFeasibility *feasibility,
 	       (feasibility->score[left] == feasibility->score[right] &&
 		       left < right);
 }
-
 
 static void feasibility_swap(int *heap, int *slot, const int a, const int b)
 {
@@ -33,7 +33,6 @@ static void feasibility_swap(int *heap, int *slot, const int a, const int b)
 	slot[heap[a]] = a;
 	slot[heap[b]] = b;
 }
-
 
 static void feasibility_sift_up(
 	const struct simplex_DualFeasibility *feasibility, int *heap, int *slot,
@@ -49,13 +48,15 @@ static void feasibility_sift_up(
 	}
 }
 
-
 static void feasibility_sift_down(
 	const struct simplex_DualFeasibility *feasibility, int *heap, int *slot,
 	const int count, int position)
 {
 	for (;;) {
-		int child = 2 * position + 1;
+		int child;
+		if (position >= count / 2)
+			break;
+		child = 2 * position + 1;
 		if (child >= count)
 			break;
 		if (child + 1 < count && feasibility_better(feasibility,
@@ -68,7 +69,6 @@ static void feasibility_sift_down(
 		position = child;
 	}
 }
-
 
 static void feasibility_set(struct simplex_DualFeasibility *feasibility,
 	int *heap, int *slot, int *count, const int row, const int active)
@@ -105,7 +105,6 @@ static void feasibility_set(struct simplex_DualFeasibility *feasibility,
 	feasibility_sift_down(feasibility, heap, slot, *count, position);
 }
 
-
 static double feasibility_row_violation(
 	const struct simplex_DualState *state, const int row)
 {
@@ -120,33 +119,38 @@ static double feasibility_row_violation(
 	return violation > tolerance ? violation : 0.;
 }
 
-
 static double feasibility_row_score(const struct simplex_DualState *state,
 	const int row, const double violation)
 {
-	return violation > 0. ? violation * violation /
-					__lp_simplex_MAX__(
-						state->edge_weight[row], 1e-12)
-			      : 0.;
+	return violation > 0.
+		       ? violation * violation /
+				 __lp_simplex_MAX__(state->edge_weight[row],
+					 SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR)
+		       : 0.;
 }
-
 
 int simplex_dual_feasibility_create(
 	struct simplex_DualFeasibility *feasibility, const int rows)
 {
+	size_t indices, scores;
 	lp_simplex_memset(feasibility, 0, sizeof(*feasibility));
-
+	if (rows < 0 ||
+		!simplex_storage_bytes(
+			(size_t)rows, 4 * sizeof(int), (size_t)-1, &indices) ||
+		!simplex_storage_bytes(
+			(size_t)rows, 2 * sizeof(double), (size_t)-1, &scores))
+		return lp_simplex_EXIT_FAILURE;
 	feasibility->rows = rows;
-	feasibility->heap =
-		(int *)lp_simplex_malloc((size_t)4 * rows * sizeof(int));
+	feasibility->heap = (int *)lp_simplex_malloc(indices);
 	feasibility->slot =
 		feasibility->heap != NULL ? feasibility->heap + rows : NULL;
 	feasibility->structural_heap =
-		feasibility->heap != NULL ? feasibility->heap + 2 * rows : NULL;
+		feasibility->heap != NULL ? feasibility->heap + (size_t)2 * rows
+					  : NULL;
 	feasibility->structural_slot =
-		feasibility->heap != NULL ? feasibility->heap + 3 * rows : NULL;
-	feasibility->score = (double *)lp_simplex_malloc(
-		(size_t)(2 * rows) * sizeof(double));
+		feasibility->heap != NULL ? feasibility->heap + (size_t)3 * rows
+					  : NULL;
+	feasibility->score = (double *)lp_simplex_malloc(scores);
 	feasibility->merit =
 		feasibility->score != NULL ? feasibility->score + rows : NULL;
 	if (feasibility->heap == NULL || feasibility->slot == NULL ||
@@ -159,7 +163,6 @@ int simplex_dual_feasibility_create(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 void simplex_dual_feasibility_destroy(
 	struct simplex_DualFeasibility *feasibility)
 {
@@ -170,7 +173,6 @@ void simplex_dual_feasibility_destroy(
 	lp_simplex_free(feasibility->score);
 	lp_simplex_memset(feasibility, 0, sizeof(*feasibility));
 }
-
 
 void simplex_dual_feasibility_update(
 	struct simplex_DualState *state, const int row)
@@ -192,7 +194,6 @@ void simplex_dual_feasibility_update(
 			state->basis[row] < state->structural);
 	feasibility->incremental_updates++;
 }
-
 
 void simplex_dual_feasibility_rebuild(struct simplex_DualState *state)
 {
@@ -232,7 +233,6 @@ void simplex_dual_feasibility_rebuild(struct simplex_DualState *state)
 	feasibility->rebuilds++;
 }
 
-
 void simplex_dual_feasibility_update_packed(struct simplex_DualState *state,
 	const struct simplex_SparseVector *changed_rows)
 {
@@ -247,7 +247,6 @@ void simplex_dual_feasibility_update_packed(struct simplex_DualState *state,
 	for (k = 0; k < changed_rows->count; k++)
 		simplex_dual_feasibility_update(state, changed_rows->index[k]);
 }
-
 
 int simplex_dual_feasibility_choose(struct simplex_DualState *state,
 	double *target, int *kappa, double *maximum,
@@ -291,8 +290,10 @@ int simplex_dual_feasibility_choose(struct simplex_DualState *state,
 					structural = candidate;
 			}
 		}
-		if (structural >= 0 && feasibility->score[structural] >=
-					       .8 * feasibility->score[row])
+		if (structural >= 0 &&
+			feasibility->score[structural] >=
+				SIMPLEX_DUAL_FEASIBILITY_REPRICE_RATIO *
+					feasibility->score[row])
 			row = structural;
 	}
 	if (row == deferred_row) {
@@ -324,7 +325,6 @@ int simplex_dual_feasibility_choose(struct simplex_DualState *state,
 	}
 	return row;
 }
-
 
 double simplex_dual_feasibility_merit(const struct simplex_DualState *state)
 {

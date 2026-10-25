@@ -9,6 +9,7 @@
  * coordinates.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_phase1.h"
 
 #include <lp_simplex/status.h>
@@ -17,9 +18,9 @@
 #include <stdio.h>
 #include <string.h>
 
-
 static int check(int feasible)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int start[3] = {0, 1, 3}, row[3] = {0, 0, 1};
@@ -30,6 +31,7 @@ static int check(int feasible)
 	unsigned char free_mask[2] = {1, 0};
 	int steps = 0, status = -1, state, valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	standard.rows = 2;
 	standard.columns = 2;
@@ -42,7 +44,8 @@ static int check(int feasible)
 	standard.rhs = rhs;
 	if (!feasible)
 		rhs[1] = -1.;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-12) ||
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-12, &basis_controls) ||
 		simplex_pan_basis_add(&basis, 0) ||
 		simplex_pan_basis_rebuild(&basis))
 		return 0;
@@ -57,7 +60,6 @@ static int check(int feasible)
 	simplex_pan_basis_destroy(&basis);
 	return valid;
 }
-
 
 int main(void)
 {

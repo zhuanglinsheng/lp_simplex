@@ -2,22 +2,97 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file simplex_presolve_dominance.c
+ * @brief Presolve dominance reductions and recovery metadata.
+ */
+
+#include "policy/resources.h"
+#include "policy/controls.h"
 #include "simplex_presolve_dominance.h"
 #include "simplex_presolve_rules.h"
 #include "utils.h"
+#include "simplex_storage.h"
 #include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DOMINANCE_BYTES (32UL * 1024UL * 1024UL)
 #define WORD_BITS (sizeof(unsigned long) * CHAR_BIT)
 
 struct support_Fingerprint {
 	unsigned long present;
 	unsigned long required;
 };
+
+struct dominance_ColumnOrder {
+	int column, degree;
+	double cost;
+};
+
+struct dominance_BitStorage {
+	size_t words, bits, candidates;
+};
+
+struct dominance_PostingStorage {
+	size_t order, starts, postings, cursor;
+};
+
+/* The allowance bounds all simultaneously owned optional index arrays,
+ * including retained cover/fingerprints and temporary ordering/cursors. */
+static int dominance_bit_storage(int rows, int columns, size_t retained,
+	size_t limit, struct dominance_BitStorage *storage)
+{
+	struct dominance_BitStorage next = {0};
+	size_t remaining;
+
+	*storage = next;
+	if (rows <= 0 || columns <= 0 || retained > limit)
+		return 0;
+	remaining = limit - retained;
+	next.words = (size_t)columns / WORD_BITS +
+		     ((size_t)columns % WORD_BITS != 0);
+	if (!simplex_storage_bytes(next.words, sizeof(unsigned long), remaining,
+		    &next.candidates) ||
+		!simplex_storage_bytes((size_t)rows, next.candidates,
+			remaining - next.candidates, &next.bits))
+		return 0;
+	*storage = next;
+	return 1;
+}
+
+static int dominance_posting_storage(int rows, int count, size_t entries,
+	size_t retained, size_t limit, struct dominance_PostingStorage *storage)
+{
+	struct dominance_PostingStorage next = {0};
+	size_t remaining;
+
+	*storage = next;
+	if (rows <= 0 || count <= 0 || !entries || entries > INT_MAX ||
+		retained > limit)
+		return 0;
+	remaining = limit - retained;
+	if (!simplex_storage_bytes((size_t)count,
+		    sizeof(struct dominance_ColumnOrder), remaining,
+		    &next.order))
+		return 0;
+	remaining -= next.order;
+	if (!simplex_storage_bytes(
+		    (size_t)rows + 1, sizeof(int), remaining, &next.starts))
+		return 0;
+	remaining -= next.starts;
+	if (!simplex_storage_bytes(
+		    entries, sizeof(int), remaining, &next.postings))
+		return 0;
+	remaining -= next.postings;
+	if (!simplex_storage_bytes(
+		    (size_t)rows, sizeof(int), remaining, &next.cursor))
+		return 0;
+	*storage = next;
+	return 1;
+}
 
 /* Collisions only admit extra candidates. Every accepted reduction is still
  * checked against the original coefficients, bounds and row directions. */
@@ -30,11 +105,6 @@ static unsigned long row_fingerprint(int row)
 	return (1UL << (hash % WORD_BITS)) |
 	       (1UL << ((hash / WORD_BITS) % WORD_BITS));
 }
-
-struct dominance_ColumnOrder {
-	int column, degree;
-	double cost;
-};
 
 static int compare_column_order(const void *left, const void *right)
 {
@@ -97,27 +167,36 @@ static double direction(const struct lp_Model *m, int row)
  * only accelerates search; it never establishes dominance by itself. */
 static void candidate_postings(const struct lp_Model *m,
 	const struct optm_VariableBound *bounds, const unsigned char *rows,
-	const unsigned char *columns, const int *degree, int **starts_out,
-	int **postings_out)
+	const unsigned char *columns, const int *degree, size_t retained,
+	int **starts_out, int **postings_out)
 {
 	struct dominance_ColumnOrder *order = NULL;
 	int *starts = NULL, *postings = NULL, *cursor = NULL;
 	int j, k, i, count = 0;
-	size_t entries = 0;
+	size_t entries = 0, maximum;
+	struct dominance_PostingStorage storage;
 	*starts_out = *postings_out = NULL;
+	if (m->m <= 0 || m->n <= 0 || retained > DOMINANCE_BYTES)
+		return;
+	maximum = (DOMINANCE_BYTES - retained) / sizeof(int);
+	if (maximum > INT_MAX)
+		maximum = INT_MAX;
 	for (j = 0; j < m->n; j++)
 		if (columns[j] && movable(bounds + j) &&
 			isfinite(m->objective[j])) {
+			if (degree[j] < 0 ||
+				(size_t)degree[j] > maximum - entries)
+				return;
 			count++;
 			entries += (size_t)degree[j];
 		}
-	if (!count || !entries || entries > DOMINANCE_BYTES / sizeof(int) ||
-		(size_t)count > DOMINANCE_BYTES / sizeof(*order))
+	if (!dominance_posting_storage(
+		    m->m, count, entries, retained, DOMINANCE_BYTES, &storage))
 		return;
-	order = lp_simplex_malloc((size_t)count * sizeof(*order));
-	starts = lp_simplex_malloc(((size_t)m->m + 1) * sizeof(*starts));
-	postings = lp_simplex_malloc(entries * sizeof(*postings));
-	cursor = lp_simplex_malloc((size_t)m->m * sizeof(*cursor));
+	order = lp_simplex_malloc(storage.order);
+	starts = lp_simplex_malloc(storage.starts);
+	postings = lp_simplex_malloc(storage.postings);
+	cursor = lp_simplex_malloc(storage.cursor);
 	if (!order || !starts || !postings || !cursor)
 		goto done;
 	count = 0;
@@ -129,7 +208,7 @@ static void candidate_postings(const struct lp_Model *m,
 			order[count++].degree = degree[j];
 		}
 	qsort(order, (size_t)count, sizeof(*order), compare_column_order);
-	lp_simplex_memset(starts, 0, ((size_t)m->m + 1) * sizeof(*starts));
+	lp_simplex_memset(starts, 0, storage.starts);
 	for (j = 0; j < count; j++)
 		for (k = m->column_start[order[j].column];
 			k < m->column_start[order[j].column + 1]; k++)
@@ -137,7 +216,7 @@ static void candidate_postings(const struct lp_Model *m,
 				starts[m->row_index[k] + 1]++;
 	for (i = 0; i < m->m; i++)
 		starts[i + 1] += starts[i];
-	lp_simplex_memcpy(cursor, starts, (size_t)m->m * sizeof(*cursor));
+	lp_simplex_memcpy(cursor, starts, storage.cursor);
 	for (j = 0; j < count; j++)
 		for (k = m->column_start[order[j].column];
 			k < m->column_start[order[j].column + 1]; k++) {
@@ -323,15 +402,20 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 	unsigned long *bits = NULL, *candidates = NULL;
 	struct support_Fingerprint *fingerprints = NULL;
 	int *posting_starts = NULL, *postings = NULL;
-	size_t words = ((size_t)m->n + WORD_BITS - 1) / WORD_BITS, w;
+	size_t words = 0, w, cover_bytes, fingerprint_bytes;
+	struct dominance_BitStorage bit_storage;
 	size_t initial_work = *work;
-	int i, j, k, anchor, best;
+	int i, j = 0, k, anchor, best;
 	*removed_rows = *fixed_columns = 0;
 	/* Dense-only models keep the established rules; never build an m*n
 	 * matrix here. Sparse CSR/CSC views must have sorted, unique indices. */
-	if (!*work || !m->row_start || !m->column_start || !ordered_storage(m))
+	if (!*work || m->m <= 0 || m->n <= 0 || !m->row_start ||
+		!m->column_start ||
+		!simplex_storage_bytes((size_t)m->m, sizeof(*cover),
+			DOMINANCE_BYTES, &cover_bytes) ||
+		!ordered_storage(m))
 		return;
-	cover = (unsigned char *)lp_simplex_malloc((size_t)m->m);
+	cover = (unsigned char *)lp_simplex_malloc(cover_bytes);
 	if (!cover)
 		return;
 	for (i = 0; i < m->m; i++)
@@ -371,12 +455,16 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 	}
 	/* Small bit indexes accelerate support intersections. Larger models use
 	 * a rarest-row posting list instead, with the same shared work budget. */
-	if (words && words <= DOMINANCE_BYTES / sizeof(unsigned long) /
-				      (size_t)m->m) {
-		bits = (unsigned long *)lp_simplex_malloc(
-			(size_t)m->m * words * sizeof(*bits));
+	if (!*work) {
+		j = 0;
+		goto done;
+	}
+	if (dominance_bit_storage(
+		    m->m, m->n, cover_bytes, DOMINANCE_BYTES, &bit_storage)) {
+		words = bit_storage.words;
+		bits = (unsigned long *)lp_simplex_malloc(bit_storage.bits);
 		candidates = (unsigned long *)lp_simplex_malloc(
-			words * sizeof(*candidates));
+			bit_storage.candidates);
 		if (!bits || !candidates) {
 			lp_simplex_free(bits);
 			lp_simplex_free(candidates);
@@ -384,8 +472,7 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 		}
 	}
 	if (bits) {
-		lp_simplex_memset(
-			bits, 0, (size_t)m->m * words * sizeof(*bits));
+		lp_simplex_memset(bits, 0, bit_storage.bits);
 		for (i = 0; i < m->m; i++)
 			if (rows[i])
 				for (k = m->row_start[i];
@@ -396,12 +483,12 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 							j / WORD_BITS] |=
 							1UL << (j % WORD_BITS);
 				}
-	} else if ((size_t)m->n <= DOMINANCE_BYTES / sizeof(*fingerprints)) {
+	} else if (simplex_storage_bytes((size_t)m->n, sizeof(*fingerprints),
+			   DOMINANCE_BYTES - cover_bytes, &fingerprint_bytes)) {
 		fingerprints = (struct support_Fingerprint *)lp_simplex_malloc(
-			(size_t)m->n * sizeof(*fingerprints));
+			fingerprint_bytes);
 		if (fingerprints) {
-			lp_simplex_memset(fingerprints, 0,
-				(size_t)m->n * sizeof(*fingerprints));
+			lp_simplex_memset(fingerprints, 0, fingerprint_bytes);
 			for (j = 0; j < m->n; j++)
 				if (columns[j])
 					for (k = m->column_start[j];
@@ -426,7 +513,8 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 	}
 	if (fingerprints)
 		candidate_postings(m, bounds, rows, columns, column_degree,
-			&posting_starts, &postings);
+			cover_bytes + fingerprint_bytes, &posting_starts,
+			&postings);
 	for (j = 0; j < m->n && *work; j++) {
 		if (!columns[j] || !movable(bounds + j))
 			continue;
@@ -557,13 +645,14 @@ void simplex_presolve_dominance(const struct lp_Model *m,
 			}
 		}
 	}
+done:
 	lp_simplex_free(candidates);
 	lp_simplex_free(bits);
 	lp_simplex_free(cover);
 	lp_simplex_free(fingerprints);
 	lp_simplex_free(postings);
 	lp_simplex_free(posting_starts);
-	if (getenv("LP_SIMPLEX_PROFILE"))
+	if (getenv(SIMPLEX_ENV_PROFILE))
 		fprintf(stderr,
 			"presolve dominance: columns-scanned=%d/%d work=%lu remaining=%lu removed-rows=%d fixed-columns=%d\n",
 			j, m->n, (unsigned long)(initial_work - *work),

@@ -14,7 +14,6 @@
 #include <assert.h>
 #include <stddef.h>
 
-
 #define __lp_simplex_ABS__(x) ((x) >= 0 ? (x) : (-(x)))
 #define __lp_simplex_MAX__(x, y) ((x) >= (y) ? (x) : (y))
 #define __lp_simplex_MIN__(x, y) ((x) <= (y) ? (x) : (y))
@@ -26,7 +25,6 @@
  * the second because inf - inf is NaN.
  */
 #define __lp_simplex_ISFINITE__(x) ((x) == (x) && ((x) - (x)) == 0.)
-
 
 int is_in_arri(int idx, const int *idxset, int len);
 

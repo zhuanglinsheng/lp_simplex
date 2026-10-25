@@ -1,0 +1,13 @@
+{
+  "format": {
+    "tab_size": 4,
+    "use_tabchars": false,
+    "line_width": 80,
+    "enable_sort": false,
+    "command_case": "unchanged",
+    "keyword_case": "unchanged"
+  },
+  "markup": {
+    "enable_markup": false
+  }
+}

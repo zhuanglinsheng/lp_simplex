@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 static int test_forrest_tomlin_sequence(const int interleaved)
 {
 	/* Dense columns make the expected matrix-vector residual independent of
@@ -142,7 +141,6 @@ static int test_forrest_tomlin_sequence(const int interleaved)
 	return 1;
 }
 
-
 static int test_weak_update_requests_reinversion(const int backend)
 {
 	int column_start[2] = {0, 2};
@@ -187,7 +185,6 @@ static int test_weak_update_requests_reinversion(const int backend)
 	simplex_basis_destroy(&basis);
 	return result;
 }
-
 
 static int test_current_basis_refinement(const int backend, const int product)
 {
@@ -239,7 +236,6 @@ static int test_current_basis_refinement(const int backend, const int product)
 	simplex_basis_destroy(&basis);
 	return valid;
 }
-
 
 int main(void)
 {

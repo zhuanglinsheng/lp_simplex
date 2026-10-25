@@ -24,7 +24,8 @@ AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: false
 BinPackArguments: true
 BinPackParameters: true
-MaxEmptyLinesToKeep: 2
+MaxEmptyLinesToKeep: 1
+SeparateDefinitionBlocks: Always
 SortIncludes: Never
 ReflowComments: IndentOnly
 BreakStringLiterals: false

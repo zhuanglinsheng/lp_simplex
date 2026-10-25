@@ -9,99 +9,78 @@
  */
 
 #include "simplex_presolve_record.h"
+#include "simplex_presolve_growth.h"
 #include "utils.h"
 
 #include <lp_simplex/status.h>
-
-#include <limits.h>
-
-
-static int presolve_grow_capacity(
-	const int current, const int required, const int initial)
-{
-	int capacity = current == 0 ? initial : current;
-
-	if (required < 0)
-		return -1;
-	while (capacity < required) {
-		if (capacity > INT_MAX / 2)
-			return -1;
-		capacity *= 2;
-	}
-	return capacity;
-}
-
-
-static int presolve_record_reserve_terms(
-	struct simplex_Presolve *presolve, const int additional)
-{
-	int required, capacity;
-	int *columns;
-	double *multipliers;
-
-	if (additional < 0 ||
-		presolve->journal.term_count > INT_MAX - additional)
-		return lp_simplex_EXIT_FAILURE;
-	required = presolve->journal.term_count + additional;
-	if (required <= presolve->journal.term_capacity)
-		return lp_simplex_EXIT_SUCCESS;
-	capacity = presolve_grow_capacity(
-		presolve->journal.term_capacity, required, 64);
-	if (capacity < 0)
-		return lp_simplex_EXIT_FAILURE;
-	columns = (int *)lp_simplex_realloc(
-		presolve->journal.term_column, (size_t)capacity * sizeof(int));
-	if (columns == NULL)
-		return lp_simplex_EXIT_FAILURE;
-	presolve->journal.term_column = columns;
-	multipliers =
-		(double *)lp_simplex_realloc(presolve->journal.term_multiplier,
-			(size_t)capacity * sizeof(double));
-	if (multipliers == NULL)
-		return lp_simplex_EXIT_FAILURE;
-	presolve->journal.term_multiplier = multipliers;
-	presolve->journal.term_capacity = capacity;
-	return lp_simplex_EXIT_SUCCESS;
-}
-
 
 struct simplex_PresolveSubstitution *simplex_presolve_record_begin(
 	struct simplex_Presolve *presolve, const int column,
 	const double constant, const int term_count)
 {
+	struct simplex_PresolveJournal *journal = &presolve->journal;
 	struct simplex_PresolveSubstitution *record;
-	int capacity;
+	int record_capacity, term_capacity;
+	size_t record_bytes, term_bytes, column_bytes;
+	size_t width =
+		sizeof(int) > sizeof(double) ? sizeof(int) : sizeof(double);
 
-	if (presolve->journal.count == presolve->journal.capacity) {
-		capacity = presolve_grow_capacity(presolve->journal.capacity,
-			presolve->journal.count + 1, 32);
-		if (capacity < 0)
-			return NULL;
-		record = (struct simplex_PresolveSubstitution *)
-			lp_simplex_realloc(presolve->journal.record,
-				(size_t)capacity * sizeof(*record));
-		if (record == NULL)
-			return NULL;
-		presolve->journal.record = record;
-		presolve->journal.capacity = capacity;
-	}
-	if (presolve_record_reserve_terms(presolve, term_count) ==
-		lp_simplex_EXIT_FAILURE)
+	/* Validate both requests before allocating or publishing either record. */
+	if (!simplex_presolve_growth(journal->capacity, journal->count, 1, 32,
+		    sizeof(*record), (size_t)-1, &record_capacity,
+		    &record_bytes) ||
+		!simplex_presolve_growth(journal->term_capacity,
+			journal->term_count, term_count, 64, width, (size_t)-1,
+			&term_capacity, &term_bytes))
 		return NULL;
-	record = presolve->journal.record + presolve->journal.count++;
+	if (record_capacity != journal->capacity) {
+		record = (struct simplex_PresolveSubstitution *)
+			lp_simplex_realloc(journal->record, record_bytes);
+		if (!record)
+			return NULL;
+		journal->record = record;
+		journal->capacity = record_capacity;
+	}
+	if (term_capacity != journal->term_capacity) {
+		int *columns;
+		double *multipliers;
+
+		/* The wider-element check above proves both array products fit. */
+		column_bytes = (size_t)term_capacity * sizeof(int);
+		columns = (int *)lp_simplex_realloc(
+			journal->term_column, column_bytes);
+		if (!columns)
+			return NULL;
+		journal->term_column = columns;
+		multipliers =
+			(double *)lp_simplex_realloc(journal->term_multiplier,
+				(size_t)term_capacity * sizeof(double));
+		if (!multipliers)
+			return NULL;
+		journal->term_multiplier = multipliers;
+		journal->term_capacity = term_capacity;
+	}
+	record = journal->record + journal->count;
 	record->column = column;
 	record->constant = constant;
-	record->term_start = presolve->journal.term_count;
+	record->term_start = journal->term_count;
 	record->term_count = term_count;
+	if (!term_count)
+		journal->count++;
 	return record;
 }
-
 
 void simplex_presolve_record_add_term(struct simplex_Presolve *presolve,
 	const int column, const double multiplier)
 {
-	int position = presolve->journal.term_count++;
+	struct simplex_PresolveJournal *journal = &presolve->journal;
+	const struct simplex_PresolveSubstitution *record =
+		journal->record + journal->count;
+	int position = journal->term_count++;
 
-	presolve->journal.term_column[position] = column;
-	presolve->journal.term_multiplier[position] = multiplier;
+	journal->term_column[position] = column;
+	journal->term_multiplier[position] = multiplier;
+	/* Publish only after every reserved term is present; no allocation here. */
+	if (journal->term_count == record->term_start + record->term_count)
+		journal->count++;
 }

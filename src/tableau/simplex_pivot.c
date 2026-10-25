@@ -12,44 +12,58 @@
 #include "linalg.h"
 #include "utils.h"
 
+#include <math.h>
 
-/* Numerically stable staged threshold used by Bland's entering rule. */
-#define __lp_simplex_BLAND_EPS__ 1e-3
-
-
-/* Choose the variable to leave basis
- * Return the index of the variable and check weather LP is "bounded"
- */
+/* Harris ratio test: bound the step by every row's allowed primal error,
+ * then prefer a strong pivot inside that window. A positive coefficient
+ * below the pivot floor still constrains the window; it is never dropped
+ * as evidence of unboundedness. Return m when no safe pivot is available. */
 static int simplex_pivot_leave_rule(const double *table, const int ldtable,
 	const int *basis, const int m, const int n, const int q,
-	const double pivot_tolerance, int *bounded)
+	const double pivot_tolerance, const double primal_tolerance,
+	int *bounded)
 {
-	int i, p = n;
-	double y_i_0, y_i_q, x_iq, min_x_iq = __lp_simplex_INF__;
+	int i, p = m;
+	double rhs, direction, step, lower = -primal_tolerance,
+				     upper = HUGE_VAL;
+	double strongest = 0.;
 	*bounded = 0;
-
 	for (i = 0; i < m; i++) {
-		y_i_0 = table[n + (i + 1) * ldtable];
-		y_i_q = table[q + (i + 1) * ldtable];
-
-		if (y_i_q <= pivot_tolerance)
+		rhs = table[n + (i + 1) * ldtable];
+		direction = table[q + (i + 1) * ldtable];
+		if (!isfinite(rhs) || !isfinite(direction) ||
+			rhs < -primal_tolerance)
+			return m;
+		if (direction > 0.) {
+			step = (rhs + primal_tolerance) / direction;
+			if (step < upper)
+				upper = step;
+		} else if (direction < 0.) {
+			/* A tiny negative basic value can give a backward step. Its
+			 * actual ratio must also respect the rows with negative direction. */
+			step = (rhs + primal_tolerance) / direction;
+			if (step > lower)
+				lower = step;
+		}
+	}
+	for (i = 0; i < m; i++) {
+		rhs = table[n + (i + 1) * ldtable];
+		direction = table[q + (i + 1) * ldtable];
+		if (direction <= pivot_tolerance)
 			continue;
-		else {
-			x_iq = y_i_0 / y_i_q;
-
-			if (x_iq < min_x_iq - pivot_tolerance ||
-				(__lp_simplex_ABS__(x_iq - min_x_iq) <=
-						pivot_tolerance &&
-					(p == n || basis[i] < basis[p]))) {
-				min_x_iq = x_iq;
-				p = i;
-			}
+		step = rhs / direction;
+		if (!isfinite(step) || step < lower || step > upper)
+			continue;
+		if (direction > strongest ||
+			(direction == strongest &&
+				(p == m || basis[i] < basis[p]))) {
+			strongest = direction;
+			p = i;
 			*bounded = 1;
 		}
 	}
 	return p;
 }
-
 
 /* Fast pivot rule: choosing the variable to enter basis
  * Return the index of the variable (< n)
@@ -80,7 +94,6 @@ static int simplex_pivot_enter_rule_datzig(const double *table,
 	return q; /* return n if no p is found (optimal already) */
 }
 
-
 /* Bland's rule: choosing the variable to enter basis
  * Return the index of the variable (< n)
  *
@@ -91,21 +104,13 @@ static int simplex_pivot_enter_rule_bland(const double *table,
 	const double optimality_tolerance)
 {
 	int j;
-	double epsilon = __lp_simplex_BLAND_EPS__;
-
-	for (;;) {
-		for (j = 0; j < n; j++) {
-			if (!is_basic[j] && table[j] > epsilon)
-				return j;
-		}
-		if (epsilon <= optimality_tolerance)
-			return n;
-		epsilon = epsilon / 10. < optimality_tolerance
-				  ? optimality_tolerance
-				  : epsilon / 10.;
-	}
+	/* Bland selects the smallest eligible index at the requested tolerance.
+	 * A staged absolute threshold changes that rule and depends on units. */
+	for (j = 0; j < n; j++)
+		if (!is_basic[j] && table[j] > optimality_tolerance)
+			return j;
+	return n;
 }
-
 
 /* Key subroutine of pivoting given p and q
  *
@@ -143,8 +148,17 @@ void simplex_apply_pivot(double *table, const int ldtable, const int m,
 	if (rule3)
 		lp_simplex_linalg_daxpy(
 			ncol, -table[q], table + rowp, 1, table, 1);
+	/* Keep the new unit column exact. Leaving cancellation residue in a
+	 * basic column lets later degenerate pivots amplify that residue. */
+	if (rule1 && isfinite(table[q + rowp]))
+		table[q + rowp] = 1.;
+	if (rule2 && table[q + rowp] == 1.)
+		for (i = 0; i < m; i++)
+			if (i != p && isfinite(table[q + (i + 1) * ldtable]))
+				table[q + (i + 1) * ldtable] = 0.;
+	if (rule3 && table[q + rowp] == 1. && isfinite(table[q]))
+		table[q] = 0.;
 }
-
 
 /* Pivot starting from a basic representation for one round
  *
@@ -157,18 +171,24 @@ void simplex_apply_pivot(double *table, const int ldtable, const int m,
 static int lp_simplex_pivot_on(double *table, const int ldtable, int *basis,
 	unsigned char *is_basic, const int m, const int n,
 	const int use_dantzig, const double optimality_tolerance,
-	const double pivot_tolerance)
+	const double pivot_tolerance, const double primal_tolerance)
 {
 	int bounded = 0;
 	int q = 0, p = 0;
 	int i, residual = 0;
+
+	/* The artificial objective can overflow while every constraint RHS and
+	 * reduced cost remains finite. Its value cannot certify either phase. */
+	if (!isfinite(table[n]))
+		return 9;
 
 	/* Rebuild from the authoritative basis on every iteration.  This is O(m+n),
 	 * but makes each entering-column scan O(n) instead of O(m*n), while also
 	 * tolerating phase-I basis rewrites and duplicate entries exactly. */
 	lp_simplex_memset(is_basic, 0, (size_t)n * sizeof(unsigned char));
 	for (i = 0; i < m; i++) {
-		if (basis[i] < 0)
+		if (basis[i] < 0 || !isfinite(table[n + (i + 1) * ldtable]) ||
+			table[n + (i + 1) * ldtable] < -primal_tolerance)
 			return 9;
 		/* A redundant phase-I row may deliberately retain an artificial
 		 * column index after those columns have been removed from phase II. */
@@ -176,6 +196,9 @@ static int lp_simplex_pivot_on(double *table, const int ldtable, int *basis,
 			is_basic[basis[i]] = 1;
 	}
 
+	for (i = 0; i < n; i++)
+		if (!isfinite(table[i]))
+			return 9;
 	if (use_dantzig) {
 		q = simplex_pivot_enter_rule_datzig(
 			table, is_basic, n, optimality_tolerance);
@@ -194,15 +217,25 @@ static int lp_simplex_pivot_on(double *table, const int ldtable, int *basis,
 		}
 		return residual ? 9 : 1;
 	}
-	p = simplex_pivot_leave_rule(
-		table, ldtable, basis, m, n, q, pivot_tolerance, &bounded);
-	if (bounded == 0)
+	p = simplex_pivot_leave_rule(table, ldtable, basis, m, n, q,
+		pivot_tolerance, primal_tolerance, &bounded);
+	if (bounded == 0) {
+		/* A positive coefficient below the pivot threshold still bounds
+		 * the ray. Refusing that pivot is numerical failure, not unboundedness.
+		 * Phase II also requires a feasible finite starting basis. */
+		for (i = 0; i < m; i++) {
+			double direction = table[q + (i + 1) * ldtable];
+			double value = table[n + (i + 1) * ldtable];
+			if (!isfinite(direction) || !isfinite(value) ||
+				direction > 0. || value < -primal_tolerance)
+				return 9;
+		}
 		return 2;
+	}
 	basis[p] = q;
 	simplex_apply_pivot(table, ldtable, m, n, p, q, 1, 1, 1);
 	return 0;
 }
-
 
 int simplex_run_pivots(int *epoch, double *table, const int ldtable, int *basis,
 	const int m, const int n, const int nreal,
@@ -226,7 +259,7 @@ int simplex_run_pivots(int *epoch, double *table, const int ldtable, int *basis,
 		(*epoch)++;
 		switch (lp_simplex_pivot_on(table, ldtable, basis, is_basic, m,
 			n, use_dantzig, options->dual_tolerance,
-			options->pivot_tolerance)) {
+			options->pivot_tolerance, options->primal_tolerance)) {
 		case 0:
 			break;
 		case 1:

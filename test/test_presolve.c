@@ -17,13 +17,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <math.h>
 
 static double absolute_value(const double value)
 {
 	return value < 0. ? -value : value;
 }
-
 
 static int exercise_presolve_work_queue(void)
 {
@@ -52,7 +51,6 @@ static int exercise_presolve_work_queue(void)
 	simplex_presolve_queue_destroy(&queue);
 	return 1;
 }
-
 
 static int solve_fixed_and_empty_column(void)
 {
@@ -88,7 +86,6 @@ static int solve_fixed_and_empty_column(void)
 	       absolute_value(result.objective + 1.) <= 1e-9;
 }
 
-
 static int solve_with_redundant_empty_row(void)
 {
 	struct lp_Model *model = lp_model_create(2, 1);
@@ -114,7 +111,6 @@ static int solve_with_redundant_empty_row(void)
 	       absolute_value(x[0] - 1.) <= 1e-9;
 }
 
-
 static int detect_infeasible_empty_row(void)
 {
 	struct lp_Model *model = lp_model_create(2, 1);
@@ -137,7 +133,6 @@ static int detect_infeasible_empty_row(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Infeasibility;
 }
-
 
 static int solve_singleton_inequality_chain(void)
 {
@@ -174,7 +169,6 @@ static int solve_singleton_inequality_chain(void)
 	       absolute_value(result.objective - 5.) <= 1e-9;
 }
 
-
 static int detect_infeasible_activity(void)
 {
 	struct lp_Model *model = lp_model_create(1, 2);
@@ -202,7 +196,6 @@ static int detect_infeasible_activity(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Infeasibility;
 }
-
 
 static int solve_implied_bound_propagation(void)
 {
@@ -239,7 +232,6 @@ static int solve_implied_bound_propagation(void)
 	       absolute_value(result.objective - 10.) <= 1e-6;
 }
 
-
 static int solve_dominated_parallel_row(void)
 {
 	struct lp_Model *model = lp_model_create(2, 2);
@@ -269,7 +261,6 @@ static int solve_dominated_parallel_row(void)
 	       absolute_value(result.objective - 3.) <= 1e-7;
 }
 
-
 static int detect_conflicting_parallel_equalities(void)
 {
 	struct lp_Model *model = lp_model_create(2, 2);
@@ -295,7 +286,6 @@ static int detect_conflicting_parallel_equalities(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Infeasibility;
 }
-
 
 static int solve_singleton_column_substitution(void)
 {
@@ -332,7 +322,6 @@ static int solve_singleton_column_substitution(void)
 	       absolute_value(result.objective) <= 1e-8;
 }
 
-
 static int solve_forcing_row(void)
 {
 	struct lp_Model *model = lp_model_create(1, 2);
@@ -368,7 +357,6 @@ static int solve_forcing_row(void)
 	       absolute_value(result.objective + 2.) <= 1e-9;
 }
 
-
 static int solve_zero_cost_singleton_inequality_column(void)
 {
 	struct lp_Model *model = lp_model_create(2, 2);
@@ -402,7 +390,6 @@ static int solve_zero_cost_singleton_inequality_column(void)
 	       absolute_value(x[1] - 5.) <= 1e-9 &&
 	       absolute_value(result.objective + 5.) <= 1e-9;
 }
-
 
 static int solve_substitution_fixed_point_cascade(void)
 {
@@ -443,7 +430,6 @@ static int solve_substitution_fixed_point_cascade(void)
 	       absolute_value(result.objective) <= 1e-9;
 }
 
-
 static int solve_singleton_equality_projection(void)
 {
 	struct lp_Model *model = lp_model_create(2, 4);
@@ -483,7 +469,6 @@ static int solve_singleton_equality_projection(void)
 	       absolute_value(result.objective + 5.) <= 1e-9;
 }
 
-
 static int solve_degree_two_implied_free_substitution(void)
 {
 	struct lp_Model *model = lp_model_create(2, 3);
@@ -521,7 +506,6 @@ static int solve_degree_two_implied_free_substitution(void)
 	       absolute_value(result.objective - 1.) <= 1e-9;
 }
 
-
 static int solve_with_objective_offset(void)
 {
 	struct lp_Model *model = lp_model_create(1, 1);
@@ -546,7 +530,6 @@ static int solve_with_objective_offset(void)
 	       absolute_value(x[0] - 3.) <= 1e-9 &&
 	       absolute_value(result.objective + 1.) <= 1e-9;
 }
-
 
 static int solve_dense_presolve_equivalence(void)
 {
@@ -594,7 +577,6 @@ static int solve_dense_presolve_equivalence(void)
 	       absolute_value(with_presolve.objective -
 			      without_presolve.objective) <= 1e-7;
 }
-
 
 /* Outward-rounded working bounds must not justify dropping x0 >= 0.
  * Check reduced solve + postsolve directly, so raw-model recovery cannot
@@ -659,10 +641,62 @@ static int preserve_nearly_implied_singleton_bound(const int upper_bound)
 	return passed;
 }
 
+/* These rows are close, not parallel. The exact binary witness (-2^40,
+ * 2^40) satisfies both, so approximate support matching cannot prove I. */
+static int preserve_nearly_parallel_rows(void)
+{
+	struct lp_Model *m;
+	struct simplex_Presolve pre;
+	struct lp_simplex_Options o;
+	struct lp_simplex_Result r;
+	double x[2], witness = ldexp(1., 40);
+	int cached, algorithm, valid;
+	for (cached = 0; cached < 2; cached++) {
+		m = lp_model_create(2, 2);
+		if (!m)
+			return 0;
+		m->constraints[0].type = m->constraints[1].type =
+			optm_CONS_T_EQ;
+		m->constraints[0].coef[0] = m->constraints[0].coef[1] = 1.;
+		m->constraints[1].coef[0] = 1.;
+		m->constraints[1].coef[1] = 1. + ldexp(1., -40);
+		m->constraints[1].rhs = 1.;
+		m->bounds[0].b_type = m->bounds[1].b_type = optm_BOUND_T_FR;
+		valid = -witness + m->constraints[1].coef[1] * witness == 1.;
+		if (cached && lp_model_build_sparse(m)) {
+			lp_model_free(m);
+			return 0;
+		}
+		if (simplex_presolve_run(&pre, m, 1e-7)) {
+			lp_model_free(m);
+			return 0;
+		}
+		if (pre.status == lp_simplex_Infeasibility)
+			fprintf(stderr,
+				"feasible nearly parallel rows classified infeasible: cached=%d\n",
+				cached);
+		valid = valid && pre.status != lp_simplex_Infeasibility &&
+			pre.status != lp_simplex_Unboundedness;
+		simplex_presolve_destroy(&pre);
+		for (algorithm = lp_simplex_ALGORITHM_DUAL_REVISED;
+			valid && algorithm <= lp_simplex_ALGORITHM_AUTO;
+			algorithm++) {
+			lp_simplex_default_options(&o, algorithm);
+			(void)lp_simplex_solve(m, &o, x, &r);
+			valid = r.status != lp_simplex_Infeasibility &&
+				r.status != lp_simplex_Unboundedness;
+		}
+		lp_model_free(m);
+		if (!valid)
+			return 0;
+	}
+	return 1;
+}
 
 int main(void)
 {
-	int passed = solve_fixed_and_empty_column() +
+	int passed = preserve_nearly_parallel_rows() +
+		     solve_fixed_and_empty_column() +
 		     solve_with_redundant_empty_row() +
 		     detect_infeasible_empty_row() +
 		     solve_singleton_inequality_chain() +
@@ -682,6 +716,6 @@ int main(void)
 		     preserve_nearly_implied_singleton_bound(0) +
 		     preserve_nearly_implied_singleton_bound(1);
 
-	printf("%d/19 presolve reductions passed.\n", passed);
-	return passed == 19 ? 0 : 1;
+	printf("%d/20 presolve reductions passed.\n", passed);
+	return passed == 20 ? 0 : 1;
 }

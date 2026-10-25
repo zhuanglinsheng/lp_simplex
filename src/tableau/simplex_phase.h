@@ -13,7 +13,12 @@
 
 #include <lp_simplex/model.h>
 #include <lp_simplex/solve.h>
+#include "simplex_tableau_types.h"
 
+int simplex_solve_standard_reported(const double *objective,
+	const struct optm_LinearConstraint *constraints, int m, int n,
+	const struct lp_simplex_Options *options, double *x, double *value,
+	int *status, int *iterations, struct simplex_TableauReport *report);
 
 int simplex_solve_standard(const double *objective,
 	const struct optm_LinearConstraint *constraints, int m, int n,

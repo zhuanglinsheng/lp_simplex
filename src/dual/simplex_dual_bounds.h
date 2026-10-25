@@ -14,7 +14,6 @@
 #include "simplex_dual_internal.h"
 #include "simplex_problem.h"
 
-
 void simplex_dual_initialize_bounds(struct simplex_DualState *state,
 	const struct simplex_Problem *problem, int propagate);
 

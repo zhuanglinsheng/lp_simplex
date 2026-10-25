@@ -13,7 +13,11 @@
 
 #include "simplex_presolve.h"
 
-
+/* Reserve one expression before changing its model. Failure retains all
+ * completed expressions and term counts; physical roots/capacities may grow.
+ * A nonempty expression becomes visible to postsolve only after its final
+ * add_term. Fill exactly term_count terms before beginning another record.
+ * A zero-term expression is complete on return. Adding terms cannot allocate. */
 struct simplex_PresolveSubstitution *simplex_presolve_record_begin(
 	struct simplex_Presolve *presolve, int column, double constant,
 	int term_count);

@@ -13,16 +13,19 @@
 #include "simplex_scaling.h"
 #include "simplex_dual.h"
 #include "utils.h"
+#include "simplex_solve_context.h"
+#include "simplex_execution.h"
+#include <float.h>
+#include <math.h>
+#include <string.h>
 
 #include <stdio.h>
-
 
 static int nearly_equal(const double left, const double right)
 {
 	return __lp_simplex_ABS__(left - right) <=
 	       1e-12 * (1. + __lp_simplex_ABS__(right));
 }
-
 
 static struct simplex_Problem *create_problem(void)
 {
@@ -65,7 +68,6 @@ static struct simplex_Problem *create_problem(void)
 	problem->row_type[1] = optm_CONS_T_LE;
 	return problem;
 }
-
 
 static int test_reversible_scaling(void)
 {
@@ -135,7 +137,6 @@ static int test_reversible_scaling(void)
 	return valid;
 }
 
-
 static int test_identity_scaling_borrows_storage(void)
 {
 	struct simplex_Problem *problem = create_problem();
@@ -163,7 +164,6 @@ static int test_identity_scaling_borrows_storage(void)
 	simplex_problem_free(problem);
 	return valid;
 }
-
 
 static int test_optional_dual_output(void)
 {
@@ -210,10 +210,89 @@ static int test_optional_dual_output(void)
 	return valid;
 }
 
+static int test_unsafe_scaling_keeps_input(void)
+{
+	struct lp_Model *m;
+	struct simplex_Problem p, *q;
+	struct simplex_Scaling s;
+	struct simplex_SolveContext context;
+	struct simplex_Execution h;
+	int kind, tracing, i, valid = 1;
+	for (tracing = 0; tracing < 3; tracing++)
+		for (kind = 0; kind < 8; kind++) {
+			m = lp_model_create(1, 2);
+			if (!m)
+				return 0;
+			m->constraints[0].type = optm_CONS_T_EQ;
+			m->constraints[0].coef[0] = ldexp(1., 48);
+			m->constraints[0].coef[1] = ldexp(1., -48);
+			m->constraints[0].rhs = 1.;
+			if (kind == 0)
+				m->constraints[0].coef[1] = nextafter(0., 1.);
+			if (kind == 1)
+				m->constraints[0].rhs = nextafter(0., 1.);
+			if (kind == 2)
+				m->objective[1] = DBL_MAX;
+			if (kind == 3)
+				m->objective[0] = nextafter(0., 1.);
+			if (kind == 4)
+				m->bounds[1].lb = nextafter(0., 1.);
+			if (kind == 5) {
+				m->bounds[0].b_type = optm_BOUND_T_UP;
+				m->bounds[0].ub = DBL_MAX;
+			}
+			if (kind == 6) {
+				m->constraints[0].coef[0] = ldexp(1., -48);
+				m->constraints[0].rhs = DBL_MAX;
+			}
+			if (kind == 7)
+				m->constraints[0].rhs =
+					ldexp(1., -1040) + nextafter(0., 1.);
+			if (simplex_problem_from_model(&p, m)) {
+				lp_model_free(m);
+				return 0;
+			}
+			simplex_solve_context_init(
+				&context, tracing ? &h : NULL, &p.execution);
+			if (tracing == 2)
+				while (h.count < SIMPLEX_EXECUTION_CAPACITY)
+					(void)simplex_execution_begin(
+						&p.execution,
+						SIMPLEX_EXECUTION_SOLVE, 0, 0,
+						0);
+			q = simplex_scaling_create_problem(&p, &s);
+			valid = q && !s.active && context.models == 1;
+			if (q)
+				valid = valid &&
+					q->matrix.value == p.matrix.value &&
+					q->matrix.row_value ==
+						p.matrix.row_value &&
+					q->objective == p.objective &&
+					q->rhs == p.rhs &&
+					q->bounds == p.bounds &&
+					!q->owns_vectors &&
+					!q->matrix.owns_storage;
+			for (i = 0; valid && i < 2; i++)
+				valid = s.column[i] == 1.;
+			valid = valid && s.row[0] == 1.;
+			simplex_problem_free(q);
+			simplex_scaling_destroy(&s);
+			simplex_solve_context_destroy(&context);
+			simplex_problem_destroy(&p);
+			lp_model_free(m);
+			if (!valid) {
+				fprintf(stderr,
+					"unsafe scaling did not preserve input: kind=%d trace=%d\n",
+					kind, tracing);
+				return 0;
+			}
+		}
+	return valid;
+}
 
 int main(void)
 {
-	if (!test_reversible_scaling() ||
+	if (!test_unsafe_scaling_keeps_input() || !test_reversible_scaling() ||
 		!test_identity_scaling_borrows_storage() ||
 		!test_optional_dual_output()) {
 		printf("scaling regression failed\n");

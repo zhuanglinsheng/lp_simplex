@@ -14,6 +14,12 @@
 #include <lp_simplex/model.h>
 #include <lp_simplex/solve.h>
 
+struct simplex_StageReport;
+struct simplex_ExecutionScope;
+int simplex_tableau_solve_model_reported(const struct lp_Model *model,
+	const struct lp_simplex_Options *options, double *x, double *objective,
+	int *status, int *iterations, struct simplex_StageReport *report,
+	const struct simplex_ExecutionScope *execution);
 
 int simplex_tableau_solve_model(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x, double *objective,

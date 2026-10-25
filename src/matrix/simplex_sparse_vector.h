@@ -11,7 +11,6 @@
 #ifndef LP_SIMPLEX_SPARSE_VECTOR_INTERNAL_H
 #define LP_SIMPLEX_SPARSE_VECTOR_INTERNAL_H
 
-
 /* Packed vector with an optional dense scatter and O(1) membership marks. */
 struct simplex_SparseVector {
 	int dimension;
@@ -24,7 +23,6 @@ struct simplex_SparseVector {
 	int *slot;
 	unsigned int generation;
 };
-
 
 int simplex_sparse_vector_create(
 	struct simplex_SparseVector *vector, int dimension);
@@ -41,6 +39,11 @@ int simplex_sparse_vector_add(
 
 int simplex_sparse_vector_pack(struct simplex_SparseVector *vector,
 	const double *dense, double tolerance);
+
+/* Pack and measure in one traversal. A nonfinite retained entry yields an
+ * infinite maximum; it is still packed for the caller's error handling. */
+int simplex_sparse_vector_pack_maximum(struct simplex_SparseVector *vector,
+	const double *dense, double tolerance, double *maximum);
 
 double simplex_sparse_vector_get(
 	const struct simplex_SparseVector *vector, int index);

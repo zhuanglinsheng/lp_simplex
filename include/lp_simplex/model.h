@@ -11,7 +11,6 @@
 #ifndef LP_SIMPLEX_MODEL_H
 #define LP_SIMPLEX_MODEL_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -38,7 +37,6 @@ extern "C" {
 #define optm_CONS_T_GE 1
 /** Row activity is less than or equal to rhs. */
 #define optm_CONS_T_LE 2
-
 
 /**
  * @brief Variable metadata and bounds, indexed in the original variable order.
@@ -150,7 +148,6 @@ struct lp_Model {
 	double *row_value;
 };
 
-
 /**
  * @brief Allocate a dense model with zero costs, matrix, RHS and empty names.
  *
@@ -195,14 +192,15 @@ void lp_model_free(struct lp_Model *model);
  *
  * Every coefficient unequal to zero is included, with no tolerance filtering.
  * On success nnz and both sparse views are updated; dense storage is retained.
- * Previous sparse pointers become invalid, including on allocation failure.
- * After failure, free the model or successfully rebuild before solving it.
+ * Previous sparse pointers become invalid on success. On failure, the previous
+ * sparse arrays and nnz remain unchanged. Pending edits to dense coefficients
+ * still require a successful rebuild before solving.
  *
  * @param model Non-NULL dense model with its original row aliases intact.
- * @return 0 on success; -1 for NULL/sparse-only input or allocation failure.
+ * @return 0 on success; -1 for invalid/sparse-only input, unrepresentable storage
+ * or nonzero counts, or allocation failure.
  */
 int lp_model_build_sparse(struct lp_Model *model);
-
 
 #ifdef __cplusplus
 }

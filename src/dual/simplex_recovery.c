@@ -8,18 +8,17 @@
  * @brief Coordinate objective cleanup, primal anti-stalling and bound rollback.
  */
 
+#include "policy/search.h"
 #include "simplex_recovery.h"
 #include "simplex_dual_internal.h"
 #include "utils.h"
 
 #include <math.h>
 
-
 void simplex_recovery_initialize(struct simplex_Recovery *recovery)
 {
 	lp_simplex_memset(recovery, 0, sizeof(*recovery));
 }
-
 
 void simplex_recovery_seal_objective(struct simplex_Recovery *recovery)
 {
@@ -28,14 +27,12 @@ void simplex_recovery_seal_objective(struct simplex_Recovery *recovery)
 		recovery->stage = SIMPLEX_RECOVERY_ORIGINAL;
 }
 
-
 int simplex_recovery_cost_changes_allowed(
 	const struct simplex_Recovery *recovery)
 {
 	return !recovery->original_cost_locked &&
 	       recovery->stage == SIMPLEX_RECOVERY_WORKING_DUAL;
 }
-
 
 void simplex_recovery_begin_primal(struct simplex_Recovery *recovery)
 {
@@ -48,12 +45,10 @@ void simplex_recovery_begin_primal(struct simplex_Recovery *recovery)
 	simplex_degeneracy_reset_state(&recovery->primal_history);
 }
 
-
 int simplex_recovery_progress_certified(const double gain, const double error)
 {
 	return isfinite(gain) && isfinite(error) && error >= 0. && gain > error;
 }
-
 
 int simplex_recovery_observe_primal(struct simplex_Recovery *recovery,
 	const double gain, const double error, const int repeated_state)
@@ -104,7 +99,6 @@ int simplex_recovery_observe_primal(struct simplex_Recovery *recovery,
 	return SIMPLEX_PRIMAL_CONTINUE;
 }
 
-
 static double recovery_margin(
 	const int variable, const double bound, const double tolerance)
 {
@@ -119,7 +113,6 @@ static double recovery_margin(
 	       __lp_simplex_MAX__(1., __lp_simplex_ABS__(bound)) *
 	       (1. + (double)order / 4294967296.);
 }
-
 
 int simplex_recovery_perturb_bounds(struct simplex_DualState *state)
 {
@@ -152,7 +145,8 @@ int simplex_recovery_perturb_bounds(struct simplex_DualState *state)
 		if (isfinite(lower)) {
 			distance = value - lower;
 			margin = recovery_margin(j, lower, tolerance);
-			budget = 64. * tolerance *
+			budget = SIMPLEX_BOUND_PERTURB_TOLERANCE_UNITS *
+				 tolerance *
 				 __lp_simplex_MAX__(1., fabs(lower));
 			shifted = nextafter(
 				__lp_simplex_MIN__(lower, value) - margin,
@@ -167,7 +161,8 @@ int simplex_recovery_perturb_bounds(struct simplex_DualState *state)
 		if (isfinite(upper)) {
 			distance = upper - value;
 			margin = recovery_margin(j, upper, tolerance);
-			budget = 64. * tolerance *
+			budget = SIMPLEX_BOUND_PERTURB_TOLERANCE_UNITS *
+				 tolerance *
 				 __lp_simplex_MAX__(1., fabs(upper));
 			shifted = nextafter(
 				__lp_simplex_MAX__(upper, value) + margin,
@@ -190,6 +185,7 @@ int simplex_recovery_perturb_bounds(struct simplex_DualState *state)
 	recovery->bounds_active = 1;
 	recovery->stage = SIMPLEX_RECOVERY_PERTURBED_PRIMAL;
 	recovery->bound_epochs++;
+	state->bounds_version++;
 	recovery->flat_streak = 0;
 	recovery->bland = 0;
 	/* Basis/status hashes from the unperturbed domain cannot detect cycles
@@ -197,7 +193,6 @@ int simplex_recovery_perturb_bounds(struct simplex_DualState *state)
 	simplex_degeneracy_reset_state(&recovery->primal_history);
 	return 1;
 }
-
 
 int simplex_recovery_restore_bounds(struct simplex_DualState *state)
 {
@@ -229,6 +224,7 @@ int simplex_recovery_restore_bounds(struct simplex_DualState *state)
 	lp_simplex_free(recovery->saved_bounds);
 	recovery->saved_bounds = NULL;
 	recovery->bounds_active = 0;
+	state->bounds_version++;
 	recovery->bound_restores++;
 	recovery->stage = SIMPLEX_RECOVERY_ORIGINAL_DUAL;
 	simplex_degeneracy_reset_state(&recovery->primal_history);
@@ -236,7 +232,6 @@ int simplex_recovery_restore_bounds(struct simplex_DualState *state)
 	state->lex_initialized = 0;
 	return 1;
 }
-
 
 void simplex_recovery_destroy(struct simplex_DualState *state)
 {

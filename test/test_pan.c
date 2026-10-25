@@ -16,12 +16,10 @@
 #include <math.h>
 #include <stdio.h>
 
-
 static int nearly_equal(const double left, const double right)
 {
 	return fabs(left - right) <= 1e-7 * (1. + fabs(right));
 }
-
 
 static int solve_pan(
 	struct lp_Model *model, double *x, struct lp_simplex_Result *result)
@@ -31,9 +29,8 @@ static int solve_pan(
 	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_PAN_BDA);
 	options.presolve = 0;
 	options.iteration_limit = 10000;
-	return lp_simplex_solve(model, &options, x, result);
+	return lp_simplex_solve_experimental(model, &options, x, result);
 }
-
 
 static int solve_pan_normalized(
 	struct lp_Model *model, double *x, struct lp_simplex_Result *result)
@@ -44,9 +41,8 @@ static int solve_pan_normalized(
 	options.pricing = lp_simplex_PRICING_PAN_NORMALIZED;
 	options.presolve = 0;
 	options.iteration_limit = 10000;
-	return lp_simplex_solve(model, &options, x, result);
+	return lp_simplex_solve_experimental(model, &options, x, result);
 }
-
 
 static int test_degenerate_optimum(void)
 {
@@ -71,7 +67,6 @@ static int test_degenerate_optimum(void)
 	       nearly_equal(x[0] + x[1], 1.);
 }
 
-
 static int test_equality_minimum(void)
 {
 	struct lp_simplex_Result result;
@@ -95,7 +90,6 @@ static int test_equality_minimum(void)
 	       nearly_equal(x[1], 0.);
 }
 
-
 static int test_normalized_pricing(void)
 {
 	struct lp_simplex_Result result;
@@ -118,7 +112,6 @@ static int test_normalized_pricing(void)
 	       nearly_equal(result.objective, 1.);
 }
 
-
 static int test_infeasible(void)
 {
 	struct lp_simplex_Result result;
@@ -140,7 +133,6 @@ static int test_infeasible(void)
 	       result.status == lp_simplex_Infeasibility;
 }
 
-
 static int test_unbounded_zero_column(void)
 {
 	struct lp_simplex_Result result;
@@ -158,7 +150,6 @@ static int test_unbounded_zero_column(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Unboundedness;
 }
-
 
 static int test_unbounded_dependent_direction(void)
 {
@@ -180,7 +171,6 @@ static int test_unbounded_dependent_direction(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Unboundedness;
 }
-
 
 static int test_bound_transformations(void)
 {
@@ -211,7 +201,6 @@ static int test_bound_transformations(void)
 	       nearly_equal(result.objective, -9.);
 }
 
-
 static int test_all_fixed_feasible(void)
 {
 	struct lp_simplex_Result result;
@@ -235,7 +224,6 @@ static int test_all_fixed_feasible(void)
 	       nearly_equal(result.objective, 6.);
 }
 
-
 static int test_all_fixed_infeasible(void)
 {
 	struct lp_simplex_Result result;
@@ -256,7 +244,6 @@ static int test_all_fixed_infeasible(void)
 	return state == lp_simplex_EXIT_FAILURE &&
 	       result.status == lp_simplex_Infeasibility;
 }
-
 
 int main(void)
 {

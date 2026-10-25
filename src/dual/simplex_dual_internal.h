@@ -11,7 +11,9 @@
 #ifndef LP_SIMPLEX_DUAL_STATE_INTERNAL_H
 #define LP_SIMPLEX_DUAL_STATE_INTERNAL_H
 
+#include "simplex_run_config.h"
 #include "simplex_basis.h"
+#include "simplex_stage.h"
 #include "simplex_csc.h"
 #include "simplex_degeneracy.h"
 #include "simplex_recovery.h"
@@ -20,17 +22,28 @@
 
 #include <lp_simplex/solve.h>
 
-
 #define DUAL_STATUS_BASIC 0
 #define DUAL_STATUS_LOWER 1
 #define DUAL_STATUS_UPPER 2
 #define DUAL_STATUS_FIXED 3
 #define DUAL_STATUS_FREE 4
 
-
 struct simplex_DualProfile {
 	int enabled;
 	double ratio_seconds;
+	/* Disjoint portions of prepare_ratio_test, measured only with PROFILE. */
+	double ratio_setup_seconds;
+	double ratio_sparse_seconds;
+	double ratio_dense_seconds;
+	double ratio_audit_seconds;
+	double ratio_certify_seconds;
+	double reduced_update_seconds;
+	long ratio_sparse_calls, ratio_dense_calls, ratio_audit_calls;
+	long ratio_certify_calls, reduced_sparse_calls, reduced_dense_calls;
+	/* Work totals use doubles to avoid 32-bit long overflow on wide LPs. */
+	double ratio_scatter_entries, ratio_sparse_touched;
+	double ratio_dense_columns, ratio_audit_columns;
+	double reduced_sparse_touched, reduced_dense_columns;
 	double total_seconds;
 	long rejected_relative;
 	long rejected_ftran;
@@ -43,7 +56,6 @@ struct simplex_DualProfile {
 	long flat_objective_steps;
 };
 
-
 /* Owners for the dense solver workspaces.  The state keeps typed aliases for
  * hot-path readability; destruction only releases these four roots. */
 struct simplex_DualWorkspace {
@@ -53,15 +65,27 @@ struct simplex_DualWorkspace {
 	double *row;
 };
 
-
-/* Shared only by the dual orchestration modules; not part of the public API. */
+/* One kernel attempt owns this state. dual_state.c creates/destroys the
+ * workspace roots, factors and optional storage; array aliases below borrow
+ * those owners. options and progress_problem borrow the caller's input.
+ * Pricing, bounds, feasibility and recovery helpers mutate this same live
+ * attempt; none owns a second solve or may retain it after destruction.
+ * Shared only by Dual modules; not part of the public API. */
 struct simplex_DualState {
+	struct simplex_DualControls controls;
 	int rows;
 	int structural;
 	const struct simplex_Problem *progress_problem;
 	int variables;
 	int iterations;
+	int certificate_row;
+	/* Monotone versions of working data, independent of recovery leases. */
+	long bounds_version, costs_version;
 	struct simplex_DualExplore exploration;
+	/* Independent input-model baselines for each exploration phase. Working
+	 * bounds/cost changes do not invalidate these solve-local quantities. */
+	struct simplex_ObservationHistory input_progress[5][5];
+	struct simplex_StageReport input_observation;
 	int reinversions;
 	int structural_basic;
 	const struct lp_simplex_Options *options;
@@ -129,6 +153,8 @@ struct simplex_DualState {
 	 * the legacy one-shot face perturbation. */
 	int perturb_multi_epoch;
 	int primal_cleanup_active;
+	/* Imported feasible bases naturally continue with primal Devex pricing. */
+	int seeded_basis;
 	int stop_at_primal_feasible;
 	/* Symbolic cost perturbations are anchored to the nonbasic bound signs
 	 * when lexicographic recovery starts.  Storage is allocated on demand. */

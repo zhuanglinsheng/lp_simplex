@@ -11,13 +11,13 @@
 #ifndef LP_SIMPLEX_DEGENERACY_INTERNAL_H
 #define LP_SIMPLEX_DEGENERACY_INTERNAL_H
 
+#include "policy/search.h"
 
 enum simplex_PanPhase {
 	SIMPLEX_PAN_NORMAL = 0,
 	SIMPLEX_PAN_FACE = 1,
 	SIMPLEX_PAN_LEXICOGRAPHIC = 2
 };
-
 
 struct simplex_DegeneracyControl {
 	int phase;
@@ -42,7 +42,6 @@ struct simplex_DegeneracyControl {
 	 * without waiting for an exact state repetition. */
 	long lex_escalations;
 };
-
 
 void simplex_degeneracy_initialize(struct simplex_DegeneracyControl *control);
 
@@ -93,10 +92,6 @@ void simplex_degeneracy_update_status(struct simplex_DegeneracyControl *control,
 int simplex_degeneracy_record_state(struct simplex_DegeneracyControl *control,
 	const int *basis, int rows, const unsigned char *status, int variables);
 
-#define SIMPLEX_DUAL_PROGRESS_WINDOW 128
-#define SIMPLEX_DUAL_EXPLORE_INITIAL 1024
-#define SIMPLEX_DUAL_RECOVERY_ALLOWANCE (16 * SIMPLEX_DUAL_EXPLORE_INITIAL)
-
 /* Bounded leases inside one live solve, never a restart. A lease can renew
  * on local residual reduction or once after a change of measurement space.
  * The hard budget belongs to the caller, so oscillations cannot renew forever. */
@@ -104,16 +99,26 @@ enum simplex_DualExploreReason {
 	SIMPLEX_DUAL_EXPLORE_CONTINUE = 0,
 	SIMPLEX_DUAL_EXPLORE_NUMERICAL,
 	SIMPLEX_DUAL_EXPLORE_CYCLE,
-	SIMPLEX_DUAL_EXPLORE_STAGNATION
+	SIMPLEX_DUAL_EXPLORE_STAGNATION,
+	SIMPLEX_DUAL_EXPLORE_MEASUREMENT
 };
+
 struct simplex_DualExplore {
 	int checkpoint, limit, phase, initialized;
 	int recovery_until, reason;
 	long epoch, cycles;
-	/* Separate measurement spaces survive working-bound recovery epochs. */
+	/* Per-phase measurement versions; changing working data replaces the
+	 * baseline, but does not erase the consumed observation lease. */
 	double baseline[5], secondary[5];
+	long metric_epoch[5];
 	unsigned int seen, lease_seen;
 };
+
+/* Renew a measurement-change handoff only when independent input evidence
+ * improved. No new observation lease is granted merely for changing epochs. */
+int simplex_dual_explore_reassess(struct simplex_DualExplore *history,
+	int hard_limit, unsigned int input_progress, long cycles);
+
 int simplex_dual_explore_yield(struct simplex_DualExplore *history,
 	int iterations, int hard_limit, int phase, long epoch, double residual,
 	double noise, long cycles);

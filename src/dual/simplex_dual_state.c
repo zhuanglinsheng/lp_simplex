@@ -8,7 +8,10 @@
  * @brief Allocation, ownership, and structural policy for a dual solve.
  */
 
+#include "policy/factorization.h"
+#include "policy/controls.h"
 #include "simplex_dual_state.h"
+#include "simplex_dual_storage.h"
 #include "simplex_dual_internal.h"
 #include "simplex_dual_pricing.h"
 #include "simplex_problem.h"
@@ -17,7 +20,6 @@
 #include <lp_simplex/status.h>
 
 #include <stdlib.h>
-
 
 static int dual_matrix_is_numerically_stressed(
 	const struct simplex_CscMatrix *matrix, const double tolerance)
@@ -36,22 +38,35 @@ static int dual_matrix_is_numerically_stressed(
 	return smallest < __lp_simplex_INF__ && largest * tolerance >= smallest;
 }
 
-
 static int dual_matrix_has_regular_columns(
 	const struct simplex_CscMatrix *matrix, int *modal_degree)
 {
 	int column, best = 0;
-	int *frequency = (int *)lp_simplex_malloc(
-		(size_t)(matrix->rows + 1) * sizeof(int));
+	size_t bytes;
+	int *frequency;
+
+	if (matrix->rows < 0 || !simplex_storage_bytes((size_t)matrix->rows + 1,
+					sizeof(int), (size_t)-1, &bytes))
+		return 0;
+	frequency = (int *)lp_simplex_malloc(bytes);
 
 	if (frequency == NULL)
 		return 0;
-	lp_simplex_memset(
-		frequency, 0, (size_t)(matrix->rows + 1) * sizeof(int));
+	lp_simplex_memset(frequency, 0, bytes);
 	for (column = 0; column < matrix->columns; column++) {
-		int degree = matrix->column_start[column + 1] -
-			     matrix->column_start[column];
+		int start = matrix->column_start[column];
+		int end = matrix->column_start[column + 1];
+		int degree;
 
+		if (start < 0 || end < start || end > matrix->nonzeros) {
+			lp_simplex_free(frequency);
+			return 0;
+		}
+		degree = end - start;
+		if (degree > matrix->rows) {
+			lp_simplex_free(frequency);
+			return 0;
+		}
 		frequency[degree]++;
 		if (frequency[degree] > best) {
 			best = frequency[degree];
@@ -60,9 +75,8 @@ static int dual_matrix_has_regular_columns(
 	}
 	lp_simplex_free(frequency);
 	return matrix->columns > 0 &&
-	       (long)best * 10L >= (long)matrix->columns * 9L;
+	       best >= matrix->columns - matrix->columns / 10;
 }
-
 
 static void dual_bind_workspace(struct simplex_DualState *state)
 {
@@ -79,50 +93,52 @@ static void dual_bind_workspace(struct simplex_DualState *state)
 			       ? state->workspace.column + variables
 			       : NULL;
 	state->cost = state->workspace.column != NULL
-			      ? state->workspace.column + 2 * variables
+			      ? state->workspace.column + (size_t)2 * variables
 			      : NULL;
-	state->original_cost = state->workspace.column != NULL
-				       ? state->workspace.column + 3 * variables
-				       : NULL;
+	state->original_cost =
+		state->workspace.column != NULL
+			? state->workspace.column + (size_t)3 * variables
+			: NULL;
 	state->value = state->workspace.column != NULL
-			       ? state->workspace.column + 4 * variables
+			       ? state->workspace.column + (size_t)4 * variables
 			       : NULL;
-	state->reduced = state->workspace.column != NULL
-				 ? state->workspace.column + 5 * variables
-				 : NULL;
-	state->alpha = state->workspace.column != NULL
-			       ? state->workspace.column + 6 * variables
-			       : NULL;
-	state->breakpoint = state->workspace.column != NULL
-				    ? state->workspace.column + 7 * variables
-				    : NULL;
+	state->reduced =
+		state->workspace.column != NULL
+			? state->workspace.column + (size_t)5 * variables
+			: NULL;
+	/* Pricing owns the shared dense ratio row; bind it after creation. */
+	state->alpha = NULL;
+	state->breakpoint =
+		state->workspace.column != NULL
+			? state->workspace.column + (size_t)6 * variables
+			: NULL;
 	state->basic_value = state->workspace.row;
 	state->basic_lower = state->workspace.row != NULL
 				     ? state->workspace.row + rows
 				     : NULL;
 	state->basic_upper = state->workspace.row != NULL
-				     ? state->workspace.row + 2 * rows
+				     ? state->workspace.row + (size_t)2 * rows
 				     : NULL;
-	state->feasibility_tolerance = state->workspace.row != NULL
-					       ? state->workspace.row + 3 * rows
-					       : NULL;
+	state->feasibility_tolerance =
+		state->workspace.row != NULL
+			? state->workspace.row + (size_t)3 * rows
+			: NULL;
 	state->pi = state->workspace.row != NULL
-			    ? state->workspace.row + 4 * rows
+			    ? state->workspace.row + (size_t)4 * rows
 			    : NULL;
 	state->rho = state->workspace.row != NULL
-			     ? state->workspace.row + 5 * rows
+			     ? state->workspace.row + (size_t)5 * rows
 			     : NULL;
 	state->direction = state->workspace.row != NULL
-				   ? state->workspace.row + 6 * rows
+				   ? state->workspace.row + (size_t)6 * rows
 				   : NULL;
 	state->work = state->workspace.row != NULL
-			      ? state->workspace.row + 7 * rows
+			      ? state->workspace.row + (size_t)7 * rows
 			      : NULL;
 	state->edge_weight = state->workspace.row != NULL
-				     ? state->workspace.row + 8 * rows
+				     ? state->workspace.row + (size_t)8 * rows
 				     : NULL;
 }
-
 
 void simplex_dual_state_destroy(struct simplex_DualState *state)
 {
@@ -144,29 +160,31 @@ void simplex_dual_state_destroy(struct simplex_DualState *state)
 	lp_simplex_memset(state, 0, sizeof(*state));
 }
 
-
 int simplex_dual_state_create(struct simplex_DualState *state,
 	const struct simplex_Problem *problem,
 	const struct lp_simplex_Options *options, const int basis_backend)
 {
-	int variables = problem->columns + problem->rows;
+	int variables;
+	struct simplex_DualStorage storage;
+	struct simplex_RunConfig local;
+	const struct simplex_RunConfig *controls;
 
 	lp_simplex_memset(state, 0, sizeof(*state));
+	if (!simplex_dual_storage(
+		    problem->rows, problem->columns, (size_t)-1, &storage))
+		return lp_simplex_EXIT_FAILURE;
+	variables = storage.variables;
+	controls = simplex_run_config_get(problem->execution.context, &local);
 	state->rows = problem->rows;
 	state->structural = problem->columns;
 	state->variables = variables;
 	state->options = options;
 	state->pan_deferred_row = -1;
 	simplex_recovery_initialize(&state->recovery);
-	state->recovery.force_bounds =
-		getenv("LP_SIMPLEX_FORCE_BOUND_PERTURB") != NULL;
-	/* Numeric bound perturbation can worsen otherwise tractable cleanup
-	 * paths. Keep its automatic policy opt-in until broader benchmarks pass. */
-	state->recovery.disable_bounds =
-		getenv("LP_SIMPLEX_DISABLE_BOUND_PERTURB") != NULL ||
-		(getenv("LP_SIMPLEX_PRIMAL_BOUND_PERTURB") == NULL &&
-			!state->recovery.force_bounds);
-	state->profile.enabled = getenv("LP_SIMPLEX_PROFILE") != NULL;
+	state->controls = controls->dual;
+	state->recovery.force_bounds = state->controls.force_bounds;
+	state->recovery.disable_bounds = state->controls.disable_bounds;
+	state->profile.enabled = getenv(SIMPLEX_ENV_PROFILE) != NULL;
 	state->matrix = problem->matrix;
 	state->matrix.owns_storage = 0;
 	state->numerically_stressed = dual_matrix_is_numerically_stressed(
@@ -174,21 +192,18 @@ int simplex_dual_state_create(struct simplex_DualState *state,
 					options->dual_tolerance));
 	/* Degeneracy and numerical stress are independent.  Pivot safeguards
 	 * remain active when the matrix is ill-scaled. */
-	state->pan_enabled = getenv("LP_SIMPLEX_DISABLE_PAN") == NULL;
-	state->perturb_multi_epoch =
-		getenv("LP_SIMPLEX_SINGLE_PERTURB_EPOCH") == NULL;
+	state->pan_enabled = state->controls.pan_enabled;
+	state->perturb_multi_epoch = state->controls.multi_epoch;
 	state->regular_columns = dual_matrix_has_regular_columns(
 		&state->matrix, &state->modal_column_degree);
 	state->stable_candidate_order =
-		state->rows >= 2048 && !state->regular_columns;
-	state->workspace.index = (int *)lp_simplex_malloc(
-		(size_t)(problem->rows + variables) * sizeof(int));
-	state->workspace.status = (unsigned char *)lp_simplex_malloc(
-		(size_t)variables * sizeof(unsigned char));
-	state->workspace.column = (double *)lp_simplex_malloc(
-		(size_t)8 * variables * sizeof(double));
-	state->workspace.row = (double *)lp_simplex_malloc(
-		(size_t)9 * problem->rows * sizeof(double));
+		state->rows >= SIMPLEX_DUAL_STABLE_ORDER_ROWS &&
+		!state->regular_columns;
+	state->workspace.index = (int *)lp_simplex_malloc(storage.index);
+	state->workspace.status =
+		(unsigned char *)lp_simplex_malloc(storage.status);
+	state->workspace.column = (double *)lp_simplex_malloc(storage.column);
+	state->workspace.row = (double *)lp_simplex_malloc(storage.row);
 	dual_bind_workspace(state);
 	if (state->workspace.index == NULL || state->workspace.status == NULL ||
 		state->workspace.column == NULL ||
@@ -200,13 +215,17 @@ int simplex_dual_state_create(struct simplex_DualState *state,
 			lp_simplex_EXIT_FAILURE ||
 		simplex_dual_feasibility_create(&state->feasibility,
 			problem->rows) == lp_simplex_EXIT_FAILURE ||
-		simplex_basis_create(&state->factor, &state->matrix,
-			problem->columns,
-			state->basis) == lp_simplex_EXIT_FAILURE) {
+		simplex_basis_create_configured(&state->factor, &state->matrix,
+			problem->columns, state->basis,
+			state->controls.stable_klu) ==
+			lp_simplex_EXIT_FAILURE) {
 		simplex_dual_state_destroy(state);
 		return lp_simplex_EXIT_FAILURE;
 	}
-	lp_simplex_memset(state->alpha, 0, (size_t)variables * sizeof(double));
+	/* Sparse pricing and dense pricing share one ratio row. Packed values
+	 * remain a snapshot for reduced-cost updates after the basis exchange. */
+	state->alpha = variables > 0 ? state->packed_alpha.dense
+				     : state->workspace.column;
 	lp_simplex_memset(state->feasibility_tolerance, 0,
 		(size_t)problem->rows * sizeof(double));
 	simplex_basis_set_backend(&state->factor, basis_backend);

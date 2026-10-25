@@ -32,7 +32,6 @@
 #define SIMPLE_EXAMPLES_DIR "data/simple_examples"
 #endif
 
-
 /** Description and prediction for one MPS regression example. */
 struct ExampleSpec {
 	const char *label; /**< Human-readable test name. */
@@ -86,7 +85,6 @@ static double absolute_value(double value)
 	return value < 0. ? -value : value;
 }
 
-
 /** Compare floating-point values with a combined absolute/relative tolerance. */
 static int nearly_equal(double actual, double expected, double tolerance)
 {
@@ -96,7 +94,6 @@ static int nearly_equal(double actual, double expected, double tolerance)
 		scale = 1.;
 	return absolute_value(actual - expected) <= tolerance * scale;
 }
-
 
 /** Build a path into caller-provided storage, returning zero if it will not fit. */
 static int build_example_path(char *path, size_t capacity, const char *filename)
@@ -112,7 +109,6 @@ static int build_example_path(char *path, size_t capacity, const char *filename)
 	memcpy(path + directory_length + 1, filename, filename_length + 1);
 	return 1;
 }
-
 
 /**
  * Load, solve, and verify one example.
@@ -221,7 +217,6 @@ static int run_example(const struct ExampleSpec *example, const int algorithm)
 	lp_model_free(model);
 	return passed;
 }
-
 
 /** Run all MPS examples and fail the process if any prediction is missed. */
 int main(void)

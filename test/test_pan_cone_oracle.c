@@ -8,6 +8,7 @@
  * @brief Regression tests for tangent-cone directions on degenerate models.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_cone.h"
 #include "simplex_pan_basis.h"
 
@@ -17,12 +18,12 @@
 #include <stdio.h>
 #include <string.h>
 
-
 /* Analytic tangent-cone problems: a feasible decreasing edge and a stationary
  * constrained fit. The latter has an improving cost column but no feasible
  * decreasing direction, so it must not be returned as an exact fit. */
 static int run(int stationary)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard a;
 	struct simplex_PanBasis b;
 	int start[4] = {0, 1, 2, 4}, rows[4] = {0, 1, 0, 1};
@@ -34,6 +35,7 @@ static int run(int stationary)
 	unsigned char free_mask[3] = {1, 0, 0};
 	int steps = 0, status = lp_simplex_CondUnsatisfied, state, valid;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&a, 0, sizeof(a));
 	a.rows = stationary ? 2 : 1;
 	a.columns = stationary ? 3 : 2;
@@ -50,14 +52,14 @@ static int run(int stationary)
 	a.normalized_value = normalized;
 	a.objective = cost;
 	a.rhs = rhs;
-	if (simplex_pan_basis_create(&b, &a, 1e-10))
+	if (simplex_pan_basis_create_configured(&b, &a, 1e-10, &basis_controls))
 		return 0;
 	if (simplex_pan_basis_add(&b, 0) || simplex_pan_basis_rebuild(&b)) {
 		simplex_pan_basis_destroy(&b);
 		return 0;
 	}
-	state = simplex_pan_cone_implicit(
-		&b, d, free_mask, r, 1e-10, 100, &steps, &status);
+	state = simplex_pan_cone_implicit_audited(
+		&b, d, free_mask, r, 1e-10, 100, &steps, &status, NULL, NULL);
 	valid = stationary
 			? state == 1 && fabs(d[0] + .5) < 1e-9 &&
 				  fabs(d[1]) < 1e-9 && fabs(d[2] - .5) < 1e-9 &&
@@ -72,7 +74,6 @@ static int run(int stationary)
 		valid ? "passed" : "failed");
 	return valid;
 }
-
 
 int main(void)
 {

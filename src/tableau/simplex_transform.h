@@ -13,14 +13,14 @@
 
 #include <lp_simplex/model.h>
 
-
 int simplex_transform_alloc(int m, int n, double **objective, double **solution,
 	double **coefficients, struct optm_LinearConstraint **constraints);
 
 void simplex_transform_free(double *objective, double *solution,
 	double *coefficients, struct optm_LinearConstraint *constraints);
 
-void simplex_transform_size(const struct optm_VariableBound *bounds, int m,
+/* Zero output dimensions on failure; integer offsets and byte counts must fit. */
+int simplex_transform_size(const struct optm_VariableBound *bounds, int m,
 	int n, int *new_m, int *new_n);
 
 void simplex_transform_problem(const double *objective,

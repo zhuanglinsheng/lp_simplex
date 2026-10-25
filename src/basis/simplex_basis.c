@@ -10,10 +10,13 @@
  * Revised-simplex code depends only on this API.
  */
 
+#include "policy/factorization.h"
+#include "policy/controls.h"
 #include "simplex_basis.h"
 #include "linalg.h"
 #include "simplex_sparse_lu.h"
 #include "utils.h"
+#include "simplex_storage.h"
 
 #ifdef LP_SIMPLEX_HAVE_KLU
 #include <klu.h>
@@ -22,14 +25,10 @@
 #include <lp_simplex/status.h>
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
-
-
-#define SIMPLEX_BASIS_UPDATE_LIMIT 512
-#define SIMPLEX_BASIS_STABILITY_PIVOT 1e-7
-
 
 struct simplex_BasisImpl {
 	int rows;
@@ -81,6 +80,7 @@ struct simplex_BasisImpl {
 	int dense_eta_capacity;
 	int dense_eta_count;
 	int update_count;
+	int storage_failed;
 	int update_limit;
 	long update_work;
 	long factor_work;
@@ -108,9 +108,7 @@ struct simplex_BasisImpl {
 	long profile_compact_btran_refinements;
 };
 
-
 static void simplex_basis_reset_updates(struct simplex_Basis *basis);
-
 
 /* True when the internal sparse LU backs this basis.  Both backends are
  * compiled when KLU is present, so every backend-specific branch is a runtime
@@ -124,7 +122,6 @@ static int simplex_basis_uses_internal(const struct simplex_Basis *basis)
 	return 1;
 #endif
 }
-
 
 void simplex_basis_set_backend(struct simplex_Basis *basis, const int backend)
 {
@@ -144,7 +141,6 @@ void simplex_basis_set_backend(struct simplex_Basis *basis, const int backend)
 	simplex_basis_reset_updates(basis);
 }
 
-
 int simplex_basis_resolved_backend(const struct simplex_Basis *basis)
 {
 	if (basis == NULL || basis->impl == NULL)
@@ -156,15 +152,68 @@ int simplex_basis_resolved_backend(const struct simplex_Basis *basis)
 	return SIMPLEX_BASIS_BACKEND_INTERNAL;
 }
 
-
 int simplex_basis_create(struct simplex_Basis *basis,
 	const struct simplex_CscMatrix *matrix, const int structural_columns,
 	int *index)
 {
+	return simplex_basis_create_configured(basis, matrix,
+		structural_columns, index,
+		getenv(SIMPLEX_ENV_STABLE_KLU) != NULL);
+}
+
+/* Constructor-owned arrays only; numerical updates/factors have their own
+ * storage lifetimes and admission. No global memory quota is implied. */
+struct basis_StartupStorage {
+	int eta_capacity;
+	size_t core, work, starts, eta_values, eta_indices, eta_starts,
+		eta_pivots;
+};
+
+static int basis_startup_storage(int rows, int structural, size_t limit,
+	struct basis_StartupStorage *storage)
+{
+	struct basis_StartupStorage next = {0};
+	*storage = next;
+	if (rows < 0 || structural < 0 || structural > INT_MAX - rows ||
+		SIMPLEX_BASIS_UPDATE_LIMIT <= 0 ||
+		SIMPLEX_BASIS_UPDATE_LIMIT > (INT_MAX - 1) / 3)
+		return 0;
+	next.eta_capacity =
+		rows > INT_MAX / 4 ? INT_MAX : __lp_simplex_MAX__(rows * 4, 16);
+	if (!simplex_storage_bytes(
+		    (size_t)rows, 6 * sizeof(int), limit, &next.core) ||
+		!simplex_storage_bytes(
+			(size_t)rows, 7 * sizeof(double), limit, &next.work) ||
+		!simplex_storage_bytes(
+			(size_t)rows + 1, sizeof(int), limit, &next.starts) ||
+		!simplex_storage_bytes((size_t)next.eta_capacity,
+			sizeof(double), limit, &next.eta_values) ||
+		!simplex_storage_bytes((size_t)next.eta_capacity, sizeof(int),
+			limit, &next.eta_indices) ||
+		!simplex_storage_bytes(
+			(size_t)3 * SIMPLEX_BASIS_UPDATE_LIMIT + 1, sizeof(int),
+			limit, &next.eta_starts) ||
+		!simplex_storage_bytes((size_t)SIMPLEX_BASIS_UPDATE_LIMIT,
+			sizeof(double), limit, &next.eta_pivots))
+		return 0;
+	*storage = next;
+	return 1;
+}
+
+int simplex_basis_create_configured(struct simplex_Basis *basis,
+	const struct simplex_CscMatrix *matrix, const int structural_columns,
+	int *index, int stable_klu)
+{
+	struct basis_StartupStorage storage;
+	(void)stable_klu;
 	if (basis == NULL || matrix == NULL)
 		return lp_simplex_EXIT_FAILURE;
 
 	lp_simplex_memset(basis, 0, sizeof(*basis));
+	if (structural_columns > matrix->columns ||
+		!basis_startup_storage(
+			matrix->rows, structural_columns, (size_t)-1, &storage))
+		return lp_simplex_EXIT_FAILURE;
 	basis->impl = (struct simplex_BasisImpl *)lp_simplex_malloc(
 		sizeof(*basis->impl));
 	if (basis->impl == NULL)
@@ -181,91 +230,88 @@ int simplex_basis_create(struct simplex_Basis *basis,
 	basis->impl->compact_requested = 0;
 	basis->impl->allow_sparse_eta = 1;
 	basis->impl->allow_ft = 1;
-	basis->impl->core_basis = (int *)lp_simplex_malloc(
-		(size_t)6 * matrix->rows * sizeof(int));
+	basis->impl->core_basis = (int *)lp_simplex_malloc(storage.core);
 	basis->impl->core_position =
 		basis->impl->core_basis != NULL
 			? basis->impl->core_basis + matrix->rows
 			: NULL;
 	basis->impl->core_row =
 		basis->impl->core_basis != NULL
-			? basis->impl->core_basis + 2 * matrix->rows
+			? basis->impl->core_basis + (size_t)2 * matrix->rows
 			: NULL;
 	basis->impl->row_to_core =
 		basis->impl->core_basis != NULL
-			? basis->impl->core_basis + 3 * matrix->rows
+			? basis->impl->core_basis + (size_t)3 * matrix->rows
 			: NULL;
 	basis->impl->logical_position =
 		basis->impl->core_basis != NULL
-			? basis->impl->core_basis + 4 * matrix->rows
+			? basis->impl->core_basis + (size_t)4 * matrix->rows
 			: NULL;
 	basis->impl->base_index =
 		basis->impl->core_basis != NULL
-			? basis->impl->core_basis + 5 * matrix->rows
+			? basis->impl->core_basis + (size_t)5 * matrix->rows
 			: NULL;
-	basis->impl->base_work = (double *)lp_simplex_malloc(
-		(size_t)7 * matrix->rows * sizeof(double));
+	basis->impl->base_work = (double *)lp_simplex_malloc(storage.work);
 	basis->impl->core_work = basis->impl->base_work != NULL
 					 ? basis->impl->base_work + matrix->rows
 					 : NULL;
 	basis->impl->refine_work =
 		basis->impl->base_work != NULL
-			? basis->impl->base_work + 2 * matrix->rows
+			? basis->impl->base_work + (size_t)2 * matrix->rows
 			: NULL;
 	basis->impl->correction_work =
 		basis->impl->base_work != NULL
-			? basis->impl->base_work + 3 * matrix->rows
+			? basis->impl->base_work + (size_t)3 * matrix->rows
 			: NULL;
 	basis->impl->certify_right =
 		basis->impl->base_work != NULL
-			? basis->impl->base_work + 4 * matrix->rows
+			? basis->impl->base_work + (size_t)4 * matrix->rows
 			: NULL;
 	basis->impl->certify_residual =
 		basis->impl->base_work != NULL
-			? basis->impl->base_work + 5 * matrix->rows
+			? basis->impl->base_work + (size_t)5 * matrix->rows
 			: NULL;
 	basis->impl->certify_correction =
 		basis->impl->base_work != NULL
-			? basis->impl->base_work + 6 * matrix->rows
+			? basis->impl->base_work + (size_t)6 * matrix->rows
 			: NULL;
 #ifdef LP_SIMPLEX_HAVE_KLU
-	basis->impl->base_column_start = (int *)lp_simplex_malloc(
-		(size_t)(matrix->rows + 1) * sizeof(int));
+	basis->impl->base_column_start =
+		(int *)lp_simplex_malloc(storage.starts);
 	basis->impl->base_row_index = NULL;
 	basis->impl->base_value = NULL;
 	basis->impl->symbolic = NULL;
 	basis->impl->numeric = NULL;
 	klu_defaults(&basis->impl->common);
-	if (getenv("LP_SIMPLEX_STABLE_KLU") != NULL)
-		basis->impl->common.tol = .1;
+	if (stable_klu)
+		basis->impl->common.tol = SIMPLEX_KLU_PIVOT_PREFERENCE;
 #endif
 	lp_simplex_memset(&basis->impl->sparse, 0, sizeof(basis->impl->sparse));
 	basis->impl->backend = SIMPLEX_BASIS_BACKEND_DEFAULT;
-	basis->impl->eta_capacity = __lp_simplex_MAX__(matrix->rows * 4, 16);
-	basis->impl->eta_value = (double *)lp_simplex_malloc(
-		(size_t)basis->impl->eta_capacity * sizeof(double));
+	basis->impl->eta_capacity = storage.eta_capacity;
+	basis->impl->eta_value =
+		(double *)lp_simplex_malloc(storage.eta_values);
 	/* Dense eta columns are grown by actual use.  Reserving update_limit * rows
 	 * here makes the first dense update consume hundreds of megabytes on a
 	 * large model even if reinversion follows immediately. */
 	basis->impl->dense_eta = NULL;
 	basis->impl->dense_eta_capacity = 0;
 	basis->impl->dense_eta_count = 0;
-	basis->impl->eta_index = (int *)lp_simplex_malloc(
-		(size_t)basis->impl->eta_capacity * sizeof(int));
-	basis->impl->eta_start = (int *)lp_simplex_malloc(
-		(size_t)(3 * SIMPLEX_BASIS_UPDATE_LIMIT + 1) * sizeof(int));
+	basis->impl->eta_index = (int *)lp_simplex_malloc(storage.eta_indices);
+	basis->impl->eta_start = (int *)lp_simplex_malloc(storage.eta_starts);
 	basis->impl->eta_pivot = basis->impl->eta_start != NULL
 					 ? basis->impl->eta_start +
 						   SIMPLEX_BASIS_UPDATE_LIMIT +
 						   1
 					 : NULL;
-	basis->impl->eta_pivot_value = (double *)lp_simplex_malloc(
-		(size_t)SIMPLEX_BASIS_UPDATE_LIMIT * sizeof(double));
+	basis->impl->eta_pivot_value =
+		(double *)lp_simplex_malloc(storage.eta_pivots);
 	basis->impl->eta_dense_slot =
 		basis->impl->eta_pivot != NULL
 			? basis->impl->eta_pivot + SIMPLEX_BASIS_UPDATE_LIMIT
 			: NULL;
 	basis->impl->update_count = 0;
+	basis->impl->storage_failed = 0;
 	basis->impl->update_work = 0;
 	basis->impl->factor_work = 0;
 	basis->impl->eta_apply_work = 0;
@@ -275,7 +321,7 @@ int simplex_basis_create(struct simplex_Basis *basis,
 	if (basis->impl->eta_start != NULL)
 		basis->impl->eta_start[0] = 0;
 	basis->impl->update_limit = SIMPLEX_BASIS_UPDATE_LIMIT;
-	basis->impl->profile_enabled = getenv("LP_SIMPLEX_PROFILE") != NULL;
+	basis->impl->profile_enabled = getenv(SIMPLEX_ENV_PROFILE) != NULL;
 	basis->impl->profile_factor_seconds = 0.;
 	basis->impl->profile_ftran_seconds = 0.;
 	basis->impl->profile_btran_seconds = 0.;
@@ -324,7 +370,6 @@ int simplex_basis_create(struct simplex_Basis *basis,
 #endif
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 void simplex_basis_destroy(struct simplex_Basis *basis)
 {
@@ -389,7 +434,6 @@ void simplex_basis_destroy(struct simplex_Basis *basis)
 	basis->impl = NULL;
 }
 
-
 static int simplex_basis_build_core(struct simplex_Basis *basis)
 {
 	int position, row;
@@ -431,16 +475,15 @@ static int simplex_basis_build_core(struct simplex_Basis *basis)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void simplex_basis_reset_updates(struct simplex_Basis *basis)
 {
+	basis->impl->storage_failed = 0;
 	basis->impl->update_count = 0;
 	basis->impl->update_work = 0;
 	basis->impl->minimum_relative_pivot = 1.;
 	basis->impl->eta_start[0] = 0;
 	basis->impl->dense_eta_count = 0;
 }
-
 
 static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 {
@@ -449,14 +492,17 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 	int column, k;
 	int nonzeros = 0;
 	int factor_size;
+	size_t index_bytes, value_bytes;
 #endif
 	if (simplex_basis_build_core(basis) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	core_size = basis->impl->core_size;
-	basis->impl->compact_active = basis->impl->compact_requested &&
-				      basis->impl->rows >= 4096 &&
-				      core_size < basis->impl->rows &&
-				      core_size * 3 <= basis->impl->rows;
+	basis->impl->compact_active =
+		basis->impl->compact_requested &&
+		basis->impl->rows >= SIMPLEX_BASIS_COMPACT_MIN_ROWS &&
+		core_size < basis->impl->rows &&
+		core_size * SIMPLEX_BASIS_COMPACT_ROW_RATIO <=
+			basis->impl->rows;
 	basis->impl->factor_size =
 		basis->impl->compact_active ? core_size : basis->impl->rows;
 	basis->impl->compact_ftran_validation_countdown = 0;
@@ -494,9 +540,13 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 					: basis->impl->base_index[column];
 
 			if (!basis->impl->compact_active &&
-				variable >= basis->impl->structural_columns)
+				variable >= basis->impl->structural_columns) {
+				if (nonzeros == INT_MAX) {
+					basis->impl->storage_failed = 1;
+					return lp_simplex_EXIT_FAILURE;
+				}
 				nonzeros++;
-			else
+			} else
 				for (k = basis->impl->matrix
 						->column_start[variable];
 					k <
@@ -508,16 +558,32 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 								->impl->matrix
 								->row_index
 									[k]] >=
-							0)
+							0) {
+						if (nonzeros == INT_MAX) {
+							basis->impl
+								->storage_failed =
+								1;
+							return lp_simplex_EXIT_FAILURE;
+						}
 						nonzeros++;
+					}
 		}
-		basis->impl->base_row_index = (int *)lp_simplex_malloc(
-			(size_t)nonzeros * sizeof(int));
-		basis->impl->base_value = (double *)lp_simplex_malloc(
-			(size_t)nonzeros * sizeof(double));
-		if (basis->impl->base_row_index == NULL ||
-			basis->impl->base_value == NULL)
+		if (!simplex_storage_bytes((size_t)nonzeros, sizeof(int),
+			    (size_t)-1, &index_bytes) ||
+			!simplex_storage_bytes((size_t)nonzeros, sizeof(double),
+				(size_t)-1, &value_bytes)) {
+			basis->impl->storage_failed = 1;
 			return lp_simplex_EXIT_FAILURE;
+		}
+		basis->impl->base_row_index =
+			(int *)lp_simplex_malloc(index_bytes);
+		basis->impl->base_value =
+			(double *)lp_simplex_malloc(value_bytes);
+		if (basis->impl->base_row_index == NULL ||
+			basis->impl->base_value == NULL) {
+			basis->impl->storage_failed = 1;
+			return lp_simplex_EXIT_FAILURE;
+		}
 		nonzeros = 0;
 		for (column = 0; column < factor_size; column++) {
 			int variable =
@@ -565,14 +631,24 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 		basis->impl->symbolic = klu_analyze(factor_size,
 			basis->impl->base_column_start,
 			basis->impl->base_row_index, &basis->impl->common);
-		if (basis->impl->symbolic == NULL)
+		if (basis->impl->symbolic == NULL) {
+			basis->impl->storage_failed =
+				basis->impl->common.status ==
+					KLU_OUT_OF_MEMORY ||
+				basis->impl->common.status == KLU_TOO_LARGE;
 			return lp_simplex_EXIT_FAILURE;
+		}
 		basis->impl->numeric = klu_factor(
 			basis->impl->base_column_start,
 			basis->impl->base_row_index, basis->impl->base_value,
 			basis->impl->symbolic, &basis->impl->common);
-		if (basis->impl->numeric == NULL)
+		if (basis->impl->numeric == NULL) {
+			basis->impl->storage_failed =
+				basis->impl->common.status ==
+					KLU_OUT_OF_MEMORY ||
+				basis->impl->common.status == KLU_TOO_LARGE;
 			return lp_simplex_EXIT_FAILURE;
+		}
 		klu_flops(basis->impl->symbolic, basis->impl->numeric,
 			&basis->impl->common);
 		simplex_basis_reset_updates(basis);
@@ -606,16 +682,21 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 	return lp_simplex_EXIT_FAILURE;
 }
 
-
 int simplex_basis_factorize(struct simplex_Basis *basis)
 {
 	clock_t started = 0;
 	double elapsed = 0.;
 	int result;
 
+	basis->impl->storage_failed = 0;
+	basis->impl->sparse.storage_failed = 0;
 	if (basis->impl->profile_enabled)
 		started = clock();
 	result = simplex_basis_factorize_impl(basis);
+	if (result == lp_simplex_EXIT_FAILURE &&
+		simplex_basis_uses_internal(basis))
+		basis->impl->storage_failed =
+			basis->impl->sparse.storage_failed;
 	if (result == lp_simplex_EXIT_SUCCESS) {
 		if (basis->impl->profile_enabled)
 			elapsed = (double)(clock() - started) /
@@ -650,11 +731,10 @@ int simplex_basis_factorize(struct simplex_Basis *basis)
 	}
 	if (basis->impl->profile_enabled) {
 		basis->impl->profile_factor_seconds += elapsed;
-		basis->impl->profile_factor_calls++;
 	}
+	basis->impl->profile_factor_calls++;
 	return result;
 }
-
 
 static int simplex_basis_core_solve(
 	const struct simplex_Basis *basis, double *vector, const char trans)
@@ -685,7 +765,6 @@ static int simplex_basis_core_solve(
 #endif
 }
 
-
 static int simplex_basis_core_solve_pair(
 	const struct simplex_Basis *basis, double *first, double *second)
 {
@@ -707,7 +786,6 @@ static int simplex_basis_core_solve_pair(
 		&((struct simplex_Basis *)basis)->impl->sparse, first, second);
 #endif
 }
-
 
 static int simplex_basis_base_ftran_once(
 	const struct simplex_Basis *basis, const double *right, double *vector)
@@ -745,7 +823,6 @@ static int simplex_basis_base_ftran_once(
 	}
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_base_ftran_pair_once(const struct simplex_Basis *basis,
 	const double *first_right, const double *second_right, double *first,
@@ -798,7 +875,6 @@ static int simplex_basis_base_ftran_pair_once(const struct simplex_Basis *basis,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void simplex_basis_ftran_residual(const struct simplex_Basis *basis,
 	const double *right, const double *solution, double *residual,
 	double *maximum)
@@ -830,7 +906,6 @@ static void simplex_basis_ftran_residual(const struct simplex_Basis *basis,
 			*maximum, __lp_simplex_ABS__(residual[i]) / scale);
 }
 
-
 static int simplex_basis_base_ftran(
 	const struct simplex_Basis *basis, double *vector)
 {
@@ -850,10 +925,11 @@ static int simplex_basis_base_ftran(
 		return lp_simplex_EXIT_SUCCESS;
 	}
 	mutable->impl->profile_compact_ftran_validations++;
-	for (refinement = 0; refinement < 2; refinement++) {
+	for (refinement = 0; refinement < SIMPLEX_BASIS_COMPACT_REFINEMENTS;
+		refinement++) {
 		simplex_basis_ftran_residual(basis, mutable->impl->base_work,
 			vector, mutable->impl->refine_work, &residual);
-		if (residual <= 1e-11)
+		if (residual <= SIMPLEX_BASIS_COMPACT_RESIDUAL_TARGET)
 			break;
 		refined = 1;
 		mutable->impl->profile_compact_ftran_refinements++;
@@ -865,10 +941,10 @@ static int simplex_basis_base_ftran(
 		for (i = 0; i < basis->impl->rows; i++)
 			vector[i] += mutable->impl->correction_work[i];
 	}
-	mutable->impl->compact_ftran_validation_countdown = refined ? 0 : 31;
+	mutable->impl->compact_ftran_validation_countdown =
+		refined ? 0 : SIMPLEX_BASIS_VALIDATION_PERIOD - 1;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_base_ftran_pair(
 	const struct simplex_Basis *basis, double *first, double *second)
@@ -899,7 +975,6 @@ static int simplex_basis_base_ftran_pair(
 		0, mutable->impl->compact_ftran_validation_countdown - 2);
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_base_btran_once(
 	const struct simplex_Basis *basis, const double *right, double *vector)
@@ -935,7 +1010,6 @@ static int simplex_basis_base_btran_once(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void simplex_basis_btran_residual(const struct simplex_Basis *basis,
 	const double *right, const double *solution, double *residual,
 	double *maximum)
@@ -965,7 +1039,6 @@ static void simplex_basis_btran_residual(const struct simplex_Basis *basis,
 			*maximum, __lp_simplex_ABS__(residual[i]) / scale);
 }
 
-
 static int simplex_basis_base_btran(
 	const struct simplex_Basis *basis, double *vector)
 {
@@ -985,10 +1058,11 @@ static int simplex_basis_base_btran(
 		return lp_simplex_EXIT_SUCCESS;
 	}
 	mutable->impl->profile_compact_btran_validations++;
-	for (refinement = 0; refinement < 2; refinement++) {
+	for (refinement = 0; refinement < SIMPLEX_BASIS_COMPACT_REFINEMENTS;
+		refinement++) {
 		simplex_basis_btran_residual(basis, mutable->impl->base_work,
 			vector, mutable->impl->refine_work, &residual);
-		if (residual <= 1e-11)
+		if (residual <= SIMPLEX_BASIS_COMPACT_RESIDUAL_TARGET)
 			break;
 		refined = 1;
 		mutable->impl->profile_compact_btran_refinements++;
@@ -1000,10 +1074,10 @@ static int simplex_basis_base_btran(
 		for (i = 0; i < basis->impl->rows; i++)
 			vector[i] += mutable->impl->correction_work[i];
 	}
-	mutable->impl->compact_btran_validation_countdown = refined ? 0 : 31;
+	mutable->impl->compact_btran_validation_countdown =
+		refined ? 0 : SIMPLEX_BASIS_VALIDATION_PERIOD - 1;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_apply_eta(
 	const struct simplex_Basis *basis, const int update, double *vector)
@@ -1014,7 +1088,7 @@ static int simplex_basis_apply_eta(
 	double pivot = basis->impl->eta_pivot_value[update];
 	double value;
 
-	if (__lp_simplex_ABS__(pivot) <= 1e-14)
+	if (__lp_simplex_ABS__(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR)
 		return lp_simplex_EXIT_FAILURE;
 	if (vector[p] == 0.)
 		return lp_simplex_EXIT_SUCCESS;
@@ -1033,7 +1107,6 @@ static int simplex_basis_apply_eta(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static int simplex_basis_apply_eta_pair(const struct simplex_Basis *basis,
 	const int update, double *first, double *second)
 {
@@ -1043,7 +1116,7 @@ static int simplex_basis_apply_eta_pair(const struct simplex_Basis *basis,
 	double pivot = basis->impl->eta_pivot_value[update];
 	double first_value, second_value;
 
-	if (__lp_simplex_ABS__(pivot) <= 1e-14)
+	if (__lp_simplex_ABS__(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR)
 		return lp_simplex_EXIT_FAILURE;
 	if (first[p] == 0. && second[p] == 0.)
 		return lp_simplex_EXIT_SUCCESS;
@@ -1072,7 +1145,6 @@ static int simplex_basis_apply_eta_pair(const struct simplex_Basis *basis,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static int simplex_basis_apply_eta_transpose(
 	const struct simplex_Basis *basis, const int update, double *vector)
 {
@@ -1083,7 +1155,7 @@ static int simplex_basis_apply_eta_transpose(
 	double pivot_value = vector[p];
 	double dot = 0.;
 
-	if (__lp_simplex_ABS__(pivot) <= 1e-14)
+	if (__lp_simplex_ABS__(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR)
 		return lp_simplex_EXIT_FAILURE;
 	if (dense_slot < 0)
 		for (k = basis->impl->eta_start[update];
@@ -1098,7 +1170,6 @@ static int simplex_basis_apply_eta_transpose(
 	vector[p] = (pivot_value - dot + pivot * pivot_value) / pivot;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_ftran_raw(
 	const struct simplex_Basis *basis, double *vector)
@@ -1125,7 +1196,6 @@ static int simplex_basis_ftran_raw(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static int simplex_basis_btran_raw(
 	const struct simplex_Basis *basis, double *vector)
 {
@@ -1148,7 +1218,6 @@ static int simplex_basis_btran_raw(
 	}
 	return simplex_basis_base_btran(basis, vector);
 }
-
 
 /* Componentwise backward error for B*x=right using the current basis, not
  * merely the basis captured by the last refactorization.  The denominator
@@ -1195,7 +1264,6 @@ static double simplex_basis_current_ftran_residual(
 	return maximum;
 }
 
-
 static double simplex_basis_current_btran_residual(
 	const struct simplex_Basis *basis, const double *right,
 	const double *solution, double *residual, double *denominator)
@@ -1237,7 +1305,6 @@ static double simplex_basis_current_btran_residual(
 	return maximum;
 }
 
-
 static int simplex_basis_refine(
 	const struct simplex_Basis *basis, double *vector, const int transpose)
 {
@@ -1260,7 +1327,8 @@ static int simplex_basis_refine(
 		mutable->impl->certify_residual, mutable->impl->core_work);
 	if (!isfinite(error))
 		return lp_simplex_EXIT_FAILURE;
-	for (refinement = 0; refinement < 3 && error > threshold;
+	for (refinement = 0; refinement < SIMPLEX_BASIS_TERMINAL_REFINEMENTS &&
+			     error > threshold;
 		refinement++) {
 		lp_simplex_memcpy(mutable->impl->certify_correction,
 			mutable->impl->certify_residual,
@@ -1286,20 +1354,17 @@ static int simplex_basis_refine(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 int simplex_basis_ftran_refined(
 	const struct simplex_Basis *basis, double *vector)
 {
 	return simplex_basis_refine(basis, vector, 0);
 }
 
-
 int simplex_basis_btran_refined(
 	const struct simplex_Basis *basis, double *vector)
 {
 	return simplex_basis_refine(basis, vector, 1);
 }
-
 
 int simplex_basis_ftran_pair(
 	const struct simplex_Basis *basis, double *first, double *second)
@@ -1340,11 +1405,10 @@ int simplex_basis_ftran_pair(
 	if (basis->impl->profile_enabled) {
 		mutable->impl->profile_ftran_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
-		mutable->impl->profile_ftran_calls += 2;
 	}
+	mutable->impl->profile_ftran_calls += 2;
 	return result;
 }
-
 
 int simplex_basis_ftran(const struct simplex_Basis *basis, double *vector)
 {
@@ -1358,11 +1422,10 @@ int simplex_basis_ftran(const struct simplex_Basis *basis, double *vector)
 	if (basis->impl->profile_enabled) {
 		mutable->impl->profile_ftran_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
-		mutable->impl->profile_ftran_calls++;
 	}
+	mutable->impl->profile_ftran_calls++;
 	return result;
 }
-
 
 int simplex_basis_btran(const struct simplex_Basis *basis, double *vector)
 {
@@ -1376,11 +1439,36 @@ int simplex_basis_btran(const struct simplex_Basis *basis, double *vector)
 	if (basis->impl->profile_enabled) {
 		mutable->impl->profile_btran_seconds +=
 			(double)(clock() - started) / (double)CLOCKS_PER_SEC;
-		mutable->impl->profile_btran_calls++;
 	}
+	mutable->impl->profile_btran_calls++;
 	return result;
 }
 
+/* Keep the ordinary growth sequence, but never evaluate an overflowing int.
+ * The exact request is sufficient when geometric growth is unrepresentable. */
+static int basis_eta_capacity(int capacity, int required, int dense)
+{
+	if (capacity < 0 || required < 0)
+		return -1;
+	while (capacity < required) {
+		int increment = capacity / 2 + dense;
+
+		if (!increment || capacity > INT_MAX - increment)
+			return required;
+		capacity += increment;
+	}
+	return capacity;
+}
+
+static int basis_eta_bytes(int capacity, int rows, size_t limit, size_t *bytes)
+{
+	size_t column;
+	*bytes = 0;
+	return capacity >= 0 && rows >= 0 &&
+	       simplex_storage_bytes(
+		       (size_t)rows, sizeof(double), limit, &column) &&
+	       simplex_storage_bytes((size_t)capacity, column, limit, bytes);
+}
 
 static int simplex_basis_reserve_eta(
 	struct simplex_Basis *basis, const int required)
@@ -1388,22 +1476,27 @@ static int simplex_basis_reserve_eta(
 	int capacity;
 	double *value;
 	int *index;
+	size_t value_bytes, index_bytes;
 
+	if (required < 0)
+		return lp_simplex_EXIT_FAILURE;
 	if (required <= basis->impl->eta_capacity)
 		return lp_simplex_EXIT_SUCCESS;
-	capacity = basis->impl->eta_capacity;
-	while (capacity < required) {
-		int grown = capacity + capacity / 2;
-
-		capacity = grown > capacity ? grown : required;
-	}
+	capacity = basis_eta_capacity(basis->impl->eta_capacity, required, 0);
+	if (capacity < 0 ||
+		!simplex_storage_bytes((size_t)capacity, sizeof(double),
+			(size_t)-1, &value_bytes) ||
+		!simplex_storage_bytes((size_t)capacity, sizeof(int),
+			(size_t)-1, &index_bytes))
+		return lp_simplex_EXIT_FAILURE;
 	value = (double *)lp_simplex_realloc(
-		basis->impl->eta_value, (size_t)capacity * sizeof(double));
+		basis->impl->eta_value, value_bytes);
 	if (value == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	basis->impl->eta_value = value;
-	index = (int *)lp_simplex_realloc(
-		basis->impl->eta_index, (size_t)capacity * sizeof(int));
+	/* A second allocation failure keeps the old usable capacity and both
+	 * prefixes. The enlarged value allocation is owned and safely reusable. */
+	index = (int *)lp_simplex_realloc(basis->impl->eta_index, index_bytes);
 	if (index == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	basis->impl->eta_index = index;
@@ -1411,32 +1504,30 @@ static int simplex_basis_reserve_eta(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static int simplex_basis_reserve_dense_eta(
 	struct simplex_Basis *basis, const int required_columns)
 {
 	int capacity;
 	double *eta;
+	size_t bytes;
 
+	if (required_columns < 0)
+		return lp_simplex_EXIT_FAILURE;
 	if (required_columns <= basis->impl->dense_eta_capacity)
 		return lp_simplex_EXIT_SUCCESS;
 	capacity = basis->impl->dense_eta_capacity > 0
 			   ? basis->impl->dense_eta_capacity
 			   : 1;
-	while (capacity < required_columns) {
-		int grown = capacity + capacity / 2 + 1;
-
-		capacity = grown > capacity ? grown : required_columns;
-	}
-	eta = (double *)lp_simplex_realloc(basis->impl->dense_eta,
-		(size_t)capacity * basis->impl->rows * sizeof(double));
+	capacity = basis_eta_capacity(capacity, required_columns, 1);
+	if (!basis_eta_bytes(capacity, basis->impl->rows, (size_t)-1, &bytes))
+		return lp_simplex_EXIT_FAILURE;
+	eta = (double *)lp_simplex_realloc(basis->impl->dense_eta, bytes);
 	if (eta == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	basis->impl->dense_eta = eta;
 	basis->impl->dense_eta_capacity = capacity;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 static int simplex_basis_update_impl(struct simplex_Basis *basis,
 	const int leaving_position, const double *direction,
@@ -1447,20 +1538,22 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 	int sparse;
 	double direction_maximum = 0.;
 	double relative_pivot;
+	basis->impl->storage_failed = 0;
 	/* On large bases an internal sparse refactorization is orders of magnitude
 	 * dearer than another eta traversal.  Let the numerical hard limit govern
 	 * those chains; smaller bases retain the deterministic ski-rental rule. */
 	if (basis->impl->update_count >= basis->impl->update_limit)
 		return 1;
-	if (basis->impl->rows < 4096 && basis->impl->update_count > 0 &&
-		basis->impl->factor_work > 0 &&
+	if (basis->impl->rows < SIMPLEX_BASIS_LARGE_ROWS &&
+		basis->impl->update_count > 0 && basis->impl->factor_work > 0 &&
 		basis->impl->eta_apply_work /
 				(basis->impl->allow_sparse_eta ? 1 : 2) >=
 			basis->impl->factor_work) {
 		basis->impl->profile_fill_reinversions++;
 		return 1;
 	}
-	if (__lp_simplex_ABS__(direction[leaving_position]) <= 1e-14)
+	if (__lp_simplex_ABS__(direction[leaving_position]) <=
+		SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR)
 		return lp_simplex_EXIT_FAILURE;
 	first = basis->impl->eta_start[basis->impl->update_count];
 	if (packed) {
@@ -1486,8 +1579,9 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 				nonzeros++;
 			}
 	}
+	/* The accepted nonzero leaving pivot proves direction_maximum > 0. */
 	relative_pivot = __lp_simplex_ABS__(direction[leaving_position]) /
-			 __lp_simplex_MAX__(direction_maximum, 1e-300);
+			 direction_maximum;
 	basis->impl->update_work += nonzeros;
 	basis->impl->minimum_relative_pivot = __lp_simplex_MIN__(
 		basis->impl->minimum_relative_pivot, relative_pivot);
@@ -1504,10 +1598,13 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 		simplex_sparse_lu_ft_active(&basis->impl->sparse) &&
 		basis->impl->update_count ==
 			basis->impl->sparse.ft_update_count &&
-		basis->impl->rows < 4096) {
+		basis->impl->rows < SIMPLEX_BASIS_LARGE_ROWS) {
 		int result = simplex_sparse_lu_ft_update(
 			&basis->impl->sparse, leaving_position, direction);
 
+		if (result == lp_simplex_EXIT_FAILURE &&
+			basis->impl->sparse.storage_failed)
+			basis->impl->storage_failed = 1;
 		if (result == lp_simplex_EXIT_SUCCESS) {
 			basis->impl->update_count++;
 			basis->impl->eta_start[basis->impl->update_count] =
@@ -1521,11 +1618,14 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 	}
 	sparse = basis->impl->compact_active ||
 		 (basis->impl->allow_sparse_eta &&
-			 nonzeros * 8 <= basis->impl->rows);
+			 nonzeros <= basis->impl->rows / 8);
 	if (sparse) {
-		if (simplex_basis_reserve_eta(basis, first + nonzeros) ==
-			lp_simplex_EXIT_FAILURE)
+		if (first < 0 || first > INT_MAX - nonzeros ||
+			simplex_basis_reserve_eta(basis, first + nonzeros) ==
+				lp_simplex_EXIT_FAILURE) {
+			basis->impl->storage_failed = 1;
 			return lp_simplex_EXIT_FAILURE;
+		}
 		count = first;
 		if (packed)
 			for (i = 0; i < nonzeros; i++) {
@@ -1549,9 +1649,12 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 		int dense_slot = basis->impl->dense_eta_count;
 
 		count = first;
-		if (simplex_basis_reserve_dense_eta(basis, dense_slot + 1) ==
-			lp_simplex_EXIT_FAILURE)
+		if (dense_slot < 0 || dense_slot == INT_MAX ||
+			simplex_basis_reserve_dense_eta(basis,
+				dense_slot + 1) == lp_simplex_EXIT_FAILURE) {
+			basis->impl->storage_failed = 1;
 			return lp_simplex_EXIT_FAILURE;
+		}
 		lp_simplex_memcpy(
 			basis->impl->dense_eta +
 				(size_t)dense_slot * basis->impl->rows,
@@ -1568,6 +1671,10 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
+int simplex_basis_storage_failed(const struct simplex_Basis *basis)
+{
+	return basis->impl->storage_failed;
+}
 
 int simplex_basis_update(struct simplex_Basis *basis,
 	const int leaving_position, const double *direction)
@@ -1575,7 +1682,6 @@ int simplex_basis_update(struct simplex_Basis *basis,
 	return simplex_basis_update_impl(
 		basis, leaving_position, direction, NULL, 0);
 }
-
 
 int simplex_basis_update_packed(struct simplex_Basis *basis,
 	const int leaving_position, const double *direction, const int *index,
@@ -1585,13 +1691,11 @@ int simplex_basis_update_packed(struct simplex_Basis *basis,
 		basis, leaving_position, direction, index, nonzeros);
 }
 
-
 void simplex_basis_set_sparse_eta(
 	struct simplex_Basis *basis, const int allowed)
 {
 	basis->impl->allow_sparse_eta = allowed;
 }
-
 
 void simplex_basis_use_product_updates(struct simplex_Basis *basis)
 {
@@ -1600,36 +1704,30 @@ void simplex_basis_use_product_updates(struct simplex_Basis *basis)
 	basis->impl->allow_ft = 0;
 }
 
-
 int simplex_basis_update_count(const struct simplex_Basis *basis)
 {
 	return basis->impl->update_count;
 }
-
 
 int simplex_basis_compact_active(const struct simplex_Basis *basis)
 {
 	return basis->impl->compact_active;
 }
 
-
 int simplex_basis_compact_ever_active(const struct simplex_Basis *basis)
 {
 	return basis->impl->compact_ever_active;
 }
-
 
 int simplex_basis_compact_requested(const struct simplex_Basis *basis)
 {
 	return basis->impl->compact_requested;
 }
 
-
 void simplex_basis_request_compact(struct simplex_Basis *basis)
 {
 	basis->impl->compact_requested = 1;
 }
-
 
 void simplex_basis_get_profile(
 	const struct simplex_Basis *basis, struct simplex_BasisProfile *profile)

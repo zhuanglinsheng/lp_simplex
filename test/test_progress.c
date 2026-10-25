@@ -1,10 +1,20 @@
-/* Copyright (C) 2022 Zhuang Linsheng. License: LGPL 3.0. */
+/*
+ * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
+ * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
+ */
+
+/**
+ * @file test_progress.c
+ * @brief Regression tests for progress.
+ */
+
 #include <lp_simplex/lp_simplex.h>
 #include "simplex_progress.h"
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
 #include <string.h>
+
 #define CHECK(x) \
 	do { \
 		if (!(x)) { \
@@ -20,6 +30,16 @@ struct Audit {
 	int calls, points, invalid, pdhg;
 	struct lp_simplex_Progress last;
 };
+
+static int solve_with_manual_pan_experiments(const struct lp_Model *m,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *r)
+{
+	return o && o->algorithm == lp_simplex_ALGORITHM_PAN_BDA
+		       ? lp_simplex_solve_experimental(m, o, x, r)
+		       : lp_simplex_solve(m, o, x, r);
+}
+
 static void observe(void *context, const struct lp_simplex_Progress *p)
 {
 	struct Audit *a = context;
@@ -95,7 +115,7 @@ static int integration(void)
 				struct lp_simplex_Result r;
 				struct Audit a;
 				double x[3], cost = mode == 1 ? 4096. : 1.;
-				int i;
+				int i, state;
 				CHECK(m);
 				for (i = 0; i < 3; i++) {
 					double scale =
@@ -128,7 +148,17 @@ static int integration(void)
 				o.progress_callback = observe;
 				o.progress_context = &a;
 				o.progress_interval = 1e-12;
-				CHECK(lp_simplex_solve(m, &o, x, &r) == 0);
+				state = solve_with_manual_pan_experiments(
+					m, &o, x, &r);
+				if (state)
+					fprintf(stderr,
+						"progress integration mode=%d presolve=%d algorithm=%d status=%d primal=%g dual=%g work=%d\n",
+						mode, presolve, algorithm,
+						r.status,
+						r.primal_infeasibility,
+						r.dual_infeasibility,
+						r.iterations);
+				CHECK(state == 0);
 				CHECK(fabs(r.objective - a.optimum) < 1e-7);
 				CHECK(a.calls >= 2 && a.points >= 1 &&
 					!a.invalid);
@@ -241,11 +271,12 @@ static int postsolve(void)
 	o.progress_callback = observe;
 	o.progress_context = &a;
 	o.progress_interval = 1e-12;
-	CHECK(lp_simplex_solve(m, &o, x, &r) == 0);
+	CHECK(solve_with_manual_pan_experiments(m, &o, x, &r) == 0);
 	CHECK(a.points && !a.invalid);
 	lp_model_free(m);
 	return 1;
 }
+
 /* Dyadic data permit an independent exact analytical box minimization.
  * Exercise all row signs and negative bounds/costs, not just cover matrices. */
 static int random_bounds(void)
@@ -299,6 +330,7 @@ static int random_bounds(void)
 	}
 	return 1;
 }
+
 static int incomplete(void)
 {
 	struct lp_Model *m = lp_model_create(3, 3);
@@ -327,19 +359,20 @@ static int incomplete(void)
 	o.iteration_limit = 1;
 	o.progress_callback = observe;
 	o.progress_context = &a;
-	CHECK(lp_simplex_solve(m, &o, x, &r) != 0);
+	CHECK(solve_with_manual_pan_experiments(m, &o, x, &r) != 0);
 	CHECK(r.status == lp_simplex_ExceedIterLimit);
 	CHECK(a.calls >= 2 && !a.invalid && !a.points);
 	CHECK(!isfinite(a.last.relative_gap) && !isfinite(a.last.upper_bound));
 	a.calls = 0;
 	o.progress_interval = 0.;
 	x[0] = 42.;
-	CHECK(lp_simplex_solve(m, &o, x, &r) != 0);
+	CHECK(solve_with_manual_pan_experiments(m, &o, x, &r) != 0);
 	CHECK(r.status == lp_simplex_CondUnsatisfied && a.calls == 0 &&
 		x[0] == 42.);
 	lp_model_free(m);
 	return 1;
 }
+
 int main(void)
 {
 	return bounds() && random_bounds() && integration() && postsolve() &&

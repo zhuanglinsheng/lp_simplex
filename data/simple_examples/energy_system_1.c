@@ -1,12 +1,17 @@
-/*
- * energy_system.mps: A 27-row, 32-variable energy-system model, stored as nonzero entries.
+/**
+ * @file energy_system_1.c
+ * @brief energy_system.mps: A 27-row, 32-variable energy-system model, stored
+ * as nonzero entries.
+ *
  * Manual modeling version: construct and solve the LP through the C API.
  * This standalone example needs only the public lp_simplex API.
  */
+
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static struct lp_Model *create_model(void)
 {
@@ -98,6 +103,7 @@ static struct lp_Model *create_model(void)
 		{26, 14, 1.}, /* C27, X15 */
 		{26, 30, 1.}, /* C27, X31 */
 	};
+
 	static const double c[32] = {0., -0.4, 0., 0., 0., 0., 0., 0., 0., 0.,
 		0., 0., -0.32, 0., 0., 0., -0.6, 0., 0., 0., 0., 0., 0., 0., 0.,
 		0., 0., 0., -0.48, 0., 0., 10.};
@@ -118,38 +124,38 @@ static struct lp_Model *create_model(void)
 	if (model == NULL)
 		return NULL;
 	/* Column j represents the same variable in C and in the MPS file. */
-	sprintf(model->bounds[0].name, "%s", "X1");
-	sprintf(model->bounds[1].name, "%s", "X2");
-	sprintf(model->bounds[2].name, "%s", "X3");
-	sprintf(model->bounds[3].name, "%s", "X4");
-	sprintf(model->bounds[4].name, "%s", "X5");
-	sprintf(model->bounds[5].name, "%s", "X6");
-	sprintf(model->bounds[6].name, "%s", "X7");
-	sprintf(model->bounds[7].name, "%s", "X8");
-	sprintf(model->bounds[8].name, "%s", "X9");
-	sprintf(model->bounds[9].name, "%s", "X10");
-	sprintf(model->bounds[10].name, "%s", "X11");
-	sprintf(model->bounds[11].name, "%s", "X12");
-	sprintf(model->bounds[12].name, "%s", "X13");
-	sprintf(model->bounds[13].name, "%s", "X14");
-	sprintf(model->bounds[14].name, "%s", "X15");
-	sprintf(model->bounds[15].name, "%s", "X16");
-	sprintf(model->bounds[16].name, "%s", "X17");
-	sprintf(model->bounds[17].name, "%s", "X18");
-	sprintf(model->bounds[18].name, "%s", "X19");
-	sprintf(model->bounds[19].name, "%s", "X20");
-	sprintf(model->bounds[20].name, "%s", "X21");
-	sprintf(model->bounds[21].name, "%s", "X22");
-	sprintf(model->bounds[22].name, "%s", "X23");
-	sprintf(model->bounds[23].name, "%s", "X24");
-	sprintf(model->bounds[24].name, "%s", "X25");
-	sprintf(model->bounds[25].name, "%s", "X26");
-	sprintf(model->bounds[26].name, "%s", "X27");
-	sprintf(model->bounds[27].name, "%s", "X28");
-	sprintf(model->bounds[28].name, "%s", "X29");
-	sprintf(model->bounds[29].name, "%s", "X30");
-	sprintf(model->bounds[30].name, "%s", "X31");
-	sprintf(model->bounds[31].name, "%s", "X32");
+	memcpy(model->bounds[0].name, "X1", sizeof("X1"));
+	memcpy(model->bounds[1].name, "X2", sizeof("X2"));
+	memcpy(model->bounds[2].name, "X3", sizeof("X3"));
+	memcpy(model->bounds[3].name, "X4", sizeof("X4"));
+	memcpy(model->bounds[4].name, "X5", sizeof("X5"));
+	memcpy(model->bounds[5].name, "X6", sizeof("X6"));
+	memcpy(model->bounds[6].name, "X7", sizeof("X7"));
+	memcpy(model->bounds[7].name, "X8", sizeof("X8"));
+	memcpy(model->bounds[8].name, "X9", sizeof("X9"));
+	memcpy(model->bounds[9].name, "X10", sizeof("X10"));
+	memcpy(model->bounds[10].name, "X11", sizeof("X11"));
+	memcpy(model->bounds[11].name, "X12", sizeof("X12"));
+	memcpy(model->bounds[12].name, "X13", sizeof("X13"));
+	memcpy(model->bounds[13].name, "X14", sizeof("X14"));
+	memcpy(model->bounds[14].name, "X15", sizeof("X15"));
+	memcpy(model->bounds[15].name, "X16", sizeof("X16"));
+	memcpy(model->bounds[16].name, "X17", sizeof("X17"));
+	memcpy(model->bounds[17].name, "X18", sizeof("X18"));
+	memcpy(model->bounds[18].name, "X19", sizeof("X19"));
+	memcpy(model->bounds[19].name, "X20", sizeof("X20"));
+	memcpy(model->bounds[20].name, "X21", sizeof("X21"));
+	memcpy(model->bounds[21].name, "X22", sizeof("X22"));
+	memcpy(model->bounds[22].name, "X23", sizeof("X23"));
+	memcpy(model->bounds[23].name, "X24", sizeof("X24"));
+	memcpy(model->bounds[24].name, "X25", sizeof("X25"));
+	memcpy(model->bounds[25].name, "X26", sizeof("X26"));
+	memcpy(model->bounds[26].name, "X27", sizeof("X27"));
+	memcpy(model->bounds[27].name, "X28", sizeof("X28"));
+	memcpy(model->bounds[28].name, "X29", sizeof("X29"));
+	memcpy(model->bounds[29].name, "X30", sizeof("X30"));
+	memcpy(model->bounds[30].name, "X31", sizeof("X31"));
+	memcpy(model->bounds[31].name, "X32", sizeof("X32"));
 	for (j = 0; j < 32; j++)
 		model->objective[j] = c[j];
 	for (i = 0; i < 27; i++) {

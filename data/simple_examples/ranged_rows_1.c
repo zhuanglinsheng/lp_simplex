@@ -1,12 +1,17 @@
-/*
- * ranged_rows.mps: Four ranged rows expanded into eight ordinary inequalities.
+/**
+ * @file ranged_rows_1.c
+ * @brief ranged_rows.mps: Four ranged rows expanded into eight ordinary
+ * inequalities.
+ *
  * Manual modeling version: construct and solve the LP through the C API.
  * This standalone example needs only the public lp_simplex API.
  */
+
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static struct lp_Model *create_model(void)
 {
@@ -25,7 +30,7 @@ static struct lp_Model *create_model(void)
 	/* RANGES: RL in [5,10], RG in [2,6], EP in [4,6], EN in [6,8].
 	 * The API represents each interval with one >= and one <= row. */
 	/* Column j represents the same variable in C and in the MPS file. */
-	sprintf(model->bounds[0].name, "%s", "X");
+	memcpy(model->bounds[0].name, "X", sizeof("X"));
 	for (j = 0; j < 1; j++)
 		model->objective[j] = c[j];
 	for (i = 0; i < 8; i++) {

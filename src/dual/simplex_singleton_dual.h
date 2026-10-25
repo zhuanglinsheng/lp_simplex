@@ -14,6 +14,14 @@
 #include <lp_simplex/model.h>
 #include <lp_simplex/solve.h>
 
+/* Dense borrowed binding supplied by AUTO; auxiliary states are not input states. */
+struct simplex_StageReport;
+struct simplex_ExecutionScope;
+int simplex_singleton_dual_solve_reported(const struct lp_Model *model,
+	const struct lp_simplex_Options *options, double *x,
+	struct lp_simplex_Result *result, int *applicable,
+	struct simplex_StageReport *report,
+	const struct simplex_ExecutionScope *execution);
 
 int simplex_singleton_dual_solve(const struct lp_Model *model,
 	const struct lp_simplex_Options *options, double *x,

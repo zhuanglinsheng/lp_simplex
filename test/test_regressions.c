@@ -31,9 +31,16 @@
 
 #define TEMP_FILE "lp_simplex_regression.mps"
 
+static int solve_with_manual_pan_experiments(const struct lp_Model *m,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *r)
+{
+	return o && o->algorithm == lp_simplex_ALGORITHM_PAN_BDA
+		       ? lp_simplex_solve_experimental(m, o, x, r)
+		       : lp_simplex_solve(m, o, x, r);
+}
 
 static int failures = 0;
-
 
 static void fail(const char *label, const char *detail)
 {
@@ -41,12 +48,10 @@ static void fail(const char *label, const char *detail)
 	failures++;
 }
 
-
 static void pass(const char *label)
 {
 	printf("[ OK ] %s\n", label);
 }
-
 
 /* Check the returned vector independently of the solver's residual field. */
 static double primal_violation(const struct lp_Model *model, const double *x)
@@ -87,7 +92,6 @@ static double primal_violation(const struct lp_Model *model, const double *x)
 	return maximum;
 }
 
-
 /**
  * Write `lines` (NULL terminated) to a scratch file and return its path.
  *
@@ -108,7 +112,6 @@ static const char *write_fixture(const char *const *lines)
 	return TEMP_FILE;
 }
 
-
 /**
  * Solve `file` and report the status.  Returns 0 when the call failed and 1
  * when it succeeded, so callers can assert on both `state` and `status`.
@@ -124,11 +127,10 @@ static int solve_file(const char *file, int algorithm, double *x,
 	if (model == NULL)
 		return -1;
 	lp_simplex_default_options(&options, algorithm);
-	state = lp_simplex_solve(model, &options, x, result);
+	state = solve_with_manual_pan_experiments(model, &options, x, result);
 	lp_model_free(model);
 	return state == lp_simplex_EXIT_SUCCESS;
 }
-
 
 /* Success must imply a finite objective and a feasible reported vector. */
 static void check_success_is_honest(
@@ -153,7 +155,7 @@ static void check_success_is_honest(
 		return;
 	}
 	memset(&result, 0, sizeof(result));
-	state = lp_simplex_solve(model, &options, x, &result);
+	state = solve_with_manual_pan_experiments(model, &options, x, &result);
 	if (state == lp_simplex_EXIT_SUCCESS) {
 		if (result.status != lp_simplex_Success)
 			fail(label, "success returned an inconsistent status");
@@ -170,7 +172,6 @@ static void check_success_is_honest(
 	free(x);
 	lp_model_free(model);
 }
-
 
 /* Comments and blank lines appear in real MPS files; they must not shift the
  * counting pass away from the fill pass. */
@@ -201,7 +202,6 @@ static void test_comments_and_blank_lines(void)
 	else
 		pass("comments and blank lines tolerated");
 }
-
 
 /* Both OBJSENSE layouts must preserve the direction and constant term. */
 static void test_objective_senses(void)
@@ -251,7 +251,7 @@ static void test_objective_senses(void)
 
 				lp_simplex_default_options(&options, algorithm);
 				options.presolve = presolve;
-				state = lp_simplex_solve(
+				state = solve_with_manual_pan_experiments(
 					model, &options, x, &result);
 				if (state != lp_simplex_EXIT_SUCCESS ||
 					result.status != lp_simplex_Success)
@@ -267,7 +267,6 @@ static void test_objective_senses(void)
 		lp_model_free(model);
 	}
 }
-
 
 /* A file without a ROWS section used to reach a negative-size allocation. */
 static void test_malformed_without_rows(void)
@@ -294,7 +293,6 @@ static void test_malformed_without_rows(void)
 		pass("malformed MPS refused");
 	}
 }
-
 
 /* Integer models are out of scope; they must be refused rather than relaxed. */
 static void test_integer_markers_rejected(void)
@@ -328,7 +326,8 @@ static void test_integer_markers_rejected(void)
 
 		lp_simplex_default_options(
 			&options, lp_simplex_ALGORITHM_DUAL_REVISED);
-		state = lp_simplex_solve(model, &options, x, &result);
+		state = solve_with_manual_pan_experiments(
+			model, &options, x, &result);
 		lp_model_free(model);
 		if (state == lp_simplex_EXIT_SUCCESS)
 			fail("integer",
@@ -337,7 +336,6 @@ static void test_integer_markers_rejected(void)
 			pass("integer model refused");
 	}
 }
-
 
 /*
  * An infeasible model whose data spans several orders of magnitude.  Bound
@@ -398,7 +396,8 @@ static void test_infeasible_scaled_model(void)
 		lp_simplex_default_options(
 			&options, lp_simplex_ALGORITHM_DUAL_REVISED);
 		memset(&result, 0, sizeof(result));
-		state = lp_simplex_solve(model, &options, x, &result);
+		state = solve_with_manual_pan_experiments(
+			model, &options, x, &result);
 		if (state == lp_simplex_EXIT_SUCCESS)
 			fail("scaled infeasible",
 				"infeasible model reported as success");
@@ -412,7 +411,6 @@ static void test_infeasible_scaled_model(void)
 	free(x);
 	lp_model_free(model);
 }
-
 
 /* The invariant above, applied to every bundled example and every algorithm. */
 static void test_success_contract_on_examples(void)
@@ -446,7 +444,6 @@ static void test_success_contract_on_examples(void)
 	printf("       success contract checked on %d solver/example pairs\n",
 		checked);
 }
-
 
 /* Beale's cycling example, with repeated constraints and column permutations.
  * Verify the original objective and constraints with presolve both on and off. */
@@ -494,7 +491,8 @@ static void test_degenerate_cycling_model(void)
 				&options, lp_simplex_ALGORITHM_DUAL_REVISED);
 			options.presolve = presolve;
 			options.iteration_limit = 1000;
-			state = lp_simplex_solve(model, &options, x, &result);
+			state = solve_with_manual_pan_experiments(
+				model, &options, x, &result);
 			if (state != lp_simplex_EXIT_SUCCESS ||
 				result.status != lp_simplex_Success ||
 				fabs(result.objective + 1.) > 1e-7 ||
@@ -505,7 +503,6 @@ static void test_degenerate_cycling_model(void)
 			lp_model_free(model);
 		}
 }
-
 
 /* Harris may accept a small local dual violation.  Across a wide variable
  * bound that can hide a material objective gap, even with exact feasibility. */
@@ -536,7 +533,7 @@ static void test_wide_bound_objective_accuracy(void)
 		lp_model_free(model);
 		return;
 	}
-	state = lp_simplex_solve(model, &options, x, &result);
+	state = solve_with_manual_pan_experiments(model, &options, x, &result);
 	if (state != lp_simplex_EXIT_SUCCESS ||
 		result.status != lp_simplex_Success ||
 		fabs(result.objective) > options.dual_tolerance ||
@@ -547,7 +544,6 @@ static void test_wide_bound_objective_accuracy(void)
 		pass("wide-bound optimality");
 	lp_model_free(model);
 }
-
 
 /* Extended-precision MPS numbers must not be truncated to twelve columns.
  * Check both numeric positions and the RHS/bound paths used by Netlib files. */
@@ -560,11 +556,12 @@ static void test_long_mps_numbers(void)
 		fail("long MPS numbers", "could not write fixture");
 		return;
 	}
-	fputs("NAME          LONGNUM\nROWS\n N  COST\n E  R0\n L  R1\nCOLUMNS\n", stream);
+	fputs("NAME          LONGNUM\nROWS\n N  COST\n E  R0\n L  R1\nCOLUMNS\n",
+		stream);
 	fprintf(stream, "    %-8s  %-8s  %s\n", "X0", "COST",
 		"1.2345678901234567e-20");
-	fprintf(stream, "    %-8s  %-8s  %12s   %-8s  %s\n", "X0", "R0",
-		"1.25", "R1", "-0.17999999999999999");
+	fprintf(stream, "    %-8s  %-8s  %12s   %-8s  %s\n", "X0", "R0", "1.25",
+		"R1", "-0.17999999999999999");
 	fputs("RHS\n", stream);
 	fprintf(stream, "    %-8s  %-8s  %s\n", "RHS1", "R0",
 		"-2447.8299999999999");
@@ -589,15 +586,138 @@ static void test_long_mps_numbers(void)
 		model->constraints[1].rhs != 1.3999999999999999 ||
 		model->bounds[0].lb != 12345.678901234567 ||
 		model->bounds[0].ub != 12345.678901234567)
-		fail("long MPS numbers", "numeric tokens changed while reading");
+		fail("long MPS numbers",
+			"numeric tokens changed while reading");
 	else
 		pass("long MPS numbers");
 	lp_model_free(model);
 }
 
+/* Extra N rows are free rows, not additional objectives or constraints. */
+static void test_free_mps_rows(void)
+{
+	struct lp_Model *model;
+	FILE *stream = fopen(TEMP_FILE, "w");
+	if (!stream) {
+		fail("free MPS rows", "could not write fixture");
+		return;
+	}
+	fputs("NAME          FREE_ROWS\nROWS\n N  COST\n N  FREE1\n L  LIMIT\n N  FREE2\n"
+	      "COLUMNS\n    $X        COST                 3   FREE1                9\n"
+	      "    $X        LIMIT                1   FREE2               -4\n"
+	      "RHS\n    RHS1      LIMIT                2   FREE1             -100\n"
+	      "ENDATA\n",
+		stream);
+	fclose(stream);
+	model = lp_read_mps(TEMP_FILE);
+	remove(TEMP_FILE);
+	if (!model) {
+		fail("free MPS rows", "declared free rows rejected");
+		return;
+	}
+	if (model->m != 1 || model->n != 1 || model->nnz != 1 ||
+		model->objective[0] != 3. || model->constraints[0].rhs != 2.)
+		fail("free MPS rows", "objective or feasible set changed");
+	else
+		pass("free MPS rows");
+	lp_model_free(model);
+}
+
+static void test_invalid_mps_numbers(void)
+{
+	static const char *const numbers[] = {"garbage", "1junk", "nan", "inf",
+		"1e999", "1e-999", "", "0", "0e-999",
+		"4.9406564584124654e-324"};
+	struct lp_Model *m;
+	FILE *stream;
+	int field, token;
+	for (field = 0; field < 7; field++)
+		for (token = 0;
+			token < (int)(sizeof(numbers) / sizeof(numbers[0]));
+			token++) {
+			stream = fopen(TEMP_FILE, "w");
+			if (!stream) {
+				fail("invalid MPS numbers",
+					"could not write fixture");
+				return;
+			}
+			fputs("NAME          BADNUM\nROWS\n N  COST\n L  R0\nCOLUMNS\n",
+				stream);
+			if (field == 5)
+				fprintf(stream,
+					"    %-8s  %-8s  %12s   %-8s  %s\n",
+					"X0", "COST", "1", "R0",
+					numbers[token]);
+			else
+				fprintf(stream, "    %-8s  %-8s  %s\n", "X0",
+					"COST",
+					field == 0 ? numbers[token] : "1");
+			fprintf(stream, "    %-8s  %-8s  %s\n", "X0", "R0",
+				field == 1 ? numbers[token] : "1");
+			fputs("RHS\n", stream);
+			if (field == 6)
+				fprintf(stream,
+					"    %-8s  %-8s  %12s   %-8s  %s\n",
+					"RHS1", "COST", "0", "R0",
+					numbers[token]);
+			else
+				fprintf(stream, "    %-8s  %-8s  %s\n", "RHS1",
+					"R0",
+					field == 2 ? numbers[token] : "1");
+			if (field == 4) {
+				fputs("RANGES\n", stream);
+				fprintf(stream, "    %-8s  %-8s  %s\n", "RNG1",
+					"R0", numbers[token]);
+			}
+			fputs("BOUNDS\n", stream);
+			fprintf(stream, " UP %-8s  %-8s  %s\n", "BND1", "X0",
+				field == 3 ? numbers[token] : "2");
+			fputs("ENDATA\n", stream);
+			fclose(stream);
+			m = lp_read_mps(TEMP_FILE);
+			remove(TEMP_FILE);
+			if ((m != NULL) != (token >= 7)) {
+				fprintf(stderr,
+					"MPS numeric admission mismatch: field=%d token=%s\n",
+					field, numbers[token]);
+				lp_model_free(m);
+				fail("invalid MPS numbers",
+					"numeric token admission changed");
+				return;
+			}
+			lp_model_free(m);
+		}
+	/* Finite input cards can still overflow an expanded ranged-row endpoint. */
+	stream = fopen(TEMP_FILE, "w");
+	if (!stream) {
+		fail("invalid MPS numbers", "could not write range fixture");
+		return;
+	}
+	fputs("NAME          RNGOVER\nROWS\n N  COST\n G  R0\nCOLUMNS\n",
+		stream);
+	fprintf(stream, "    %-8s  %-8s  %s\n", "X0", "R0", "1");
+	fputs("RHS\n", stream);
+	fprintf(stream, "    %-8s  %-8s  %s\n", "RHS1", "R0", "1.7e308");
+	fputs("RANGES\n", stream);
+	fprintf(stream, "    %-8s  %-8s  %s\n", "RNG1", "R0", "1.7e308");
+	fputs("BOUNDS\n", stream);
+	fprintf(stream, " FR %-8s  %-8s\n", "BND1", "X0");
+	fputs("ENDATA\n", stream);
+	fclose(stream);
+	m = lp_read_mps(TEMP_FILE);
+	remove(TEMP_FILE);
+	if (m) {
+		lp_model_free(m);
+		fail("invalid MPS numbers", "expanded range overflow accepted");
+		return;
+	}
+	pass("invalid MPS numbers");
+}
 
 int main(void)
 {
+	test_invalid_mps_numbers();
+	test_free_mps_rows();
 	test_long_mps_numbers();
 	test_comments_and_blank_lines();
 	test_objective_senses();

@@ -16,16 +16,22 @@
 
 #include <lp_simplex/status.h>
 
-
 static int simplex_run_phase_one(double **table, int *ld, int **basis,
 	int **constraint_types, int *variable_count, int *iteration,
 	int *status, const struct optm_LinearConstraint *constraints, int m,
-	int n, const struct lp_simplex_Options *options)
+	int n, const struct lp_simplex_Options *options,
+	struct simplex_TableauReport *report)
 {
 	int rows, columns;
-	int slack_count, artificial_count;
+	int slack_count, artificial_count, cleanup, before, code;
+	if (report)
+		report->phase = SIMPLEX_TABLEAU_PHASE_ONE;
 
-	simplex_tableau_compute_size(constraints, m, n, &rows, &columns);
+	if (simplex_tableau_compute_size(constraints, m, n, &rows, &columns) !=
+		lp_simplex_EXIT_SUCCESS) {
+		*status = lp_simplex_MemoryAllocError;
+		return lp_simplex_EXIT_FAILURE;
+	}
 	*ld = columns;
 	if (simplex_tableau_create(table, basis, constraint_types, m, rows,
 		    *ld) == lp_simplex_EXIT_FAILURE) {
@@ -50,8 +56,12 @@ static int simplex_run_phase_one(double **table, int *ld, int **basis,
 	simplex_tableau_initialize_phase_one_objective(
 		*table, *ld, *constraint_types, m, columns);
 
-	switch (simplex_run_pivots(iteration, *table, *ld, *basis, m,
-		*variable_count, n + slack_count, options)) {
+	before = *iteration;
+	code = simplex_run_pivots(iteration, *table, *ld, *basis, m,
+		*variable_count, n + slack_count, options);
+	if (report)
+		report->phase_one_work = *iteration - before;
+	switch (code) {
 	case 0:
 		*status = lp_simplex_ExceedIterLimit;
 		goto FAILURE;
@@ -60,14 +70,29 @@ static int simplex_run_phase_one(double **table, int *ld, int **basis,
 			*status = lp_simplex_Infeasibility;
 			goto FAILURE;
 		}
-		simplex_tableau_remove_artificial_basis(*table, *ld, *basis, m,
-			n + slack_count, *variable_count);
+		if (report)
+			report->phase = SIMPLEX_TABLEAU_ARTIFICIAL_CLEANUP;
+		before = *iteration;
+		cleanup = simplex_tableau_remove_artificial_basis(*table, *ld,
+			*basis, m, n + slack_count, *variable_count,
+			options->pivot_tolerance, iteration,
+			options->iteration_limit);
+		if (report)
+			report->cleanup_work = *iteration - before;
+		if (cleanup != SIMPLEX_TABLEAU_CLEANUP_DONE) {
+			*status = cleanup == SIMPLEX_TABLEAU_CLEANUP_LIMIT
+					  ? lp_simplex_ExceedIterLimit
+					  : lp_simplex_PrecisionError;
+			goto FAILURE;
+		}
 		simplex_tableau_remove_artificial_columns(
 			*table, *ld, m, n + slack_count, artificial_count);
 		*variable_count = n + slack_count;
 		return lp_simplex_EXIT_SUCCESS;
 	case 2:
-		*status = lp_simplex_Unboundedness;
+		/* Phase I minimizes nonnegative artificial variables. An escaping
+		 * direction here is a numerical failure, not original unboundedness. */
+		*status = lp_simplex_PrecisionError;
 		goto FAILURE;
 	case 4:
 		*status = lp_simplex_MemoryAllocError;
@@ -82,13 +107,19 @@ FAILURE:
 	return lp_simplex_EXIT_FAILURE;
 }
 
-
 static int simplex_run_phase_two(double *table, int ld, int *basis,
 	int *constraint_types, int *iteration, int *status, int m,
-	int variable_count, const struct lp_simplex_Options *options)
+	int variable_count, const struct lp_simplex_Options *options,
+	struct simplex_TableauReport *report)
 {
-	switch (simplex_run_pivots(iteration, table, ld, basis, m,
-		variable_count, variable_count, options)) {
+	int before = *iteration, code;
+	if (report)
+		report->phase = SIMPLEX_TABLEAU_PHASE_TWO;
+	code = simplex_run_pivots(iteration, table, ld, basis, m,
+		variable_count, variable_count, options);
+	if (report)
+		report->phase_two_work = *iteration - before;
+	switch (code) {
 	case 0:
 		*status = lp_simplex_ExceedIterLimit;
 		break;
@@ -110,11 +141,10 @@ static int simplex_run_phase_two(double *table, int ld, int *basis,
 	return lp_simplex_EXIT_FAILURE;
 }
 
-
-int simplex_solve_standard(const double *objective,
+int simplex_solve_standard_reported(const double *objective,
 	const struct optm_LinearConstraint *constraints, int m, int n,
 	const struct lp_simplex_Options *options, double *x, double *value,
-	int *status, int *iterations)
+	int *status, int *iterations, struct simplex_TableauReport *report)
 {
 	int i, j, k;
 	int ld, variable_count;
@@ -122,6 +152,10 @@ int simplex_solve_standard(const double *objective,
 	double *table = NULL;
 	int *constraint_types = NULL;
 
+	if (report) {
+		lp_simplex_memset(report, 0, sizeof(*report));
+		report->available = 1;
+	}
 	if (status == NULL || iterations == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	*iterations = 0;
@@ -141,7 +175,7 @@ int simplex_solve_standard(const double *objective,
 	}
 	if (simplex_run_phase_one(&table, &ld, &basis, &constraint_types,
 		    &variable_count, iterations, status, constraints, m, n,
-		    options) == lp_simplex_EXIT_FAILURE)
+		    options, report) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 
 	for (j = 0; j < n; j++)
@@ -157,14 +191,19 @@ int simplex_solve_standard(const double *objective,
 		table[j] = 0.;
 	for (i = 0; i < m; i++) {
 		int row = (i + 1) * ld;
-		double ratio = -table[basis[i]];
+		double ratio;
+
+		/* Redundant rows retain a removed artificial index. */
+		if (basis[i] >= variable_count)
+			continue;
+		ratio = -table[basis[i]];
 
 		lp_simplex_linalg_daxpy(
 			variable_count + 1, ratio, table + row, 1, table, 1);
 	}
 	if (simplex_run_phase_two(table, ld, basis, constraint_types,
-		    iterations, status, m, variable_count,
-		    options) == lp_simplex_EXIT_FAILURE)
+		    iterations, status, m, variable_count, options,
+		    report) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 
 	*value = table[variable_count];
@@ -173,6 +212,17 @@ int simplex_solve_standard(const double *objective,
 		if (basis[i] < n)
 			x[basis[i]] = table[variable_count + (i + 1) * ld];
 	}
+	if (report)
+		report->point_available = 1;
 	simplex_tableau_destroy(table, basis, constraint_types);
 	return lp_simplex_EXIT_SUCCESS;
+}
+
+int simplex_solve_standard(const double *objective,
+	const struct optm_LinearConstraint *constraints, int m, int n,
+	const struct lp_simplex_Options *options, double *x, double *value,
+	int *status, int *iterations)
+{
+	return simplex_solve_standard_reported(objective, constraints, m, n,
+		options, x, value, status, iterations, NULL);
 }

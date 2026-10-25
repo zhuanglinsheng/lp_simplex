@@ -13,12 +13,10 @@
 
 #include <lp_simplex/model.h>
 
-
 /* Ownership modes; value-only views borrow the immutable sparsity pattern
  * and own one contiguous value/row_value allocation rooted at value. */
 #define SIMPLEX_CSC_OWNS_ALL 1
 #define SIMPLEX_CSC_OWNS_VALUES 2
-
 
 struct simplex_CscMatrix {
 	int rows;
@@ -33,7 +31,8 @@ struct simplex_CscMatrix {
 	int owns_storage; /* 0 borrowed, or SIMPLEX_CSC_OWNS_* */
 };
 
-
+/* Initialize a fresh view. Complete model caches are borrowed; dense inputs
+ * produce owned CSC/CSR arrays. Failure leaves no owned buffers. */
 int simplex_csc_from_model(
 	const struct lp_Model *model, struct simplex_CscMatrix *matrix);
 

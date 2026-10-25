@@ -8,10 +8,13 @@
  * @brief Presolve reductions and reduced-problem solve orchestration.
  */
 
+#include "policy/search.h"
+#include "policy/factorization.h"
 #include "simplex_presolve.h"
 #include "simplex_presolve_activity.h"
 #include "simplex_presolve_dominance.h"
 #include "simplex_presolve_queue.h"
+#include "simplex_presolve_storage.h"
 #include "simplex_presolve_rules.h"
 #include "simplex_presolve_substitution.h"
 #include "utils.h"
@@ -20,7 +23,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-
 
 /* A zero-cost column occurring in one inequality can be fixed at a finite
  * bound that relaxes that inequality.  This preserves at least every feasible
@@ -74,7 +76,6 @@ static int presolve_choose_singleton_inequality_column(
 	return 1;
 }
 
-
 static void presolve_deactivate_column(const struct lp_Model *model,
 	const int column, const unsigned char *row_active, int *row_degree)
 {
@@ -93,7 +94,6 @@ static void presolve_deactivate_column(const struct lp_Model *model,
 		if (row_active[i] && model->constraints[i].coef[column] != 0.)
 			row_degree[i]--;
 }
-
 
 static void presolve_deactivate_row(const struct lp_Model *model, const int row,
 	const unsigned char *column_active, int *column_degree)
@@ -114,7 +114,6 @@ static void presolve_deactivate_row(const struct lp_Model *model, const int row,
 			column_degree[j]--;
 }
 
-
 static void presolve_remove_column_from_rhs(const struct lp_Model *model,
 	const int column, const double value, const unsigned char *row_active,
 	double *rhs)
@@ -134,13 +133,11 @@ static void presolve_remove_column_from_rhs(const struct lp_Model *model,
 			rhs[i] -= model->constraints[i].coef[column] * value;
 }
 
-
 struct presolve_RowSignature {
 	int row;
 	int degree;
 	unsigned long hash;
 };
-
 
 static int presolve_compare_signature(const void *left, const void *right)
 {
@@ -155,7 +152,6 @@ static int presolve_compare_signature(const void *left, const void *right)
 		return a->hash < b->hash ? -1 : 1;
 	return a->row < b->row ? -1 : a->row != b->row;
 }
-
 
 static unsigned long presolve_row_support_hash(const struct lp_Model *model,
 	const int row, const unsigned char *column_active)
@@ -181,10 +177,31 @@ static unsigned long presolve_row_support_hash(const struct lp_Model *model,
 	return hash;
 }
 
+/* A rounded proportionality test can turn intersecting rows into a false
+ * contradiction. Normalize before multiplying so even subnormal/huge inputs
+ * have an exact-product residual in the normal range. Refusing this optional
+ * reduction is safe when the ratio itself is not exactly representable. */
+static int presolve_exact_scaled_coefficient(double a, double b, double scale)
+{
+	int ae, be, se, pe;
+	double am, bm, sm, product;
+	if (!isfinite(a) || !isfinite(b) || !isfinite(scale) || a == 0. ||
+		b == 0. || scale == 0.)
+		return 0;
+	if (scale == 1.)
+		return a == b;
+	if (scale == -1.)
+		return a == -b;
+	am = frexp(a, &ae);
+	bm = frexp(b, &be);
+	sm = frexp(scale, &se);
+	product = am * sm;
+	return fma(am, sm, -product) == 0. && frexp(product, &pe) == bm &&
+	       ae + se + pe == be;
+}
 
 static int presolve_parallel_rows(const struct lp_Model *model, const int first,
-	const int second, const unsigned char *column_active,
-	const double tolerance, double *scale)
+	const int second, const unsigned char *column_active, double *scale)
 {
 	int j, ka, kb;
 	double a, b;
@@ -201,10 +218,7 @@ static int presolve_parallel_rows(const struct lp_Model *model, const int first,
 				continue;
 			if (*scale == 0.)
 				*scale = b / a;
-			else if (__lp_simplex_ABS__(b - *scale * a) >
-				 tolerance * (1. + __lp_simplex_ABS__(b) +
-						     __lp_simplex_ABS__(
-							     *scale * a)))
+			if (!presolve_exact_scaled_coefficient(a, b, *scale))
 				return 0;
 		}
 		return *scale != 0.;
@@ -227,9 +241,7 @@ static int presolve_parallel_rows(const struct lp_Model *model, const int first,
 		b = model->row_value[kb++];
 		if (*scale == 0.)
 			*scale = b / a;
-		else if (__lp_simplex_ABS__(b - *scale * a) >
-			 tolerance * (1. + __lp_simplex_ABS__(b) +
-					     __lp_simplex_ABS__(*scale * a)))
+		if (!presolve_exact_scaled_coefficient(a, b, *scale))
 			return 0;
 	}
 	while (ka < model->row_start[first + 1] &&
@@ -242,7 +254,6 @@ static int presolve_parallel_rows(const struct lp_Model *model, const int first,
 	       kb == model->row_start[second + 1] && *scale != 0.;
 }
 
-
 static int presolve_normalized_row_type(const int type, const double scale)
 {
 	if (scale >= 0. || type == optm_CONS_T_EQ)
@@ -250,17 +261,19 @@ static int presolve_normalized_row_type(const int type, const double scale)
 	return type == optm_CONS_T_GE ? optm_CONS_T_LE : optm_CONS_T_GE;
 }
 
-
 static int presolve_remove_parallel_rows(const struct lp_Model *model,
 	unsigned char *row_active, const unsigned char *column_active,
 	const int *row_degree, int *column_degree, double *rhs,
 	const double tolerance, int *removed)
 {
 	struct presolve_RowSignature *signature;
+	size_t bytes;
 	int count = 0, p, q;
 	*removed = 0;
-	signature = (struct presolve_RowSignature *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(*signature));
+	if (model->m < 0 || !simplex_storage_bytes((size_t)model->m,
+				    sizeof(*signature), (size_t)-1, &bytes))
+		return lp_simplex_EXIT_FAILURE;
+	signature = (struct presolve_RowSignature *)lp_simplex_malloc(bytes);
 	if (signature == NULL)
 		return lp_simplex_EXIT_FAILURE;
 	for (p = 0; p < model->m; p++)
@@ -288,10 +301,7 @@ static int presolve_remove_parallel_rows(const struct lp_Model *model,
 
 			if (!row_active[second] ||
 				!presolve_parallel_rows(model, first, second,
-					column_active,
-					__lp_simplex_MIN__(
-						tolerance * 1e-4, 1e-12),
-					&scale))
+					column_active, &scale))
 				continue;
 			first_type = model->constraints[first].type;
 			second_type = presolve_normalized_row_type(
@@ -323,7 +333,6 @@ static int presolve_remove_parallel_rows(const struct lp_Model *model,
 	lp_simplex_free(signature);
 	return lp_simplex_Success;
 }
-
 
 static struct simplex_Problem *presolve_build_sparse_model(
 	const struct lp_Model *model, const int kept_rows,
@@ -423,7 +432,6 @@ static struct simplex_Problem *presolve_build_sparse_model(
 	return reduced;
 }
 
-
 /* Temporary mutable state for the first presolve phase.  None of these arrays
  * survive into postsolve, so they do not belong in simplex_Presolve. */
 struct presolve_Workspace {
@@ -440,7 +448,6 @@ struct presolve_Workspace {
 	double propagation_tolerance;
 	size_t dominance_work;
 };
-
 
 static void presolve_workspace_destroy(struct presolve_Workspace *workspace)
 {
@@ -459,46 +466,45 @@ static void presolve_workspace_destroy(struct presolve_Workspace *workspace)
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
 }
 
-
 static int presolve_workspace_create(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, const double tolerance,
 	struct presolve_Workspace *workspace)
 {
 	int i, j, k;
+	struct simplex_PresolveStorage storage;
 
 	lp_simplex_memset(workspace, 0, sizeof(*workspace));
+	if (model->nnz < 0 || !simplex_presolve_storage(
+				      model->m, model->n, (size_t)-1, &storage))
+		return lp_simplex_EXIT_FAILURE;
 	/* Shared across fixed-point passes, including failed candidate checks.
 	 * A capped search is optional and never changes acceptance tolerances. */
-	workspace->dominance_work = 64 *
-		((size_t)model->nnz + (size_t)model->m + (size_t)model->n);
+	workspace->dominance_work = simplex_presolve_search_work(
+		model->m, model->n, model->nnz, (size_t)-1);
 	presolve->stats.exact_bound_propagation =
-		model->m <= 2048 && model->n >= 5 * model->m;
+		model->m <= SIMPLEX_PRESOLVE_EXACT_PROPAGATION_ROWS &&
+		model->n >= SIMPLEX_PRESOLVE_EXACT_PROPAGATION_COLUMN_RATIO *
+				    model->m;
 	workspace->propagation_tolerance =
 		presolve->stats.exact_bound_propagation ? 0. : tolerance;
-	presolve->column_map =
-		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
-	presolve->row_map =
-		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+	presolve->column_map = (int *)lp_simplex_malloc(storage.column_int);
+	presolve->row_map = (int *)lp_simplex_malloc(storage.row_int);
 	presolve->eliminated_value =
-		(double *)lp_simplex_malloc((size_t)model->n * sizeof(double));
-	presolve->eliminated = (unsigned char *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(unsigned char));
-	workspace->column_kept =
-		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
-	workspace->row_kept =
-		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+		(double *)lp_simplex_malloc(storage.column_double);
+	presolve->eliminated =
+		(unsigned char *)lp_simplex_malloc(storage.column_flags);
+	workspace->column_kept = (int *)lp_simplex_malloc(storage.column_int);
+	workspace->row_kept = (int *)lp_simplex_malloc(storage.row_int);
 	workspace->adjusted_rhs =
-		(double *)lp_simplex_malloc((size_t)model->m * sizeof(double));
-	workspace->bounds = (struct optm_VariableBound *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(*workspace->bounds));
-	workspace->column_active = (unsigned char *)lp_simplex_malloc(
-		(size_t)model->n * sizeof(unsigned char));
-	workspace->row_active = (unsigned char *)lp_simplex_malloc(
-		(size_t)model->m * sizeof(unsigned char));
-	workspace->column_degree =
-		(int *)lp_simplex_malloc((size_t)model->n * sizeof(int));
-	workspace->row_degree =
-		(int *)lp_simplex_malloc((size_t)model->m * sizeof(int));
+		(double *)lp_simplex_malloc(storage.row_double);
+	workspace->bounds =
+		(struct optm_VariableBound *)lp_simplex_malloc(storage.bounds);
+	workspace->column_active =
+		(unsigned char *)lp_simplex_malloc(storage.column_flags);
+	workspace->row_active =
+		(unsigned char *)lp_simplex_malloc(storage.row_flags);
+	workspace->column_degree = (int *)lp_simplex_malloc(storage.column_int);
+	workspace->row_degree = (int *)lp_simplex_malloc(storage.row_int);
 	if (presolve->column_map == NULL || presolve->row_map == NULL ||
 		presolve->eliminated_value == NULL ||
 		presolve->eliminated == NULL ||
@@ -514,20 +520,13 @@ static int presolve_workspace_create(struct simplex_Presolve *presolve,
 		simplex_presolve_queue_init(&workspace->row_queue, model->m) ==
 			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	lp_simplex_memset(presolve->eliminated, 0,
-		(size_t)model->n * sizeof(unsigned char));
-	lp_simplex_memset(presolve->eliminated_value, 0,
-		(size_t)model->n * sizeof(double));
-	lp_simplex_memcpy(workspace->bounds, model->bounds,
-		(size_t)model->n * sizeof(*workspace->bounds));
-	lp_simplex_memset(workspace->column_active, 1,
-		(size_t)model->n * sizeof(unsigned char));
-	lp_simplex_memset(workspace->row_active, 1,
-		(size_t)model->m * sizeof(unsigned char));
-	lp_simplex_memset(
-		workspace->column_degree, 0, (size_t)model->n * sizeof(int));
-	lp_simplex_memset(
-		workspace->row_degree, 0, (size_t)model->m * sizeof(int));
+	lp_simplex_memset(presolve->eliminated, 0, storage.column_flags);
+	lp_simplex_memset(presolve->eliminated_value, 0, storage.column_double);
+	lp_simplex_memcpy(workspace->bounds, model->bounds, storage.bounds);
+	lp_simplex_memset(workspace->column_active, 1, storage.column_flags);
+	lp_simplex_memset(workspace->row_active, 1, storage.row_flags);
+	lp_simplex_memset(workspace->column_degree, 0, storage.column_int);
+	lp_simplex_memset(workspace->row_degree, 0, storage.row_int);
 	if (model->row_start != NULL) {
 		for (i = 0; i < model->m; i++) {
 			workspace->row_degree[i] =
@@ -574,7 +573,6 @@ static int presolve_workspace_create(struct simplex_Presolve *presolve,
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void presolve_enqueue_column_rows(const struct lp_Model *model,
 	const int column, const unsigned char *row_active,
 	struct simplex_PresolveQueue *row_queue)
@@ -594,7 +592,6 @@ static void presolve_enqueue_column_rows(const struct lp_Model *model,
 		if (row_active[i] && model->constraints[i].coef[column] != 0.)
 			(void)simplex_presolve_queue_push(row_queue, i);
 }
-
 
 static void presolve_enqueue_row_columns(const struct lp_Model *model,
 	const int row, const unsigned char *column_active,
@@ -616,7 +613,6 @@ static void presolve_enqueue_row_columns(const struct lp_Model *model,
 		if (column_active[j] && model->constraints[row].coef[j] != 0.)
 			(void)simplex_presolve_queue_push(column_queue, j);
 }
-
 
 static void presolve_enqueue_bound_neighbors(const struct lp_Model *model,
 	const int row, const struct presolve_Workspace *workspace,
@@ -645,7 +641,6 @@ static void presolve_enqueue_bound_neighbors(const struct lp_Model *model,
 				model, j, workspace->row_active, row_queue);
 		}
 }
-
 
 static int presolve_reduce_column(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, struct presolve_Workspace *workspace,
@@ -695,7 +690,6 @@ static int presolve_reduce_column(struct simplex_Presolve *presolve,
 	return lp_simplex_Success;
 }
 
-
 static int presolve_find_singleton(const struct lp_Model *model, const int row,
 	const unsigned char *column_active, int *column, double *coefficient)
 {
@@ -722,7 +716,6 @@ static int presolve_find_singleton(const struct lp_Model *model, const int row,
 	}
 	return 0;
 }
-
 
 static int presolve_reduce_row(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, const double tolerance,
@@ -799,7 +792,6 @@ static int presolve_reduce_row(struct simplex_Presolve *presolve,
 	return lp_simplex_Success;
 }
 
-
 static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, const double tolerance,
 	struct presolve_Workspace *workspace)
@@ -844,6 +836,9 @@ static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 		if (duplicate_removed == 0 && dominated_rows == 0 &&
 			dominated_columns == 0)
 			return lp_simplex_Success;
+		/* Dominance fixes column bounds without removing columns or updating
+		 * rhs/journal. Requeue every live item so ordinary rules perform that
+		 * elimination before active columns are collected for the solve. */
 		for (column = 0; column < model->n; column++)
 			if (workspace->column_active[column])
 				(void)simplex_presolve_queue_push(
@@ -854,7 +849,6 @@ static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 					&workspace->row_queue, row);
 	}
 }
-
 
 static void presolve_collect_active(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, struct presolve_Workspace *workspace,
@@ -875,7 +869,6 @@ static void presolve_collect_active(struct simplex_Presolve *presolve,
 		}
 }
 
-
 int simplex_presolve_run(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, const double tolerance)
 {
@@ -887,13 +880,19 @@ int simplex_presolve_run(struct simplex_Presolve *presolve,
 	lp_simplex_memset(presolve, 0, sizeof(*presolve));
 	presolve->original = model;
 	presolve->status = lp_simplex_CondUnsatisfied;
+	if (model->m < 0 || model->n < 0 || model->nnz < 0)
+		return lp_simplex_EXIT_FAILURE;
 	if (presolve_workspace_create(presolve, model, tolerance, &workspace) ==
-		lp_simplex_EXIT_FAILURE)
+		lp_simplex_EXIT_FAILURE) {
+		presolve->status = lp_simplex_MemoryAllocError;
 		goto failure;
+	}
 	status = presolve_reduce_to_fixed_point(
 		presolve, model, tolerance, &workspace);
-	if (status == lp_simplex_EXIT_FAILURE)
+	if (status == lp_simplex_EXIT_FAILURE) {
+		presolve->status = lp_simplex_MemoryAllocError;
 		goto failure;
+	}
 	if (status != lp_simplex_Success) {
 		presolve->status = status;
 		goto finish;
@@ -908,13 +907,16 @@ int simplex_presolve_run(struct simplex_Presolve *presolve,
 		kept_columns, presolve->column_map, workspace.column_kept,
 		presolve->row_map, workspace.row_kept, workspace.adjusted_rhs,
 		workspace.bounds);
-	if (presolve->reduced == NULL)
+	if (presolve->reduced == NULL) {
+		presolve->status = lp_simplex_MemoryAllocError;
 		goto failure;
+	}
 	if (simplex_presolve_substitute_doubletons(presolve, tolerance) ==
 		lp_simplex_EXIT_FAILURE)
 		goto failure;
 finish:
-	/* Retain the row correspondence for original-model progress bounds. */
+	/* Terminal reductions need no reduced-column map. Keep row_map for
+	 * original-model progress bounds until the presolve owner is destroyed. */
 	if (presolve->status != lp_simplex_CondUnsatisfied) {
 		lp_simplex_free(presolve->column_map);
 		presolve->column_map = NULL;
@@ -925,4 +927,30 @@ failure:
 	presolve_workspace_destroy(&workspace);
 	simplex_presolve_destroy(presolve);
 	return lp_simplex_EXIT_FAILURE;
+}
+
+void simplex_presolve_destroy(struct simplex_Presolve *presolve)
+{
+	if (presolve == NULL)
+		return;
+	simplex_problem_free(presolve->reduced);
+	lp_simplex_free(presolve->column_map);
+	lp_simplex_free(presolve->row_map);
+	lp_simplex_free(presolve->eliminated_value);
+	lp_simplex_free(presolve->eliminated);
+	lp_simplex_free(presolve->journal.record);
+	lp_simplex_free(presolve->journal.term_column);
+	lp_simplex_free(presolve->journal.term_multiplier);
+	presolve->reduced = NULL;
+	presolve->column_map = NULL;
+	presolve->row_map = NULL;
+	presolve->eliminated_value = NULL;
+	presolve->eliminated = NULL;
+	presolve->journal.record = NULL;
+	presolve->journal.term_column = NULL;
+	presolve->journal.term_multiplier = NULL;
+	presolve->journal.count = 0;
+	presolve->journal.capacity = 0;
+	presolve->journal.term_count = 0;
+	presolve->journal.term_capacity = 0;
 }

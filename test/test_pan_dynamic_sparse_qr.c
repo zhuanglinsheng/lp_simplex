@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 static int border_cache_stress(int count)
 {
 	struct pan_DynamicSparseQR factor;
@@ -85,7 +84,6 @@ static int border_cache_stress(int count)
 	return good;
 }
 
-
 static int pan_check_solution(struct pan_DynamicSparseQR *factor,
 	const double *gram, const double *expected, const int count)
 {
@@ -106,7 +104,6 @@ static int pan_check_solution(struct pan_DynamicSparseQR *factor,
 			return 0;
 	return 1;
 }
-
 
 int main(int argc, char **argv)
 {

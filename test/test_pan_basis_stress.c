@@ -9,6 +9,7 @@
  * updates.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_basis.h"
 
 #include <math.h>
@@ -16,11 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* Long mixed update/rebuild sequences; equations are checked from original
  * columns, independently of the factor's own orthogonality statistics. */
 int main(int argc, char **argv)
 {
+	struct simplex_PanConfig basis_controls;
 	struct simplex_PanStandard standard;
 	struct simplex_PanBasis basis;
 	int large = argc > 1 && strcmp(argv[1], "--large") == 0;
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
 	int i, j, k, t, failed = 0;
 	double residual, worst = 0.;
 
+	simplex_pan_config_init(&basis_controls, NULL);
 	memset(&standard, 0, sizeof(standard));
 	start = (int *)malloc((size_t)(n + 1) * sizeof(int));
 	row = (int *)malloc((size_t)width * n * sizeof(int));
@@ -78,7 +80,8 @@ int main(int argc, char **argv)
 	standard.value = entry;
 	standard.normalized_value = normalized;
 	standard.column_norm = norm;
-	if (simplex_pan_basis_create(&basis, &standard, 1e-10))
+	if (simplex_pan_basis_create_configured(
+		    &basis, &standard, 1e-10, &basis_controls))
 		return 2;
 	for (j = 0; j < size; j++)
 		if (simplex_pan_basis_add(&basis, j))

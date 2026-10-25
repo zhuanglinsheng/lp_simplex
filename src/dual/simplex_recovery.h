@@ -12,12 +12,10 @@
 #ifndef LP_SIMPLEX_RECOVERY_INTERNAL_H
 #define LP_SIMPLEX_RECOVERY_INTERNAL_H
 
+#include "policy/search.h"
 #include "simplex_degeneracy.h"
 
-
 struct simplex_DualState;
-
-#define SIMPLEX_PRIMAL_STALL_LIMIT 64
 
 enum simplex_RecoveryStage {
 	SIMPLEX_RECOVERY_WORKING_DUAL = 0,
@@ -77,10 +75,5 @@ int simplex_recovery_perturb_bounds(struct simplex_DualState *state);
 /* Restore bounds exactly, repair fixed nonbasic status/value, and release
  * the snapshot. The caller must recompute basic values and feasibility. */
 int simplex_recovery_restore_bounds(struct simplex_DualState *state);
-
-/* Internal orchestration entry: primal-feasible basis, restored original
- * costs. Never certifies optimality; returns to the outer dual loop. */
-int simplex_dual_primal_cleanup(struct simplex_DualState *state, int *status);
-int simplex_dual_continue(struct simplex_DualState *state, int *status);
 
 #endif

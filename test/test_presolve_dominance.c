@@ -2,6 +2,12 @@
  * Copyright (C) 2022 Zhuang Linsheng <zhuanglinsheng@outlook.com>
  * License: LGPL 3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>
  */
+
+/**
+ * @file test_presolve_dominance.c
+ * @brief Regression tests for presolve dominance.
+ */
+
 #include <lp_simplex/lp_simplex.h>
 #include "simplex_presolve_dominance.h"
 #include "simplex_problem.h"

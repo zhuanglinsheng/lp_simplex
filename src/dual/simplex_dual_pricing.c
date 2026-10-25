@@ -9,8 +9,10 @@
  * policy.
  */
 
+#include "policy/factorization.h"
 #include "simplex_dual_pricing.h"
 #include "utils.h"
+#include "simplex_storage.h"
 
 #include <lp_simplex/status.h>
 
@@ -18,27 +20,31 @@
 #include <stdio.h>
 #include <math.h>
 
-
 int simplex_dual_pricing_create(struct simplex_DualState *state)
 {
 	int variables = state->variables;
+	size_t bytes;
 
+	if (variables < 0 || !simplex_storage_bytes((size_t)variables,
+				     4 * sizeof(int), (size_t)-1, &bytes))
+		return lp_simplex_EXIT_FAILURE;
 	if (simplex_sparse_vector_create(&state->packed_rho, state->rows) ==
 			lp_simplex_EXIT_FAILURE ||
 		simplex_sparse_vector_create(&state->packed_alpha, variables) ==
 			lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
-	state->candidate_sign =
-		(int *)lp_simplex_malloc((size_t)4 * variables * sizeof(int));
+	state->candidate_sign = (int *)lp_simplex_malloc(bytes);
 	state->candidate_index = state->candidate_sign != NULL
 					 ? state->candidate_sign + variables
 					 : NULL;
-	state->nonbasic_index = state->candidate_sign != NULL
-					? state->candidate_sign + 2 * variables
-					: NULL;
-	state->nonbasic_slot = state->candidate_sign != NULL
-				       ? state->candidate_sign + 3 * variables
-				       : NULL;
+	state->nonbasic_index =
+		state->candidate_sign != NULL
+			? state->candidate_sign + (size_t)2 * variables
+			: NULL;
+	state->nonbasic_slot =
+		state->candidate_sign != NULL
+			? state->candidate_sign + (size_t)3 * variables
+			: NULL;
 	if (state->candidate_sign == NULL || state->candidate_index == NULL ||
 		state->nonbasic_index == NULL || state->nonbasic_slot == NULL)
 		return lp_simplex_EXIT_FAILURE;
@@ -49,7 +55,6 @@ int simplex_dual_pricing_create(struct simplex_DualState *state)
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 {
 	simplex_sparse_vector_destroy(&state->packed_rho);
@@ -57,6 +62,11 @@ void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 	lp_simplex_free(state->candidate_sign);
 	lp_simplex_free(state->lex_storage);
 	state->lex_storage = NULL;
+	state->lex_rho = NULL;
+	state->lex_candidate = NULL;
+	state->lex_slot = NULL;
+	state->lex_anchor_status = NULL;
+	state->lex_initialized = 0;
 	state->candidate_sign = NULL;
 	state->candidate_index = NULL;
 	state->nonbasic_index = NULL;
@@ -64,7 +74,6 @@ void simplex_dual_pricing_destroy(struct simplex_DualState *state)
 	state->candidate_count = 0;
 	state->nonbasic_count = 0;
 }
-
 
 void simplex_dual_nonbasic_add(
 	struct simplex_DualState *state, const int variable)
@@ -75,7 +84,6 @@ void simplex_dual_nonbasic_add(
 	state->nonbasic_slot[variable] = state->nonbasic_count;
 	state->nonbasic_index[state->nonbasic_count++] = variable;
 }
-
 
 void simplex_dual_nonbasic_remove(
 	struct simplex_DualState *state, const int variable)
@@ -91,7 +99,6 @@ void simplex_dual_nonbasic_remove(
 	state->nonbasic_slot[variable] = -1;
 }
 
-
 void simplex_dual_nonbasic_initialize(struct simplex_DualState *state)
 {
 	int j;
@@ -104,7 +111,6 @@ void simplex_dual_nonbasic_initialize(struct simplex_DualState *state)
 			state->status[j] != DUAL_STATUS_FIXED)
 			simplex_dual_nonbasic_add(state, j);
 }
-
 
 int simplex_dual_nonbasic_is_consistent(const struct simplex_DualState *state)
 {
@@ -122,16 +128,24 @@ int simplex_dual_nonbasic_is_consistent(const struct simplex_DualState *state)
 	return count == state->nonbasic_count;
 }
 
-
 static double pricing_column_dot(
 	const struct simplex_DualState *state, const int variable)
 {
+	int k;
+	double result = 0.;
+	const struct simplex_CscMatrix *matrix = &state->matrix;
+
 	if (variable >= state->structural)
 		return -state->rho[variable - state->structural];
 
-	return simplex_csc_column_dot(&state->matrix, variable, state->rho);
+	/* Keep the short CSC reduction in the pricing translation unit so the
+	 * compiler can fuse it into the candidate loop without per-column calls.
+	 * Preserve the CSC summation order used by the certification pass. */
+	for (k = matrix->column_start[variable];
+		k < matrix->column_start[variable + 1]; k++)
+		result += state->rho[matrix->row_index[k]] * matrix->value[k];
+	return result;
 }
-
 
 static int pricing_candidate_sign(const struct simplex_DualState *state,
 	const int variable, const int kappa, const double alpha)
@@ -146,25 +160,24 @@ static int pricing_candidate_sign(const struct simplex_DualState *state,
 	return 0;
 }
 
-
 static int pricing_significantly_greater(
 	const double value, const double incumbent)
 {
 	return value >
 	       incumbent +
-		       1e-12 * (1. + __lp_simplex_MAX__(
+		       SIMPLEX_PRICING_TIE_RELATIVE *
+			       (1. + __lp_simplex_MAX__(
 					     __lp_simplex_ABS__(value),
 					     __lp_simplex_ABS__(incumbent)));
 }
 
-
 static int pricing_nearly_equal(const double left, const double right)
 {
 	return __lp_simplex_ABS__(left - right) <=
-	       1e-12 * (1. + __lp_simplex_MAX__(__lp_simplex_ABS__(left),
+	       SIMPLEX_PRICING_TIE_RELATIVE *
+		       (1. + __lp_simplex_MAX__(__lp_simplex_ABS__(left),
 				     __lp_simplex_ABS__(right)));
 }
-
 
 static void pricing_add_candidate(struct simplex_DualState *state, const int j,
 	const int kappa, const int alpha_ready, const int harris_enabled,
@@ -210,7 +223,6 @@ static void pricing_add_candidate(struct simplex_DualState *state, const int j,
 	(*candidates)++;
 }
 
-
 void simplex_dual_ratio_remove(
 	struct simplex_DualState *state, const int variable)
 {
@@ -220,6 +232,74 @@ void simplex_dual_ratio_remove(
 	}
 }
 
+/* CSR scatter visits the same column many times. Accumulate only in dense
+ * storage, record its first touch, then materialize packed values once. This
+ * avoids a checked add/set call and two numeric stores for every matrix entry.
+ * Matrix indices are validated when the problem is built. Keep row order and
+ * exact zeros: cancellation must not change the support used by the audit. */
+static void pricing_scatter_alpha(struct simplex_DualState *state)
+{
+	struct simplex_SparseVector *alpha = &state->packed_alpha;
+	const struct simplex_CscMatrix *matrix = &state->matrix;
+	int i, k;
+
+	for (i = 0; i < state->packed_rho.count; i++) {
+		int row = state->packed_rho.index[i];
+		double rho = state->packed_rho.value[i];
+
+		for (k = matrix->row_start[row]; k < matrix->row_start[row + 1];
+			k++) {
+			int column = matrix->column_index[k];
+			double value = rho * matrix->row_value[k];
+
+			if (alpha->mark[column] != alpha->generation) {
+				if (value == 0.)
+					continue;
+				alpha->mark[column] = alpha->generation;
+				alpha->slot[column] = alpha->count;
+				alpha->index[alpha->count++] = column;
+				alpha->dense[column] = value;
+			} else
+				alpha->dense[column] += value;
+		}
+		/* Logical columns have disjoint support and are touched only once. */
+		k = state->structural + row;
+		alpha->mark[k] = alpha->generation;
+		alpha->slot[k] = alpha->count;
+		alpha->index[alpha->count++] = k;
+		alpha->dense[k] = -rho;
+	}
+	for (i = 0; i < alpha->count; i++)
+		alpha->value[i] = alpha->dense[alpha->index[i]];
+}
+
+/* With at least 95% nonbasics, sequential CSC access avoids following a
+ * swap-deleted index list at a membership-scan overhead of at most 5.3%.
+ * Less-wide models retain the compact list.
+ * This changes enumeration order only, not the admissibility or ratio tests. */
+static void pricing_dense_candidates(struct simplex_DualState *state,
+	const int kappa, const int harris_enabled, int *candidates,
+	double *minimum)
+{
+	int i, j;
+
+	if (state->nonbasic_count >=
+		state->variables -
+			state->variables /
+				SIMPLEX_DUAL_DENSE_MEMBERSHIP_DIVISOR) {
+		for (j = 0; j < state->variables; j++) {
+			if (state->nonbasic_slot[j] < 0)
+				continue;
+			pricing_add_candidate(state, j, kappa, 0,
+				harris_enabled, candidates, minimum);
+		}
+	} else
+		for (i = 0; i < state->nonbasic_count; i++) {
+			j = state->nonbasic_index[i];
+			pricing_add_candidate(state, j, kappa, 0,
+				harris_enabled, candidates, minimum);
+		}
+}
 
 int simplex_dual_prepare_ratio_test(
 	struct simplex_DualState *state, const int kappa)
@@ -230,7 +310,8 @@ int simplex_dual_prepare_ratio_test(
 		!simplex_degeneracy_is_stressed(&state->degeneracy);
 	long row_entries = 0;
 	double minimum = __lp_simplex_INF__;
-	clock_t started = 0;
+	double audit_seconds = 0.;
+	clock_t started = 0, path_started = 0;
 
 	if (state->profile.enabled)
 		started = clock();
@@ -245,20 +326,13 @@ int simplex_dual_prepare_ratio_test(
 		row_entries += state->matrix.row_start[row + 1] -
 			       state->matrix.row_start[row];
 	}
+	if (state->profile.enabled) {
+		path_started = clock();
+		state->profile.ratio_setup_seconds +=
+			(double)(path_started - started) / CLOCKS_PER_SEC;
+	}
 	if (row_entries * 4 < state->matrix.nonzeros) {
-		for (i = 0; i < state->packed_rho.count; i++) {
-			int k;
-			int row = state->packed_rho.index[i];
-			double value = state->packed_rho.value[i];
-
-			for (k = state->matrix.row_start[row];
-				k < state->matrix.row_start[row + 1]; k++)
-				simplex_sparse_vector_add(&state->packed_alpha,
-					state->matrix.column_index[k],
-					value * state->matrix.row_value[k]);
-			simplex_sparse_vector_set(&state->packed_alpha,
-				state->structural + row, -value);
-		}
+		pricing_scatter_alpha(state);
 		alpha_ready = 1;
 	}
 	state->packed_alpha_valid = alpha_ready;
@@ -266,6 +340,10 @@ int simplex_dual_prepare_ratio_test(
 		if (state->pricing_validation_countdown-- <= 0) {
 			double maximum_error = 0.;
 			int missing = 0;
+			clock_t audit_started = 0;
+
+			if (state->profile.enabled)
+				audit_started = clock();
 
 			for (i = 0; i < state->nonbasic_count; i++) {
 				double exact, packed, error;
@@ -277,26 +355,32 @@ int simplex_dual_prepare_ratio_test(
 				error = __lp_simplex_ABS__(exact - packed);
 				maximum_error = __lp_simplex_MAX__(
 					maximum_error, error);
-				if (error > 1e-11 * (1. + __lp_simplex_ABS__(
+				if (error > SIMPLEX_PRICING_AUDIT_RELATIVE *
+						    (1. + __lp_simplex_ABS__(
 								  exact))) {
 					simplex_sparse_vector_set(
 						&state->packed_alpha, j, exact);
 					missing++;
 				}
 			}
-			if (state->profile.enabled)
+			if (state->profile.enabled) {
+				audit_seconds =
+					(double)(clock() - audit_started) /
+					CLOCKS_PER_SEC;
+				state->profile.ratio_audit_seconds +=
+					audit_seconds;
+				state->profile.ratio_audit_calls++;
+				state->profile.ratio_audit_columns +=
+					state->nonbasic_count;
 				fprintf(stderr,
 					"dual profile: hypersparse alpha audit error=%.3g repaired=%d touched=%d/%d\n",
 					maximum_error, missing,
 					state->packed_alpha.count,
 					state->nonbasic_count);
+			}
 			state->pricing_validation_countdown = 127;
 		}
-		/* Audit repairs and candidate pricing must use the same row.  Copy
-		 * after repair, including any newly discovered sparse entries. */
-		for (i = 0; i < state->packed_alpha.count; i++)
-			state->alpha[state->packed_alpha.index[i]] =
-				state->packed_alpha.value[i];
+		/* Audit repairs update the shared dense ratio row directly. */
 		for (i = 0; i < state->packed_alpha.count; i++) {
 			j = state->packed_alpha.index[i];
 			if (state->nonbasic_slot[j] < 0)
@@ -306,26 +390,45 @@ int simplex_dual_prepare_ratio_test(
 				harris_enabled, &candidates, &minimum);
 		}
 	} else
-		for (i = 0; i < state->nonbasic_count; i++) {
-			j = state->nonbasic_index[i];
-			state->candidate_sign[j] = 0;
-			pricing_add_candidate(state, j, kappa, 0,
-				harris_enabled, &candidates, &minimum);
+		pricing_dense_candidates(
+			state, kappa, harris_enabled, &candidates, &minimum);
+	if (state->profile.enabled) {
+		double elapsed =
+			(double)(clock() - path_started) / CLOCKS_PER_SEC;
+
+		if (alpha_ready) {
+			state->profile.ratio_sparse_calls++;
+			state->profile.ratio_scatter_entries += row_entries;
+			state->profile.ratio_sparse_touched +=
+				state->packed_alpha.count;
+			state->profile.ratio_sparse_seconds +=
+				elapsed - audit_seconds;
+		} else {
+			state->profile.ratio_dense_calls++;
+			state->profile.ratio_dense_columns +=
+				state->nonbasic_count;
+			state->profile.ratio_dense_seconds += elapsed;
 		}
+	}
 	/* A sparse pricing pass is only a fast candidate generator, never an
 	 * infeasibility certificate.  Cancellation and stale sparsity can omit an
 	 * eligible column; certify an empty set with a full CSC dot-product scan. */
 	if (candidates == 0 && alpha_ready) {
-		minimum = __lp_simplex_INF__;
-		for (i = 0; i < state->nonbasic_count; i++) {
-			j = state->nonbasic_index[i];
-			pricing_add_candidate(state, j, kappa, 0,
-				harris_enabled, &candidates, &minimum);
+		if (state->profile.enabled) {
+			path_started = clock();
+			state->profile.ratio_certify_calls++;
 		}
+		minimum = __lp_simplex_INF__;
+		pricing_dense_candidates(
+			state, kappa, harris_enabled, &candidates, &minimum);
 		/* The exact certification pass supersedes the hypersparse alpha.
 		 * Keeping packed_alpha_valid here would update reduced costs for only
 		 * the old sparse support after choosing a column found by the full scan. */
 		state->packed_alpha_valid = 0;
+		if (state->profile.enabled)
+			state->profile.ratio_certify_seconds +=
+				(double)(clock() - path_started) /
+				CLOCKS_PER_SEC;
 	}
 	state->ratio_ordered = 0;
 	state->ratio_heap_valid = 0;
@@ -341,6 +444,51 @@ int simplex_dual_prepare_ratio_test(
 		       : SIMPLEX_DUAL_RATIO_ERROR;
 }
 
+struct pricing_LexStorage {
+	size_t numeric, indices, total;
+};
+
+/* This owner checks its combined allocation independently of the dimensions
+ * admitted by the separate startup workspaces. No total-memory quota here. */
+static int pricing_lex_storage(int rows, int variables, size_t limit,
+	struct pricing_LexStorage *layout)
+{
+	struct pricing_LexStorage next = {0};
+	*layout = next;
+	if (rows < 0 || variables < rows ||
+		!simplex_storage_bytes(
+			(size_t)rows, sizeof(double), limit, &next.numeric) ||
+		!simplex_storage_bytes((size_t)variables, 2 * sizeof(int),
+			limit, &next.indices) ||
+		next.numeric > limit - next.indices)
+		return 0;
+	next.total = next.numeric + next.indices;
+	if ((size_t)variables > limit - next.total)
+		return 0;
+	next.total += (size_t)variables;
+	*layout = next;
+	return 1;
+}
+
+static int pricing_lex_workspace(struct simplex_DualState *state)
+{
+	struct pricing_LexStorage layout;
+	unsigned char *storage;
+	if (state->lex_storage != NULL)
+		return lp_simplex_EXIT_SUCCESS;
+	if (!pricing_lex_storage(
+		    state->rows, state->variables, (size_t)-1, &layout))
+		return lp_simplex_EXIT_FAILURE;
+	storage = (unsigned char *)lp_simplex_malloc(layout.total);
+	if (storage == NULL)
+		return lp_simplex_EXIT_FAILURE;
+	state->lex_storage = storage;
+	state->lex_rho = (double *)storage;
+	state->lex_candidate = (int *)(storage + layout.numeric);
+	state->lex_slot = state->lex_candidate + state->variables;
+	state->lex_anchor_status = storage + layout.numeric + layout.indices;
+	return lp_simplex_EXIT_SUCCESS;
+}
 
 /* Compare symbolic reduced-cost ratios without choosing a numeric epsilon.
  * At activation, perturb each nonbasic lower/upper cost by +/- eps^j and
@@ -354,22 +502,9 @@ static int pricing_lexicographic_candidate(struct simplex_DualState *state,
 	int count = 0, i, j, coordinate;
 	int leaving_position = state->position[leaving_variable];
 
-	if (state->lex_storage == NULL) {
-		size_t numeric = (size_t)state->rows * sizeof(double);
-		size_t indices = (size_t)2 * state->variables * sizeof(int);
-		unsigned char *storage = (unsigned char *)lp_simplex_malloc(
-			numeric + indices + (size_t)state->variables);
-
-		if (storage == NULL) {
-			state->ratio_failure_status =
-				lp_simplex_MemoryAllocError;
-			return SIMPLEX_DUAL_RATIO_ERROR;
-		}
-		state->lex_storage = storage;
-		state->lex_rho = (double *)storage;
-		state->lex_candidate = (int *)(storage + numeric);
-		state->lex_slot = state->lex_candidate + state->variables;
-		state->lex_anchor_status = storage + numeric + indices;
+	if (pricing_lex_workspace(state) == lp_simplex_EXIT_FAILURE) {
+		state->ratio_failure_status = lp_simplex_MemoryAllocError;
+		return SIMPLEX_DUAL_RATIO_ERROR;
 	}
 	if (!state->lex_initialized) {
 		lp_simplex_memcpy(state->lex_anchor_status, state->status,
@@ -477,7 +612,6 @@ static int pricing_lexicographic_candidate(struct simplex_DualState *state,
 	return j;
 }
 
-
 /* Long-step flips consume breakpoints in increasing order.  Build the heap
  * only on a retry: the usual single-pivot Harris path keeps its linear scan.
  * Reuse the candidate array; consumed entries already have candidate_sign=0. */
@@ -494,13 +628,16 @@ static int pricing_ratio_before(
 	return left < right;
 }
 
-
 static void pricing_ratio_sift(struct simplex_DualState *state, int position)
 {
-	int variable = state->candidate_index[position];
+	int variable;
 	int child;
 
-	while ((child = 2 * position + 1) < state->candidate_count) {
+	if (position >= state->candidate_count / 2)
+		return;
+	variable = state->candidate_index[position];
+	while (position < state->candidate_count / 2) {
+		child = 2 * position + 1;
 		if (child + 1 < state->candidate_count &&
 			pricing_ratio_before(state,
 				state->candidate_index[child + 1],
@@ -515,7 +652,6 @@ static void pricing_ratio_sift(struct simplex_DualState *state, int position)
 	}
 	state->candidate_index[position] = variable;
 }
-
 
 static int pricing_next_breakpoint(struct simplex_DualState *state)
 {
@@ -538,7 +674,6 @@ static int pricing_next_breakpoint(struct simplex_DualState *state)
 	}
 	return -1;
 }
-
 
 int simplex_dual_next_ratio_candidate(struct simplex_DualState *state,
 	double *chosen_theta, const int pan_perturbation,
@@ -592,7 +727,8 @@ int simplex_dual_next_ratio_candidate(struct simplex_DualState *state,
 		if (state->candidate_sign[j] == 0)
 			continue;
 		theta = state->breakpoint[j];
-		relaxed = minimum + 1e-12 * (1. + __lp_simplex_ABS__(minimum));
+		relaxed = minimum + SIMPLEX_PRICING_TIE_RELATIVE *
+					    (1. + __lp_simplex_ABS__(minimum));
 		if (theta <= relaxed &&
 			((!stable_order &&
 				 (__lp_simplex_ABS__(state->alpha[j]) >

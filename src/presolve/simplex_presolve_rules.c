@@ -13,20 +13,17 @@
 
 #include <lp_simplex/status.h>
 
-
 int simplex_presolve_has_lower(const struct optm_VariableBound *bound)
 {
 	return bound->b_type == optm_BOUND_T_LO ||
 	       bound->b_type == optm_BOUND_T_BS;
 }
 
-
 int simplex_presolve_has_upper(const struct optm_VariableBound *bound)
 {
 	return bound->b_type == optm_BOUND_T_UP ||
 	       bound->b_type == optm_BOUND_T_BS;
 }
-
 
 void simplex_presolve_set_lower(
 	struct optm_VariableBound *bound, const double value)
@@ -37,7 +34,6 @@ void simplex_presolve_set_lower(
 							  : optm_BOUND_T_LO;
 }
 
-
 void simplex_presolve_set_upper(
 	struct optm_VariableBound *bound, const double value)
 {
@@ -46,7 +42,6 @@ void simplex_presolve_set_upper(
 	bound->b_type = simplex_presolve_has_lower(bound) ? optm_BOUND_T_BS
 							  : optm_BOUND_T_UP;
 }
-
 
 int simplex_presolve_empty_row_feasible(
 	const int row_type, const double rhs, const double tolerance)
@@ -58,7 +53,6 @@ int simplex_presolve_empty_row_feasible(
 		return rhs <= tolerance;
 	return rhs >= -tolerance;
 }
-
 
 int simplex_presolve_choose_empty_column(const double cost,
 	const struct optm_VariableBound *bound, double *value)
@@ -80,7 +74,6 @@ int simplex_presolve_choose_empty_column(const double cost,
 	}
 	return lp_simplex_Success;
 }
-
 
 int simplex_presolve_tighten_singleton(struct optm_VariableBound *bound,
 	const int row_type, const double coefficient, const double rhs,

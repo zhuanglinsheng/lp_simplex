@@ -16,7 +16,6 @@
 #include <math.h>
 #include <stdio.h>
 
-
 int main(void)
 {
 	cholmod_common common;

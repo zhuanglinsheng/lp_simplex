@@ -11,7 +11,6 @@
 #include "simplex_dual_bounds.h"
 #include "utils.h"
 
-
 struct dual_BoundQueue {
 	int *row;
 	int *queued;
@@ -21,18 +20,15 @@ struct dual_BoundQueue {
 	int count;
 };
 
-
 static int dual_bound_has_lower(const double value)
 {
 	return value > __lp_simplex_NINF__;
 }
 
-
 static int dual_bound_has_upper(const double value)
 {
 	return value < __lp_simplex_INF__;
 }
-
 
 static void dual_bound_queue_push(struct dual_BoundQueue *queue, const int row)
 {
@@ -44,7 +40,6 @@ static void dual_bound_queue_push(struct dual_BoundQueue *queue, const int row)
 	queue->queued[row] = 1;
 }
 
-
 static int dual_bound_queue_pop(struct dual_BoundQueue *queue)
 {
 	int row = queue->row[queue->head];
@@ -55,7 +50,6 @@ static int dual_bound_queue_pop(struct dual_BoundQueue *queue)
 	return row;
 }
 
-
 static void dual_bound_queue_column(const struct simplex_DualState *state,
 	struct dual_BoundQueue *queue, const int column)
 {
@@ -65,7 +59,6 @@ static void dual_bound_queue_column(const struct simplex_DualState *state,
 		k < state->matrix.column_start[column + 1]; k++)
 		dual_bound_queue_push(queue, state->matrix.row_index[k]);
 }
-
 
 static void dual_initialize_column_bounds(
 	struct simplex_DualState *state, const struct simplex_Problem *problem)
@@ -98,7 +91,6 @@ static void dual_initialize_column_bounds(
 		state->cost[variable] = 0.;
 	}
 }
-
 
 static void dual_propagate_row_bounds(struct simplex_DualState *state,
 	const struct simplex_Problem *problem, struct dual_BoundQueue *queue,
@@ -192,7 +184,6 @@ static void dual_propagate_row_bounds(struct simplex_DualState *state,
 	}
 }
 
-
 static void dual_propagate_bounds(
 	struct simplex_DualState *state, const struct simplex_Problem *problem)
 {
@@ -217,10 +208,10 @@ static void dual_propagate_bounds(
 	}
 }
 
-
 void simplex_dual_initialize_bounds(struct simplex_DualState *state,
 	const struct simplex_Problem *problem, const int propagate)
 {
+	state->bounds_version++;
 	dual_initialize_column_bounds(state, problem);
 
 	if (propagate)

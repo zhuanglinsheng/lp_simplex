@@ -11,7 +11,6 @@
 #include "simplex_presolve.h"
 #include "utils.h"
 
-
 void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
 	const double *reduced_x, double *original_x)
 {
@@ -41,31 +40,4 @@ void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
 		}
 		original_x[record->column] = value;
 	}
-}
-
-
-void simplex_presolve_destroy(struct simplex_Presolve *presolve)
-{
-	if (presolve == NULL)
-		return;
-	simplex_problem_free(presolve->reduced);
-	lp_simplex_free(presolve->column_map);
-	lp_simplex_free(presolve->row_map);
-	lp_simplex_free(presolve->eliminated_value);
-	lp_simplex_free(presolve->eliminated);
-	lp_simplex_free(presolve->journal.record);
-	lp_simplex_free(presolve->journal.term_column);
-	lp_simplex_free(presolve->journal.term_multiplier);
-	presolve->reduced = NULL;
-	presolve->column_map = NULL;
-	presolve->row_map = NULL;
-	presolve->eliminated_value = NULL;
-	presolve->eliminated = NULL;
-	presolve->journal.record = NULL;
-	presolve->journal.term_column = NULL;
-	presolve->journal.term_multiplier = NULL;
-	presolve->journal.count = 0;
-	presolve->journal.capacity = 0;
-	presolve->journal.term_count = 0;
-	presolve->journal.term_capacity = 0;
 }

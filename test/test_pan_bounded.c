@@ -9,6 +9,7 @@
  * solution checks.
  */
 
+#include "simplex_pan_config.h"
 #include "simplex_pan_bounded.h"
 #include "simplex_pan.h"
 
@@ -17,7 +18,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
 
 static int representation(void)
 {
@@ -63,7 +63,6 @@ static int representation(void)
 	return good;
 }
 
-
 static int kkt(void)
 {
 	struct simplex_PanBounded b;
@@ -93,19 +92,18 @@ static int kkt(void)
 	return !simplex_pan_bounded_check_dual(&b, x, &y, 1e-8, &v);
 }
 
-
 static unsigned int random_number(unsigned int *state)
 {
 	*state = *state * 1664525U + 1013904223U;
 	return *state;
 }
 
-
 /* Native box KKT witnesses: g positive at lower, negative at upper, zero
  * inside/free. Fixed columns allow arbitrary g. Includes duplicate rows,
  * negative bounds and power-of-two column scaling. No reference solver. */
 static int known(unsigned int seed, int warm)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *m = lp_model_create(10, 24);
 	struct simplex_Problem p;
 	struct lp_simplex_Options o;
@@ -187,10 +185,15 @@ static int known(unsigned int seed, int warm)
 	if (simplex_problem_from_model(&p, m))
 		return 0;
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+	simplex_pan_config_resolve(&controls, &p, &o);
+	controls.model_form = SIMPLEX_PAN_NATIVE_BOUNDS;
+	controls.direction_method = SIMPLEX_PAN_CONE_DIRECTION;
+	if (controls.oracle == SIMPLEX_PAN_NO_ORACLE)
+		controls.oracle = SIMPLEX_PAN_EXPLICIT_ORACLE;
 	o.iteration_limit = 20000;
 	o.presolve = 0;
-	code = simplex_pan_bounded_solve(
-		&p, &o, warm ? start : NULL, out, &result);
+	code = simplex_pan_bounded_solve_certified_configured(
+		&p, &o, warm ? start : NULL, out, NULL, &result, &controls);
 	for (i = 0; i < 10; i++) {
 		long double activity = 0.;
 
@@ -226,9 +229,9 @@ static int known(unsigned int seed, int warm)
 	return good;
 }
 
-
 static int free_ray(void)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *m = lp_model_create(1, 2);
 	struct simplex_Problem p;
 	struct lp_simplex_Options o;
@@ -247,16 +250,22 @@ static int free_ray(void)
 	if (simplex_problem_from_model(&p, m))
 		return 0;
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
-	code = simplex_pan_bounded_solve(&p, &o, start, out, &result);
+	simplex_pan_config_resolve(&controls, &p, &o);
+	controls.model_form = SIMPLEX_PAN_NATIVE_BOUNDS;
+	controls.direction_method = SIMPLEX_PAN_CONE_DIRECTION;
+	if (controls.oracle == SIMPLEX_PAN_NO_ORACLE)
+		controls.oracle = SIMPLEX_PAN_EXPLICIT_ORACLE;
+	code = simplex_pan_bounded_solve_certified_configured(
+		&p, &o, start, out, NULL, &result, &controls);
 	good = code != 0 && result.status == lp_simplex_Unboundedness;
 	simplex_problem_destroy(&p);
 	lp_model_free(m);
 	return good;
 }
 
-
 static int bound_exchange(void)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *m = lp_model_create(1, 2);
 	struct simplex_Problem p;
 	struct lp_simplex_Options o;
@@ -278,12 +287,19 @@ static int bound_exchange(void)
 	if (simplex_problem_from_model(&p, m))
 		return 0;
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
-	good = simplex_pan_bounded_solve(&p, &o, start, out, &result) == 0 &&
+	simplex_pan_config_resolve(&controls, &p, &o);
+	controls.model_form = SIMPLEX_PAN_NATIVE_BOUNDS;
+	controls.direction_method = SIMPLEX_PAN_CONE_DIRECTION;
+	if (controls.oracle == SIMPLEX_PAN_NO_ORACLE)
+		controls.oracle = SIMPLEX_PAN_EXPLICIT_ORACLE;
+	good = simplex_pan_bounded_solve_certified_configured(
+		       &p, &o, start, out, NULL, &result, &controls) == 0 &&
 	       fabs(out[0] + 2.) < 1e-10 && fabs(out[1] - 3.) < 1e-10 &&
 	       fabs(result.objective + 2.) < 1e-10;
 	o.iteration_limit = 0;
 	good = good &&
-	       simplex_pan_bounded_solve(&p, &o, start, out, &result) != 0 &&
+	       simplex_pan_bounded_solve_certified_configured(
+		       &p, &o, start, out, NULL, &result, &controls) != 0 &&
 	       result.status == lp_simplex_ExceedIterLimit && out[0] == 3. &&
 	       out[1] == -2.;
 	simplex_problem_destroy(&p);
@@ -291,9 +307,9 @@ static int bound_exchange(void)
 	return good;
 }
 
-
 static int scaled_coordinate(void)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *m = lp_model_create(1, 1);
 	struct simplex_Problem p;
 	struct lp_simplex_Options o;
@@ -313,7 +329,13 @@ static int scaled_coordinate(void)
 	if (simplex_problem_from_model(&p, m))
 		return 0;
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
-	good = simplex_pan_bounded_solve(&p, &o, start, out, &result) == 0 &&
+	simplex_pan_config_resolve(&controls, &p, &o);
+	controls.model_form = SIMPLEX_PAN_NATIVE_BOUNDS;
+	controls.direction_method = SIMPLEX_PAN_CONE_DIRECTION;
+	if (controls.oracle == SIMPLEX_PAN_NO_ORACLE)
+		controls.oracle = SIMPLEX_PAN_EXPLICIT_ORACLE;
+	good = simplex_pan_bounded_solve_certified_configured(
+		       &p, &o, start, out, NULL, &result, &controls) == 0 &&
 	       out[0] == 1e-12;
 	simplex_problem_destroy(&p);
 	/* A small nonzero equality column cannot certify a recession ray. */
@@ -324,16 +346,17 @@ static int scaled_coordinate(void)
 	if (simplex_problem_from_model(&p, m))
 		return 0;
 	good = good &&
-	       simplex_pan_bounded_solve(&p, &o, start, out, &result) == 0 &&
+	       simplex_pan_bounded_solve_certified_configured(
+		       &p, &o, start, out, NULL, &result, &controls) == 0 &&
 	       fabs(out[0]) < 1e-12;
 	simplex_problem_destroy(&p);
 	lp_model_free(m);
 	return good;
 }
 
-
 static int local_restore(void)
 {
+	struct simplex_PanConfig controls;
 	struct lp_Model *m = lp_model_create(1, 2);
 	struct simplex_Problem p;
 	struct simplex_PanBounded b;
@@ -357,7 +380,9 @@ static int local_restore(void)
 	if (simplex_pan_bounded_create(&b, &p))
 		return 0;
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
-	good = simplex_pan_bounded_restore(&b, x, &o, &iterations, 2.) == 1 &&
+	simplex_pan_config_resolve(&controls, b.problem, &o);
+	good = simplex_pan_bounded_restore_configured_reported(
+		       &b, x, &o, &iterations, 2., &controls, NULL) == 1 &&
 	       iterations > 0 &&
 	       simplex_pan_bounded_primal(&b, x, r, work) < 1e-12 &&
 	       x[0] >= 0. && x[1] <= 1.;
@@ -365,7 +390,8 @@ static int local_restore(void)
 	x[0] = x[1] = 0.;
 	iterations = 0;
 	good = good &&
-	       simplex_pan_bounded_restore(&b, x, &o, &iterations, 2.) == 1 &&
+	       simplex_pan_bounded_restore_configured_reported(
+		       &b, x, &o, &iterations, 2., &controls, NULL) == 1 &&
 	       simplex_pan_bounded_primal(&b, x, r, work) < 1e-8 &&
 	       x[0] >= 0. && x[1] <= 1.;
 	/* A ceiling that excludes every feasible point must roll back exactly. */
@@ -373,19 +399,20 @@ static int local_restore(void)
 	x[1] = .60001;
 	iterations = 0;
 	good = good &&
-	       simplex_pan_bounded_restore(&b, x, &o, &iterations, .5) == -1 &&
+	       simplex_pan_bounded_restore_configured_reported(
+		       &b, x, &o, &iterations, .5, &controls, NULL) == -1 &&
 	       x[0] == .4 && x[1] == .60001;
 	o.iteration_limit = 0;
 	iterations = 0;
 	good = good &&
-	       simplex_pan_bounded_restore(&b, x, &o, &iterations, 2.) == -1 &&
+	       simplex_pan_bounded_restore_configured_reported(
+		       &b, x, &o, &iterations, 2., &controls, NULL) == -1 &&
 	       iterations == 0 && x[0] == .4 && x[1] == .60001;
 	simplex_pan_bounded_destroy(&b);
 	simplex_problem_destroy(&p);
 	lp_model_free(m);
 	return good;
 }
-
 
 static int multiplier_repair(void)
 {
@@ -442,6 +469,59 @@ static int multiplier_repair(void)
 	return good;
 }
 
+static int pdhg_short_budgets(void)
+{
+	struct simplex_PanConfig controls;
+	struct lp_Model *m = lp_model_create(1, 2);
+	struct simplex_Problem p;
+	struct simplex_PanBounded b;
+	struct lp_simplex_Options o;
+	double point[2], dual[1], residual[1], work[1], violation;
+	int j, budget, used, certificate, good = 1;
+	if (!m)
+		return 0;
+	m->constraints[0].type = optm_CONS_T_EQ;
+	m->constraints[0].rhs = 1.;
+	for (j = 0; j < 2; j++) {
+		m->constraints[0].coef[j] = 1.;
+		m->objective[j] = j + 1.;
+		m->bounds[j].b_type = optm_BOUND_T_BS;
+		m->bounds[j].lb = 0.;
+		m->bounds[j].ub = 1.;
+	}
+	if (simplex_problem_from_model(&p, m)) {
+		lp_model_free(m);
+		return 0;
+	}
+	if (simplex_pan_bounded_create(&b, &p)) {
+		simplex_problem_destroy(&p);
+		lp_model_free(m);
+		return 0;
+	}
+	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+	simplex_pan_config_init(&controls, &o);
+	/* Both buffer parities and the zero-work exit retain an audited feasible
+	 * incumbent. An unfinished iterate must never become an optimum claim. */
+	for (budget = 0; budget <= 3; budget++) {
+		point[0] = point[1] = .5;
+		dual[0] = 0.;
+		used = 0;
+		certificate = simplex_pan_bounded_pdhg_configured_reported(&b,
+			point, dual, &o, &used, budget, &controls, NULL, NULL);
+		good = good && used <= budget &&
+		       simplex_pan_bounded_primal(&b, point, residual, work) <=
+			       o.primal_tolerance &&
+		       point[0] + 2. * point[1] <= 1.5 + o.dual_tolerance;
+		if (certificate)
+			good = good &&
+			       simplex_pan_bounded_check_dual(&b, point, dual,
+				       o.dual_tolerance, &violation);
+	}
+	simplex_pan_bounded_destroy(&b);
+	simplex_problem_destroy(&p);
+	lp_model_free(m);
+	return good;
+}
 
 int main(void)
 {
@@ -449,7 +529,7 @@ int main(void)
 
 	if (!representation() || !kkt() || !free_ray() || !bound_exchange() ||
 		!scaled_coordinate() || !local_restore() ||
-		!multiplier_repair())
+		!multiplier_repair() || !pdhg_short_budgets())
 		return 1;
 	for (seed = 1; seed <= 100; seed++)
 		if (!known(seed, 0) || !known(seed, 1) || !known(seed, 2))

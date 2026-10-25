@@ -8,14 +8,17 @@
  * @brief Regression tests for primal Devex initialization and weight updates.
  */
 
-#include "simplex_primal_pricing.h"
+#include "simplex_dual_primal_pricing.h"
+#include "simplex_dual_kernel.h"
+#include "simplex_dual_state.h"
+#include "simplex_dual_pricing.h"
+#include "simplex_problem.h"
 
 #include <lp_simplex/status.h>
 
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
 
 /* Check Devex against explicit rows of B^-1, including the -I logical
  * columns, a changed reference framework, and its inaccuracy restart. */
@@ -87,10 +90,82 @@ static int test_reference_update(const int restart)
 	return valid;
 }
 
+/* Start at x0=1, x1=0 for min 2*x0+x1 with x0+x1 >= 1.
+ * Cleanup either exchanges x0 for x1 or flips x1 to its finite upper bound.
+ * Membership and structural counts must agree on every phase exit. */
+static int test_cleanup_indexes(int backend, int bounded, int budget)
+{
+	struct simplex_Problem *problem =
+		simplex_problem_create_sparse(1, 2, 2);
+	struct simplex_DualState state;
+	struct lp_simplex_Options options;
+	int j, result, status = lp_simplex_Success, good;
+
+	if (problem == NULL)
+		return 0;
+	for (j = 0; j < 2; j++) {
+		problem->matrix.column_start[j] = j;
+		problem->matrix.row_index[j] = 0;
+		problem->matrix.value[j] = 1.;
+		problem->matrix.column_index[j] = j;
+		problem->matrix.row_value[j] = 1.;
+	}
+	problem->matrix.column_start[2] = 2;
+	problem->matrix.row_start[0] = 0;
+	problem->matrix.row_start[1] = 2;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	options.iteration_limit = budget;
+	if (simplex_dual_state_create(&state, problem, &options, backend) !=
+		lp_simplex_EXIT_SUCCESS) {
+		simplex_problem_free(problem);
+		return 0;
+	}
+	for (j = 0; j < 3; j++) {
+		state.position[j] = j == 0 ? 0 : -1;
+		state.status[j] =
+			j == 0 ? DUAL_STATUS_BASIC : DUAL_STATUS_LOWER;
+		state.lower[j] = j == 2 ? 1. : 0.;
+		state.upper[j] = j == 1 && bounded ? .5 : HUGE_VAL;
+		state.cost[j] = state.original_cost[j] = 2. - j;
+		state.value[j] = j == 1 ? 0. : 1.;
+		state.reduced[j] = j == 0 ? 0. : (j == 1 ? -1. : 2.);
+	}
+	state.basis[0] = 0;
+	state.basic_value[0] = 1.;
+	state.basic_lower[0] = 0.;
+	state.basic_upper[0] = HUGE_VAL;
+	state.pi[0] = 2.;
+	good = simplex_basis_factorize(&state.factor) ==
+	       lp_simplex_EXIT_SUCCESS;
+	if (good) {
+		result = simplex_dual_primal_cleanup(&state, &status);
+		good = simplex_dual_nonbasic_is_consistent(&state) &&
+		       state.structural_basic == 1 &&
+		       state.candidate_count == 0 && state.nonbasic_count == 2;
+		if (budget >= 2)
+			good = good && result == lp_simplex_EXIT_SUCCESS &&
+			       fabs(state.value[1] - (bounded ? .5 : 1.)) <
+				       1e-12 &&
+			       fabs(state.value[0] + state.value[1] - 1.) <
+				       1e-12;
+		else
+			good = good && result == lp_simplex_EXIT_FAILURE &&
+			       status == lp_simplex_ExceedIterLimit;
+	}
+	simplex_dual_state_destroy(&state);
+	simplex_problem_free(problem);
+	return good;
+}
 
 int main(void)
 {
-	if (!test_reference_update(0) || !test_reference_update(1)) {
+	if (!test_reference_update(0) || !test_reference_update(1) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_DEFAULT, 0, 2) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_DEFAULT, 1, 2) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_INTERNAL, 0, 2) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_INTERNAL, 1, 2) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_DEFAULT, 0, 0) ||
+		!test_cleanup_indexes(SIMPLEX_BASIS_BACKEND_DEFAULT, 0, 1)) {
 		printf("primal Devex reference update failed\n");
 		return 1;
 	}

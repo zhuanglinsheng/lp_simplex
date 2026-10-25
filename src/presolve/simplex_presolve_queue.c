@@ -10,33 +10,34 @@
 
 #include "simplex_presolve_queue.h"
 #include "utils.h"
+#include "simplex_storage.h"
 
 #include <lp_simplex/status.h>
-
 
 int simplex_presolve_queue_init(
 	struct simplex_PresolveQueue *queue, const int capacity)
 {
-	queue->item = NULL;
+	size_t item_bytes, present_bytes;
 
-	queue->present = NULL;
-	queue->capacity = capacity;
-	queue->head = 0;
-	queue->count = 0;
-	if (capacity <= 0)
+	lp_simplex_memset(queue, 0, sizeof(*queue));
+	if (capacity < 0 ||
+		!simplex_storage_bytes((size_t)capacity, sizeof(int),
+			(size_t)-1, &item_bytes) ||
+		!simplex_storage_bytes((size_t)capacity, sizeof(unsigned char),
+			(size_t)-1, &present_bytes))
+		return lp_simplex_EXIT_FAILURE;
+	if (!capacity)
 		return lp_simplex_EXIT_SUCCESS;
-	queue->item = (int *)lp_simplex_malloc((size_t)capacity * sizeof(int));
-	queue->present = (unsigned char *)lp_simplex_malloc(
-		(size_t)capacity * sizeof(unsigned char));
+	queue->capacity = capacity;
+	queue->item = (int *)lp_simplex_malloc(item_bytes);
+	queue->present = (unsigned char *)lp_simplex_malloc(present_bytes);
 	if (queue->item == NULL || queue->present == NULL) {
 		simplex_presolve_queue_destroy(queue);
 		return lp_simplex_EXIT_FAILURE;
 	}
-	lp_simplex_memset(
-		queue->present, 0, (size_t)capacity * sizeof(unsigned char));
+	lp_simplex_memset(queue->present, 0, present_bytes);
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 void simplex_presolve_queue_clear(struct simplex_PresolveQueue *queue)
 {
@@ -46,7 +47,6 @@ void simplex_presolve_queue_clear(struct simplex_PresolveQueue *queue)
 		lp_simplex_memset(queue->present, 0,
 			(size_t)queue->capacity * sizeof(unsigned char));
 }
-
 
 int simplex_presolve_queue_push(
 	struct simplex_PresolveQueue *queue, const int item)
@@ -59,13 +59,16 @@ int simplex_presolve_queue_push(
 		return lp_simplex_EXIT_SUCCESS;
 	if (queue->count == queue->capacity)
 		return lp_simplex_EXIT_FAILURE;
-	tail = (queue->head + queue->count) % queue->capacity;
+	/* Both summands can be valid indices while their sum exceeds INT_MAX. */
+	if (queue->count >= queue->capacity - queue->head)
+		tail = queue->count - (queue->capacity - queue->head);
+	else
+		tail = queue->head + queue->count;
 	queue->item[tail] = item;
 	queue->present[item] = 1;
 	queue->count++;
 	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 int simplex_presolve_queue_pop(struct simplex_PresolveQueue *queue, int *item)
 {
@@ -77,7 +80,6 @@ int simplex_presolve_queue_pop(struct simplex_PresolveQueue *queue, int *item)
 	queue->present[*item] = 0;
 	return 1;
 }
-
 
 void simplex_presolve_queue_destroy(struct simplex_PresolveQueue *queue)
 {

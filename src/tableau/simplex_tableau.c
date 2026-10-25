@@ -12,9 +12,11 @@
 #include "simplex_pivot.h"
 #include "linalg.h"
 #include "utils.h"
+#include "simplex_tableau_storage.h"
 
 #include <lp_simplex/status.h>
-
+#include <float.h>
+#include <math.h>
 
 /* To create in heap (need to be released) simplex table, index set of basis
  * and constraint type recorder
@@ -22,27 +24,31 @@
 int simplex_tableau_create(double **table, int **basis, int **constypes,
 	const int m, const int nrow, const int ncol)
 {
+	size_t table_bytes, index_bytes;
 	*table = NULL;
 	*basis = NULL;
 	*constypes = NULL;
-
-	*table = (double *)lp_simplex_malloc(nrow * ncol * sizeof(double));
-	if (*table == NULL)
+	if (m <= 0 || m == INT_MAX || nrow != m + 1 ||
+		!simplex_tableau_storage_size(
+			nrow, ncol, sizeof(double), &table_bytes) ||
+		!simplex_tableau_storage_size(1, m, sizeof(int), &index_bytes))
 		return lp_simplex_EXIT_FAILURE;
-	*basis = (int *)lp_simplex_malloc(m * sizeof(int));
-	if (*basis == NULL) {
-		lp_simplex_free(*table);
-		return lp_simplex_EXIT_FAILURE;
-	}
-	*constypes = (int *)lp_simplex_malloc(m * sizeof(int));
-	if (*constypes == NULL) {
-		lp_simplex_free(*table);
-		lp_simplex_free(*basis);
-		return lp_simplex_EXIT_FAILURE;
-	}
+	*table = (double *)lp_simplex_malloc(table_bytes);
+	if (!*table)
+		goto FAILURE;
+	*basis = (int *)lp_simplex_malloc(index_bytes);
+	if (!*basis)
+		goto FAILURE;
+	*constypes = (int *)lp_simplex_malloc(index_bytes);
+	if (!*constypes)
+		goto FAILURE;
 	return lp_simplex_EXIT_SUCCESS;
+FAILURE:
+	simplex_tableau_destroy(*table, *basis, *constypes);
+	*table = NULL;
+	*basis = *constypes = NULL;
+	return lp_simplex_EXIT_FAILURE;
 }
-
 
 void simplex_tableau_destroy(double *table, int *basis, int *constypes)
 {
@@ -53,7 +59,6 @@ void simplex_tableau_destroy(double *table, int *basis, int *constypes)
 	if (constypes)
 		lp_simplex_free(constypes);
 }
-
 
 /* Fill in constraint type array from "constraints"
  *
@@ -87,7 +92,6 @@ void simplex_tableau_fill_constraint_types(
 	}
 }
 
-
 /* Fill in coef and rhs of constraints
  *
  * Constraints rhs are transformed to be nonnegative
@@ -98,7 +102,8 @@ void simplex_tableau_fill_constraints(double *table, const int ldtable,
 {
 	int i, j;
 
-	lp_simplex_memset(table, 0., nrow * ldtable * sizeof(double));
+	lp_simplex_memset(
+		table, 0., (size_t)nrow * (size_t)ldtable * sizeof(double));
 
 	for (i = 0; i < m; i++) {
 		const struct optm_LinearConstraint *cons = constraints + i;
@@ -116,30 +121,43 @@ void simplex_tableau_fill_constraints(double *table, const int ldtable,
 	}
 }
 
-
 /* Determine the size of (basic) simplex table
  *
  * "GE" constraint has a slack var and an artificial var, hence will generate
  * an additional variable than usual
  */
-void simplex_tableau_compute_size(
+int simplex_tableau_compute_size(
 	const struct optm_LinearConstraint *constraints, const int m,
 	const int n, int *nrow, int *ncol)
 {
-	int i;
-	*nrow = m + 1;
-	*ncol = m + n + 1;
-
+	int i, rows, columns;
+	size_t bytes;
+	*nrow = *ncol = 0;
+	if (!constraints || m <= 0 || n <= 0 || m == INT_MAX ||
+		n > INT_MAX - m - 1)
+		return lp_simplex_EXIT_FAILURE;
+	rows = m + 1;
+	columns = m + n + 1;
+	/* Even the minimum layout must fit before reading row metadata. */
+	if (!simplex_tableau_storage_size(
+		    rows, columns, sizeof(double), &bytes))
+		return lp_simplex_EXIT_FAILURE;
 	for (i = 0; i < m; i++) {
 		const struct optm_LinearConstraint *cons = constraints + i;
-
-		if (optm_CONS_T_GE == cons->type && cons->rhs >= 0)
-			(*ncol)++;
-		if (optm_CONS_T_LE == cons->type && cons->rhs < 0)
-			(*ncol)++;
+		if ((optm_CONS_T_GE == cons->type && cons->rhs >= 0) ||
+			(optm_CONS_T_LE == cons->type && cons->rhs < 0)) {
+			if (columns == INT_MAX)
+				return lp_simplex_EXIT_FAILURE;
+			columns++;
+		}
 	}
+	if (!simplex_tableau_storage_size(
+		    rows, columns, sizeof(double), &bytes))
+		return lp_simplex_EXIT_FAILURE;
+	*nrow = rows;
+	*ncol = columns;
+	return lp_simplex_EXIT_SUCCESS;
 }
-
 
 /* Add slack variables (GE, LE) to simplex table
  * Return the number of slack variables
@@ -162,7 +180,6 @@ int simplex_tableau_add_slack(double *table, const int ldtable,
 	return nslack;
 }
 
-
 /* Add artificial variables (GE, EQ) to simplex table
  * Return the number of artificial variables
  */
@@ -180,7 +197,6 @@ int simplex_tableau_add_artificial(double *table, const int ldtable,
 	}
 	return nartif;
 }
-
 
 /* Fill in the basis index set of artificial LP
  */
@@ -209,7 +225,6 @@ void simplex_tableau_initialize_basis(int *basis, const int *constypes,
 	}
 }
 
-
 void simplex_tableau_initialize_phase_one_objective(double *table,
 	const int ldtable, const int *constypes, const int m, const int ncol)
 {
@@ -223,41 +238,54 @@ void simplex_tableau_initialize_phase_one_objective(double *table,
 	}
 }
 
-
-void simplex_tableau_remove_artificial_basis(double *table, int ldtable,
-	int *basis, const int m, const int nreal, int nvar)
+int simplex_tableau_remove_artificial_basis(double *table, int ldtable,
+	int *basis, const int m, const int nreal, int nvar,
+	double pivot_tolerance, int *iterations, int limit)
 {
-	int i, j, q = nvar;
-	double ele, maxv;
+	int i, j, r, q;
+	double ele, maxv, row_scale;
 
-	/* basis index should not exceeds number of variables */
-	if (maxabs_arri(basis, m, 1) < nreal)
-		return;
+	if (!iterations || *iterations < 0 || limit < *iterations)
+		return SIMPLEX_TABLEAU_CLEANUP_NUMERICAL;
 	for (i = 0; i < m; i++) {
 		if (basis[i] < nreal)
 			continue;
 		maxv = 0.;
+		row_scale = 0.;
 		q = nvar;
 		for (j = 0; j < nreal; j++) {
+			ele = __lp_simplex_ABS__(table[j + (i + 1) * ldtable]);
+			if (!isfinite(ele))
+				return SIMPLEX_TABLEAU_CLEANUP_NUMERICAL;
+			row_scale = __lp_simplex_MAX__(row_scale, ele);
 			if (is_in_arri(j, basis, m))
 				continue;
-			ele = __lp_simplex_ABS__(table[j + (i + 1) * ldtable]);
 			if (ele > maxv) {
 				maxv = ele;
 				q = j;
 			}
 		}
-		if (maxv < 1e-9) {
-			table[nvar + (i + 1) * ldtable] = 0.;
-			lp_simplex_memset(table + (i + 1) * ldtable, 0,
-				nreal * sizeof(double));
+		/* Small is not redundant. Compare the candidate with this row's
+		 * real coefficients. An unresolved basic residual must never
+		 * silently erase an equation. Keep removed artificial indices
+		 * only on exactly redundant rows, skipped during phase II. */
+		if (row_scale == 0. && table[nvar + (i + 1) * ldtable] == 0.)
 			continue;
-		}
+		if (maxv < DBL_MIN || maxv / row_scale <= pivot_tolerance ||
+			!isfinite(table[nvar + (i + 1) * ldtable]))
+			return SIMPLEX_TABLEAU_CLEANUP_NUMERICAL;
+		if (*iterations >= limit)
+			return SIMPLEX_TABLEAU_CLEANUP_LIMIT;
+		(*iterations)++;
 		simplex_apply_pivot(table, ldtable, m, nvar, i, q, 1, 1, 0);
+		for (r = 0; r <= m; r++)
+			for (j = 0; j <= nvar; j++)
+				if (!isfinite(table[r * ldtable + j]))
+					return SIMPLEX_TABLEAU_CLEANUP_NUMERICAL;
 		basis[i] = q;
 	}
+	return SIMPLEX_TABLEAU_CLEANUP_DONE;
 }
-
 
 void simplex_tableau_remove_artificial_columns(double *table, const int ldtable,
 	const int m, const int nreal, const int nartif)

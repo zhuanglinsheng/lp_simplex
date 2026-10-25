@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 static int run_stress(const int m, const int n)
 {
 	cholmod_common common;
@@ -103,7 +102,6 @@ static int run_stress(const int m, const int n)
 	free(tag);
 	return valid;
 }
-
 
 int main(void)
 {

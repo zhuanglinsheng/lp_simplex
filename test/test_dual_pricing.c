@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 /* Equal real ratios must be ordered by the transformed symbolic costs,
  * rather than by the entering variable id.  Exercise both leaving bounds. */
 static int test_symbolic_ratio(const int kappa, const int backend)
@@ -107,7 +106,6 @@ static int test_symbolic_ratio(const int kappa, const int backend)
 	return valid;
 }
 
-
 static void initialize_logical_basis(struct simplex_DualState *state)
 {
 	int j;
@@ -123,7 +121,6 @@ static void initialize_logical_basis(struct simplex_DualState *state)
 		state->basis[j] = state->structural + j;
 	simplex_dual_nonbasic_initialize(state);
 }
-
 
 static int test_ordered_ratio_sequence(void)
 {
@@ -182,6 +179,124 @@ static int test_ordered_ratio_sequence(void)
 	return valid;
 }
 
+static int test_wide_dense_pricing(void)
+{
+	struct simplex_Problem *problem =
+		simplex_problem_create_sparse(1, 40, 40);
+	struct simplex_DualState state;
+	struct lp_simplex_Options options;
+	double theta;
+	int j, valid;
+
+	if (!problem)
+		return 0;
+	for (j = 0; j < 40; j++) {
+		problem->matrix.column_start[j] = j;
+		problem->matrix.row_index[j] = 0;
+		problem->matrix.column_index[j] = j;
+		problem->matrix.value[j] = problem->matrix.row_value[j] = 1.;
+	}
+	problem->matrix.column_start[40] = 40;
+	problem->matrix.row_start[0] = 0;
+	problem->matrix.row_start[1] = 40;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	if (simplex_dual_state_create(
+		    &state, problem, &options, SIMPLEX_BASIS_BACKEND_DEFAULT)) {
+		simplex_problem_free(problem);
+		return 0;
+	}
+	initialize_logical_basis(&state);
+	state.rho[0] = -1.;
+	/* Swap deletion scrambles the list; fixed columns must still be skipped,
+	 * and both Harris and heap ties must choose the smallest admissible id. */
+	state.status[0] = DUAL_STATUS_FIXED;
+	simplex_dual_nonbasic_remove(&state, 0);
+	valid = simplex_dual_prepare_ratio_test(&state, 1) == 39 &&
+		!state.packed_alpha_valid &&
+		simplex_dual_next_ratio_candidate(&state, &theta, 0, 40, 1) ==
+			1 &&
+		theta == 1.;
+	state.ratio_ordered = 1;
+	for (j = 1; j < 40; j++) {
+		valid = valid && simplex_dual_next_ratio_candidate(
+					 &state, &theta, 0, 40, 1) == j;
+		simplex_dual_ratio_remove(&state, j);
+	}
+	/* Removing enough columns selects the compact-list path. */
+	for (j = 2; j < 40; j++) {
+		state.status[j] = DUAL_STATUS_FIXED;
+		simplex_dual_nonbasic_remove(&state, j);
+	}
+	valid = valid && simplex_dual_prepare_ratio_test(&state, 1) == 1 &&
+		simplex_dual_next_ratio_candidate(&state, &theta, 0, 40, 1) ==
+			1;
+	simplex_dual_state_destroy(&state);
+	simplex_problem_free(problem);
+	return valid;
+}
+
+/* Compare batched scatter to scalar operations across cancellation and reuse.
+ * Disable the CSC audit: its different summation order is tested separately. */
+static int test_sparse_scatter_generations(struct simplex_DualState *state)
+{
+	struct simplex_SparseVector reference;
+	struct simplex_SparseVector *alpha = &state->packed_alpha;
+	const struct simplex_CscMatrix *matrix = &state->matrix;
+	int pass, i, j, k, valid = 1;
+
+	if (simplex_sparse_vector_create(&reference, state->variables) !=
+		lp_simplex_EXIT_SUCCESS)
+		return 0;
+	for (pass = 0; pass < 4; pass++) {
+		/* Dense and sparse passes share storage but not membership marks. */
+		for (i = 0; i < state->rows; i++)
+			state->rho[i] = 1.;
+		simplex_dual_prepare_ratio_test(state, 1);
+		valid = valid && !state->packed_alpha_valid;
+		lp_simplex_memset(
+			state->rho, 0, (size_t)state->rows * sizeof(double));
+		simplex_sparse_vector_clear(&reference);
+		for (i = 0; i < 4; i++) {
+			double rho = (double)(i + 1);
+
+			if (pass == 0)
+				rho = 1.;
+			else if (i < 2)
+				rho = (double)(pass + 1);
+			else if (pass == i)
+				rho = 0.;
+			state->rho[i] = rho;
+			if (rho == 0.)
+				continue;
+			for (k = matrix->row_start[i];
+				k < matrix->row_start[i + 1]; k++)
+				simplex_sparse_vector_add(&reference,
+					matrix->column_index[k],
+					rho * matrix->row_value[k]);
+			simplex_sparse_vector_set(
+				&reference, state->structural + i, -rho);
+		}
+		state->pricing_validation_countdown = 127;
+		simplex_dual_prepare_ratio_test(state, 1);
+		valid = valid && state->packed_alpha_valid &&
+			alpha->count == reference.count;
+		for (j = 0; j < reference.count; j++) {
+			int index = reference.index[j];
+
+			valid = valid && alpha->index[j] == index &&
+				alpha->slot[index] == j &&
+				alpha->value[j] == reference.value[j] &&
+				state->alpha[index] == reference.value[j] &&
+				simplex_sparse_vector_get(alpha, index) ==
+					reference.value[j];
+		}
+		/* Consuming the entering coefficient must not affect the next row. */
+		if (reference.count)
+			state->alpha[reference.index[0]] = 0.;
+	}
+	simplex_sparse_vector_destroy(&reference);
+	return valid;
+}
 
 static int test_sparse_audit_updates_pricing_row(void)
 {
@@ -233,19 +348,20 @@ static int test_sparse_audit_updates_pricing_row(void)
 	for (i = 0; i < 20; i++)
 		state.rho[i] = i < 4 ? 1. : 0.;
 	/* The row accumulation gives -2 while CSC gives -1.  The audit repairs
-	 * packed_alpha; the ratio test must copy that repaired value, too. */
+	 * packed_alpha and its shared dense pricing row together. */
 	valid = simplex_dual_prepare_ratio_test(&state, 1) > 0 &&
+		state.alpha == state.packed_alpha.dense &&
 		state.packed_alpha_valid && state.alpha[0] == -1. &&
 		state.breakpoint[0] == 1.;
+	valid = valid && test_sparse_scatter_generations(&state);
 	simplex_dual_state_destroy(&state);
 	simplex_problem_free(problem);
 	return valid;
 }
 
-
 int main(void)
 {
-	if (!test_ordered_ratio_sequence() ||
+	if (!test_ordered_ratio_sequence() || !test_wide_dense_pricing() ||
 		!test_sparse_audit_updates_pricing_row() ||
 		!test_symbolic_ratio(1, SIMPLEX_BASIS_BACKEND_DEFAULT) ||
 		!test_symbolic_ratio(-1, SIMPLEX_BASIS_BACKEND_DEFAULT) ||

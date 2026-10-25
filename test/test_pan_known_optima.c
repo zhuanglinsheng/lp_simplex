@@ -16,13 +16,20 @@
 #include <math.h>
 #include <stdio.h>
 
+static int solve_with_manual_pan_experiments(const struct lp_Model *m,
+	const struct lp_simplex_Options *o, double *x,
+	struct lp_simplex_Result *r)
+{
+	return o && o->algorithm == lp_simplex_ALGORITHM_PAN_BDA
+		       ? lp_simplex_solve_experimental(m, o, x, r)
+		       : lp_simplex_solve(m, o, x, r);
+}
 
 static unsigned int next_number(unsigned int *seed)
 {
 	*seed = *seed * 1664525U + 1013904223U;
 	return *seed;
 }
-
 
 static int check_case(unsigned int seed, int pricing)
 {
@@ -83,7 +90,7 @@ static int check_case(unsigned int seed, int pricing)
 #ifndef TEST_AUTO
 	options.pricing = pricing;
 #endif
-	state = lp_simplex_solve(model, &options, x, &result);
+	state = solve_with_manual_pan_experiments(model, &options, x, &result);
 	for (i = 0; i < rows; i++) {
 		long double activity = 0.;
 
@@ -108,7 +115,6 @@ static int check_case(unsigned int seed, int pricing)
 	lp_model_free(model);
 	return valid;
 }
-
 
 int main(void)
 {

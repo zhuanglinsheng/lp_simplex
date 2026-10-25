@@ -5,7 +5,7 @@
 
 /**
  * @file simplex_presolve.h
- * @brief Presolve reductions and reduced-problem solve orchestration.
+ * @brief Presolve reductions, owned mapping metadata and algebraic point lift.
  */
 
 #ifndef LP_SIMPLEX_PRESOLVE_INTERNAL_H
@@ -15,14 +15,12 @@
 
 #include <lp_simplex/model.h>
 
-
 struct simplex_PresolveSubstitution {
 	int column;
 	double constant;
 	int term_start;
 	int term_count;
 };
-
 
 struct simplex_PresolveJournal {
 	struct simplex_PresolveSubstitution *record;
@@ -33,7 +31,6 @@ struct simplex_PresolveJournal {
 	int term_count;
 	int term_capacity;
 };
-
 
 struct simplex_PresolveStats {
 	int removed_columns;
@@ -61,10 +58,12 @@ struct simplex_PresolveStats {
 	int queue_epochs;
 };
 
-
 struct simplex_Presolve {
 	const struct lp_Model *original;
 	struct simplex_Problem *reduced;
+	/* Owned until destroy. column_map maps live reduced columns only while
+	 * status is CondUnsatisfied and reduced is present; terminal reductions
+	 * release it. row_map is retained for original-model progress bounds. */
 	int *column_map;
 	int *row_map;
 	double *eliminated_value;
@@ -77,6 +76,11 @@ struct simplex_Presolve {
 int simplex_presolve_run(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, double tolerance);
 
+/* Read-only algebraic lift, shared by final output and sampled progress.
+ * Replays the complete substitution journal on each call; does not audit,
+ * solve, consume iteration budget or destroy metadata. original_x must hold
+ * original->n values and must not alias reduced_x. Terminal reductions may
+ * pass NULL reduced_x. The owner must outlive every progress bridge. */
 void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
 	const double *reduced_x, double *original_x);
 

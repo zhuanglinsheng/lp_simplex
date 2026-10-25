@@ -9,12 +9,12 @@
  */
 
 #include "simplex_degeneracy.h"
+#include "simplex_stage.h"
 #include "utils.h"
 
 #include <lp_simplex/status.h>
 
 #include <math.h>
-
 
 static unsigned int simplex_degeneracy_mix(unsigned int value)
 {
@@ -26,14 +26,12 @@ static unsigned int simplex_degeneracy_mix(unsigned int value)
 	return value;
 }
 
-
 static unsigned int simplex_degeneracy_basis_item(
 	const int position, const int variable)
 {
 	return simplex_degeneracy_mix((unsigned int)position * 0x9e3779b9U ^
 				      (unsigned int)variable + 0x85ebca6bU);
 }
-
 
 static unsigned int simplex_degeneracy_status_item(
 	const int variable, const unsigned char status)
@@ -42,14 +40,12 @@ static unsigned int simplex_degeneracy_status_item(
 				      (unsigned int)status + 0x27d4eb2fU);
 }
 
-
 static unsigned int simplex_degeneracy_pair_hash(
 	const unsigned int basis, const unsigned int status)
 {
 	return simplex_degeneracy_mix(
 		basis ^ simplex_degeneracy_mix(status + 0x9e3779b9U));
 }
-
 
 static int simplex_degeneracy_table_reserve(
 	struct simplex_DegeneracyControl *control, const int capacity)
@@ -97,7 +93,6 @@ static int simplex_degeneracy_table_reserve(
 	return lp_simplex_EXIT_SUCCESS;
 }
 
-
 static void simplex_degeneracy_clear_face(
 	struct simplex_DegeneracyControl *control)
 {
@@ -108,12 +103,10 @@ static void simplex_degeneracy_clear_face(
 			(size_t)control->fingerprint_capacity);
 }
 
-
 void simplex_degeneracy_initialize(struct simplex_DegeneracyControl *control)
 {
 	lp_simplex_memset(control, 0, sizeof(*control));
 }
-
 
 void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control)
 {
@@ -124,7 +117,6 @@ void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control)
 	lp_simplex_free(control->fingerprint_used);
 	lp_simplex_memset(control, 0, sizeof(*control));
 }
-
 
 void simplex_degeneracy_reset_state(struct simplex_DegeneracyControl *control)
 {
@@ -139,7 +131,6 @@ void simplex_degeneracy_reset_state(struct simplex_DegeneracyControl *control)
 		lp_simplex_memset(control->fingerprint_used, 0,
 			(size_t)control->fingerprint_capacity);
 }
-
 
 void simplex_degeneracy_observe(struct simplex_DegeneracyControl *control,
 	const double dual_step, const double dual_error_bound,
@@ -179,13 +170,11 @@ void simplex_degeneracy_observe(struct simplex_DegeneracyControl *control,
 	simplex_degeneracy_clear_face(control);
 }
 
-
 int simplex_degeneracy_should_probe(
 	const struct simplex_DegeneracyControl *control)
 {
 	return control->phase != SIMPLEX_PAN_NORMAL;
 }
-
 
 int simplex_degeneracy_is_stressed(
 	const struct simplex_DegeneracyControl *control)
@@ -197,13 +186,11 @@ int simplex_degeneracy_is_stressed(
 	       control->recovery_pending;
 }
 
-
 int simplex_degeneracy_is_lexicographic(
 	const struct simplex_DegeneracyControl *control)
 {
 	return control->phase == SIMPLEX_PAN_LEXICOGRAPHIC;
 }
-
 
 /* Cost perturbation can no longer separate the current face (every tied
  * variable is saturated).  Escalate to symbolic lexicographic tie-breaking
@@ -216,7 +203,6 @@ void simplex_degeneracy_escalate_lexicographic(
 		control->lex_escalations++;
 	}
 }
-
 
 void simplex_degeneracy_request_recovery(
 	struct simplex_DegeneracyControl *control)
@@ -232,7 +218,6 @@ void simplex_degeneracy_request_recovery(
 	}
 }
 
-
 int simplex_degeneracy_take_recovery(struct simplex_DegeneracyControl *control)
 {
 	if (!control->recovery_pending)
@@ -242,13 +227,11 @@ int simplex_degeneracy_take_recovery(struct simplex_DegeneracyControl *control)
 	return 1;
 }
 
-
 void simplex_degeneracy_record_recovery(
 	struct simplex_DegeneracyControl *control)
 {
 	control->recoveries++;
 }
-
 
 void simplex_degeneracy_update_basis(struct simplex_DegeneracyControl *control,
 	const int position, const int old_variable, const int new_variable)
@@ -261,7 +244,6 @@ void simplex_degeneracy_update_basis(struct simplex_DegeneracyControl *control,
 		simplex_degeneracy_basis_item(position, new_variable);
 }
 
-
 void simplex_degeneracy_update_status(struct simplex_DegeneracyControl *control,
 	const int variable, const unsigned char old_status,
 	const unsigned char new_status)
@@ -273,7 +255,6 @@ void simplex_degeneracy_update_status(struct simplex_DegeneracyControl *control,
 		simplex_degeneracy_status_item(variable, old_status) ^
 		simplex_degeneracy_status_item(variable, new_status);
 }
-
 
 int simplex_degeneracy_record_state(struct simplex_DegeneracyControl *control,
 	const int *basis, const int rows, const unsigned char *status,
@@ -321,13 +302,12 @@ int simplex_degeneracy_record_state(struct simplex_DegeneracyControl *control,
 	return 0;
 }
 
-
 int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
 	int iterations, int hard_limit, int phase, long epoch, double residual,
 	double noise, long cycles, double secondary, double secondary_noise)
 {
 	int changed, next, slot = phase == 0 ? 0 : phase - 9;
-	int secondary_progress;
+	int secondary_progress, comparable;
 	unsigned int bit;
 
 	if (slot < 0 || slot > 4)
@@ -343,7 +323,9 @@ int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
 		h->limit = hard_limit < SIMPLEX_DUAL_EXPLORE_INITIAL
 				   ? hard_limit
 				   : SIMPLEX_DUAL_EXPLORE_INITIAL;
-	if (!(h->seen & bit)) {
+	comparable = (h->seen & bit) && h->metric_epoch[slot] == epoch;
+	if (!comparable) {
+		h->metric_epoch[slot] = epoch;
 		h->baseline[slot] = residual;
 		h->secondary[slot] = secondary;
 		h->seen |= bit;
@@ -365,20 +347,23 @@ int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
 	/* A phase receives one observation lease. Subsequent renewals must beat
 	 * its best value at the previous lease boundary, even after bound epochs
 	 * or phase oscillations. A return from a worse peak buys no progress. */
-	secondary_progress = isfinite(secondary) &&
+	secondary_progress = comparable && isfinite(secondary) &&
 			     isfinite(h->secondary[slot]) &&
 			     h->secondary[slot] - secondary > secondary_noise &&
 			     h->secondary[slot] - secondary >
-				     .01 * (1. + fabs(h->secondary[slot]));
+				     SIMPLEX_DUAL_MIN_LEASE_REDUCTION *
+					     (1. + fabs(h->secondary[slot]));
 	if (cycles - h->cycles >= 2) {
 		h->reason = SIMPLEX_DUAL_EXPLORE_CYCLE;
 		return 1;
 	}
 	if ((h->lease_seen & bit) && iterations >= h->recovery_until &&
 		residual > noise && !secondary_progress &&
-		(h->baseline[slot] - residual <= noise ||
-			residual >= .99 * h->baseline[slot])) {
-		h->reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+		(!comparable || h->baseline[slot] - residual <= noise ||
+			residual >= (1. - SIMPLEX_DUAL_MIN_LEASE_REDUCTION) *
+					    h->baseline[slot])) {
+		h->reason = comparable ? SIMPLEX_DUAL_EXPLORE_STAGNATION
+				       : SIMPLEX_DUAL_EXPLORE_MEASUREMENT;
 		return 1;
 	}
 	next = h->limit > hard_limit / 2 ? hard_limit : 2 * h->limit;
@@ -392,6 +377,24 @@ int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
 	return 0;
 }
 
+int simplex_dual_explore_reassess(struct simplex_DualExplore *h, int hard_limit,
+	unsigned int input_progress, long cycles)
+{
+	unsigned int known =
+		SIMPLEX_INPUT_PRIMAL_PROGRESS | SIMPLEX_INPUT_COUNT_PROGRESS |
+		SIMPLEX_INPUT_OBJECTIVE_PROGRESS |
+		SIMPLEX_INPUT_BOUND_PROGRESS | SIMPLEX_INPUT_DUAL_PROGRESS |
+		SIMPLEX_INPUT_FEASIBLE_AVAILABLE |
+		SIMPLEX_INPUT_BOUND_AVAILABLE;
+
+	if (h->reason != SIMPLEX_DUAL_EXPLORE_MEASUREMENT ||
+		!(input_progress & known) || h->limit >= hard_limit)
+		return 0;
+	h->limit = h->limit > hard_limit / 2 ? hard_limit : 2 * h->limit;
+	h->reason = SIMPLEX_DUAL_EXPLORE_CONTINUE;
+	h->cycles = cycles;
+	return 1;
+}
 
 int simplex_dual_explore_yield(struct simplex_DualExplore *h, int iterations,
 	int hard_limit, int phase, long epoch, double residual, double noise,
