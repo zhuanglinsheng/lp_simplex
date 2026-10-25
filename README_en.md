@@ -12,9 +12,9 @@ Building on this, we use a hybrid solution flow: primal–dual hybrid gradient (
 
 In the current benchmarks, lp_simplex and SCIP/SoPlex perform at a similar overall level. Although lp_simplex is slower than HiGHS and Clp, it demonstrates strong robustness on large-scale, highly degenerate problems. See the [benchmark report](docs/benchmarks/README_en.md) for full results.
 
-- The [Netlib dataset](data/netlib/README_en.md) contains 32–232,966 variables and 24–105,127 constraints. See the [Netlib per-instance results](docs/benchmarks/netlib_en.md).
+- The small- and medium-scale problems in the [Netlib dataset](data/netlib/README_en.md) contain 32–232,966 variables and 24–105,127 constraints. See the [Netlib per-instance results](docs/benchmarks/netlib_en.md).
 - The large-scale [PDS dataset](data/pds/README_en.md) contains approximately 106,000–505,000 variables and 34,000–156,000 constraints. See the [PDS per-instance results](docs/benchmarks/pds_en.md).
-- The large-scale [Railway dataset](data/railway/README_en.md) uses continuous LP relaxations, with approximately 47,000–1,093,000 variables and 507–4,872 constraints. See the [Railway per-instance results](docs/benchmarks/railway_en.md).
+- The large-scale problems in the [Railway dataset](data/railway/README_en.md) use continuous LP relaxations, with approximately 47,000–1,093,000 variables and 507–4,872 constraints. See the [Railway per-instance results](docs/benchmarks/railway_en.md).
 
 ## Documentation
 
