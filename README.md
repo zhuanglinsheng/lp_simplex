@@ -8,15 +8,13 @@
 
 我们在此基础上使用混合求解流程：用原始—对偶混合梯度法（PDHG）推进近似解，通过最小二乘恢复可行性，再由 BDA 按需继续优化并检验最优性。这条路线将一阶迭代与动态亏基优化连接起来，并通过原生上下界处理减少模型展开。
 
-正式求解通过 `lp_simplex_solve` 使用确定的配置；数值环境实验须显式使用 `lp_simplex_solve_experimental`。两者共用相同的 Options 和结果结构，详见[配置边界](./docs/runtime-configuration.md)。
-
 ## 性能对比
 
 在当前基准测试中，lp_simplex 与 SCIP/SoPlex 的整体表现处于同一水平，速度落后于 HiGHS 和 Clp，但在大规模、高度退化的问题上具有较强的稳健性。完整结果见[综合性能对比报告](docs/benchmarks/README.md)。
 
-- [Netlib 数据集](data/netlib/README.md)包含 32—232,966 个变量、24—105,127 条约束。逐例测试结果见 [Netlib 问题对比](docs/benchmarks/netlib.md)。
+- 中小规模问题 [Netlib 数据集](data/netlib/README.md)包含 32—232,966 个变量、24—105,127 条约束。逐例测试结果见 [Netlib 问题对比](docs/benchmarks/netlib.md)。
 - 大规模问题 [PDS 数据集](data/pds/README.md)包含约 10.6万—50.5万变量、3.4万—15.6万约束。逐例测试结果见 [PDS 问题对比](docs/benchmarks/pds.md)。
-- 大规模 [Railway 数据集](data/railway/README.md)问题采用连续 LP 松弛，包含约 4.7万—109.3万变量、507—4,872 条约束。逐例测试结果见 [Railway 问题对比](docs/benchmarks/railway.md)。
+- 大规模问题 [Railway 数据集](data/railway/README.md)采用连续 LP 松弛，包含约 4.7万—109.3万变量、507—4,872 条约束。逐例测试结果见 [Railway 问题对比](docs/benchmarks/railway.md)。
 
 ## 文档
 
@@ -33,7 +31,7 @@
 
 ### 预编译版本
 
-可从 [Releases](https://github.com/zhuanglinsheng/lp_simplex/releases) 下载预编译版本，也可以按以下步骤从源码安装。
+可从 [Releases](https://github.com/zhuanglinsheng/lp_simplex/releases) 下载预编译版本，也可以按以下步骤从源码安装。平台与数值库要求见[安装与依赖说明](INSTALL.md)。
 
 ### 从源码安装
 
@@ -49,7 +47,7 @@ cmake --build build --target install
 ### 安装内容
 
 - 库目录（通常 `lib/`）：共享库 `liblp_simplex.so`（Linux）或 `liblp_simplex.dylib`（macOS）。目录由 `CMAKE_INSTALL_LIBDIR` 控制。
-- `include/lp_simplex/`：公开头文件 `lp_simplex.h`、`model.h`、`mps.h`、`solve.h` 和 `status.h`。
+- `include/lp_simplex/`：公开头文件 `lp_simplex.h`、`model.h`、`mps.h`、`solve.h`、`status.h` 和 `version.h`。
 - 库目录下的 `cmake/lp_simplex/`：CMake 包配置与 `lp_simplex::lp_simplex` 导入目标。
 - `share/licenses/lp_simplex/`：LGPL 与所引用的 GPL 条款文本。
 
