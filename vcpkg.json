@@ -4,9 +4,16 @@
   "builtin-baseline": "817892b0ecbc6af994dd6df999c73faf795adbf2",
   "dependencies": [
     "blas",
-    "lapack",
-    "suitesparse-klu",
-    "suitesparse-spqr",
-    "gmp"
-  ]
+    "lapack"
+  ],
+  "features": {
+    "optional-backends": {
+      "description": "Optional SuiteSparse and GMP numerical backends (separate Windows validation required)",
+      "dependencies": [
+        "suitesparse-klu",
+        "suitesparse-spqr",
+        "gmp"
+      ]
+    }
+  }
 }

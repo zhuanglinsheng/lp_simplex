@@ -1,9 +1,13 @@
 # Release procedure
 
 Keep reusable version, dependency, packaging and verification tools on `main`.
-The dependency installer supports apt-based Linux and Homebrew macOS; normal
-CMake configuration never installs packages. Release packages require KLU,
-SPQR and GMP, and use host-provided numerical shared libraries.
+The dependency installer supports apt-based Linux, Homebrew macOS and pinned
+vcpkg on Windows. Normal CMake configuration never installs system packages.
+Linux/macOS packages require KLU, SPQR and GMP and use host-provided numerical
+shared libraries. Windows validation defaults to BLAS/LAPACK only, with all
+optional backends OFF; numerical DLLs required by the library are bundled.
+Windows Release/Debug tests and relocated C/C++ ZIP consumers must pass before
+Windows support is accepted. Optional Windows backends require separate validation.
 
 Prepare the permanent `1.0.0` branch with CMake version `1.0.0`, matching release
 notes in `CHANGELOG.md`, and installation documentation. Record acceptance
