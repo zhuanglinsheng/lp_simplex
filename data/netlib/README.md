@@ -2,7 +2,7 @@
 
 简体中文 | [English](./README_en.md) | [项目主页](../../README.md) | [数据总览](../README.md)
 
-收录 114 个可行 LP、29 个不可行 LP，以及 Gurobi 10 预处理版本。性能基准仅使用可行原模型。参考目标值见 [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv)。
+收录 114 个可行 LP、29 个不可行 LP，以及 Gurobi 10 预处理版本。可行模型与不可行模型分别运行、分别统计。参考目标值见 [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv)。
 
 ## 准备模型
 
@@ -30,3 +30,5 @@ python3 data/netlib/prepare.py --all
 - 生成的 MPS 由 Git 忽略，成功生成后才替换已有输出。
 
 原始集合见 [Netlib](https://www.netlib.org/lp/)。性能结果见 [Netlib 基准报告](../../docs/benchmarks/netlib.md)。
+
+不可行性判定基准见 [Netlib infeasible](../../docs/benchmarks/netlib-infeasible.md)。每例一次、限时 90 秒；PASS 只核对不可行状态，不代表独立证书验证。

@@ -1,29 +1,40 @@
 # 项目文档
 
-简体中文 | [English](./README_en.md) | [项目主页](../README.md) | [算法总览](./algorithm/README.md)
+简体中文 | [English](./README_en.md) | [项目主页](../README.md)
 
-本文档目录提供算法原理、求解结果解释和性能测试的阅读入口。构建、安装及基本使用见[项目主页](../README.md)。
+## 使用与查阅
 
-## 使用求解器
+| 文档 | 解决的问题 |
+| --- | --- |
+| [使用指南](./usage.md) | 建模、读取 MPS、编译并完成第一次求解 |
+| [参数与结果](./parameters.md) | Options、变量界、状态、残差空间、进度和构建选项 |
+| [配置边界](./runtime-configuration.md) | 正式默认值与显式环境实验 |
+| [功能索引](./features.md) | 能力、适用条件、限制及实现入口 |
+| [算法文集](./algorithm/README.md) | 数学记号、推导、假设及最优性条件 |
 
-[使用指南](./usage.md)以 `data/simple_examples/production_planning.mps` 为例，依次展示数学模型、C API 手动建模、MPS 读取和独立程序的编译运行，并链接其他完整示例。
+## 架构与数值
 
-## 算法原理
+| 文档 | 唯一维护的主题 |
+| --- | --- |
+| [AUTO](./auto-policy.md) | 目录职责、调度、预算、候选和恢复链 |
+| [BDA 阶段](./pan-services.md) | 子过程角色、身份、授权及重复准入 |
+| [列模型交接](./column-handoff.md) | cover 的列投影、点/乘子/基权限 |
+| [数值政策](./numerical-policy.md) | 内部阈值的单位、尺度和资源失败边界 |
 
-[算法文集](./algorithm/README.md)按数学模型、假设、推导与最优性条件组织，覆盖预处理、两阶段原始单纯型、对偶修正单纯型、抗退化、NNLS、Pan/BDA、切锥恢复、PDHG 及基矩阵运算。每篇均提供中英文版本，可在标题下切换语言。
+## 数据与测试
 
-建议先阅读总览中的统一记号与原始—对偶条件，再按关注的方法阅读专题。
+[数据说明](../data/README.md)维护准备、命令行、审核和计时方法；[基准汇总](./benchmarks/README.md)及逐数据集报告保存版本对应的测量。[开发记录](./development/README.md)仅保留设计决策和验证历史。
 
-## 求解结果
+## 维护约定
 
-[统一结果契约](./parameters.md)解释成功与失败状态、目标值、原始可行性、对偶诊断所属模型空间及缺失值，供调用求解接口和判断返回结果时查阅。
+自有 C/C++ 使用 Tab（8 列）、Linux 大括号、80 列排版目标、最多一个空行，并以 Doxygen `@file`/`@brief` 说明文件职责。CMake/Python 使用 4 空格，YAML/JSON 使用 2 空格；统一 LF 和末尾换行。格式版本固定在仓库根目录。
 
-## 性能测试
+```sh
+python3 -m pip install clang-format==22.1.8 cmakelang==0.6.13
+python3 tools/check_style.py
+python3 tools/check_architecture.py
+python3 tools/check_docs.py
+ctest --test-dir build --output-on-failure
+```
 
-[基准测试汇总](./benchmarks/README.md)提供 lp_simplex、SCIP/SoPlex 与 HiGHS 的测试信息、对比统计和复现说明。各数据集的逐案例结果见：
-
-- [Netlib feasible](./benchmarks/netlib.md)
-- [PDS](./benchmarks/pds.md)
-- [Railway 连续 LP 松弛](./benchmarks/railway.md)
-
-数据准备、运行参数和审核口径见[数据与基准测试说明](../data/README.md)。逐次运行的配置、原始结果、日志和解向量保存在本地 `tmp/benchmarks/`，由 Git 忽略。
+格式检查覆盖 C/C++、CMake 和脚本基础空白/语法；不声称完整格式化 Python/YAML。架构检查覆盖私有包含边界；文档检查覆盖本地文件和 Markdown 锚点；它们均不能替代数值回归。生成的基准报告通过 `data/benchmark.py --report-only` 更新，不手工修改测量数据。

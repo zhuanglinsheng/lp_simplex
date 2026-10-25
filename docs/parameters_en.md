@@ -89,6 +89,8 @@ options.presolve = 1;
 | `progress_context` | `NULL` | Caller context passed to the callback |
 | `progress_interval` | 5 | Finite positive report interval in CPU seconds when a callback is enabled |
 
+Tableau work includes Phase I/II pricing iterations (including terminal checks) and every actual artificial-basis cleanup pivot. Cleanup checks the same budget before pivoting; executed attempts remain charged on numerical failure, while exactly redundant rows requiring no pivot add no cleanup unit. These units are neither elapsed time nor all scanning/factorization cost.
+
 All three tolerances must be finite and strictly positive. Zero-initializing the
 structure does not provide valid defaults. The public API has no wall-clock timeout;
 a factorization can take substantial time. The benchmark script enforces a separate
@@ -102,14 +104,13 @@ external process deadline.
 | Two-phase tableau | `lp_simplex_ALGORITHM_TABLEAU` | **`lp_simplex_PRICING_BLAND`**, `lp_simplex_PRICING_DANTZIG` |
 
 When switching algorithms, reinitialize defaults before applying custom settings to
-avoid retaining incompatible pricing. Internal experimental environment switches
-are not part of this public options interface.
+avoid retaining incompatible pricing. Internal experimental environment switches are not public parameters. The production entry ignores numerical environment controls; use `lp_simplex_solve_experimental` or `--experimental-environment` explicitly for legacy experiments. See [configuration boundaries](./runtime-configuration_en.md).
 
 ### AUTO stage transitions
 
 AUTO starts with dual simplex and applies the following rules:
 
-- Continued progress renews the same live basis and factorization, without the former 16384-iteration cutoff. One eighth of the total work budget is reserved for recovery routes.
+- Continued progress renews the same live basis and factorization, without the former 16384-iteration cutoff. Observation work is reserved for currently available recovery opportunities, capped at half the remaining work, rather than a fixed eighth of the total budget.
 - Feasibility restoration and original-objective cleanup track progress separately. Within an observation interval, residual reduction, a decrease in the number of violated constraints, or original-objective improvement must exceed its own noise budget and 1% threshold. Working-bound changes do not erase stagnation history.
 - Material Phase-I cost repairs receive a finite recovery allowance; symbolic tie perturbations alone do not qualify.
 - A negative accumulated feasibility merit triggers a recomputation of row violations. Roundoff alone cannot trigger a route change.
@@ -123,8 +124,10 @@ Initialization, multiplier correction and recovery share `iteration_limit`. Loca
 
 Set `options.progress_callback` and `options.progress_context` to receive
 `lp_simplex_Progress`. `progress_interval` defaults to 5 CPU seconds and must
-be finite and positive. Reporting is disabled by default; disabled calls do
-not scan progress or allocate progress vectors. Recompile callers after upgrading the options structure.
+be finite and positive. Display callbacks are disabled by default. AUTO still maintains an internal
+original-model point archive with observation independent of display intervals.
+Manual algorithms without callbacks do not create this tracker; kernel audits
+still run. Compile callers against matching public headers.
 
 Bounds include the original objective sense and offset. For maximization,
 a feasible objective supplies a lower bound. Candidate points are unscaled,
@@ -147,10 +150,12 @@ even on a successful solve; success does not force the reported gap to zero.
 Sparse dual, native Pan and PDHG provide intermediate events. All algorithms
 provide initial/final events; classic Pan also reports its exiting multiplier
 bound. `stage_iterations` counts local kernel work and may reset across AUTO
-routes; `cpu_seconds` measures CPU time since this solve began. `point` is
-non-NULL only for a newly improved feasible objective, in original variable
-order, and expires when the callback returns. Copy or write it during the
-callback. First feasible and stage-exit events bypass the interval; other
+routes; `cpu_seconds` measures CPU time since this solve began. `point` carries a newly improved feasible point not yet delivered, in original
+variable order, and expires when the callback returns. Copy or write it during
+the callback. Observation can precede notification: stage/work describe the
+current report, rather than proving which stage produced a pending point.
+Bounds summarize the best observations so far. Forced first-feasible and
+stage-exit events bypass the interval; other
 reports occur at kernel checkpoints, not on a strict wall-clock schedule.
 
 ```sh

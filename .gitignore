@@ -1,17 +1,23 @@
-.idea/*
-.vscode/*
+# Local editor and operating-system state
+/.idea/
+/.vscode/
 .DS_Store
 
-build/*
-build-analysis/*
-
-*.exe
-*.a
-*.out
-*.so
-*.dylib
-
-# Reproducible local experiments and Python caches
+# Regenerable build and experiment output
+/build/
+/build-*/
 /tmp/
 __pycache__/
 *.py[cod]
+
+# Native build products
+*.o
+*.obj
+*.a
+*.lib
+*.out
+*.exe
+*.dll
+*.so
+*.so.*
+*.dylib

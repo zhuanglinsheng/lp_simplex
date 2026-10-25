@@ -8,12 +8,21 @@
 
 | 数据集 | 内容 | 性能报告 |
 |---|---|---|
-| [Netlib](netlib/README.md) | 114 个可行 LP，另有不可行模型和预处理版本；基准仅使用可行原模型 | [逐例结果](../docs/benchmarks/netlib.md) |
+| [Netlib](netlib/README.md) | 114 个可行 LP，另有不可行模型和预处理版本；此组仅测试可行原模型 | [逐例结果](../docs/benchmarks/netlib.md) |
+| Netlib infeasible | 29 个不可行 LP，独立统计不可行性判定 | [逐例结果](../docs/benchmarks/netlib-infeasible.md) |
 | [PDS](pds/README.md) | 9 个大规模 LP，约 10.6万—50.5万变量 | [逐例结果](../docs/benchmarks/pds.md) |
 | [Railway](railway/README.md) | 7 个铁路集合覆盖问题，测试其连续 LP 松弛，约 4.7万—109.3万变量 | [逐例结果](../docs/benchmarks/railway.md) |
 | [小型示例](simple_examples/README.md) | 9 个功能与回归测试模型 | 不纳入性能基准 |
 
 Netlib、PDS 和 Railway 只保存 raw 数据及转换所需文件，各目录的 `prepare.py` 按需生成 MPS。`simple_examples` 直接保存小型 MPS 和配套 C 示例；如何建模和调用求解器见[使用指南](../docs/usage.md)。
+
+命令行默认采用正式数值配置，不受数值 `LP_SIMPLEX_*` 实验开关影响。复现环境实验时须显式添加 `--experimental-environment`；该标志只用于单模型驱动，不作为默认基准配置。详见[正式配置与实验环境边界](../docs/runtime-configuration.md)。
+
+## 计时口径
+
+`benchmark.py` 保留原有 `wall_seconds`：CLI 的启动、读取、求解、点导出，以及适配器读取日志/点文件；不含适配器初始化或独立原模型审核。CLI 运行另记录 `cli_wall_seconds`（启动至退出，不含之后的解析）、`cli_user_seconds`、`cli_system_seconds` 及二者之和 `cli_cpu_seconds`。CPU 来自隔离 worker 中该 CLI 及其子进程的 `getrusage` 差值；平台不支持或计数无效时为 `null`，不能按零处理。HiGHS Python 绑定没有 CLI 子进程，不提供这些字段。
+
+`compare_performance.py` 的原汇总仍使用 `wall_seconds`，新增 `cli_timing` 分别汇总上述四项；只对双方重复次数完整、全部通过且度量有效的案例计算比例。数值 PASS 与计时可用性分开。驱动器日志的 `time:` 是求解加一次原模型审核的进程 CPU，范围不同，不代替完整 CLI 计时。硬截止与原有成功判据保持不变；子进程被杀且没有完整测量时，CPU 保持未知。原始日志、点审核和每次数据均应保留。
 
 ## 准备运行环境
 
@@ -27,7 +36,7 @@ cmake --build build --target lp_solve_mps -j 4
 
 构建产物为 `build/data/lp_solve_mps`。单独运行它只需准备好 MPS；从 raw 生成模型还需要 Python 3.9+，PDS 转换器由 Python 调用 C 编译器临时构建。
 
-运行基准还需安装 SCIP、Clp 和 GLPK，并确保 `scip`、`clp` 和 `glpsol` 位于 PATH 中（也可用 `--scip`、`--clp` 和 `--glpk` 指定路径）；Python 环境需包含 NumPy、SciPy，以及 highspy 或兼容的 SciPy HiGHS 绑定。例如：
+仅当选中 SCIP、Clp 或 GLPK 时，才需安装对应可执行文件，并确保它位于 PATH 中（也可用 `--scip`、`--clp` 或 `--glpk` 指定路径）。Python 环境需包含 NumPy、SciPy，以及 highspy 或兼容的 SciPy HiGHS 绑定。例如：
 
 macOS 可用 `brew install clp glpk` 安装 Clp 和 GLPK。
 
@@ -47,12 +56,12 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-默认每个案例、每个求解器重复 3 次；Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `lp_solve_mps`。
+默认只运行 lp_simplex，每个案例测试 1 次；Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `lp_solve_mps`。
 
 脚本逐案例执行以下流程：
 
 1. 从 raw 数据生成本案例的临时 MPS。
-2. 串行运行五个求解器及全部重复，记录耗时、状态并审核原模型上的解。
+2. 串行运行本轮选中的求解器及全部重复，记录耗时、状态并审核原模型上的解。
 3. 删除本案例的临时 MPS。
 4. 保存运行记录，同步更新数据集报告和中英文汇总，再处理下一案例。
 
@@ -111,16 +120,18 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | `--clp` | `clp` | Clp 可执行文件名称或路径 |
 | `--glpk` | `glpsol` | GLPK 可执行文件名称或路径 |
 | `--glpk-gate-case` | 不启用 | 先测试指定案例；若 GLPK 未通过，则跳过其余案例的 GLPK 测试。跳过单独记录，不计为超时或失败 |
-| `--solvers` | 全部五个求解器 | 选择本轮求解器，须包含 `lp_simplex` |
-| `--repeats` | 3 | 每个案例、每个求解器的重复次数 |
+| `--solvers` | `lp_simplex` | 选择本轮执行的一个或多个求解器，可单独测试其他求解器；仅检查选中求解器的可执行文件 |
+| `--repeats` | 1 | 每个案例、每个求解器的重复次数 |
 | `--seconds` | Netlib: 60；PDS/Railway: 120 | 每次运行的墙钟秒数上限 |
 | `--iterations` | 300000 | lp_simplex 工作预算 |
-| `--lp-algorithm` | `auto` | `auto`、`dual-revised`、`pan-bda` |
+| `--lp-algorithm` | `auto` | `auto`、`dual-revised`、`pan-bda`、`tableau` |
 | `--highs-algorithm` | `choose` | `choose`、`simplex`、`ipm` |
 | `--scip-algorithm` | `default` | `default` 或 `dual` |
 | `--run-dir` | `tmp/benchmarks/<UTC 时间>` | 必须是新目录，保存本轮原始记录 |
 | `--docs-dir` | `docs/benchmarks` | 报告输出目录 |
 | `--report-only DIR` | 不启用 | 从已有记录重建报告，不重新求解 |
+
+日常优化默认只测 lp_simplex，每例一次。需要刷新对照时通过 `--solvers lp_simplex highs clp` 等参数选择；也可用 `--solvers scip` 单独刷新其他求解器。未选中的报告单元格保留历史参考值，本次统计不包含这些历史值。HiGHS binding、NumPy 和 SciPy 仍用于读取模型及独立审核，即使不测试 HiGHS 也需要安装。
 
 ### 单模型检查：lp_solve_mps
 
@@ -144,3 +155,9 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 | `--help` | — | 查看当前可用参数 |
 
 以上为测试工具的参数。C API 的求解选项及结果字段见[参数与结果说明](../docs/parameters.md)。当前工具支持的参数也可通过 `python3 data/benchmark.py --help` 和 `./build/data/lp_solve_mps --help` 查看。
+
+运行不可行性基准：
+
+```sh
+python3 data/benchmark.py --dataset netlib-infeasible --binary build/data/lp_solve_mps --solvers lp_simplex scip highs clp glpk --repeats 1 --seconds 90
+```

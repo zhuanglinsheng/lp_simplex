@@ -34,6 +34,8 @@ Both the manual C model and the MPS file use this same minimization form.
 The complete manual-modeling program is [`production_planning_1.c`](../data/simple_examples/production_planning_1.c).
 Its `create_model` function fills the objective, constraint matrix, and right-hand sides:
 
+The function uses `<lp_simplex/lp_simplex.h>` and `<string.h>`.
+
 ```c
 static struct lp_Model *create_model(void)
 {
@@ -48,8 +50,8 @@ static struct lp_Model *create_model(void)
 	if (model == NULL)
 		return NULL;
 	/* Column j represents the same variable in C and in the MPS file. */
-	sprintf(model->bounds[0].name, "%s", "X1");
-	sprintf(model->bounds[1].name, "%s", "X2");
+	memcpy(model->bounds[0].name, "X1", sizeof("X1"));
+	memcpy(model->bounds[1].name, "X2", sizeof("X2"));
 	for (j = 0; j < 2; j++)
 		model->objective[j] = c[j];
 	for (i = 0; i < 4; i++) {
@@ -92,6 +94,8 @@ Finally, `lp_model_build_sparse(model)` converts the populated constraint matrix
 into the solver's sparse storage, retaining nonzero coefficients and their
 positions without changing the constraints or objective.
 
+Conversion constructs replacement CSC/CSR buffers before committing them. Allocation or count-overflow failure preserves the previous sparse arrays and `nnz`. Pending dense edits still require a successful rebuild before solving. Rebuilding temporarily retains both old and new caches; peak memory includes both.
+
 The program allocates `model->n` doubles for the solution, initializes options,
 and solves the model:
 
@@ -105,6 +109,8 @@ Success requires both `state == lp_simplex_EXIT_SUCCESS` and
 
 The `_1.c` program only constructs the model manually. Its source includes allocation
 checks, status checks, example-objective validation, and memory cleanup.
+
+The solve entry requires finite matrix values, costs, objective offset, RHS and active bound endpoints, with objective sense `+1` or `-1`. Encode absent endpoints using FR/LO/UP types; inactive endpoints are ignored. Invalid input returns `CondUnsatisfied` with zero work before progress callbacks or writes to x, for dense, cached-sparse and sparse-only models. Callers still maintain agreement between matrix representations; the solver does not reconcile them.
 
 ## 3. Read MPS when the model is already in a file
 

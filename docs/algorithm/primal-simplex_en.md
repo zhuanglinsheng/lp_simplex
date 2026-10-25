@@ -84,3 +84,11 @@ represents a reference squared edge norm, whose estimate can be updated through 
 The Harris two-pass ratio test first determines a step window within the permitted feasibility error, then favors a larger pivot within that window to reduce error amplification. This is a numerical rule. A strict anti-cycling conclusion still requires an exact minimum ratio and suitable tie-breaking; it does not follow from a tolerance window alone.
 
 If the working objective contains reversible perturbations, restore the original costs once a primal feasible point is obtained and refine optimality from that point. Optimality for the working objective does not imply optimality for the original objective.
+
+Tableau Phase I, artificial-basis cleanup and Phase II share one cumulative budget. Each actual cleanup pivot consumes a work unit; exhaustion stops before the next pivot and is distinct from numerical failure. Existing pricing/terminal-check work accounting is retained.
+
+The private report records input preparation, Phase I, artificial-basis cleanup and Phase II separately; phase work sums to invocation work. A complete point is exported only after successful Phase II; writing it does not imply independent acceptance. This report exports no multipliers, basis, factorization or lower bound. Actual `tableau` invocation events and AUTO final reports retain algorithm facts and controller conclusions separately; see the [AUTO handoff contract](../auto-policy_en.md#candidates-checkpoints-and-termination).
+
+Bound conversion is a model representation: its standard form has a distinct runtime identity, `tableau-model` links the input, and `tableau-standard` records the numerical kernel on that representation. On success, the outer call recovers input coordinates and retains the actual kernel source; failure exports no recovered point. Standard form is not another algorithm.
+
+The Tableau implementation combines Bland/Dantzig entering selection with a shared two-pass stable leaving window and explicit unit-column maintenance. Bland entering indices do not establish the strict minimum-ratio anti-cycling theorem. Tableau-coordinate tolerance still requires input-model audit; see [numerical policy](../numerical-policy_en.md#tableau).

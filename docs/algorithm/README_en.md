@@ -4,6 +4,8 @@
 
 This collection studies equivalent transformations, feasibility construction, optimality conditions, and iterative methods for continuous linear programming. A minimization convention is used throughout. Except in discussions of numerical error, propositions are stated in exact arithmetic. Finite termination and convergence claims apply only under the conditions explicitly stated.
 
+The implementation exposes Dual, Tableau and BDA solvers plus the AUTO scheduler. PDHG, NNLS, cone directions, feasibility restoration and dual refinement serve internal BDA roles; standard form/native bounds are model representations, explicit/implicit are oracle implementations, and LU/QR are numerical backends. The chapters study mathematical methods rather than peer public solver routes. See the [feature inventory](../features_en.md) for current implementation mappings.
+
 ## 1. Problem and notation
 
 The general model is

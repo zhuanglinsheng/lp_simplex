@@ -114,3 +114,29 @@ q_i=\frac{\min(r_i,0)}{d_i^-}.
 $$
 
 This gives a primal feasible solution. With exact optimal multipliers and complementary slackness, it is also primal optimal. The reduction depends on the stated structure; a general equality model need not have finite dual box bounds.
+
+The auxiliary classification is not an input classification. The signed-pair structure establishes input feasibility; certified auxiliary infeasibility inside a conservative finite box establishes input unboundedness by LP duality. Auxiliary unboundedness contradicts the box and is a numerical failure. Auxiliary optimality still requires recovered input point/multiplier KKT audit; see the [Singleton handoff contract](../auto-policy_en.md#candidates-checkpoints-and-termination).
+
+
+## 7. Implementation boundaries and call path
+
+Dual separates its algorithm entry, numerical-backend recovery and individual numerical attempt:
+
+```mermaid
+flowchart LR
+    C["Caller: AUTO / BDA service / explicit Dual"] --> E["simplex_dual.c: input adaptation and recovery"]
+    E --> B["simplex_dual_backend.c: attempts and shared grant"]
+    B --> K["simplex_dual_kernel.c: iteration and certification"]
+```
+
+| Layer | Inputs and outputs | Responsibility and exits |
+|---|---|---|
+| [Entry](../../src/dual/simplex_dual.c) | Immutable invocation input, options, optional model-bound hint → point, multipliers, status and diagnostics in that input space | Check hint identity before scaling; create scaling/progress bridge, falling back to the original representation for irreversible scaling; recover coordinates and recompute input diagnostics. Reject bad hints or cold-start under existing rules; exit on resource/bridge failure. |
+| [Backend](../../src/dual/simplex_dual_backend.c) | Fixed-representation input, complete Dual grant, retry key, optional hint → selected candidate and combined work | After default-LU numerical failure/singularity, try internal LU only when compiled, eligible under the exact-request ledger and within remaining work. Save, audit and restore candidates and producers; do not rerun mathematical conclusions or resource/budget stops. |
+| [Kernel](../../src/dual/simplex_dual_kernel.c) | Borrowed kernel-space input, explicit factorization backend, attempt work grant → point/multipliers/optional basis, status and actual work | Own the attempt's DualState and factors; initialize, iterate, perform local numerical recovery and mathematical certification, then destroy state. Do not create scaling models or choose another backend. |
+
+See the private [backend](../../src/dual/simplex_dual_backend.h) and [kernel](../../src/dual/simplex_dual_kernel.h) contracts. An invocation input may already be an outer reduced model; it is not always the public original LP. A basis hint transfers model-bound indices/status only and still requires refactorization and classification. No live factor transfers between backends. Diagnostic parents and the numerical failure ledger retain distinct roles and do not replace model identity.
+
+Backend point selection only assembles output. Actual attempts retain local work; the selection summary carries their inclusive total. Both attempts and selection belong to the invocation owner, with distinct triggering and point-producing sources. Inclusive work is neither reported as one backend's local work nor nested under the last attempt. See the [cross-layer recovery chain](../auto-policy_en.md#cross-layer-recovery-chain).
+
+These files implement one Dual algorithm. LU replacement is its numerical-backend recovery; AUTO still owns cross-algorithm selection, grants and candidate commits among Dual, Tableau and BDA. Checkpoints, request comparison, bounds, pricing, degeneracy and state-lifecycle modules retain their roles. The kernel still contains coupled iteration/cleanup logic; this separation does not close all large-file, transformed-model or resource-exit acceptance.

@@ -2,7 +2,7 @@
 
 [简体中文](./README.md) | English | [Project home](../../README_en.md) | [Data overview](../README_en.md)
 
-The collection contains 114 feasible LPs, 29 infeasible LPs, and Gurobi 10 presolved variants. Benchmarks use only the original feasible models. Reference objectives are stored in [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv).
+The collection contains 114 feasible LPs, 29 infeasible LPs, and Gurobi 10 presolved variants. Feasible and infeasible original models are benchmarked and summarized separately. Reference objectives are stored in [feasible_gurobi_1e-8.csv](feasible_gurobi_1e-8.csv).
 
 ## Prepare models
 
@@ -30,3 +30,5 @@ Names include a category because different categories may contain the same name.
 - Generated MPS files are ignored by Git. Existing outputs are replaced only after successful generation.
 
 See the [original Netlib collection](https://www.netlib.org/lp/) and the [Netlib benchmark report](../../docs/benchmarks/netlib_en.md).
+
+See the [Netlib infeasible benchmark](../../docs/benchmarks/netlib-infeasible_en.md): one run per instance, 90 seconds per run. PASS checks the infeasible status, not an independently verified certificate.

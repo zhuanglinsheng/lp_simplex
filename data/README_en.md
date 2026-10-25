@@ -8,12 +8,21 @@ This directory maintains test data, scripts for generating MPS files on demand, 
 
 | Dataset | Contents | Performance report |
 |---|---|---|
-| [Netlib](netlib/README_en.md) | 114 feasible LPs, plus infeasible models and presolved variants; benchmarks use only the original feasible models | [Per-instance results](../docs/benchmarks/netlib_en.md) |
+| [Netlib](netlib/README_en.md) | 114 feasible LPs, plus infeasible models and presolved variants; this suite tests feasible original models only | [Per-instance results](../docs/benchmarks/netlib_en.md) |
+| Netlib infeasible | 29 infeasible LPs; infeasibility decisions summarized separately | [Per-instance results](../docs/benchmarks/netlib-infeasible_en.md) |
 | [PDS](pds/README_en.md) | 9 large LPs with approximately 106,000–505,000 variables | [Per-instance results](../docs/benchmarks/pds_en.md) |
 | [Railway](railway/README_en.md) | 7 railway set-covering problems, tested as continuous LP relaxations, with approximately 47,000–1,093,000 variables | [Per-instance results](../docs/benchmarks/railway_en.md) |
 | [Small examples](simple_examples/README_en.md) | 9 functional and regression test models | Excluded from benchmarks |
 
 Netlib, PDS, and Railway store only raw inputs and files needed for conversion. Each dataset's `prepare.py` generates MPS files on demand. `simple_examples` stores small MPS files and matching C examples directly; see the [usage guide](../docs/usage_en.md) for modeling and solver API examples.
+
+The command-line driver uses production numerical defaults and ignores numerical `LP_SIMPLEX_*` experiment switches. Add `--experimental-environment` explicitly to reproduce an environment-based experiment with the single-model driver; default benchmarks use production configuration. See [runtime configuration](../docs/runtime-configuration_en.md).
+
+## Timing scopes
+
+`benchmark.py` retains `wall_seconds`: CLI startup, reading, solving and point export, plus adapter log/point parsing, excluding adapter initialization and independent original-model auditing. CLI runs also record `cli_wall_seconds` (launch through exit, excluding later parsing), `cli_user_seconds`, `cli_system_seconds` and their sum `cli_cpu_seconds`. CPU is the isolated worker's child `getrusage` delta for the CLI and its descendants. Unsupported or invalid counters are `null`, never zero. The HiGHS Python binding has no CLI subprocess and does not provide these fields.
+
+`compare_performance.py` keeps its legacy wall summary and adds separate summaries under `cli_timing`. Ratios require complete passing repetitions and valid measurements on both sides. Numerical PASS and timing availability are separate. Driver `time:` measures solve plus one original-model audit in process CPU time; it cannot replace full CLI timing. Hard deadlines and success criteria are unchanged. A killed child without a complete measurement has unknown CPU. Preserve all raw logs, point audits and repetitions.
 
 ## Prepare the environment
 
@@ -27,7 +36,7 @@ cmake --build build --target lp_solve_mps -j 4
 
 The executable is `build/data/lp_solve_mps`. Running it separately requires a prepared MPS file. Generating models from raw inputs also requires Python 3.9+; Python temporarily builds the PDS converter with a C compiler.
 
-Benchmarks additionally require SCIP, Clp, and GLPK on PATH (or paths supplied with `--scip`, `--clp`, and `--glpk`), plus NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding in the Python environment. On macOS, install Clp and GLPK with `brew install clp glpk`. For example:
+SCIP, Clp, and GLPK executables are required only when selected; provide them on PATH or through `--scip`, `--clp`, and `--glpk`. The Python environment requires NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding. On macOS, install Clp and GLPK with `brew install clp glpk`. For example:
 
 ```sh
 python3 -m pip install numpy scipy highspy
@@ -45,12 +54,12 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-Defaults are 3 repetitions per instance and solver. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `lp_solve_mps`.
+By default, only lp_simplex runs, once per instance. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `lp_solve_mps`.
 
 For each instance, the script:
 
 1. Generates a temporary MPS file from raw inputs.
-2. Runs all five solvers and repetitions serially, recording timings and statuses and auditing solutions against the original model.
+2. Runs the selected solvers and repetitions serially, recording timings and statuses and auditing solutions against the original model.
 3. Deletes the instance's temporary MPS file.
 4. Saves run records and updates the dataset reports and both language summaries before proceeding to the next instance.
 
@@ -109,16 +118,18 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--clp` | `clp` | Clp executable name or path |
 | `--glpk` | `glpsol` | GLPK executable name or path |
 | `--glpk-gate-case` | Off | Test this instance first; if GLPK does not pass, skip its remaining instances. Skips are recorded separately from timeouts and failures |
-| `--solvers` | All five solvers | Solver selection; must include `lp_simplex` |
-| `--repeats` | 3 | Repetitions per instance and solver |
+| `--solvers` | `lp_simplex` | One or more solvers to execute; competitor-only runs are supported. Only selected solver executables are required |
+| `--repeats` | 1 | Repetitions per instance and solver |
 | `--seconds` | Netlib: 60; PDS/Railway: 120 | Per-run wall-clock deadline |
 | `--iterations` | 300000 | lp_simplex work budget |
-| `--lp-algorithm` | `auto` | `auto`, `dual-revised`, or `pan-bda` |
+| `--lp-algorithm` | `auto` | `auto`, `dual-revised`, `pan-bda`, or `tableau` |
 | `--highs-algorithm` | `choose` | `choose`, `simplex`, or `ipm` |
 | `--scip-algorithm` | `default` | `default` or `dual` |
 | `--run-dir` | `tmp/benchmarks/<UTC timestamp>` | New directory for raw run records |
 | `--docs-dir` | `docs/benchmarks` | Report destination |
 | `--report-only DIR` | Off | Regenerate reports without solving |
+
+Routine optimization runs measure only lp_simplex once per case. Select comparisons with, for example, `--solvers lp_simplex highs clp`, or refresh a competitor alone with `--solvers scip`. Unselected report cells retain historical reference values, excluded from current-run statistics. The HiGHS binding, NumPy, and SciPy remain required for model loading and independent audits even when HiGHS is not selected.
 
 ### Single-model checks: lp_solve_mps
 
@@ -142,3 +153,9 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--help` | — | Show current options |
 
 These options belong to the test tools. See the [parameters and results reference](../docs/parameters_en.md) for C API solver options and result fields. Current tool options are also available through `python3 data/benchmark.py --help` and `./build/data/lp_solve_mps --help`.
+
+Run the infeasibility benchmark:
+
+```sh
+python3 data/benchmark.py --dataset netlib-infeasible --binary build/data/lp_solve_mps --solvers lp_simplex scip highs clp glpk --repeats 1 --seconds 90
+```

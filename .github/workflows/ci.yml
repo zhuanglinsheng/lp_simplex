@@ -21,6 +21,8 @@ jobs:
         run: python tools/check_style.py
       - name: Check source ownership boundaries
         run: python tools/check_architecture.py
+      - name: Check documentation links
+        run: python tools/check_docs.py
 
   build:
     runs-on: ubuntu-latest

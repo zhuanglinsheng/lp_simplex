@@ -12,7 +12,9 @@ An instance is solved only if every repetition passes within the time limit. Tim
 
 Timing includes model loading, solving, and solution export. It excludes MPS preparation and deletion, format compatibility processing, shared adapter initialization, and independent audits. Runs are serial and single-threaded, without guaranteed exclusive machine access. CLI and Python-binding overheads differ.
 
-PASS requires an optimal solver status and successful original-model feasibility and objective audits. Reference objectives are checked when available. A pass without a reference is not an independent optimality certificate. Partial or subset results do not establish full-suite conclusions. Runs are summarized separately, without mixing environments, settings, or case selections.
+For feasible suites, PASS requires an optimal solver status and successful original-model feasibility and objective audits. Reference objectives are checked when available. A pass without a reference is not an independent optimality certificate. Partial or subset results do not establish full-suite conclusions. Runs are summarized separately, without mixing environments, settings, or case selections.
+
+Netlib infeasible is summarized separately: PASS checks an explicit infeasible status and does not constitute independent certificate verification.
 
 ## Netlib feasible
 
@@ -20,35 +22,36 @@ PASS requires an optimal solver status and successful original-model feasibility
 
 Only the run from the most recent report update is shown; historical records remain in their original run directories.
 
-<!-- benchmark-run:netlib-auto-current-90s-once -->
+<!-- benchmark-run:netlib-accepted-auto-20261024-once -->
 | Test information | Value |
 | --- | --- |
 | State / progress | Completed; 114/114 instances |
-| Time (UTC) | 2026-10-23T17:35:04.295362+00:00 |
+| Time (UTC) | 2026-10-24T05:33:23.851120+00:00 |
 | Solvers in this run | lp_simplex, SCIP / SoPlex, HiGHS, Clp, GLPK |
 | Case selection | netlib full suite; 25fv47, 80bau3b, adlittle, afiro, agg, agg2, agg3, bandm, beaconfd, blend, bnl1, bnl2, boeing1, boeing2, bore3d, brandy, capri, cre-a, cre-b, cre-c, cre-d, cycle, czprob, d2q06c, d6cube, degen2, degen3, dfl001, e226, etamacro, fffff800, finnis, fit1d, fit1p, fit2d, fit2p, forplan, ganges, gfrd-pnc, greenbea, greenbeb, grow15, grow22, grow7, israel, kb2, ken-07, ken-11, ken-13, ken-18, lotfi, maros, maros-r7, modszk1, nesm, osa-07, osa-14, osa-30, osa-60, pds-02, pds-06, pds-10, pds-20, perold, pilot, pilot.ja, pilot.we, pilot4, pilot87, pilotnov, qap12, qap15, qap8, recipe, sc105, sc205, sc50a, sc50b, scagr25, scagr7, scfxm1, scfxm2, scfxm3, scorpion, scrs8, scsd1, scsd6, scsd8, sctap1, sctap2, sctap3, seba, share1b, share2b, shell, ship04l, ship04s, ship08l, ship08s, ship12l, ship12s, sierra, stair, standata, standgub, standmps, stocfor1, stocfor2, stocfor3, truss, tuff, vtp.base, wood1p, woodw |
 | System / CPU | macOS-27.0.1-arm64-arm-64bit-Mach-O / Apple M1 |
 | Memory / logical CPUs | 17179869184 bytes / 8 |
 | Python / NumPy / SciPy | 3.14.2 / 2.5.3 / 1.18.1 |
-| lp_simplex version | 8ec4f0dc66f059824b0b38b36fac7632e062114f; working tree modified |
+| lp_simplex version | d4101511d0a7ed27c04e25406bf1707dc63a0aaf; working tree modified |
 | Build / compiler | Release / Apple clang version 21.0.0 (clang-2100.3.34.2) |
 | SCIP / LP backend | SCIP version 10.0.3 [precision: 8 byte] [memory: block] [mode: optimized] [LP solver: SoPlex 8.0.2] [GitHash: d409edf9f6] |
 | HiGHS | 1.12.0 / scipy-private-binding |
 | Algorithms (lp / scip / highs) | auto / default / choose |
 | Repeats / time limit / tolerance / work budget | 1 / 90 s / 1e-07 / 300000 |
 | Resources | Serial; one thread per solver; no memory cap or exclusive machine access |
-| Raw records | tmp/benchmarks/netlib-auto-current-90s-once (configuration, environment, SHA-256, commands, logs, solutions, and audit residuals) |
+| Raw records | tmp/benchmarks/netlib-accepted-auto-20261024-once (configuration, environment, SHA-256, commands, logs, solutions, and audit residuals) |
 | Clp | Coin LP version 1.17.11, build Mar 11 2026 |
 | GLPK | GLPSOL--GLPK LP/MIP Solver 5.0 |
 | Clp / GLPK algorithms | dual simplex / primal simplex; presolve on |
+| GLPK skip policy | Skip remaining GLPK runs after its first timeout; Skipped runs: 64 |
 
 | Solver | Solved instances | Timeouts | Other unsuccessful runs | Instances solved by both this solver and lp_simplex | Geometric means on common set / s (lp_simplex / solver) | Relative time (lp_simplex / solver) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | lp_simplex | 114/114 | 0 | 0 | — | — | — |
-| SCIP / SoPlex | 109/114 | 4 | 1 | 109 | 0.113925 / 0.205502 | 0.554373 |
-| HiGHS | 112/114 | 2 | 0 | 112 | 0.123357 / 0.0346396 | 3.56117 |
-| Clp | 111/114 | 1 | 2 | 111 | 0.129037 / 0.0618844 | 2.08513 |
-| GLPK | 110/114 | 2 | 2 | 110 | 0.122373 / 0.0797 | 1.53543 |
+| SCIP / SoPlex | 109/114 | 4 | 1 | 109 | 0.0878237 / 0.15624 | 0.562108 |
+| HiGHS | 112/114 | 2 | 0 | 112 | 0.0956086 / 0.0278547 | 3.43241 |
+| Clp | 111/114 | 1 | 2 | 111 | 0.0998753 / 0.0493459 | 2.02399 |
+| GLPK | 47/114 | 1 | 2 | 47 | 0.0944219 / 0.0659676 | 1.43134 |
 
 Reproduce these cases and parameters in a new run directory:
 
@@ -61,41 +64,57 @@ python3 data/benchmark.py --dataset netlib --cases 25fv47 80bau3b adlittle afiro
 ```
 <!-- /benchmark-run -->
 
-## PDS
+## Netlib infeasible
 
-[Per-instance results and full report](pds_en.md)
+[Per-instance results and full report](netlib-infeasible_en.md)
 
 Only the run from the most recent report update is shown; historical records remain in their original run directories.
 
-<!-- benchmark-run:pds-auto-refined-five-solvers-300s-final -->
+<!-- benchmark-run:netlib-infeasible-90s-final -->
 | Test information | Value |
 | --- | --- |
-| State / progress | Completed; 9/9 instances |
-| Time (UTC) | 2026-10-23T15:41:47.536059+00:00 |
+| State / progress | Completed; 29/29 instances |
+| Time (UTC) | 2026-10-24T06:55:30.641244+00:00 |
 | Solvers in this run | lp_simplex, SCIP / SoPlex, HiGHS, Clp, GLPK |
-| Case selection | pds full suite; pds-20, pds-30, pds-40, pds-50, pds-60, pds-70, pds-80, pds-90, pds-100 |
+| Case selection | netlib-infeasible full suite; bgdbg1, bgetam, bgindy, bgprtr, box1, ceria3d, chemcom, cplex1, cplex2, ex72a, ex73a, forest6, galenet, gosh, gran, greenbea, itest2, itest6, klein1, klein2, klein3, mondou2, pang, pilot4i, qual, reactor, refinery, vol1, woodinfe |
 | System / CPU | macOS-27.0.1-arm64-arm-64bit-Mach-O / Apple M1 |
 | Memory / logical CPUs | 17179869184 bytes / 8 |
 | Python / NumPy / SciPy | 3.14.2 / 2.5.3 / 1.18.1 |
-| lp_simplex version | 1ab947ebcbbbdff01b10b99994d58bc1a7cdd3e6; working tree modified |
+| lp_simplex version | d4101511d0a7ed27c04e25406bf1707dc63a0aaf; working tree modified |
 | Build / compiler | Release / Apple clang version 21.0.0 (clang-2100.3.34.2) |
 | SCIP / LP backend | SCIP version 10.0.3 [precision: 8 byte] [memory: block] [mode: optimized] [LP solver: SoPlex 8.0.2] [GitHash: d409edf9f6] |
 | HiGHS | 1.12.0 / scipy-private-binding |
 | Algorithms (lp / scip / highs) | auto / default / choose |
-| Repeats / time limit / tolerance / work budget | 1 / 300 s / 1e-07 / 300000 |
+| Repeats / time limit / tolerance / work budget | 1 / 90 s / 1e-07 / 300000 |
 | Resources | Serial; one thread per solver; no memory cap or exclusive machine access |
-| Raw records | tmp/benchmarks/pds-auto-refined-five-solvers-300s-final (configuration, environment, SHA-256, commands, logs, solutions, and audit residuals) |
+| Raw records | lp_simplex: tmp/benchmarks/netlib-infeasible-certificates-latest-once; SCIP / HiGHS / Clp / GLPK: tmp/benchmarks/netlib-infeasible-90s-final |
 | Clp | Coin LP version 1.17.11, build Mar 11 2026 |
 | GLPK | GLPSOL--GLPK LP/MIP Solver 5.0 |
+| Supplemental run | tmp/benchmarks/netlib-infeasible-greenbea-serial; greenbea only; corrected HiGHS read-warning handling; original attempt retained at tmp/benchmarks/netlib-infeasible-90s-once |
 | Clp / GLPK algorithms | dual simplex / primal simplex; presolve on |
+| GLPK skip policy | Skip remaining GLPK runs after its first timeout; Skipped runs: 0 |
 
 | Solver | Solved instances | Timeouts | Other unsuccessful runs | Instances solved by both this solver and lp_simplex | Geometric means on common set / s (lp_simplex / solver) | Relative time (lp_simplex / solver) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| lp_simplex | 9/9 | 0 | 0 | — | — | — |
-| SCIP / SoPlex | 6/9 | 3 | 0 | 6 | 106.83 / 69.9679 | 1.52685 |
-| HiGHS | 9/9 | 0 | 0 | 9 | 143.535 / 7.30131 | 19.6588 |
-| Clp | 9/9 | 0 | 0 | 9 | 143.535 / 7.31296 | 19.6275 |
-| GLPK | 2/9 | 7 | 0 | 2 | 64.4913 / 53.6572 | 1.20191 |
+| lp_simplex | 29/29 | 0 | 0 | — | — | — |
+| SCIP / SoPlex | 28/29 | 0 | 1 | 28 | 0.0281044 / 0.0542667 | 0.517893 |
+| HiGHS | 29/29 | 0 | 0 | 29 | 0.0279029 / 0.00336188 | 8.2998 |
+| Clp | 29/29 | 0 | 0 | 29 | 0.0279029 / 0.0295637 | 0.943822 |
+| GLPK | 27/29 | 0 | 2 | 27 | 0.0277222 / 0.0161276 | 1.71892 |
+
+| Solver | Wrong decisions | Ambiguous decisions | Execution or numerical failures | Skipped runs |
+| --- | ---: | ---: | ---: | ---: |
+| lp_simplex | 0 | 0 | 0 | 0 |
+| SCIP / SoPlex | 0 | 1 | 0 | 0 |
+| HiGHS | 0 | 0 | 0 | 0 |
+| Clp | 0 | 0 | 0 | 0 |
+| GLPK | 0 | 0 | 2 | 0 |
+
+| Instance | Solver | Result | Termination information |
+| --- | --- | --- | --- |
+| cplex1 | SCIP / SoPlex | AMBIGUOUS | problem is solved [infeasible or unbounded] |
+| pang | GLPK | SOLVER_FAILED | not optimal |
+| greenbea | GLPK | SOLVER_FAILED | not optimal |
 
 Reproduce these cases and parameters in a new run directory:
 
@@ -104,7 +123,55 @@ cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENC
 
 cmake --build build/benchmark --target lp_solve_mps -j 4
 
-python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+python3 data/benchmark.py --dataset netlib-infeasible --cases bgdbg1 bgetam bgindy bgprtr box1 ceria3d chemcom cplex1 cplex2 ex72a ex73a forest6 galenet gosh gran greenbea itest2 itest6 klein1 klein2 klein3 mondou2 pang pilot4i qual reactor refinery vol1 woodinfe --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 90.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+```
+<!-- /benchmark-run -->
+
+## PDS
+
+[Per-instance results and full report](pds_en.md)
+
+Only the run from the most recent report update is shown; historical records remain in their original run directories.
+
+<!-- benchmark-run:pds-accepted-auto-20261024-once -->
+| Test information | Value |
+| --- | --- |
+| State / progress | Completed; 9/9 instances |
+| Time (UTC) | 2026-10-24T05:59:44.178021+00:00 |
+| Solvers in this run | lp_simplex, SCIP / SoPlex, HiGHS, Clp, GLPK |
+| Case selection | pds full suite; pds-20, pds-30, pds-40, pds-50, pds-60, pds-70, pds-80, pds-90, pds-100 |
+| System / CPU | macOS-27.0.1-arm64-arm-64bit-Mach-O / Apple M1 |
+| Memory / logical CPUs | 17179869184 bytes / 8 |
+| Python / NumPy / SciPy | 3.14.2 / 2.5.3 / 1.18.1 |
+| lp_simplex version | d4101511d0a7ed27c04e25406bf1707dc63a0aaf; working tree modified |
+| Build / compiler | Release / Apple clang version 21.0.0 (clang-2100.3.34.2) |
+| SCIP / LP backend | SCIP version 10.0.3 [precision: 8 byte] [memory: block] [mode: optimized] [LP solver: SoPlex 8.0.2] [GitHash: d409edf9f6] |
+| HiGHS | 1.12.0 / scipy-private-binding |
+| Algorithms (lp / scip / highs) | auto / default / choose |
+| Repeats / time limit / tolerance / work budget | 1 / 300 s / 1e-07 / 300000 |
+| Resources | Serial; one thread per solver; no memory cap or exclusive machine access |
+| Raw records | tmp/benchmarks/pds-auto-refined-five-solvers-300s-final; tmp/benchmarks/pds-accepted-auto-20261024-once; tmp/benchmarks/pds-accepted-auto-20261024-lp-only-v2 |
+| Clp | Coin LP version 1.17.11, build Mar 11 2026 |
+| GLPK | GLPSOL--GLPK LP/MIP Solver 5.0 |
+| Clp / GLPK algorithms | dual simplex / primal simplex; presolve on |
+| GLPK skip policy | Skipped runs: 0 |
+
+| Solver | Solved instances | Timeouts | Other unsuccessful runs | Instances solved by both this solver and lp_simplex | Geometric means on common set / s (lp_simplex / solver) | Relative time (lp_simplex / solver) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| lp_simplex | 9/9 | 0 | 0 | — | — | — |
+| SCIP / SoPlex | 6/9 | 3 | 0 | 6 | 80.4532 / 68.5872 | 1.17301 |
+| HiGHS | 9/9 | 0 | 0 | 9 | 111.852 / 7.20217 | 15.5303 |
+| Clp | 9/9 | 0 | 0 | 9 | 111.852 / 7.38672 | 15.1423 |
+| GLPK | 2/9 | 7 | 0 | 2 | 42.2868 / 53.8081 | 0.785881 |
+
+Reproduce these cases and parameters in a new run directory:
+
+```sh
+cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset pds --cases pds-20 pds-30 pds-40 pds-50 pds-60 pds-70 pds-80 pds-90 pds-100 --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 300.0 --iterations 300000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
 ```
 <!-- /benchmark-run -->
 
@@ -112,17 +179,49 @@ python3 data/benchmark.py --dataset pds --cases pds-100 pds-20 pds-30 pds-40 pds
 
 [Per-instance results and full report](railway_en.md)
 
-仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。
+Only the run from the most recent report update is shown; historical records remain in their original run directories.
 
-Not yet run; environment, versions, algorithms, time limits, and repeats are not yet recorded.
+<!-- benchmark-run:railway-auto-current-3600s-once -->
+| Test information | Value |
+| --- | --- |
+| State / progress | Completed; 7/7 instances |
+| Time (UTC) | 2026-10-23T18:29:21.672935+00:00 |
+| Solvers in this run | lp_simplex, SCIP / SoPlex, HiGHS, Clp, GLPK |
+| Case selection | railway full suite; rail507, rail516, rail582, rail2536, rail2586, rail4284, rail4872 |
+| System / CPU | macOS-27.0.1-arm64-arm-64bit-Mach-O / Apple M1 |
+| Memory / logical CPUs | 17179869184 bytes / 8 |
+| Python / NumPy / SciPy | 3.14.2 / 2.5.3 / 1.18.1 |
+| lp_simplex version | 00efbe80257a0530ee491cb2c44494d13b27c46c; working tree modified |
+| Build / compiler | Release / Apple clang version 21.0.0 (clang-2100.3.34.2) |
+| SCIP / LP backend | SCIP version 10.0.3 [precision: 8 byte] [memory: block] [mode: optimized] [LP solver: SoPlex 8.0.2] [GitHash: d409edf9f6] |
+| HiGHS | 1.12.0 / scipy-private-binding |
+| Algorithms (lp / scip / highs) | auto / default / choose |
+| Repeats / time limit / tolerance / work budget | 1 / 3600 s / 1e-07 / 10000000 |
+| Resources | Serial; one thread per solver; no memory cap or exclusive machine access |
+| Raw records | tmp/benchmarks/railway-auto-current-3600s-once (configuration, environment, SHA-256, commands, logs, solutions, and audit residuals) |
+| Clp | Coin LP version 1.17.11, build Mar 11 2026 |
+| GLPK | GLPSOL--GLPK LP/MIP Solver 5.0 |
+| Clp / GLPK algorithms | dual simplex / primal simplex; presolve on |
+| GLPK skip policy | Skip remaining GLPK runs after its first timeout; Skipped runs: 3 |
 
 | Solver | Solved instances | Timeouts | Other unsuccessful runs | Instances solved by both this solver and lp_simplex | Geometric means on common set / s (lp_simplex / solver) | Relative time (lp_simplex / solver) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| lp_simplex | 0/7 | 0 | 0 | — | — | — |
-| SCIP / SoPlex | 0/7 | 0 | 0 | 0 | — / — | — |
-| HiGHS | 0/7 | 0 | 0 | 0 | — / — | — |
-| Clp | 0/7 | 0 | 0 | 0 | — / — | — |
-| GLPK | 0/7 | 0 | 0 | 0 | — / — | — |
+| lp_simplex | 7/7 | 0 | 0 | — | — | — |
+| SCIP / SoPlex | 7/7 | 0 | 0 | 7 | 27.7296 / 112.886 | 0.245642 |
+| HiGHS | 7/7 | 0 | 0 | 7 | 27.7296 / 82.1388 | 0.337594 |
+| Clp | 7/7 | 0 | 0 | 7 | 27.7296 / 50.2903 | 0.55139 |
+| GLPK | 3/7 | 1 | 0 | 3 | 1.5798 / 3.45865 | 0.456767 |
+
+Reproduce these cases and parameters in a new run directory:
+
+```sh
+cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON
+
+cmake --build build/benchmark --target lp_solve_mps -j 4
+
+python3 data/benchmark.py --dataset railway --cases rail507 rail516 rail582 rail2536 rail2586 rail4284 rail4872 --binary build/benchmark/data/lp_solve_mps --scip scip --clp clp --glpk glpsol --repeats 1 --seconds 3600.0 --iterations 10000000 --lp-algorithm auto --scip-algorithm default --highs-algorithm choose --solvers lp_simplex scip highs clp glpk
+```
+<!-- /benchmark-run -->
 
 ## Reproduction
 

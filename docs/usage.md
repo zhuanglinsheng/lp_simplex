@@ -36,6 +36,8 @@ subject to  x1 + x2 <= 9
 手动建模的完整程序是 [`production_planning_1.c`](../data/simple_examples/production_planning_1.c)。
 其中 `create_model` 按照上面的数学模型填写目标系数、约束矩阵和右端项：
 
+该函数使用 `<lp_simplex/lp_simplex.h>` 和 `<string.h>`。
+
 ```c
 static struct lp_Model *create_model(void)
 {
@@ -50,8 +52,8 @@ static struct lp_Model *create_model(void)
 	if (model == NULL)
 		return NULL;
 	/* Column j represents the same variable in C and in the MPS file. */
-	sprintf(model->bounds[0].name, "%s", "X1");
-	sprintf(model->bounds[1].name, "%s", "X2");
+	memcpy(model->bounds[0].name, "X1", sizeof("X1"));
+	memcpy(model->bounds[1].name, "X2", sizeof("X2"));
 	for (j = 0; j < 2; j++)
 		model->objective[j] = c[j];
 	for (i = 0; i < 4; i++) {
@@ -91,7 +93,9 @@ C 数组下标从 0 开始：`a[i][0]` 是第 `i + 1` 条约束中 `x1` 的系�
 写入 `model->objective` 后表示 `min -3 x1 - 2 x2`，不计入上面的四条约束。
 
 最后调用 `lp_model_build_sparse(model)`，将已填写的约束矩阵转换为求解器使用的
-稀疏存储形式。它保留非零系数及其位置，不改变模型的约束或目标。
+CSC／CSR 稀疏存储。它保留非零系数及其位置，不改变模型的约束或目标。
+
+转换先构造新缓存，成功后才替换旧缓存；分配或计数越界失败时，原稀疏数组和 `nnz` 保持不变。已经修改的稠密系数仍须成功重建后再求解。重建期间同时保留旧、新缓存，峰值内存包含两者。
 
 模型建好后，程序分配 `model->n` 个 double 存放解，初始化选项，再调用求解器：
 
@@ -104,6 +108,8 @@ state = lp_simplex_solve(model, &options, x, &result);
 
 `_1.c` 是独立的手动建模程序，不读取文件。它包含完整的内存检查、求解状态检查、
 目标验证和释放流程，具体代码可直接打开源文件查看。
+
+求解入口要求矩阵、目标、目标常数、RHS 和生效的界端点为有限数，目标方向字段为 `+1` 或 `-1`。用 FR/LO/UP 类型表示缺失的界，未使用的端点不参与检查。非法输入在启动进度回调和写入解向量前返回 `CondUnsatisfied`、零工作；密集、缓存稀疏和纯稀疏输入均适用。多个矩阵表示的一致性仍由调用方维护，求解器不自动协调它们。
 
 ## 3. 已有模型文件时，直接读取 MPS
 
