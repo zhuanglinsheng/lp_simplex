@@ -133,7 +133,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.validate.outputs.version }}
+        shell: bash
         run: |
+          git archive --format=tar --prefix="lp_simplex-$VERSION/" "$GITHUB_SHA" | gzip -n > "build-dist/lp_simplex-$VERSION-source.tar.gz"
           cd build-dist
           sha256sum *.tar.gz > SHA256SUMS
           cd ..

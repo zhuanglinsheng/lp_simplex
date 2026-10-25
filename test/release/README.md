@@ -30,7 +30,7 @@ whether the checkout was dirty; official archives must come from the clean tag.
 The release workflow supports manual rehearsals without publishing. Tag pushes
 validate the version, run source gates, build/test three native platforms,
 verify the actual archives after extraction and relocation, then publish the
-archives and SHA256SUMS. Every platform must pass before publication. Versioned
+native archives, an explicit frozen source archive and SHA256SUMS. Every platform must pass before publication. Versioned
 CMake discovery, loaded-library/header version agreement, AUTO/Dual/Tableau/BDA
 and progress callbacks are exercised by the installed C/C++ consumers.
 
