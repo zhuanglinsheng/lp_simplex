@@ -2352,6 +2352,9 @@ static int dual_initialize_stable_phase_one(struct simplex_DualState *state,
 	state->cost_shift_active = 0;
 	state->pan_deferred_row = -1;
 	state->stalled_restarts = 0;
+	/* Row allowances belonged to the discarded basis, not the logical one. */
+	lp_simplex_memset(state->feasibility_tolerance, 0,
+		(size_t)state->rows * sizeof(double));
 	lp_simplex_memcpy(state->cost, state->original_cost,
 		(size_t)state->variables * sizeof(double));
 	simplex_degeneracy_reset_state(&state->degeneracy);

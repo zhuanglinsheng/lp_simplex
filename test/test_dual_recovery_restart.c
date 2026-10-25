@@ -93,7 +93,47 @@ static int run_case(int failures, int budget)
 	return valid;
 }
 
+static int row_allowance_reset(void)
+{
+	struct lp_Model *model = lp_model_create(1, 1);
+	struct simplex_Problem problem;
+	struct simplex_DualState state;
+	struct lp_simplex_Options options;
+	int valid;
+
+	if (!model)
+		return 0;
+	model->objective[0] = 1.;
+	model->constraints[0].type = optm_CONS_T_GE;
+	model->constraints[0].rhs = model->constraints[0].coef[0] = 1.;
+	if (simplex_problem_from_model(&problem, model)) {
+		lp_model_free(model);
+		return 0;
+	}
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	if (simplex_dual_state_create(&state, &problem, &options,
+		    SIMPLEX_BASIS_BACKEND_INTERNAL)) {
+		simplex_problem_destroy(&problem);
+		lp_model_free(model);
+		return 0;
+	}
+	simplex_dual_initialize_bounds(&state, &problem, 0);
+	memcpy(state.original_cost, state.cost,
+		(size_t)state.variables * sizeof(double));
+	state.feasibility_tolerance[0] = 1.;
+	state.iterations = 7;
+	valid = dual_initialize_stable_phase_one(&state, &problem, 1) == 0 &&
+		state.feasibility_tolerance[0] == 0. && state.iterations == 7;
+	simplex_dual_state_destroy(&state);
+	simplex_problem_destroy(&problem);
+	lp_model_free(model);
+	return valid;
+}
+
 int main(void)
 {
-	return run_case(1, 20) && run_case(1, 0) && run_case(3, 20) ? 0 : 1;
+	return run_case(1, 20) && run_case(1, 0) && run_case(3, 20) &&
+			       row_allowance_reset()
+		       ? 0
+		       : 1;
 }
