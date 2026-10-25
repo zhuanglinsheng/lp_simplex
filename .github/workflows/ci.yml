@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  windows:
+    uses: ./.github/workflows/windows.yml
+
   style:
     name: Source formatting and script whitespace
     runs-on: ubuntu-latest

@@ -46,7 +46,8 @@ cmake --build build --target install
 
 ### 安装内容
 
-- 库目录（通常 `lib/`）：共享库 `liblp_simplex.so`（Linux）或 `liblp_simplex.dylib`（macOS）。目录由 `CMAKE_INSTALL_LIBDIR` 控制。
+- 库目录（通常 `lib/`）：共享库 `liblp_simplex.so`（Linux）或 `liblp_simplex.dylib`（macOS），以及 Windows 导入库 `lp_simplex.lib`。目录由 `CMAKE_INSTALL_LIBDIR` 控制。
+- Windows 动态库位于 `bin/lp_simplex.dll`；原生 MSVC 构建默认仅依赖 BLAS/LAPACK，步骤见[安装指南](./INSTALL.md)。
 - `include/lp_simplex/`：公开头文件 `lp_simplex.h`、`model.h`、`mps.h`、`solve.h`、`status.h` 和 `version.h`。
 - 库目录下的 `cmake/lp_simplex/`：CMake 包配置与 `lp_simplex::lp_simplex` 导入目标。
 - `share/licenses/lp_simplex/`：LGPL 与所引用的 GPL 条款文本。

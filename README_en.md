@@ -46,7 +46,8 @@ cmake --build build --target install
 
 ### Installed files
 
-- Library directory (usually `lib/`): `liblp_simplex.so` (Linux) or `liblp_simplex.dylib` (macOS), controlled by `CMAKE_INSTALL_LIBDIR`.
+- Library directory (usually `lib/`): `liblp_simplex.so` (Linux), `liblp_simplex.dylib` (macOS), or the Windows import library `lp_simplex.lib`, controlled by `CMAKE_INSTALL_LIBDIR`.
+- The Windows DLL is `bin/lp_simplex.dll`. Native MSVC builds use only BLAS/LAPACK by default; see the [installation guide](./INSTALL.md).
 - `include/lp_simplex/`: public headers `lp_simplex.h`, `model.h`, `mps.h`, `solve.h`, `status.h`, and `version.h`.
 - `cmake/lp_simplex/` under the library directory: package configuration and the `lp_simplex::lp_simplex` imported target.
 - `share/licenses/lp_simplex/`: LGPL and referenced GPL license texts.
