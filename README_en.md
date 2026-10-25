@@ -4,6 +4,8 @@
 
 `lp_simplex` is a continuous linear programming solver written in C. It provides a C API and MPS file input, and can be embedded as a standalone library in optimization and scientific computing applications.
 
+The frozen 1.0.0 source is on branch `1.0.0` at tag `v1.0.0`. Download native packages and checksums from the [release](https://github.com/zhuanglinsheng/lp_simplex/releases/tag/v1.0.0). Development continues on `main`.
+
 Compared with common open-source LP solvers such as [HiGHS](https://highs.dev/), [SoPlex](https://soplex.zib.de/), [Clp](https://github.com/coin-or/Clp), and [GLPK](https://www.gnu.org/software/glpk/), this project emphasizes a basis-deficiency-allowing generalized simplex method (BDA). It represents feasible points using linearly independent active columns and allows the active basis dimension to grow or shrink during optimization. At degenerate points, it can directly exploit the problem’s lower-dimensional structure without completing a square basis.
 
 Building on this, we use a hybrid solution flow: primal–dual hybrid gradient (PDHG) advances approximate solutions, least squares restores feasibility, and BDA then continues optimization and checks optimality as needed. This approach connects first-order iterations with dynamic deficient-basis optimization and reduces model expansion through native bound handling.

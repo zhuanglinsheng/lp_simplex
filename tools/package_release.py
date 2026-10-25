@@ -68,6 +68,8 @@ def main():
         if not args.dependency_prefix:
             parser.error('Windows packaging requires --dependency-prefix')
         dependency = args.dependency_prefix.resolve()
+        shutil.copytree(ROOT / 'tools/licenses/windows-runtime',
+                        stage / 'share/licenses/third-party/gcc-runtime')
         for notice in (dependency / 'share').glob('*/copyright'):
             target = stage / 'share/licenses/third-party' / notice.parent.name
             target.mkdir(parents=True, exist_ok=True)

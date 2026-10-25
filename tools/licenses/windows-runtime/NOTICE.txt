@@ -1,0 +1,26 @@
+Windows numerical runtime notices
+
+The Windows package copies numerical DLLs and their dependencies from the
+pinned vcpkg installation. OpenBLAS, LAPACK and MinGW-w64 notices are provided
+in the adjacent per-port copyright directories.
+
+libgcc_s_seh-1.dll and libgfortran-5.dll are GCC runtime libraries, copyright
+Free Software Foundation, Inc. and contributors. They use GPL version 3 or
+later with the GCC Runtime Library Exception 3.1. See COPYING.RUNTIME here
+and LICENSE.GPL-3.0 at the package root.
+
+libquadmath-0.dll uses GNU LGPL version 2.1 or later; see COPYING.LIB here.
+libwinpthread-1.dll is covered by the MinGW-w64 notices in the adjacent
+vcpkg-gfortran/copyright file.
+
+Upstream license texts:
+https://github.com/gcc-mirror/gcc/blob/master/COPYING.RUNTIME
+https://github.com/gcc-mirror/gcc/blob/master/libquadmath/COPYING.LIB
+
+Source and build provenance:
+The frozen vcpkg.json records the exact vcpkg baseline. Its vcpkg-gfortran port
+and scripts/cmake/vcpkg_find_fortran.cmake identify the downloaded MSYS2 GCC
+packages and hashes. GCC and MinGW-w64 source/build recipes are available at:
+https://gcc.gnu.org/git.html
+https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-gcc
+https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-winpthreads

@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import os
+import shutil
 from pathlib import Path
 import tempfile
 import unittest
@@ -29,6 +30,8 @@ class WindowsArchive(unittest.TestCase):
             for name in ['LICENSE', 'LICENSE.GPL-3.0', 'INSTALL.md', 'CHANGELOG.md',
                          'README.md', 'README_en.md']:
                 (root / name).write_text('fixture\n')
+            shutil.copytree(ROOT / 'tools/licenses/windows-runtime',
+                            root / 'tools/licenses/windows-runtime')
             dependency = root / 'dependencies'
             (dependency / 'bin').mkdir(parents=True)
             for name in ['blas.dll', 'fortran.dll', 'unused.dll']:
@@ -78,6 +81,9 @@ class WindowsArchive(unittest.TestCase):
                 info = json.loads(bundle.read(name + '/BUILD-INFO.json'))
                 self.assertEqual(info['platform'], 'windows-x64')
                 self.assertFalse(info['dirty'])
+                for notice in ['COPYING.RUNTIME', 'COPYING.LIB', 'NOTICE.txt']:
+                    self.assertIn(name + '/share/licenses/third-party/gcc-runtime/' + notice,
+                                  bundle.namelist())
 
 
 if __name__ == '__main__':

@@ -4,6 +4,8 @@
 
 `lp_simplex` 是一个用 C 编写的连续线性规划求解器，提供 C API 和 MPS 文件输入，可作为独立库嵌入优化与科学计算程序。
 
+1.0.0 正式版本的冻结源码位于 `1.0.0` 分支和 `v1.0.0` 标签；预编译包及校验和见[正式发布](https://github.com/zhuanglinsheng/lp_simplex/releases/tag/v1.0.0)。后续开发在 `main` 继续。
+
 与 [HiGHS](https://highs.dev/)、[SoPlex](https://soplex.zib.de/)、[Clp](https://github.com/coin-or/Clp) 和 [GLPK](https://www.gnu.org/software/glpk/) 等常用的开源 LP 求解器相比，本项目的特色是采用允许基亏缺的广义单纯型法（BDA）。它以线性无关的活动列表示可行点，允许活动基维数随求解过程增减。退化时无需补齐方基，可以直接利用问题的低维结构。
 
 我们在此基础上使用混合求解流程：用原始—对偶混合梯度法（PDHG）推进近似解，通过最小二乘恢复可行性，再由 BDA 按需继续优化并检验最优性。这条路线将一阶迭代与动态亏基优化连接起来，并通过原生上下界处理减少模型展开。
