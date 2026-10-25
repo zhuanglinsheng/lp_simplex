@@ -37,7 +37,7 @@ cmake --install build-release --prefix /path/to/install
 ```
 
 需要 C/C++ 编译器、CMake 3.12+ 和 Make 或 Ninja。
-数据准备与部分回归需要 Python 3；NumPy 可启用基准工具回归。
+数据准备与部分回归需要 Python 3；NumPy 和 SciPy 可启用基准工具回归。
 `tools/build.sh` 默认要求三个可选后端全部可用，不会静默降级。
 也可以直接使用 CMake 关闭可选后端，以构建只依赖 BLAS/LAPACK 的版本：
 
@@ -77,5 +77,5 @@ and elevated package-manager permissions. CMake itself never installs system
 packages. `tools/build.sh` requires all three optional backends by default.
 Source builds require CMake 3.12+, a C compiler and Make or Ninja; C++ is used for
 consumer validation. Python enables data preparation and additional tests;
-NumPy enables benchmark-tool regression tests. These are not C API runtime
+NumPy and SciPy enable benchmark-tool regression tests. These are not C API runtime
 requirements. For full benchmark comparisons see [data documentation](data/README.md).

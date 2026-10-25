@@ -65,7 +65,7 @@ Configure the client with `-DCMAKE_PREFIX_PATH=/path/to/install`. With relative 
 
 Use Release for delivery. Non-MSVC Debug builds enable AddressSanitizer; external Debug programs must also link with `-fsanitize=address`. The package regression sets this for the matching test configuration.
 
-`ctest --test-dir build --output-on-failure` includes independent C/C++ consumers after installation and relocation. Python 3 enables data-preparation regression; NumPy additionally enables benchmark-tool regression. CI installs these test dependencies. Host package execution tests are omitted for cross-compilation.
+`ctest --test-dir build --output-on-failure` includes independent C/C++ consumers after installation and relocation. Python 3 enables data-preparation regression; NumPy and SciPy additionally enable benchmark-tool regression. CI installs these test dependencies. Host package execution tests are omitted for cross-compilation.
 
 ## Contributing and License
 

@@ -66,7 +66,7 @@ jobs:
       - name: Install build and test dependencies
         run: |
           sh tools/install_dependencies.sh
-          python3 -m pip install numpy
+          python3 -m pip install numpy scipy
       - name: Prepare numerical regression data
         run: python3 data/netlib/prepare.py --all
       - name: Build and test Release with all numerical backends
@@ -105,7 +105,7 @@ jobs:
       - name: Install dependencies and prepare data
         run: |
           sh tools/install_dependencies.sh
-          python3 -m pip install numpy
+          python3 -m pip install numpy scipy
           python3 data/netlib/prepare.py --all
       - name: Configure, build and test
         env:
