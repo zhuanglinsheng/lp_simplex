@@ -1356,8 +1356,13 @@ int simplex_dual_primal_cleanup(struct simplex_DualState *state, int *status)
 	double *storage = NULL;
 	double *weight = NULL, *ref = NULL;
 
+	/* The stagnation-triggered Devex trial below also applies to an explicit
+	 * Dual solve. Without optional scratch that recovery was unreachable and
+	 * a long degenerate Dantzig cleanup could exhaust numerical stability. */
 	if (state->seeded_basis || state->controls.cleanup_devex ||
-		state->options->algorithm == lp_simplex_ALGORITHM_AUTO) {
+		state->options->algorithm == lp_simplex_ALGORITHM_AUTO ||
+		state->options->algorithm ==
+			lp_simplex_ALGORITHM_DUAL_REVISED) {
 		storage = (double *)lp_simplex_malloc(
 			(size_t)state->variables * 2 * sizeof(double));
 		if (storage == NULL) {
