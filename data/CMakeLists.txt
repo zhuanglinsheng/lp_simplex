@@ -1,5 +1,8 @@
 add_executable(lp_solve_mps lp_solve_mps.c)
 target_link_libraries(lp_solve_mps PRIVATE lp_simplex)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(lp_solve_mps PRIVATE m)
+endif()
 
 if(BUILD_TESTING)
     add_test(
