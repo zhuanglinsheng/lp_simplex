@@ -77,6 +77,14 @@ check_result(2 "Usage:" --progress-interval 0)
 check_result(2 "Usage:" --progress-interval nan)
 check_result(2 "Usage:" --progress-interval)
 
+# Replacing an existing checkpoint must also work on Windows.
+file(WRITE "${point}" "old checkpoint\n")
+check_result(0 "successful solve required" --save-point "${point}")
+file(READ "${point}" coordinates)
+if(NOT coordinates STREQUAL "1\n" OR EXISTS "${point}.tmp")
+    message(FATAL_ERROR "Checkpoint replacement failed: ${coordinates}")
+endif()
+
 # A failed new write cannot destroy the last complete checkpoint.
 file(WRITE "${point}" "previous complete checkpoint\n")
 file(MAKE_DIRECTORY "${point}.tmp")

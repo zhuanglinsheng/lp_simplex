@@ -22,6 +22,40 @@ from benchmark import aggregate, artifact, audit, parse_scip_solution, report
 
 
 class CliTimingTests(unittest.TestCase):
+    def test_msvc_version_uses_stderr_banner(self):
+        process = SimpleNamespace(stdout='C/C++ compiler options\n',
+                                  stderr='Microsoft C/C++ Compiler Version 19.50\nCopyright\n')
+        with patch.object(benchmark.subprocess, 'run', return_value=process):
+            self.assertEqual(benchmark.compiler_version('cl.exe'),
+                             'Microsoft C/C++ Compiler Version 19.50')
+
+    def test_atomic_write_uses_utf8(self):
+        with TemporaryDirectory() as folder:
+            target = Path(folder) / 'metadata.json'
+            benchmark.dump(target, {'state': '已完成'})
+            self.assertEqual(json.loads(target.read_bytes().decode('utf-8')),
+                             {'state': '已完成'})
+
+    def test_atomic_write_retries_transient_windows_sharing_violation(self):
+        with TemporaryDirectory() as folder:
+            target = Path(folder) / 'clock.json'
+            with patch.object(benchmark.os, 'name', 'nt'), \
+                 patch.object(Path, 'replace', side_effect=[PermissionError(), None]) as replace, \
+                 patch.object(benchmark.time, 'sleep') as sleep:
+                benchmark.atomic_text(target, '{}')
+            self.assertEqual(replace.call_count, 2)
+            sleep.assert_called_once_with(.01)
+
+    def test_windows_timeout_terminates_worker_tree(self):
+        process = unittest.mock.Mock(pid=123)
+        process.poll.return_value = 0
+        with patch.object(benchmark.os, 'name', 'nt'), \
+             patch.object(benchmark.subprocess, 'run') as run:
+            benchmark.kill(process)
+        self.assertEqual(run.call_args.args[0], ['taskkill', '/PID', '123', '/T', '/F'])
+        process.wait.assert_called_once()
+        process.kill.assert_not_called()
+
     def test_cli_boundary_and_failed_exit_keep_measured_cost(self):
         process = SimpleNamespace(returncode=7)
         with patch.object(benchmark, 'child_cpu', side_effect=[(1., 2.), (4., 2.5)]), \
@@ -195,10 +229,11 @@ class BenchmarkTests(unittest.TestCase):
                     [dict(instance='rail2536', solver='glpk', status=status)]))
 
     def test_reproduction_paths_work_from_repository_root(self):
-        with patch.object(benchmark, 'ROOT', Path('/project/lp')):
+        root = Path('/project/lp').resolve()
+        with patch.object(benchmark, 'ROOT', root):
             config = dict(dataset='railway', models=[dict(name='rail507')],
-                          binary='/project/lp/build with spaces/test_netlib',
-                          scip='/opt/homebrew/bin/scip', clp='/project/lp/clp',
+                          binary=str(root / 'build with spaces/test_netlib'),
+                          scip=str(root.parent / 'external/scip'), clp=str(root / 'clp'),
                           glpk='glpsol', solvers=['lp_simplex', 'scip'],
                           seconds=3600, glpk_gate_case='rail507')
             command = benchmark.reproduction_command(config)
@@ -208,7 +243,7 @@ class BenchmarkTests(unittest.TestCase):
                                      ('--glpk', 'glpsol'), ('--seconds', '3600'),
                                      ('--glpk-gate-case', 'rail507')):
                 self.assertEqual(args[args.index(option) + 1], expected)
-            self.assertEqual(config['binary'], '/project/lp/build with spaces/test_netlib')
+            self.assertEqual(config['binary'], str(root / 'build with spaces/test_netlib'))
             legacy = ('```sh\npython3 data/benchmark.py --dataset railway '
                       '--binary /project/lp/build/test_netlib --scip /opt/bin/scip\n```\n')
             for english in (False, True):

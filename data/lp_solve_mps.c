@@ -20,6 +20,9 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define DEFAULT_ITERATION_LIMIT LP_SIMPLEX_DEFAULT_AUTO_ITERATION_LIMIT
 #define DEFAULT_TOLERANCE 1e-7
@@ -423,8 +426,15 @@ static int checkpoint_point(const char *path, const double *x, int n)
 		}
 	if (fclose(stream))
 		written = 0;
-	if (written && rename(temporary, path))
-		written = 0;
+	if (written) {
+#ifdef _WIN32
+		if (!MoveFileExA(temporary, path, MOVEFILE_REPLACE_EXISTING))
+			written = 0;
+#else
+		if (rename(temporary, path))
+			written = 0;
+#endif
+	}
 	if (!written)
 		remove(temporary);
 	free(temporary);

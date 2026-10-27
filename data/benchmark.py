@@ -57,8 +57,16 @@ def dump(path, value):
 def atomic_text(path, text):
     temporary = path.with_name('.' + path.name + '.tmp')
     try:
-        temporary.write_text(text)
-        temporary.replace(path)
+        temporary.write_text(text, encoding='utf-8')
+        for attempt in range(50):
+            try:
+                temporary.replace(path)
+                break
+            except PermissionError:
+                # Windows readers can briefly deny replacement of an open file.
+                if os.name != 'nt' or attempt == 49:
+                    raise
+                time.sleep(.01)
     finally:
         temporary.unlink(missing_ok=True)
 
@@ -83,13 +91,26 @@ def capture(command):
         return 'unknown'
 
 
+def compiler_version(compiler):
+    if Path(compiler).name.lower() != 'cl.exe':
+        return capture([compiler, '--version']).splitlines()[0]
+    try:
+        process = subprocess.run([compiler, '/?'], cwd=ROOT, capture_output=True,
+                                 text=True, errors='replace', timeout=15)
+        # MSVC writes its version banner to stderr, and help text to stdout.
+        lines = (process.stderr.strip() or process.stdout.strip()).splitlines()
+        return lines[0] if lines else 'unknown'
+    except (OSError, subprocess.TimeoutExpired):
+        return 'unknown'
+
+
 def sources():
     paths = [ROOT / 'CMakeLists.txt', *ROOT.glob('src/**/*.[ch]'),
              *ROOT.glob('include/**/*.h'), ROOT / 'data/CMakeLists.txt',
              ROOT / 'data/netlib/CMakeLists.txt',
              *ROOT.glob('data/*.[ch]'), *ROOT.glob('data/*.py'),
              *ROOT.glob('data/*/prepare.py'), *ROOT.glob('data/*/raw/*.c')]
-    return {str(p.relative_to(ROOT)): sha(p) for p in sorted(paths)}
+    return {p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(paths)}
 
 
 def build_root(binary):
@@ -122,12 +143,12 @@ def environment(binary, scip, clp, glpk):
         cpu = platform.processor() or 'unknown'
         cpuinfo = Path('/proc/cpuinfo')
         if cpuinfo.exists():
-            match = re.search(r'^model name\s*:\s*(.+)$', cpuinfo.read_text(), re.M)
+            match = re.search(r'^model name\s*:\s*(.+)$', cpuinfo.read_text(encoding='utf-8'), re.M)
             if match:
                 cpu = match.group(1)
         try:
             memory = str(os.sysconf('SC_PHYS_PAGES') * os.sysconf('SC_PAGE_SIZE'))
-        except (ValueError, OSError):
+        except (AttributeError, ValueError, OSError):
             memory = 'unknown'
         linkage = capture(['ldd', str(binary)]) if binary else ''
     versions = {'highs': {'version': h.version(), 'binding': binding,
@@ -143,21 +164,24 @@ def environment(binary, scip, clp, glpk):
         for p in build_dir.glob('liblp_simplex.*'):
             if p.is_file():
                 libraries[str(p.resolve())] = sha(p)
+        for p in build_dir.glob('lp_simplex.dll'):
+            libraries[str(p.resolve())] = sha(p)
         cache = build_dir / 'CMakeCache.txt'
         config = {}
         if cache.exists():
-            for line in cache.read_text().splitlines():
+            for line in cache.read_text(encoding='utf-8').splitlines():
                 if re.match(r'(CMAKE_(BUILD_TYPE|C_COMPILER[^:]*|C_FLAGS[^:]*)|LP_SIMPLEX_[^:]+|.*(?:BLAS|LAPACK|SPQR|KLU|CHOLMOD).*):', line):
                     if '=' in line:
                         k, v = line.split('=', 1)
                         config[k] = v
-        compiler = config.get('CMAKE_C_COMPILER:FILEPATH', 'cc')
+        compiler = config.get('CMAKE_C_COMPILER:FILEPATH',
+                              config.get('CMAKE_C_COMPILER:STRING', 'cc'))
         versions['lp_simplex'] = dict(
             git_head=capture(['git', 'rev-parse', 'HEAD']),
             git_status=capture(['git', 'status', '--short']),
             binary=str(binary), binary_sha256=sha(binary),
             solver_libraries_sha256=libraries, linkage=linkage, cmake_cache=config,
-            compiler=capture([compiler, '--version']).splitlines()[0])
+            compiler=compiler_version(compiler))
     for name, executable in (('scip', scip), ('clp', clp), ('glpk', glpk)):
         if not executable:
             continue
@@ -200,7 +224,7 @@ def audit(lp, x, reported, reference, tolerance):
 
 
 def parse_scip_solution(path, names):
-    text = path.read_text()
+    text = path.read_text(encoding='utf-8')
     match = re.search(r'^objective value:\s*(\S+)', text, re.M)
     if not match:
         raise ValueError('SCIP solution has no objective')
@@ -230,7 +254,7 @@ def parse_clp_solution(path, rows, columns):
 
 
 def parse_glpk_solution(path, columns):
-    lines = [line.split() for line in path.read_text().splitlines()]
+    lines = [line.split() for line in path.read_text(encoding='utf-8').splitlines()]
     header = next((line for line in lines if line[:2] == ['s', 'bas']), None)
     if header is None or int(header[3]) != columns or header[4:6] != ['f', 'f']:
         raise ValueError('GLPK solution is not optimal or has wrong dimensions')
@@ -251,7 +275,7 @@ def parse_glpk_solution(path, columns):
 def glpk_input(model):
     """GLPK's free MPS reader rejects OBJSENSE; CLI --min/--max carries it."""
     needs_copy = False
-    with model.open() as stream:
+    with model.open(encoding='utf-8') as stream:
         for line in stream:
             if line.strip().split()[:1] == ['OBJSENSE']:
                 needs_copy = True
@@ -262,7 +286,7 @@ def glpk_input(model):
         return model
     target = model.with_name(model.stem + '-glpk.mps')
     skip_sense = False
-    with model.open() as source, target.open('w') as output:
+    with model.open(encoding='utf-8') as source, target.open('w', encoding='utf-8') as output:
         for line in source:
             fields = line.split()
             if fields[:1] == ['OBJSENSE']:
@@ -426,15 +450,15 @@ def worker(config, solver, model_info, prefix):
         reported = info.objective_function_value
         if solution.value_valid:
             x = list(solution.col_value)
-            point.write_text(''.join(f'{v:.17g}\n' for v in x))
+            point.write_text(''.join(f'{v:.17g}\n' for v in x), encoding='utf-8')
         if status == core.HighsModelStatus.kTimeLimit:
             record['status'] = 'TIMEOUT'
     else:
-        with log.open('w') as stream:
+        with log.open('w', encoding='utf-8') as stream:
             process, timing = run_cli(command, stream)
         record.update(timing)
         record['returncode'] = process.returncode
-        text = log.read_text(errors='replace')
+        text = log.read_text(encoding='utf-8', errors='replace')
         if solver == 'lp_simplex':
             optimal = process.returncode == 0 and bool(re.search(r'^result:.*code=0 \(success\)', text, re.M))
             found = re.search(r'^objective:\s*(\S+)', text, re.M)
@@ -442,11 +466,11 @@ def worker(config, solver, model_info, prefix):
                 reported = float(found.group(1))
             record['solver_status'] = next((s for s in text.splitlines() if s.startswith('result:')), 'ERROR')
             if point.exists():
-                x = [float(v) for v in point.read_text().split()]
+                x = [float(v) for v in point.read_text(encoding='utf-8').split()]
         elif solver in ('clp', 'glpk'):
             optimal = process.returncode == 0 and point.exists() and (
                 bool(re.search(r'^Optimal(?: objective| - objective)', text, re.M)) if solver == 'clp' else
-                bool(re.search(r'^c Status:\s+OPTIMAL$', point.read_text(), re.M)))
+                bool(re.search(r'^c Status:\s+OPTIMAL$', point.read_text(encoding='utf-8'), re.M)))
             record['solver_status'] = 'optimal' if optimal else 'not optimal'
             if re.search(r'(?i)(time limit|stopped on time|maximum time)', text):
                 record['status'] = 'TIMEOUT'
@@ -493,6 +517,14 @@ def worker(config, solver, model_info, prefix):
 
 
 def kill(process):
+    if os.name == 'nt':
+        subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       check=False)
+        if process.poll() is None:
+            process.kill()
+        process.wait()
+        return
     try:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
@@ -506,7 +538,7 @@ def run_one(config_path, config, solver, model, repeat, env):
                str(config_path), solver, model['name'], str(prefix)]
     start = time.monotonic()
     timed_out = False
-    with artifact(prefix, '.adapter.log').open('w') as stream:
+    with artifact(prefix, '.adapter.log').open('w', encoding='utf-8') as stream:
         p = subprocess.Popen(command, cwd=ROOT, env=env, stdout=stream,
                              stderr=subprocess.STDOUT, start_new_session=True)
         try:
@@ -514,8 +546,8 @@ def run_one(config_path, config, solver, model, repeat, env):
                 clock = artifact(prefix, '.clock.json')
                 if clock.exists():
                     try:
-                        state = json.loads(clock.read_text())
-                    except json.JSONDecodeError:
+                        state = json.loads(clock.read_text(encoding='utf-8'))
+                    except (json.JSONDecodeError, PermissionError):
                         state = {}
                     if not state.get('done', True) and time.monotonic() - state['start'] > config['seconds']:
                         timed_out = True
@@ -530,14 +562,14 @@ def run_one(config_path, config, solver, model, repeat, env):
             raise
     result_path = artifact(prefix, '.json')
     if result_path.exists() and not timed_out and p.returncode == 0:
-        result = json.loads(result_path.read_text())
+        result = json.loads(result_path.read_text(encoding='utf-8'))
     else:
-        result = json.loads(artifact(prefix, '.request.json').read_text()) if artifact(prefix, '.request.json').exists() else {}
+        result = json.loads(artifact(prefix, '.request.json').read_text(encoding='utf-8')) if artifact(prefix, '.request.json').exists() else {}
         result.update(status='TIMEOUT' if timed_out else 'ERROR',
                       wall_seconds=config['seconds'] if timed_out else None,
                       returncode=p.returncode)
     if artifact(prefix, '.model.json').exists():
-        result.update(json.loads(artifact(prefix, '.model.json').read_text()))
+        result.update(json.loads(artifact(prefix, '.model.json').read_text(encoding='utf-8')))
     result.update(instance=model['name'], solver=solver, repeat=repeat,
                   log=str(artifact(prefix, '.log').relative_to(config_path.parent)),
                   adapter_log=str(artifact(prefix, '.adapter.log').relative_to(config_path.parent)))
@@ -566,8 +598,8 @@ def aggregate(results, names, repeats, seconds, solvers=SOLVERS):
 
 
 def report(run_dir, docs_dir, allow_partial=False):
-    m = json.loads((run_dir / 'metadata.json').read_text())
-    results = json.loads((run_dir / 'results.json').read_text())
+    m = json.loads((run_dir / 'metadata.json').read_text(encoding='utf-8'))
+    results = json.loads((run_dir / 'results.json').read_text(encoding='utf-8'))
     c, e = m['config'], m['environment']
     solvers = tuple(c.get('solvers', LEGACY_SOLVERS))
     if (not m.get('completed') and not allow_partial) or any(m.get(k, True) for k in (
@@ -630,7 +662,7 @@ def read_table(path):
     rows = {}
     if path.exists():
         inside, legacy = False, False
-        for line in path.read_text().splitlines():
+        for line in path.read_text(encoding='utf-8').splitlines():
             if line.startswith('| 实例 |') and ('规模' in line or '| 行 |' in line):
                 inside, legacy = True, line.startswith('| 实例 | 行 |')
                 continue
@@ -651,7 +683,7 @@ def read_run_blocks(path):
     return {name: re.sub(r'^### (?:运行|Run) `[^`\n]+`\n\n', '', block, flags=re.M)
             for name, block in re.findall(
         r'<!-- benchmark-run:([^\n]+) -->\n(.*?)<!-- /benchmark-run -->',
-        path.read_text(), re.S)}
+        path.read_text(encoding='utf-8'), re.S)}
 
 
 def geometric_mean(values):
@@ -768,12 +800,13 @@ def format_reproduction_command(command):
         if option not in ('--binary', '--scip', '--clp', '--glpk'):
             continue
         path = Path(value)
-        if not path.is_absolute():
+        # Saved reports may contain POSIX absolute paths even on Windows.
+        if not (path.is_absolute() or value.startswith('/')):
             continue
         if option != '--binary' and not path.is_relative_to(ROOT):
             command[index] = path.name
         else:
-            relative = os.path.relpath(path, ROOT)
+            relative = Path(os.path.relpath(path, ROOT)).as_posix()
             command[index] = relative if '/' in relative else './' + relative
     return shlex.join(command)
 
@@ -1001,7 +1034,7 @@ def overview(docs_dir):
     for dataset in DATASETS:
         path = docs_dir / (dataset + '.md')
         if path.exists():
-            if '## 测试信息与统计\n\n' not in path.read_text():
+            if '## 测试信息与统计\n\n' not in path.read_text(encoding='utf-8'):
                 raise ValueError('Dataset report has no summary section: ' + str(path))
             stored, blocks = read_table(path), read_run_blocks(path)
             report_text = render_report(dataset, stored, blocks)
@@ -1074,7 +1107,7 @@ def prepared_model(model, run_dir):
     """Never reuse, overwrite or delete a user's pre-generated MPS."""
     with tempfile.TemporaryDirectory(prefix='mps-', dir=run_dir) as temporary:
         log = run_dir / 'logs' / (model['name'] + '-prepare.log')
-        with log.open('w') as stream:
+        with log.open('w', encoding='utf-8') as stream:
             dataset = model.get('dataset', 'netlib')
             category = ('infeasible' if dataset == 'netlib-infeasible' else 'feasible' if dataset == 'netlib' else '')
             name = (category + '/' if category else '') + model['name']
@@ -1170,7 +1203,7 @@ def select_models(parser, cases, dataset='netlib'):
     reference_file = reference_path(dataset)
     if reference_file is not None:
         try:
-            with reference_file.open() as stream:
+            with reference_file.open(encoding='utf-8') as stream:
                 seen = set()
                 for row in csv.DictReader(stream):
                     name = row['name']
@@ -1187,12 +1220,12 @@ def select_models(parser, cases, dataset='netlib'):
     manifest = ROOT / 'data' / dataset / 'manifest.csv'
     info = {}
     if manifest.exists():
-        with manifest.open() as stream:
+        with manifest.open(encoding='utf-8') as stream:
             info = {row['instance']: row for row in csv.DictReader(stream)}
     models = []
     for name in names:
         row = info.get(name, {})
-        model = dict(name=name, dataset=dataset, raw_path=str(available[name].relative_to(ROOT)),
+        model = dict(name=name, dataset=dataset, raw_path=available[name].relative_to(ROOT).as_posix(),
                      raw_sha256=sha(available[name]), reference=references.get(name))
         if dataset == 'netlib-infeasible':
             model['expected_status'] = 'infeasible'
@@ -1214,7 +1247,7 @@ def input_metadata(dataset):
     reference_file = reference_path(dataset)
     if reference_file is not None:
         paths.append(reference_file)
-    return {str(p.relative_to(ROOT)): sha(p) for p in paths if p.exists()}
+    return {p.relative_to(ROOT).as_posix(): sha(p) for p in paths if p.exists()}
 
 
 def checkpoint(run_dir, config, metadata, results, binary, scip, docs_dir):
@@ -1239,7 +1272,7 @@ def checkpoint(run_dir, config, metadata, results, binary, scip, docs_dir):
             not path.is_file() or sha(path) != binding['binding_sha256'])
     dump(run_dir / 'metadata.json', metadata)
     keys = sorted({k for row in results for k in row if k not in ('command', 'options')})
-    with (run_dir / 'results.csv').open('w', newline='') as stream:
+    with (run_dir / 'results.csv').open('w', newline='', encoding='utf-8') as stream:
         writer = csv.DictWriter(stream, fieldnames=keys, extrasaction='ignore')
         writer.writeheader()
         writer.writerows(results)
@@ -1249,7 +1282,7 @@ def checkpoint(run_dir, config, metadata, results, binary, scip, docs_dir):
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == '--worker':
         config_path, solver, name, prefix = sys.argv[2:]
-        config = json.loads(Path(config_path).read_text())
+        config = json.loads(Path(config_path).read_text(encoding='utf-8'))
         model = next(m for m in config['models'] if m['name'] == name)
         worker(config, solver, model, Path(prefix))
         return
