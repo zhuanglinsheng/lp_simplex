@@ -1124,6 +1124,8 @@ def prepared_model(model, run_dir):
 
 
 def glpk_skip_reason(config, solver, model, results):
+    if config.get('dataset') not in ('pds', 'railway'):
+        return None
     if solver == 'glpk' and config.get('glpk_stop_on_timeout'):
         timeout = next((row for row in results if row['solver'] == 'glpk' and row['status'] == 'TIMEOUT'), None)
         if timeout:
@@ -1293,7 +1295,7 @@ def main():
                         help='Solvers to execute (default: lp_simplex); unselected report cells are retained')
     parser.add_argument('--clp', default='clp')
     parser.add_argument('--glpk', default='glpsol')
-    parser.add_argument('--glpk-gate-case', help='Test this case first; skip subsequent GLPK runs if it does not pass')
+    parser.add_argument('--glpk-gate-case', help='PDS/Railway only: test this case first; skip subsequent GLPK runs if it does not pass')
     parser.add_argument('--run-dir', type=Path, help='raw artifacts directory (default: tmp/benchmarks/<UTC timestamp>)')
     parser.add_argument('--report-only', type=Path)
     parser.add_argument('--docs-dir', type=Path, default=ROOT / 'docs/benchmarks')
@@ -1316,6 +1318,8 @@ def main():
         parser.error('repeats, seconds, and iterations must be positive')
     models = select_models(parser, args.cases, args.dataset)
     if args.glpk_gate_case:
+        if args.dataset not in ('pds', 'railway'):
+            parser.error('--glpk-gate-case is only supported for PDS and Railway')
         if 'glpk' not in args.solvers or args.glpk_gate_case not in {m['name'] for m in models}:
             parser.error('--glpk-gate-case requires GLPK and a case in the selected suite')
         models.sort(key=lambda model: model['name'] != args.glpk_gate_case)
@@ -1336,7 +1340,7 @@ def main():
                   highs_algorithm=args.highs_algorithm, scip_algorithm=args.scip_algorithm,
                   input_metadata_sha256=input_metadata(args.dataset),
                   suite_label=args.dataset + (' 全集' if not args.cases else ' 显式子集'),
-                  models=models, glpk_stop_on_timeout='glpk' in args.solvers)
+                  models=models, glpk_stop_on_timeout=(args.dataset in ('pds', 'railway') and 'glpk' in args.solvers))
     if args.glpk_gate_case:
         config['glpk_gate_case'] = args.glpk_gate_case
     env = {k: v for k, v in os.environ.items() if not k.startswith('LP_SIMPLEX_')}

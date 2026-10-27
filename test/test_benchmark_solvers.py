@@ -215,8 +215,8 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual(stats['highs']['common_count'], 0)
         self.assertIsNone(stats['highs']['lp_common_mean'])
 
-    def test_glpk_first_timeout_stops_all_subsequent_glpk_runs(self):
-        config = dict(glpk_stop_on_timeout=True, repeats=1)
+    def test_glpk_first_timeout_stops_subsequent_runs_in_large_datasets(self):
+        config = dict(dataset='railway', glpk_stop_on_timeout=True, repeats=1)
         rows = [dict(instance='rail507', solver='glpk', status='PASS'),
                 dict(instance='rail2536', solver='glpk', status='TIMEOUT')]
         for name in ['rail2536', 'rail2586', 'rail4284', 'rail4872']:
@@ -227,6 +227,46 @@ class BenchmarkTests(unittest.TestCase):
             with self.subTest(status=status):
                 self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'),
                     [dict(instance='rail2536', solver='glpk', status=status)]))
+
+    def test_netlib_never_skips_glpk_even_with_legacy_skip_settings(self):
+        for dataset in ('netlib', 'netlib-infeasible'):
+            with self.subTest(dataset=dataset):
+                config = dict(dataset=dataset, glpk_stop_on_timeout=True,
+                              glpk_gate_case='first', repeats=1)
+                rows = [dict(instance='first', solver='glpk', status='TIMEOUT')]
+                self.assertIsNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='next'), rows))
+
+    def test_glpk_timeout_policy_is_selected_by_dataset(self):
+        for dataset in benchmark.DATASETS:
+            with self.subTest(dataset=dataset), TemporaryDirectory() as folder:
+                root = Path(folder)
+                argv = ['benchmark.py', '--dataset', dataset, '--solvers', 'glpk',
+                        '--run-dir', str(root / 'run'), '--docs-dir', str(root / 'docs')]
+                with patch.object(sys, 'argv', argv), \
+                     patch.object(benchmark, 'select_models', return_value=[dict(name='case')]), \
+                     patch.object(benchmark.shutil, 'which', return_value='/bin/glpsol'), \
+                     patch.object(benchmark, 'environment', return_value={}), \
+                     patch.object(benchmark, 'sources', return_value={}), \
+                     patch.object(benchmark, 'input_metadata', return_value={}), \
+                     patch.object(benchmark, 'checkpoint'), patch.object(benchmark, 'benchmark_case'):
+                    benchmark.main()
+                config = json.loads((root / 'run/config.json').read_text())
+                self.assertEqual(config['glpk_stop_on_timeout'], dataset in ('pds', 'railway'))
+
+    def test_netlib_rejects_glpk_gate_before_launching_workers(self):
+        for dataset in ('netlib', 'netlib-infeasible'):
+            with self.subTest(dataset=dataset):
+                argv = ['benchmark.py', '--dataset', dataset, '--solvers', 'glpk',
+                        '--glpk-gate-case', 'first']
+                with patch.object(sys, 'argv', argv), patch('sys.stderr'), \
+                     patch.object(benchmark, 'select_models', return_value=[dict(name='first')]), \
+                     patch.object(benchmark.shutil, 'which') as executable, \
+                     patch.object(benchmark, 'benchmark_case') as worker, \
+                     self.assertRaises(SystemExit) as error:
+                    benchmark.main()
+                self.assertEqual(error.exception.code, 2)
+                executable.assert_not_called()
+                worker.assert_not_called()
 
     def test_reproduction_paths_work_from_repository_root(self):
         root = Path('/project/lp').resolve()
@@ -256,7 +296,7 @@ class BenchmarkTests(unittest.TestCase):
                 self.assertNotIn('/opt/', report)
 
     def test_glpk_gate_only_skips_glpk_after_unsuccessful_gate(self):
-        config = dict(glpk_gate_case='rail507', repeats=1)
+        config = dict(dataset='railway', glpk_gate_case='rail507', repeats=1)
         row = dict(instance='rail507', solver='glpk', repeat=1, status='TIMEOUT', wall_seconds=3600.)
         self.assertIsNotNone(benchmark.glpk_skip_reason(config, 'glpk', dict(name='rail2586'), [row]))
         self.assertIsNone(benchmark.glpk_skip_reason(config, 'lp_simplex', dict(name='rail2586'), [row]))
@@ -492,7 +532,7 @@ class SummaryTests(unittest.TestCase):
 class LifecycleTests(unittest.TestCase):
     def test_gate_skip_does_not_launch_worker(self):
         models = self.models(['other'])
-        config = dict(models=models, repeats=1, solvers=['lp_simplex', 'glpk'], glpk_gate_case='pilot.ja')
+        config = dict(dataset='railway', models=models, repeats=1, solvers=['lp_simplex', 'glpk'], glpk_gate_case='pilot.ja')
         self.results.append(dict(instance='pilot.ja', solver='glpk', repeat=1, status='TIMEOUT', wall_seconds=3600.))
         with patch.object(benchmark, 'run_one', return_value=dict(instance='other', solver='lp_simplex', repeat=1, status='PASS', wall_seconds=1.)) as run:
             benchmark.benchmark_case(self.config_path, config, models[0], 1, {}, self.results, self.metadata)

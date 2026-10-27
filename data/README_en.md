@@ -44,7 +44,7 @@ python3 -m pip install numpy scipy highspy
 
 ## Run full benchmarks
 
-PDS and Railway run in ascending instance-number order, progressing from smaller to larger models. After the first GLPK timeout, all remaining GLPK runs are marked `SKIPPED`; other solvers continue. Skips count as neither timeouts nor failures and are excluded from timing statistics.
+PDS and Railway run in ascending instance-number order, progressing from smaller to larger models. For PDS and Railway only, after the first GLPK timeout, all remaining GLPK runs are marked `SKIPPED`; other solvers continue. Netlib (including infeasible models) never skips subsequent instances. Skips count as neither timeouts nor failures and are excluded from timing statistics.
 
 Run every benchmark instance in each dataset:
 
@@ -117,7 +117,7 @@ The script updates the corresponding dataset reports and summaries in both langu
 | `--scip` | `scip` | SCIP executable name or path |
 | `--clp` | `clp` | Clp executable name or path |
 | `--glpk` | `glpsol` | GLPK executable name or path |
-| `--glpk-gate-case` | Off | Test this instance first; if GLPK does not pass, skip its remaining instances. Skips are recorded separately from timeouts and failures |
+| `--glpk-gate-case` | Off | PDS/Railway only: test this instance first; if GLPK does not pass, skip its remaining instances. Skips are recorded separately from timeouts and failures |
 | `--solvers` | `lp_simplex` | One or more solvers to execute; competitor-only runs are supported. Only selected solver executables are required |
 | `--repeats` | 1 | Repetitions per instance and solver |
 | `--seconds` | Netlib: 60; PDS/Railway: 120 | Per-run wall-clock deadline |
