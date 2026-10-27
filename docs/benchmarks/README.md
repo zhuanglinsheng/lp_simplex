@@ -1,6 +1,6 @@
 # 基准测试汇总
 
-简体中文 | [English](./README_en.md) | [项目主页](../../README.md) | [文档](../README.md)
+简体中文 | [English](./README_en.md) | [项目主页](../../README.md) | [文档](../README.md) | [历史性能](./history/README.md)
 
 由 `data/benchmark.py` 自动生成；仅包含测试信息、对比统计及复现说明。
 
