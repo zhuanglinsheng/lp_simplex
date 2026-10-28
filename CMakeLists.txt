@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(
     lp_simplex
-    VERSION 1.0.0
+    VERSION 1.1.0
     LANGUAGES C)
 include(CTest)
 include(GNUInstallDirs)

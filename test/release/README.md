@@ -9,11 +9,12 @@ optional backends OFF; numerical DLLs required by the library are bundled.
 Windows Release/Debug tests and relocated C/C++ ZIP consumers must pass before
 Windows support is accepted. Optional Windows backends require separate validation.
 
-Prepare the permanent `1.0.0` branch with CMake version `1.0.0`, matching release
-notes in `CHANGELOG.md`, and installation documentation. Record acceptance
-results before creating the annotated `v1.0.0` tag on the final branch commit.
-Never move a published tag or replace its assets. Release fixes use a new
-version branch and tag; `main` continues development independently.
+Prepare the next release on `main` with matching CMake and vcpkg versions,
+release notes in `CHANGELOG.md`, and installation documentation. For 1.1.0,
+run the manual release rehearsal on the final commit before creating the
+annotated `v1.1.0` tag on that same commit. A separate version branch is not
+required. Keep the frozen 1.0.0 branch and published tags/assets unchanged;
+subsequent fixes receive a new version and tag.
 
 Run source gates and the existing Release/Debug and backend-on/off CI matrix.
 For a local native Release rehearsal, with Python 3.12+:
@@ -22,7 +23,7 @@ For a local native Release rehearsal, with Python 3.12+:
 python3 data/netlib/prepare.py --all
 sh tools/build.sh build-release
 python3 tools/package_release.py --build-dir build-release --platform macos-arm64
-python3 test/release/verify_package.py build-dist/lp_simplex-1.0.0-macos-arm64.tar.gz --version 1.0.0 --require-full
+python3 test/release/verify_package.py build-dist/lp_simplex-1.1.0-macos-arm64.tar.gz --version 1.1.0 --require-full
 ```
 
 Select the actual native platform. Build directories default to three parallel
@@ -48,5 +49,6 @@ are not claimed to be bit-for-bit reproducible. Each version's released assets
 and checksums are the frozen binary reference.
 
 Do not infer a new performance result from release regression checks. Existing
-benchmark tables keep their original version and measurement scope; no new
-full performance sweep is required for 1.0.0.
+benchmark tables keep their original version and measurement scope. A release
+version update alone does not create new performance measurements; numerical
+changes require their own benchmark validation.

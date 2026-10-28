@@ -1,4 +1,4 @@
-# Installing lp_simplex 1.0
+# Installing lp_simplex 1.1
 
 ## 简体中文
 
@@ -20,7 +20,7 @@ Linux 正式包在 Ubuntu 24.04 上构建；环境不兼容时请从冻结源码
 解压后，可将包目录整体移动。外部工程使用：
 
 ```cmake
-find_package(lp_simplex 1.0.0 EXACT CONFIG REQUIRED)
+find_package(lp_simplex 1.1.0 EXACT CONFIG REQUIRED)
 target_link_libraries(my_program PRIVATE lp_simplex::lp_simplex)
 ```
 

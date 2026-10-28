@@ -1,5 +1,52 @@
 # Changelog
 
+## 1.1.0 — 2026-10-28
+
+Improve sparse simplex execution, phase-aware AUTO recovery and reproducible
+benchmark reporting while preserving the public C/C++ source interfaces.
+
+### Solver improvements
+
+- Retain productive Dual searches using phase-relevant input audits and an
+  objective progress signal guarded against cancellation and working-cost drift.
+  Numerical failures, cycle protection and cumulative work limits keep priority.
+- Carry sparse supports through compact bases, KLU solves and eta updates, with
+  existing residual audits and dense fallbacks. Restore cost-based KLU
+  refactorization on large bases.
+- Audit optimistic steepest-edge weights and correctly track dense pricing
+  writes in shared sparse storage.
+- Separate presolve bound-rounding allowances from feasibility tolerances,
+  preserve small coordinates during postsolve cancellation, and extend
+  conservative no-fill signed-unit aggregation.
+- Use bounded initial cost separation and limit repeated working-objective
+  perturbations, restoring and auditing the original objective before success.
+- Distinguish feasibility-only PDHG stagnation from joint stagnation, retain
+  bounded recovery and add sparse multiplier repair with rollback.
+- Add bounded, witnessed equality-dependency elimination as an explicit
+  experiment. It remains disabled by default because reduced dimensions did
+  not consistently improve complete solves.
+
+### Benchmark tooling and validation
+
+- Separate report rendering from solver execution. Persist full-precision
+  measurements and fingerprints in bilingual Markdown reports; reuse unchanged
+  solver measurements independently on the same machine.
+- Add explicit `--rerun`, `--refresh-reports` and compatible legacy-report import,
+  preserving CLI timing, timeout cleanup and independent original-model audits.
+- The recorded macOS arm64 full-backend Release candidate passed all 182 CTest
+  cases. Default AUTO passed Netlib 114/114, infeasible Netlib 29/29, PDS 9/9 and
+  Railway 7/7 under the existing limits. These measurements describe their
+  recorded numerical build and host, not a uniform speedup across cases or
+  platforms. Earlier reports are retained as dated Markdown snapshots.
+
+### Compatibility
+
+Public headers are unchanged from 1.0.0. Continue to use matching headers and
+libraries and rebuild clients when upgrading; cross-version ABI compatibility
+is not promised. Versioned CMake consumers should request
+`find_package(lp_simplex 1.1.0 EXACT CONFIG REQUIRED)`.
+The published 1.0.0 source and assets remain unchanged.
+
 ## 1.0.0 — 2026-10-26
 
 First stable release of lp_simplex, a continuous linear programming solver with
