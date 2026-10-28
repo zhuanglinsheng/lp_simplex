@@ -39,7 +39,7 @@ Contexts/frames enforce protection, Outcome describes output, and StageReport/ev
 
 Restoration inside PDHG is parented by that PDHG invocation. Both share one cumulative count; restoration is included in the PDHG summary and cannot be summed again. Dual raw local work and adapted cumulative work remain separate.
 
-Triggers cite actual observations: standard trial residual uses `primal-margin`; PDHG stagnation uses `pdhg-stagnation`; face opportunities distinguish startup before the first cone step, low progress and the actual multiplier-search producer. Trigger, work position, metric epoch, point source and numerical output do not come from the latest event. Observations charge no extra work and carry no mathematical result.
+Triggers cite actual observations: standard trial residual uses `primal-margin`; joint PDHG merit stagnation uses `pdhg-stagnation`, while independent feasibility stagnation uses `pdhg-primal-stagnation` (fixed metric, epoch zero); face opportunities distinguish startup before the first cone step, low progress and the actual multiplier-search producer. Trigger, work position, metric epoch, point source and numerical output do not come from the latest event. Observations charge no extra work and carry no mathematical result.
 
 ## Restoration and repeat admission
 
@@ -50,10 +50,12 @@ Triggers cite actual observations: standard trial residual uses `primal-margin`;
 | First-order/CG/Newton | Updates, monotone restarts and CG substeps share the end position. Finite line search is numerical protection, not AUTO reentry. Directions/multipliers remain audited. |
 | Standard restoration | Uses a new trial and saved-point cost ceiling. Failure rolls back and switches method, tightens tolerance or exits. Acceptance rechecks residual, cost and nonzero point change. |
 | Native compression/certificate repair | Failed compression rolls back, rebuilds a seed and proceeds to the ordinary cone; failed multiplier projection rolls back. No reusable checkpoints are exported. |
-| PDHG restoration | Requires a full stagnant window, remaining infeasibility, objective below ceiling and remaining work. Each attempt requires physical residual strictly below half the previous attempt's; success/failure both update the baseline, which ordinary/weight restarts retain. |
+| PDHG restoration | Requires a full stagnant window in joint merit or the unweighted feasibility residual of the fixed working model, remaining infeasibility, objective below ceiling and remaining work. Each attempt requires residual strictly below half the previous attempt's; success/failure both update this attempt baseline, which ordinary/weight restarts retain. Weight changes reset only joint-merit history; feasibility history remains independent. An attempt resets both stagnation histories. A feasibility-only plateau permits one affine and one cone correction, while inner NNLS retains its existing bounded shared-work lease. Failure rolls back and PDHG continues. Joint-merit stagnation retains the existing bounded search. A feasibility-only repair retains an audited feasible improvement while preserving the live saddle trajectory and multiplier convergence, without an early handoff. Periodic face/multiplier refinement uses the shared remaining budget and terminates only after full KKT certification. |
 | Native face recovery | Only actual no-change requests are remembered. Compare model/representation, point, multipliers and tolerances exactly. Changed requests execute again; missing memory remains unknown. |
 
 Only the latest face request is retained, with a 4 MiB snapshot cap. Sorting refusal is a resource exit; snapshot refusal may preserve an already completed no-change check without remembering it. Destroy the owner before its box representation and clear it before in-place edits. See [numerical policy](./numerical-policy_en.md) for constants/error scales.
+
+After one affine correction fails and rolls back completely, the following cone correction may borrow the successfully selected free-column indices from that invocation. This avoids repeating selection on the same model and point. These are hints only: the cone adds, refactors and audits its own bound basis without inheriting live factors or certification. The caller owns the index workspace; the cone never frees borrowed storage. Unknown selections and multi-round affine states do not authorize reuse. The borrowed array replaces the cone's same-sized allocation rather than increasing mandatory workspace peak.
 
 ## Numerical entries and tests
 

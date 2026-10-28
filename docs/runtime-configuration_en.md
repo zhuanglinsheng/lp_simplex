@@ -15,7 +15,9 @@ LP_SIMPLEX_DISABLE_SCALING=1 build/data/lp_solve_mps \
   --experimental-environment --algorithm dual-revised --no-presolve MODEL.mps
 ```
 
-Driver output and PROFILE root metadata identify the mode. No Options, Progress or Result fields were added; existing structure layouts are unchanged. Programs previously relying on numerical environment controls through the normal entry must migrate to the experimental entry. Ordinary default solving retains the historical numerical behavior with an empty control environment.
+Driver output and PROFILE root metadata identify the mode. No Options, Progress or Result fields were added; existing structure layouts are unchanged. Programs previously relying on numerical environment controls through the normal entry must migrate to the experimental entry. The ordinary Dual preset uses bounded initial cost separation and at most one later face perturbation; the explicit compatibility entry retains the historical empty-environment experiment preset.
+
+The new exact equality-dependency reduction currently requires `LP_SIMPLEX_PRESOLVE_DEPENDENCIES=1` and the explicit experimental entry. Production defaults and the plain private `simplex_presolve_run` leave it disabled; configured presolve receives only the resolved boolean. Limited-pivot savings have not established complete-solve gains, and a same-limit regression changed qap12 from passing to timing out. This admission decision applies to every model without instance-name exceptions. See the [qap15 analysis](./development/qap15-presolve-analysis-2026-10-28.md).
 
 ## Ownership
 
@@ -32,3 +34,10 @@ Unconfigured lower-level private compatibility entries retain legacy experiment 
 Presence flags retain their historical semantics: the string `0` enables them, in the explicit experimental entry only. Pan integer work/epoch/block settings retain bounded parsing; invalid/negative values disable, overflow saturates and block sizes are capped. Weights must be finite and valid. Production does not parse these numerical environment controls.
 
 Both entries retain the same validation, cumulative budgets, original-model audits and result contracts; experiments cannot lower certification standards. A snapshot is a configuration source, not runtime state, a candidate, a journal or an algorithm route. See `simplex_run_config.c/.h`, `test_environment` and the [development record](./development/README.md) for implementation, evidence and limits.
+
+
+## Persistent Dual working objective
+
+Ordinary solves now enable the existing bounded initial cost separation and disable repeated face-perturbation epochs. The separation applies to structural nonbasic variables at finite endpoints; its magnitude is `5 * dual_tolerance * (1 + abs(original_cost)) * (1 + hash_fraction)`, followed by the existing outward rounding. The factor 5 is the existing experimental policy, not fitted to a dataset. It is a working-objective device, not a relaxation of final feasibility or optimality tolerances. The original objective is restored before final certification. Symbolic repetition detection, refinement, bound restoration, and cumulative work grants remain in force.
+
+The explicitly requested legacy environment entry keeps its historical empty-environment values: initial cost separation off and multiple epochs on. Set both `LP_SIMPLEX_INITIAL_COST_PERTURB` and `LP_SIMPLEX_SINGLE_PERTURB_EPOCH` through that entry to reproduce the ordinary Dual preset. Numerical kernels receive the resolved values and never branch on entry mode or dataset names. The two-column restoration regression deliberately reverses the working preference, then requires the original optimum and original reduced costs for both cost signs and basis backends.

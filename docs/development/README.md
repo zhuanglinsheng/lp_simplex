@@ -35,6 +35,34 @@
 
 本次整理未改变生产代码、C 回归测试或 CMake 构建输入；复用上述四配置证据，并重跑安装包、架构、基准工具三项检查。新增文档链接检查接入 CI，验证本地文件及 Markdown 锚点。
 
+## 2026-10-26：PDS AUTO 复查
+
+[复查说明与反例](pds-auto-review-2026-10-26.md)记录加权综合指标对可行性停滞的观察盲点，以及增加修复所带来的跨数据集回退。候选未合入 main；179 项功能测试通过，完整性能验收因机器争用未完成。分层候选的小样本 qap15 配对仍有约 13.5% 墙钟中位数开销。[当天完整基线与实验记录](../benchmarks/history/2026-10-26/README.md)分别归档。
+
+## 2026-10-26：PDS 分阶段性能归因
+
+[深度分析](pds-performance-analysis-2026-10-26.md)区分预处理自身成本、削减能力及后续收敛变化。九例 presolve CPU 均不足 0.5 秒；完整 pds-70 诊断的主要成本在 PDHG。开关预处理对 pds-20／70 的影响不同；重复自身预处理只多删少量重复行，追加 HiGHS 预处理仍能显著缩减结构。未因此调整默认策略或替换正式基准结果。
+
+## 2026-10-26：PDS 优化候选
+
+[原则复核与验收](pds-optimization-2026-10-26.md)记录可行性停滞观察、有界修复及同次精确回滚后的列索引复用。四配置 704 项测试通过；qap15 两对控制均通过但墙钟中位数仍慢约 17.45%，PDS 仅有七个完整结果。用户要求稍后安排性能测试，候选尚未合入 main；日期归档保留成功、超时、中断与撤销方案。
+
+## 2026-10-27：PDS 实现复核与暂停测试
+
+[新增离线分析](pds-performance-analysis-2026-10-26.md#7-2026-10-27隐含上界中的搜索容差污染)确认隐含界的用户容差填充、全矩阵扫描与活动面结构，以及前置 Dual 的成本限制。当前候选在 main 未提交工作区，旧候选分支已删除；PDS／Railway 求解及队列已停止，20 倍尚未实现或验证。随后[矩阵自由修整候选](pds-performance-analysis-2026-10-26.md#10-2026-10-27矩阵自由乘子修整候选)让 qap15 通过控制，完整 Release／最小依赖 ASAN 共 352 项功能测试通过；dfl001 的额外成本仍须保留。没有发布新的完整性能报告。
+
+## 2026-10-28：Simplex 聚合预处理与退化定价
+
+[规则消融与候选验证](pds-performance-analysis-2026-10-26.md#11-2026-10-28沿-simplex-定位聚合缺口与退化定价)将后续优化主线转到 Simplex。HiGHS 消融确认主要预处理差距在聚合器；候选补充跨行隐含界、signed-unit 邻域的无填充消元及补偿 postsolve。pds-20／70／100 的结构均缩减，最初 pilot.we 回退已通过保守准入修复，最终 Release／最小依赖 ASAN 共 352 项功能检查通过。现成 Devex 实验避免 pds-20 原目标清理后的两次 Phase I 重启，但默认定价未改；20 倍仍待验证，PDS 全集／Railway 未运行，候选未提交。
+
+## 2026-10-28：qap15 等式依赖分析
+
+[结构分析及生产候选](qap15-presolve-analysis-2026-10-28.md)补充了有整数见证和有限资源的依赖删行、KLU 重分解成本规则及 DSE／定价存储复查。依赖删行的固定工作成本改善没有转化为完整求解优势，因 qap12 回退而默认关闭。完整默认 AUTO Netlib 验证为 114/114；不能把早期候选超时或纯 Dual 结果当成最终 AUTO 结论。后续调度特征修改需另做冻结回归。
+
+## 2026-10-28：AUTO 阶段相关动态特征
+
+[复查与反例](pds-performance-analysis-2026-10-26.md#15-auto-动态特征复查2026-10-28)区分结构准入、不可变输入审核和算法内动态观察。Phase-I 原始残差反弹不能单独证明 Dual 无进展；固定输入目标势须同时越过抵消和成本漂移尺度。扩大输入进展续跑权限曾引入 qap15 超时，修订为按阶段目标使用证据，未降低阈值或扩大预算。恢复次序和观察窗口仍是有明确边界的启发式；见 [AUTO 架构](../auto-policy.md#特征提取与在线重分类)。最新冻结候选在 AUTO 下通过 Netlib 114/114、不可行集 29/29、PDS 9/9、Railway 7/7；逐例耗时有快有慢，不以全集成功证明逐例速度无回退。未提交。
+
 ## English summary
 
 The 2026-10-24–26 refactor separated algorithm identity, model representation, oracle implementation and numerical backends. AUTO owns cross-algorithm state; policy proposes decisions and routes adapts calls. Typed handoffs, exact failed requests, token-bound provenance, deterministic production snapshots and owner-specific resource/transaction boundaries replace implicit conventions. BDA and shared runtime now have separate source directories.

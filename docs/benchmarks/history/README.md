@@ -8,3 +8,4 @@
 | --- | --- | --- |
 | 2026-10-24 | [中英文报告](2026-10-24/README.md) | Netlib、Netlib infeasible、PDS、Railway；旧原始运行目录不在此工作副本中 |
 | 2026-10-26 | [中英文报告](2026-10-26/README.md) | Netlib、Netlib infeasible、PDS、Railway 全案例运行记录，包含未通过项；仅保留 Markdown |
+| 2026-10-28 | [中英文报告](2026-10-28/README.md) | Netlib AUTO 114/114、PDS 纯 Dual 9/9；早于后续 AUTO 全集复测，仅保留 Markdown |

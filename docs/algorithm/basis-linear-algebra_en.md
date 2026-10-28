@@ -52,6 +52,12 @@ $$
 
 Only the structural block $K$ therefore needs factorization. This is exact block elimination rather than an approximation of the original constraints.
 
+Solution lifting also uses sparsity. The product $Hx_R$ skips only exactly zero core components. For $H^Tg_D$, an optional structural-column inverse map and the existing CSR view visit basic columns adjacent to nonzero logical components. Comparing the candidate row entries with the core CSC nonzero count selects the cheaper traversal and avoids expensive row scans for dense right-hand sides. Missing CSR or refused optional storage retains CSC evaluation; residual audits and refinement are unchanged.
+
+KLU factors can additionally expose an optional support-driven solve graph through the public extraction API. Separate L, U and off-block stages preserve the block traversal; transpose solves collect contributions in stored-column order. Sparse event propagation falls back to the existing solve when support grows or bounded storage is refused. Packed RHS support also passes through logical-block recovery and mixed eta chains. No small-value dropping is used; full residual checks and refinement remain authoritative. Integer support sorting borrows the existing slot array and rebuilds its mappings.
+
+KLU eta chains use the existing deterministic amortization estimate: accumulated update-application work reaching estimated factor work requests refactorization, alongside update-length and weak-pivot protection. Large internal-LU bases retain their size guard against expensive refactorization; original row count no longer disables KLU's cost rule as well. This changes factor rebuild scheduling without relaxing residual or success conditions.
+
 ## 3. Rectangular-basis QR and minimum-norm solutions
 
 Let $B\in\mathbb R^{m\times k}$ have full column rank. Its thin QR factorization is

@@ -70,6 +70,14 @@ A finite upper bound on $k$ invalidates that argument in general. The implementa
 
 Column fixing preserves the optimal value and at least one optimum, not every original feasible point or every optimum. Existing postsolve restores fixed values without aggregating remaining column capacities. The implementation uses exact coefficient comparisons and checks capacity-product rounding. Its bit index is capped at 32 MiB; larger models use sparse posting lists and support fingerprints. Fingerprints only reject impossible candidates; hash collisions never authorize deletion. Compact postings retain movable columns and prioritize cost and support size, while acceptance still checks original coefficients, costs, bounds, and row directions. All fixed-point passes share a finite search budget. Unsorted or duplicate-index sparse views skip these rules, and budget exhaustion only skips reductions that have not been proved.
 
+### 3.2 Witnessed equality dependency elimination
+
+Currently disabled by default and enabled only through explicit experimental configuration; complete-solve performance has not passed acceptance. See [configuration boundaries](../runtime-configuration_en.md).
+
+For an equality subsystem, suppose a sparse integer matrix $W$ satisfies $WA=0$ and $Wb=0$, and the square submatrix $W_D$ on selected columns is invertible. The original equations indexed by $D$ may be removed together: $W_D(A_Dx-b_D)=-W_K(A_Kx-b_K)$, so retained equations imply deleted equations. Variables, objective and retained matrix coefficients remain unchanged.
+
+The implementation generates local and cross-group conservation witnesses from adjacency of exact signed-unit marginal equations. Overflow-checked integer sums verify complete coefficients and RHS before a nonzero minor modulo a prime proves independence. Approximate coefficients are excluded; modular zero alone cannot establish redundancy. Bounded search or storage refusal only loses optional reductions. After publishing the deletion set, ordinary queues and subsequent substitutions resume, and final acceptance audits the original model. Budgets are specified in the [numerical policy](../numerical-policy_en.md).
+
 ## 4. Equality substitution and projection
 
 An equality with nonzero coefficient $a_{ij}$ gives
@@ -89,6 +97,10 @@ x_p=\beta/a-(d/a)x_q,\qquad
 $$
 
 A projected bound may be omitted only if the substitution expression satisfies the eliminated variable's bound throughout the admissible range of the remaining variables. Approximate satisfaction at one point or a small local residual does not establish redundancy.
+
+Different retained constraints may imply the two bounds. For example, $x+a-b=1$ and $x-c-d=0$, with $a,c,d\ge0$ and $b\le8$, together imply $0\le x\le9$. Eliminating $x$ leaves $a-b+c+d=1$, which preserves both implications with the remaining bounds. Recheck the current matrix after every elimination instead of retaining a deleted proof source.
+
+The additional cross-row proof currently accepts signed-unit equalities only. TwoSum errors and outward rounding enclose the interval endpoints; user feasibility tolerance never authorizes dropping a bound. A pivot row of length $r$ and column of degree $d$ delete $r+d-1$ entries and insert at most $(r-1)(d-1)$; accept only nonincreasing fill. The additional degree-three/four rule also requires signed-unit incident rows, conservatively limiting numerical changes in mixed-coefficient representations, independently of dataset names. Reverse journal replay uses compensated addition and FMA product remainders to retain small coordinates through cancellation. Final acceptance still requires the original-model audit.
 
 ## 5. Scaling and inverse transformations
 

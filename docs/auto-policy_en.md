@@ -55,6 +55,37 @@ Work counts algorithmic iterations rather than CPU seconds. For remaining work R
 
 Every attempt follows one completion protocol: call → charge → independent audit → terminal check → record → commit candidate/evidence. Raw output, charged work and audit verdict remain separate. Negative or excessive work charges the full grant and revokes output permission. Changed model identity rejects handoff before coordinate reads.
 
+## Feature extraction and online reclassification
+
+Feature extraction currently lives in route admission, runtime input audits and algorithm-owned observers. There is no unified predictor of the fastest algorithm. Structural features decide applicability; dynamic observations decide whether the current invocation deserves more work. Passing every benchmark validates covered inputs, not perfect advance classification of arbitrary LPs.
+
+| Feature | Meaning and owner | Scheduling authority |
+| --- | --- | --- |
+| Row types, bounds, paired signed singleton columns | Exact algebraic prerequisites in `simplex_auto_routes.c` | Route admission |
+| Standard-form expansion, nonzeros, dense workspace | Storage estimates before conversion; sparse factor fill is not predicted | Resource admission, not convergence prediction |
+| Input primal sum, violation count, feasible objective, lower bound, dual residual | Independent `simplex_stage_observe` recomputation with space, epoch, work and evidence quality | Comparable progress relevant to the phase goal may reassess working stagnation; measurement changes rebaseline separately |
+| Working residual, phase, cost/bound epochs, repeated states | Live Dual state | Continue, reassess, numerical exit or cycle exit |
+| Fixed-input objective potential, absolute activity, cost drift | A potentially primal-infeasible Dual iterate | Reassess Phase-I stagnation only; no objective/bound certification |
+
+Only phase-relevant audited progress can reassess working stagnation: primal residual/count in Phase I, feasible objective/dual residual in optimality cleanup. Lower-bound improvement alone cannot reassess stagnation: relative improvement near zero can be arbitrarily small in objective units and does not establish progress towards primal feasibility. A newly available feasible point or bound only establishes a baseline during measurement change; availability cannot replace improvement on an established plateau. Progress cannot override numerical or cycle exits. Duplicate work samples and epoch changes alone never establish progress.
+
+For Phase I, use `V=sum(c_input[j]*x[j])`, excluding the objective constant and reading current basic values. Let `A=sum(abs(c_input[j]*x[j]))` and `D=sum(abs((c_work[j]-c_input[j])*x[j]))`. Search uncertainty includes D, a dimension-dependent rounding allowance and the existing dual-tolerance allowance. V must exceed its historical peak. Cumulative gain since the last qualified baseline must also exceed both samples' uncertainty sum and `1%*max(A_now,A_baseline)`. A changed bound epoch only rebaselines. Cancellation, cost drift or nonfinite values disable this optional signal.
+
+V at a primal-infeasible iterate is neither a feasible objective nor a certified lower bound. Its drift allowance is not a complete interval proof of basis-solve accuracy. It can only retain the live basis inside the existing grant; terminal audits remain unchanged. Sampling adds a linear scan at existing lease boundaries without allocation. Diagnostic output includes the potential, activity, uncertainty and input-progress bits; disabling output cannot affect decisions.
+
+### Retained heuristics and limits
+
+| Policy | Rationale and limitation |
+| --- | --- |
+| 128-work observation quantum, eight initial quanta | Deterministic audit amortization; not a model-derived optimal window |
+| 1% cumulative progress | Existing shared search policy for filtering small gains; not a convergence theorem |
+| Geometric leases and recovery reserve | Retain a progressing live state with bounded total work and later opportunities; no completion-time prediction |
+| Cover width ratio 32 and at least 16 row-scale work sweeps | Amortization guard for optional column restriction; separate algebraic admission remains necessary |
+| Original initializer expansion above twice original rows, at most 8Q | Empirical cost guard plus actual standard-form dominance and input audits; no guaranteed speed advantage |
+| Fixed recovery order | Finite, explainable fallback; no comparable cross-algorithm work-yield model yet |
+
+This revision does not enlarge windows, lower progress thresholds, relax certification or introduce model-name branches. Replacing retained heuristics requires counterexamples, representation/unit transformation checks and four-suite regression. Dual pivots and PDHG steps are not comparable work units; residual slopes alone cannot justify a completion-time prediction or wholesale budget reallocation.
+
 ## Candidates, checkpoints and termination
 
 | Output | Admission | Permission |

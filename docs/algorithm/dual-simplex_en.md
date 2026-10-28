@@ -35,6 +35,10 @@ $$
 
 If $x_{\mathcal B_p}<\ell_{\mathcal B_p}$, take repair sign $\kappa=1$; if it exceeds its upper bound, take $\kappa=-1$. This convention unifies the two cases below.
 
+Cancellation can make recursively updated weights underestimate edge lengths. After choosing a leaving row, reuse its BTRAN result to recompute its squared norm. If the old weight is less than one quarter of that norm, update the feasibility heap and reselect. At a fixed basis, at most all rows are corrected before one final selection; repricing does not advance pivot work or change the point or objective. A nonfinite or nonpositive norm causes numerical failure. This ratio bounds optimistic pricing error without changing feasibility or optimality tolerances.
+
+Dense CSC pricing and sparse CSR scatter share the same pricing-row storage. Dense writes must register their coordinates too, so the next indexed clear removes every old value; untouched coordinates must be exactly zero. Periodic full CSC audits do not replace this storage invariant.
+
 ## 3. Dual step lengths
 
 Consider the multiplier path and reduced costs
@@ -57,6 +61,8 @@ $$
 $$
 
 Without bound flipping, take the smallest breakpoint and let its variable enter. A free nonbasic variable must retain zero reduced cost, so $\alpha_j\ne0$ gives a blocker at zero dual step. Such a variable cannot be assigned a finite endpoint that does not exist.
+
+With feasibility tolerance $t$, Harris' first-pass bound is $(s_j r_j+t)/\beta_j$. If $s_jr_j$ is already negative within tolerance, only the primary breakpoint is clipped to zero; the first-pass bound must retain that negative value. Replacing it by zero would replenish spent feasibility allowance at every pivot. The second pass compares primary ratios inside this bound without a ratio-space epsilon expansion, whose reduced-cost effect depends on the column coefficient.
 
 ## 4. Primal steps and basis exchanges
 

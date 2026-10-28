@@ -8,3 +8,4 @@ Snapshots use the actual test date in Asia/Shanghai, rather than the archive dat
 | --- | --- | --- |
 | 2026-10-24 | [Bilingual reports](2026-10-24/README_en.md) | Netlib, Netlib infeasible, PDS, Railway; old raw run directories are absent from this checkout |
 | 2026-10-26 | [Reports in both languages](2026-10-26/README_en.md) | Full-suite Netlib, Netlib infeasible, PDS and Railway run records, including unsuccessful cases; Markdown only |
+| 2026-10-28 | [Bilingual reports](2026-10-28/README_en.md) | Netlib AUTO 114/114 and PDS Dual-only 9/9; predate the subsequent complete AUTO rerun; Markdown only |
