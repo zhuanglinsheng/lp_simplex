@@ -250,6 +250,8 @@ static int service_trigger_reason(int trigger)
 		return SIMPLEX_REASON_PDHG_STAGNATION;
 	case SIMPLEX_PAN_TRIGGER_PRIMAL_MARGIN:
 		return SIMPLEX_REASON_PRIMAL_MARGIN;
+	case SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION:
+		return SIMPLEX_REASON_PDHG_PRIMAL_STAGNATION;
 	default:
 		return SIMPLEX_REASON_NONE;
 	}
@@ -264,6 +266,8 @@ static int service_face_reason(int opportunity)
 		return SIMPLEX_REASON_FACE_LOW_PROGRESS;
 	case SIMPLEX_PAN_FACE_AFTER_MULTIPLIER_SEARCH:
 		return SIMPLEX_REASON_FACE_MULTIPLIER_SEARCH;
+	case SIMPLEX_PAN_FACE_PDHG_IMPROVEMENT:
+		return SIMPLEX_REASON_FACE_PDHG_IMPROVEMENT;
 	default:
 		return SIMPLEX_REASON_NONE;
 	}
@@ -663,12 +667,19 @@ int simplex_pan_service_restore(const struct simplex_PanBounded *b,
 		SIMPLEX_PAN_SERVICE_RESTORE, *iterations, o->iteration_limit,
 		service_remaining(o->iteration_limit, *iterations));
 	f.trigger_actor = cause;
-	if (trigger && trigger->kind == SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION)
+	if (trigger &&
+		(trigger->kind == SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION ||
+			trigger->kind ==
+				SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION))
 		f.outcome.trigger = *trigger;
 	if (entered && service_bind_bounded(&f, b)) {
 		lease.iteration_limit = f.outcome.before + f.outcome.grant;
-		code = simplex_pan_bounded_restore_configured_reported(
-			b, point, &lease, iterations, ceiling, cfg, &stop);
+		code = simplex_pan_bounded_restore_configured_reported(b, point,
+			&lease, iterations, ceiling, cfg,
+			trigger &&
+				trigger->kind ==
+					SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION,
+			&stop);
 	}
 	if (!simplex_pan_service_finish(&f, iterations, code,
 		    lp_simplex_CondUnsatisfied, stop,

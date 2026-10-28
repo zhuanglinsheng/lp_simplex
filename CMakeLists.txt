@@ -117,6 +117,7 @@ set(SOURCES
     src/runtime/simplex_scaling.c
     src/presolve/simplex_presolve.c
     src/presolve/simplex_presolve_dominance.c
+    src/presolve/simplex_presolve_dependencies.c
     src/presolve/simplex_presolve_activity.c
     src/presolve/simplex_presolve_postsolve.c
     src/presolve/simplex_presolve_profile.c
@@ -156,6 +157,7 @@ set(SOURCES
     src/bda/simplex_pan_standard.c
     src/bda/linalg/pan_dynamic_sparse_qr.c
     src/basis/simplex_basis.c
+    src/basis/simplex_klu_sparse.c
     src/basis/simplex_sparse_lu.c
     src/matrix/simplex_csc.c
     src/matrix/simplex_sparse_vector.c

@@ -30,23 +30,24 @@ void simplex_presolve_print_profile(
 		"presolve: removed rows=%d columns=%d "
 		"[fixed=%d empty=%d singleton-col=%d singleton-ineq-col=%d "
 		"singleton-row=%d redundant-row=%d duplicate-row=%d "
-		"dominated-row=%d dominated-column=%d "
+		"dependent-row=%d dominated-row=%d dominated-column=%d "
 		"forcing-row=%d forced-column=%d doubleton=%d "
 		"singleton-column=%d implied-free-column=%d "
 		"singleton-projection=%d tightened=%d epochs=%d "
 		"singleton-column-candidates=%d free-singleton=%d "
-		"equality-singleton=%d exact-propagation=%d] remaining=%d/%d\n",
+		"equality-singleton=%d outward-propagation=%d] remaining=%d/%d\n",
 		stats->removed_rows, stats->removed_columns,
 		stats->fixed_columns, stats->empty_columns,
 		stats->singleton_columns, stats->singleton_inequality_columns,
 		stats->singleton_rows, stats->redundant_rows,
-		stats->duplicate_rows, stats->dominated_rows,
-		stats->dominated_columns, stats->forcing_rows,
-		stats->forced_columns, stats->doubleton_rows,
-		stats->singleton_column_rows, stats->implied_free_columns,
+		stats->duplicate_rows, stats->dependent_rows,
+		stats->dominated_rows, stats->dominated_columns,
+		stats->forcing_rows, stats->forced_columns,
+		stats->doubleton_rows, stats->singleton_column_rows,
+		stats->implied_free_columns,
 		stats->singleton_projection_columns, stats->tightened_bounds,
 		stats->queue_epochs, stats->singleton_column_candidates,
 		stats->free_singleton_columns,
 		stats->equality_singleton_columns,
-		stats->exact_bound_propagation, rows, columns);
+		stats->outward_bound_propagation, rows, columns);
 }

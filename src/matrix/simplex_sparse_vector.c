@@ -99,6 +99,92 @@ void simplex_sparse_vector_clear(struct simplex_SparseVector *vector)
 	}
 }
 
+void simplex_sparse_vector_compact(struct simplex_SparseVector *vector)
+{
+	int i, count = 0;
+	for (i = 0; i < vector->count; i++) {
+		int row = vector->index[i];
+		double value = vector->dense[row];
+		if (value == 0.) {
+			vector->mark[row] = 0;
+			continue;
+		}
+		if (count != i) {
+			vector->index[count] = row;
+			vector->slot[row] = count;
+		}
+		vector->value[count++] = value;
+	}
+	vector->count = count;
+}
+
+/* Slot mappings are unread during sorting and are rebuilt below. Borrow that
+ * existing integer array as radix scratch: no allocation and 256 counters of
+ * bounded stack storage, independent of the ambient vector dimension. */
+static void sparse_sort_indices(struct simplex_SparseVector *vector)
+{
+	int i, ordered = 1;
+	unsigned int maximum = 0, shift;
+	int *source = vector->index, *target = vector->slot;
+	for (i = 0; i < vector->count; i++) {
+		unsigned int value = (unsigned int)source[i];
+		if (value > maximum)
+			maximum = value;
+		if (i > 0 && source[i - 1] > source[i])
+			ordered = 0;
+	}
+	if (ordered)
+		return;
+	if (vector->count <= 32) {
+		for (i = 1; i < vector->count; i++) {
+			int j = i, value = source[i];
+			while (j > 0 && source[j - 1] > value) {
+				source[j] = source[j - 1];
+				j--;
+			}
+			source[j] = value;
+		}
+		return;
+	}
+	for (shift = 0;
+		shift < sizeof(unsigned int) * 8 && (maximum >> shift) != 0;
+		shift += 8) {
+		int bucket[256] = {0}, sum = 0, b;
+		int *swap;
+		for (i = 0; i < vector->count; i++)
+			bucket[((unsigned int)source[i] >> shift) & 255U]++;
+		for (b = 0; b < 256; b++) {
+			int count = bucket[b];
+			bucket[b] = sum;
+			sum += count;
+		}
+		for (i = 0; i < vector->count; i++) {
+			unsigned int b =
+				((unsigned int)source[i] >> shift) & 255U;
+			target[bucket[b]++] = source[i];
+		}
+		swap = source;
+		source = target;
+		target = swap;
+	}
+	if (source != vector->index)
+		lp_simplex_memcpy(vector->index, source,
+			(size_t)vector->count * sizeof(int));
+}
+
+void simplex_sparse_vector_sort(struct simplex_SparseVector *vector)
+{
+	int i;
+	if (vector->count < 2)
+		return;
+	sparse_sort_indices(vector);
+	for (i = 0; i < vector->count; i++) {
+		int row = vector->index[i];
+		vector->value[i] = vector->dense[row];
+		vector->slot[row] = i;
+	}
+}
+
 int simplex_sparse_vector_set(struct simplex_SparseVector *vector,
 	const int index, const double value)
 {

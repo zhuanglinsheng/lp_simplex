@@ -15,6 +15,7 @@
 #include "simplex_storage.h"
 
 #include <lp_simplex/status.h>
+#include <math.h>
 
 static int feasibility_better(const struct simplex_DualFeasibility *feasibility,
 	const int left, const int right)
@@ -193,6 +194,30 @@ void simplex_dual_feasibility_update(
 		feasibility->score[row] > 0. &&
 			state->basis[row] < state->structural);
 	feasibility->incremental_updates++;
+}
+
+int simplex_dual_feasibility_reprice(struct simplex_DualState *state,
+	const int row, const double exact_weight)
+{
+	double updated = state->edge_weight[row];
+	if (!isfinite(exact_weight) || exact_weight <= 0.)
+		return -1;
+	if (state->profile.enabled) {
+		double ratio =
+			exact_weight / __lp_simplex_MAX__(updated,
+					       SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR);
+		state->profile.maximum_edge_weight_ratio = __lp_simplex_MAX__(
+			state->profile.maximum_edge_weight_ratio, ratio);
+		state->profile.underestimated_edge_weights +=
+			updated < SIMPLEX_DUAL_DSE_ACCEPT_RATIO * exact_weight;
+	}
+	state->edge_weight[row] = __lp_simplex_MAX__(
+		exact_weight, SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR);
+	if (isfinite(updated) &&
+		updated >= SIMPLEX_DUAL_DSE_ACCEPT_RATIO * exact_weight)
+		return 0;
+	simplex_dual_feasibility_update(state, row);
+	return 1;
 }
 
 void simplex_dual_feasibility_rebuild(struct simplex_DualState *state)

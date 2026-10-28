@@ -10,6 +10,7 @@
 
 #include "policy/factorization.h"
 #include "policy/controls.h"
+#include "policy/resources.h"
 #include "simplex_dual_state.h"
 #include "simplex_dual_storage.h"
 #include "simplex_dual_internal.h"
@@ -156,8 +157,28 @@ void simplex_dual_state_destroy(struct simplex_DualState *state)
 	lp_simplex_free(state->workspace.row);
 	simplex_dual_pricing_destroy(state);
 	simplex_sparse_vector_destroy(&state->packed_direction);
+	simplex_sparse_vector_destroy(&state->packed_work);
 	simplex_sparse_vector_destroy(&state->flip_rhs);
 	lp_simplex_memset(state, 0, sizeof(*state));
+}
+
+int simplex_dual_packed_work_prepare(struct simplex_DualState *state)
+{
+	size_t bytes;
+	if (!state->packed_work_attempted) {
+		state->packed_work_attempted = 1;
+		if (simplex_basis_resolved_backend(&state->factor) !=
+				SIMPLEX_BASIS_BACKEND_KLU ||
+			!simplex_storage_bytes((size_t)state->rows,
+				2 * sizeof(int) + 2 * sizeof(double) +
+					sizeof(unsigned int),
+				SIMPLEX_DUAL_PACKED_WORK_BYTES, &bytes))
+			return 0;
+		if (simplex_sparse_vector_create(
+			    &state->packed_work, state->rows))
+			return 0;
+	}
+	return state->packed_work.index != NULL;
 }
 
 int simplex_dual_state_create(struct simplex_DualState *state,

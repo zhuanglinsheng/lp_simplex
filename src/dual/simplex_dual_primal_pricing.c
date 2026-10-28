@@ -37,6 +37,8 @@ int simplex_primal_devex_update(struct simplex_DualState *state, double *weight,
 	double norm = ref[entering];
 	double pivot = state->direction[leaving_position];
 	int i, j;
+	int packed = state->work != NULL && state->packed_rho.dense != NULL;
+	double *rho_work = packed ? state->work : state->rho;
 
 	for (i = 0; i < state->rows; i++)
 		norm += ref[state->basis[i]] * state->direction[i] *
@@ -49,11 +51,18 @@ int simplex_primal_devex_update(struct simplex_DualState *state, double *weight,
 		simplex_primal_devex_initialize(state, weight, ref);
 		norm = 1.;
 	}
-	lp_simplex_memset(state->rho, 0, (size_t)state->rows * sizeof(double));
-	state->rho[leaving_position] = 1.;
-	if (simplex_basis_btran_refined(&state->factor, state->rho) ==
+	/* Cleanup retains its fully refined solve; pack from independent scratch
+	 * so the shared rho dense view never contains untracked coordinates. */
+	lp_simplex_memset(rho_work, 0, (size_t)state->rows * sizeof(double));
+	rho_work[leaving_position] = 1.;
+	if (simplex_basis_btran_refined(&state->factor, rho_work) ==
 		lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
+	if (packed) {
+		(void)simplex_sparse_vector_pack(
+			&state->packed_rho, rho_work, 0.);
+		state->rho = state->packed_rho.dense;
+	}
 	for (j = 0; j < state->variables; j++) {
 		double alpha, ratio, estimate;
 

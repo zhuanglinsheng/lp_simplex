@@ -48,7 +48,7 @@ static int face_recover(const struct simplex_PanBounded *b, double *x,
 	long double before, cost = 0.;
 	double cost_budget;
 	size_t bytes;
-	int i, j, k, count = 0, changed = 0;
+	int i, j, k, proposal, count = 0, changed = 0;
 
 	if (b->a.columns < 0 || !simplex_storage_bytes((size_t)b->a.columns + 1,
 					sizeof(*order), (size_t)-1, &bytes))
@@ -76,45 +76,78 @@ static int face_recover(const struct simplex_PanBounded *b, double *x,
 		}
 	qsort(order, (size_t)count, sizeof(*order), face_order);
 	lp_simplex_memcpy(saved, x, (size_t)b->a.columns * sizeof(double));
-	for (i = 0; i < b->a.rows; i++)
-		work[i] = 0.;
-	for (i = 0; i < count; i++) {
-		double g, target, delta;
-
-		j = order[i].column;
-		g = b->a.objective[j] + simplex_pan_column_dot(&b->a, j, y);
-		target = g > 0. ? b->lower[j] : b->upper[j];
-		if (!isfinite(target))
+	/* A relative-activity batch can cancel row changes that a strictly
+	 * coordinatewise absolute budget must refuse. It has no acceptance
+	 * authority: the complete compensated absolute audit below is unchanged.
+	 * Refusal retries the original conservative proposal from saved. */
+	for (proposal = 0; proposal < 2; proposal++) {
+		changed = 0;
+		cost = 0.;
+		(void)simplex_pan_bounded_primal(b, x, r, work);
+		if (proposal == 0) {
+			for (i = 0; i < b->a.rows; i++)
+				r[i] = fabs(b->a.rhs[i]);
+			for (j = 0; j < b->a.columns; j++)
+				for (k = b->a.column_start[j];
+					k < b->a.column_start[j + 1]; k++)
+					r[b->a.row_index[k]] +=
+						fabs(b->a.value[k]) *
+						fmax(1., fabs(x[j]));
+		}
+		for (i = 0; i < b->a.rows; i++)
+			work[i] = 0.;
+		for (i = 0; i < count; i++) {
+			double g, target, delta;
+			j = order[i].column;
+			g = b->a.objective[j] +
+			    simplex_pan_column_dot(&b->a, j, y);
+			target = g > 0. ? b->lower[j] : b->upper[j];
+			if (!isfinite(target))
+				continue;
+			delta = target - x[j];
+			if (!isfinite(delta) ||
+				fabsl(cost + (long double)b->a.objective[j] *
+						     delta) > cost_budget)
+				continue;
+			for (k = b->a.column_start[j];
+				k < b->a.column_start[j + 1]; k++) {
+				int row = b->a.row_index[k];
+				double allowance =
+					proposal == 0
+						? o->primal_tolerance *
+							  SIMPLEX_PAN_FACE_COST_FRACTION *
+							  r[row]
+						: o->primal_tolerance *
+								  SIMPLEX_PAN_FEASIBLE_MARGIN -
+							  fabs(r[row]);
+				if (!isfinite(allowance) ||
+					work[row] + fabs(b->a.value[k] *
+							    delta) >
+						allowance)
+					break;
+			}
+			if (k < b->a.column_start[j + 1])
+				continue;
+			for (k = b->a.column_start[j];
+				k < b->a.column_start[j + 1]; k++)
+				work[b->a.row_index[k]] +=
+					fabs(b->a.value[k] * delta);
+			cost += (long double)b->a.objective[j] * delta;
+			x[j] = target;
+			changed++;
+		}
+		if (!changed)
 			continue;
-		delta = target - x[j];
-		if (fabsl(cost + (long double)b->a.objective[j] * delta) >
-			cost_budget)
-			continue;
-		for (k = b->a.column_start[j]; k < b->a.column_start[j + 1];
-			k++)
-			if (work[b->a.row_index[k]] +
-					fabs(b->a.value[k] * delta) >
+		if (simplex_pan_bounded_primal(b, x, r, work) <=
 				o->primal_tolerance *
-					SIMPLEX_PAN_FACE_COST_FRACTION)
-				break;
-		if (k < b->a.column_start[j + 1])
-			continue;
-		for (k = b->a.column_start[j]; k < b->a.column_start[j + 1];
-			k++)
-			work[b->a.row_index[k]] += fabs(b->a.value[k] * delta);
-		cost += (long double)b->a.objective[j] * delta;
-		x[j] = target;
-		changed++;
-	}
-	if (changed && (simplex_pan_bounded_primal(b, x, r, work) >
-				       o->primal_tolerance *
-					       SIMPLEX_PAN_FEASIBLE_MARGIN ||
-			       simplex_pan_cone_cost(&b->a, x) >
-				       before + cost_budget)) {
+					SIMPLEX_PAN_FEASIBLE_MARGIN &&
+			simplex_pan_cone_cost(&b->a, x) <= before + cost_budget)
+			break;
 		lp_simplex_memcpy(
 			x, saved, (size_t)b->a.columns * sizeof(double));
 		changed = 0;
 	}
+
 	if (changed && getenv(SIMPLEX_ENV_PROFILE))
 		fprintf(stderr,
 			"pan-bda native face recovery: bounds=%d cost-change=%.6g\n",

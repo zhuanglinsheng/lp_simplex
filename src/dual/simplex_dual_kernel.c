@@ -247,6 +247,7 @@ static int dual_compute_reduced_costs_impl(
 				? 0.
 				: state->cost[j] -
 					  dual_column_dot(state, j, state->pi);
+
 	return lp_simplex_EXIT_SUCCESS;
 }
 
@@ -471,8 +472,80 @@ static int dual_apply_cost_shifts(struct simplex_DualState *state);
 /* Controller-level reinversion transaction.  All exact-state consumers are
  * refreshed together so the factor, primal/dual values and hypersparse
  * infeasibility queues can never describe different bases. */
+struct dual_StationarityDiagnostic {
+	double absolute, relative, maximum_pi;
+	double reduced_error, fresh_dual_error, worst_stored, worst_fresh;
+	int worst_column;
+};
+
+static struct dual_StationarityDiagnostic dual_stationarity_diagnostic(
+	const struct simplex_DualState *state)
+{
+	struct dual_StationarityDiagnostic diagnostic = {0};
+	int i, k;
+	for (i = 0; i < state->rows; i++) {
+		int column = state->basis[i];
+		long double value = state->cost[column], scale = fabsl(value);
+		diagnostic.maximum_pi = __lp_simplex_MAX__(
+			diagnostic.maximum_pi, fabs(state->pi[i]));
+		if (column >= state->structural) {
+			value += state->pi[column - state->structural];
+			scale += fabs(state->pi[column - state->structural]);
+		} else
+			for (k = state->matrix.column_start[column];
+				k < state->matrix.column_start[column + 1];
+				k++) {
+				long double term =
+					(long double)state->matrix.value[k] *
+					state->pi[state->matrix.row_index[k]];
+				value -= term;
+				scale += fabsl(term);
+			}
+		diagnostic.absolute = __lp_simplex_MAX__(
+			diagnostic.absolute, (double)fabsl(value));
+		diagnostic.relative = __lp_simplex_MAX__(diagnostic.relative,
+			(double)(fabsl(value) /
+				 (scale > DBL_MIN ? scale : DBL_MIN)));
+	}
+	for (i = 0; i < state->variables; i++) {
+		long double fresh;
+		double error, infeasibility;
+		if (state->position[i] >= 0 ||
+			state->status[i] == DUAL_STATUS_FIXED)
+			continue;
+		fresh = state->cost[i];
+		if (i >= state->structural)
+			fresh += state->pi[i - state->structural];
+		else
+			for (k = state->matrix.column_start[i];
+				k < state->matrix.column_start[i + 1]; k++)
+				fresh -= (long double)state->matrix.value[k] *
+					 state->pi[state->matrix.row_index[k]];
+		error = fabs((double)fresh - state->reduced[i]);
+		if (error > diagnostic.reduced_error) {
+			diagnostic.reduced_error = error;
+			diagnostic.worst_column = i;
+			diagnostic.worst_stored = state->reduced[i];
+			diagnostic.worst_fresh = (double)fresh;
+		}
+		infeasibility =
+			state->status[i] == DUAL_STATUS_LOWER	? -(double)fresh
+			: state->status[i] == DUAL_STATUS_UPPER ? (double)fresh
+			: state->status[i] == DUAL_STATUS_FREE
+				? fabs((double)fresh)
+				: 0.;
+		diagnostic.fresh_dual_error = __lp_simplex_MAX__(
+			diagnostic.fresh_dual_error, infeasibility);
+	}
+	return diagnostic;
+}
+
 static int dual_reinvert(struct simplex_DualState *state)
 {
+	struct dual_StationarityDiagnostic before = {0};
+	int compact_before = simplex_basis_compact_active(&state->factor);
+	if (state->profile.enabled)
+		before = dual_stationarity_diagnostic(state);
 	if (dual_factorize(state) == lp_simplex_EXIT_FAILURE ||
 		dual_compute_primal_values(state) == lp_simplex_EXIT_FAILURE ||
 		dual_compute_reduced_costs(state) == lp_simplex_EXIT_FAILURE)
@@ -484,6 +557,24 @@ static int dual_reinvert(struct simplex_DualState *state)
 		if (dual_compute_reduced_costs_impl(state, 1) ==
 			lp_simplex_EXIT_FAILURE)
 			return lp_simplex_EXIT_FAILURE;
+		if (state->profile.enabled) {
+			struct dual_StationarityDiagnostic after =
+				dual_stationarity_diagnostic(state);
+			fprintf(stderr,
+				"dual profile: reinvert iteration=%d compact=%d/%d basic-error=%.17g/%.17g relative=%.17g/%.17g pi-max=%.17g/%.17g dual-error=%.17g\n",
+				state->iterations, compact_before,
+				simplex_basis_compact_active(&state->factor),
+				before.absolute, after.absolute,
+				before.relative, after.relative,
+				before.maximum_pi, after.maximum_pi,
+				dual_max_dual_infeasibility(state));
+			fprintf(stderr,
+				"dual profile: reduced consistency iteration=%d error=%.17g/%.17g fresh-dual=%.17g/%.17g column=%d stored=%.17g fresh=%.17g\n",
+				state->iterations, before.reduced_error,
+				after.reduced_error, before.fresh_dual_error,
+				after.fresh_dual_error, before.worst_column,
+				before.worst_stored, before.worst_fresh);
+		}
 		simplex_basis_use_product_updates(&state->factor);
 		dual_apply_cost_shifts(state);
 	}
@@ -502,7 +593,9 @@ static int dual_update_edge_weights(
 	struct simplex_DualState *state, const int p)
 {
 	int k;
-	double pivot = state->direction[p];
+	double pivot = state->packed_direction.dense[p];
+	const double *work = state->packed_work_valid ? state->packed_work.dense
+						      : state->work;
 	double old_p = state->edge_weight[p];
 
 	if (__lp_simplex_ABS__(pivot) <= state->options->pivot_tolerance)
@@ -515,7 +608,7 @@ static int dual_update_edge_weights(
 		if (i == p)
 			continue;
 		ratio = state->packed_direction.value[k] / pivot;
-		updated = state->edge_weight[i] - 2. * ratio * state->work[i] +
+		updated = state->edge_weight[i] - 2. * ratio * work[i] +
 			  ratio * ratio * old_p;
 		state->edge_weight[i] = __lp_simplex_MAX__(
 			updated, SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR);
@@ -571,19 +664,20 @@ static int dual_flush_bound_flips(
 
 	if (state->flip_rhs.count == 0)
 		return lp_simplex_EXIT_SUCCESS;
-	lp_simplex_memcpy(state->direction, state->flip_rhs.dense,
-		(size_t)state->rows * sizeof(double));
-	if (simplex_basis_ftran(&state->factor, state->direction) ==
+	if (simplex_basis_ftran_packed(&state->factor, &state->flip_rhs) ==
 		lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
 	/* Replace the accumulated pricing-row estimate by the actual batched
 	 * solve, including the leaving row.  Tiny alpha errors times large bound
 	 * movements must not become permanent errors in the primal state. */
 	state->basic_value[leaving_position] +=
-		state->flip_leaving_change - state->direction[leaving_position];
+		state->flip_leaving_change -
+		state->flip_rhs.dense[leaving_position];
 	state->flip_leaving_change = 0.;
-	simplex_sparse_vector_pack(
-		&state->packed_direction, state->direction, 0.);
+	simplex_sparse_vector_clear(&state->packed_direction);
+	for (i = 0; i < state->flip_rhs.count; i++)
+		(void)simplex_sparse_vector_set(&state->packed_direction,
+			state->flip_rhs.index[i], state->flip_rhs.value[i]);
 	for (i = 0; i < state->packed_direction.count; i++) {
 		int row = state->packed_direction.index[i];
 		/* The leaving-row value is maintained incrementally from alpha so
@@ -656,6 +750,9 @@ static int dual_bound_error_exceeds_budget(
 static int dual_apply_cost_shifts(struct simplex_DualState *state)
 {
 	double maximum_relative_shift = 0.;
+	double largest_violation = 0., previous_cost = 0.,
+	       previous_reduced = 0.;
+	int largest_column = -1;
 	int j, shifted = 0;
 
 	if (!simplex_recovery_cost_changes_allowed(&state->recovery))
@@ -668,15 +765,22 @@ static int dual_apply_cost_shifts(struct simplex_DualState *state)
 		violation = dual_variable_infeasibility(state, j);
 		if (violation <= state->options->dual_tolerance)
 			continue;
+		if (state->profile.enabled && violation > largest_violation) {
+			largest_violation = violation;
+			largest_column = j;
+			previous_cost = state->cost[j];
+			previous_reduced = state->reduced[j];
+		}
 		state->cost[j] -= state->reduced[j];
 		state->reduced[j] = 0.;
 		shifted++;
 	}
 	if (shifted > 0) {
+
 		int recovery_pending = state->degeneracy.recovery_pending;
 
 		state->lex_initialized = 0;
-		simplex_degeneracy_reset_state(&state->degeneracy);
+		simplex_degeneracy_reset_objective(&state->degeneracy);
 		state->degeneracy.recovery_pending = recovery_pending;
 		state->costs_version++;
 		state->cost_shift_active = 1;
@@ -696,6 +800,17 @@ static int dual_apply_cost_shifts(struct simplex_DualState *state)
 				"dual profile: phase-I cost shifts=%d total=%d max-relative=%.17g\n",
 				shifted, state->cost_shift_count,
 				maximum_relative_shift);
+			if (largest_column >= 0)
+				fprintf(stderr,
+					"dual profile: cost repair iteration=%d column=%d status=%d original=%.17g old=%.17g reduced=%.17g lower=%.17g upper=%.17g updates=%d\n",
+					state->iterations, largest_column,
+					state->status[largest_column],
+					state->original_cost[largest_column],
+					previous_cost, previous_reduced,
+					state->lower[largest_column],
+					state->upper[largest_column],
+					simplex_basis_update_count(
+						&state->factor));
 		}
 	}
 	return shifted;
@@ -730,11 +845,15 @@ static void dual_perturb_face(struct simplex_DualState *state)
 		unsigned int order = (unsigned int)j + 1U;
 
 		if (state->status[j] != DUAL_STATUS_LOWER &&
-			state->status[j] != DUAL_STATUS_UPPER)
+			state->status[j] != DUAL_STATUS_UPPER) {
+
 			continue;
+		}
 		if (__lp_simplex_ABS__(state->reduced[j]) >
-			state->options->dual_tolerance)
+			state->options->dual_tolerance) {
+
 			continue;
+		}
 		sign = state->status[j] == DUAL_STATUS_LOWER ? 1. : -1.;
 		scale = __lp_simplex_ABS__(state->cost[j]);
 		if (j < state->structural)
@@ -777,7 +896,7 @@ static void dual_perturb_face(struct simplex_DualState *state)
 	state->lex_initialized = 0;
 	/* This is a new working objective; old face fingerprints no longer
 	 * describe zero objective progress for it. */
-	simplex_degeneracy_reset_state(&state->degeneracy);
+	simplex_degeneracy_reset_objective(&state->degeneracy);
 	if (perturbed > 0) {
 		state->perturb_epochs++;
 		state->costs_version++;
@@ -797,7 +916,7 @@ static int dual_restore_original_cost(struct simplex_DualState *state)
 	state->costs_version++;
 	state->cost_shift_active = 0;
 	state->lex_initialized = 0;
-	simplex_degeneracy_reset_state(&state->degeneracy);
+	simplex_degeneracy_reset_objective(&state->degeneracy);
 	return dual_compute_reduced_costs_impl(state, 1);
 }
 
@@ -833,8 +952,10 @@ static void dual_update_dual_values(struct simplex_DualState *state,
 		started = clock();
 
 	if (tau != 0.) {
-		for (i = 0; i < state->rows; i++)
-			state->pi[i] += tau * state->rho[i];
+		for (i = 0; i < state->packed_rho.count; i++) {
+			int row = state->packed_rho.index[i];
+			state->pi[row] += tau * state->packed_rho.value[i];
+		}
 		if (state->packed_alpha_valid) {
 			if (state->profile.enabled) {
 				state->profile.reduced_sparse_calls++;
@@ -845,12 +966,14 @@ static void dual_update_dual_values(struct simplex_DualState *state,
 				int j = state->packed_alpha.index[i];
 				/* Reduced costs are maintained only for the active
 				 * nonbasic set.  Basic entries must remain exactly zero. */
-				if (state->nonbasic_slot[j] >= 0)
+				if (state->nonbasic_slot[j] >= 0) {
 					state->reduced[j] -=
 						tau *
 						state->packed_alpha.value[i];
+				}
 			}
 		} else {
+
 			if (state->profile.enabled) {
 				state->profile.reduced_dense_calls++;
 				state->profile.reduced_dense_columns +=
@@ -875,6 +998,7 @@ static void dual_update_dual_values(struct simplex_DualState *state,
 	}
 	state->reduced[entering] = 0.;
 	state->reduced[leaving] = -tau;
+
 	if (state->profile.enabled)
 		state->profile.reduced_update_seconds +=
 			(double)(clock() - started) / CLOCKS_PER_SEC;
@@ -1535,24 +1659,48 @@ static int dual_select_leaving(struct simplex_DualState *state, int *status,
 }
 
 static int dual_prepare_leaving_row(struct simplex_DualState *state,
-	int *status, const struct dual_Iteration *iteration)
+	int *status, struct dual_Iteration *iteration)
 {
 	double certificate_scale;
-	double exact_weight = 0.;
-	int i, candidates;
+	int i, candidates, repriced = 0;
 
-	lp_simplex_memset(state->rho, 0, (size_t)state->rows * sizeof(double));
-	state->rho[iteration->p] = 1.;
-	if (simplex_basis_btran(&state->factor, state->rho) ==
-		lp_simplex_EXIT_FAILURE) {
-		*status = dual_basis_failure_status(
-			state, lp_simplex_Singularity);
-		return DUAL_STEP_FAILED;
+	for (;;) {
+		double exact_weight = 0.;
+		int previous = iteration->p, reselect, step;
+		simplex_sparse_vector_clear(&state->packed_rho);
+		(void)simplex_sparse_vector_set(
+			&state->packed_rho, previous, 1.);
+		if (simplex_basis_btran_packed(&state->factor,
+			    &state->packed_rho) == lp_simplex_EXIT_FAILURE) {
+			*status = dual_basis_failure_status(
+				state, lp_simplex_Singularity);
+			return DUAL_STEP_FAILED;
+		}
+		state->rho = state->packed_rho.dense;
+		for (i = 0; i < state->packed_rho.count; i++)
+			exact_weight += state->packed_rho.value[i] *
+					state->packed_rho.value[i];
+		reselect = simplex_dual_feasibility_reprice(
+			state, previous, exact_weight);
+		if (reselect < 0) {
+			*status = lp_simplex_PrecisionError;
+			return DUAL_STEP_FAILED;
+		}
+		if (!reselect)
+			break;
+		/* The basis is unchanged: every correction certifies one row's norm.
+		 * At most rows candidates can require correction before selection.
+		 * Do not spend pivot work or advance costs/bounds while repricing. */
+		if (repriced++ >= state->rows) {
+			*status = lp_simplex_PrecisionError;
+			return DUAL_STEP_FAILED;
+		}
+		step = dual_select_leaving(state, status, iteration);
+		if (step != DUAL_STEP_READY)
+			return step;
+		if (iteration->p == previous)
+			break;
 	}
-	for (i = 0; i < state->rows; i++)
-		exact_weight += state->rho[i] * state->rho[i];
-	state->edge_weight[iteration->p] = __lp_simplex_MAX__(
-		exact_weight, SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR);
 	candidates = simplex_dual_prepare_ratio_test(state, iteration->kappa);
 	if (candidates < 0) {
 		*status = state->ratio_failure_status;
@@ -1754,6 +1902,7 @@ static void dual_align_entering_cost(
 	}
 	state->cost[q] += correction;
 	state->reduced[q] = target;
+
 	state->costs_version++;
 	state->cost_shift_active = 1;
 	state->cost_shift_count++;
@@ -1798,6 +1947,40 @@ static int dual_try_batched_bound_flip(struct simplex_DualState *state,
 	return DUAL_STEP_RETRY;
 }
 
+static int dual_packed_directions(
+	struct simplex_DualState *state, int column, int *weight_work_ready)
+{
+	struct simplex_SparseVector *direction = &state->packed_direction;
+	int i;
+	if (!simplex_dual_packed_work_prepare(state))
+		return 1;
+	simplex_sparse_vector_clear(direction);
+	if (column >= state->structural)
+		(void)simplex_sparse_vector_set(
+			direction, column - state->structural, -1.);
+	else
+		for (i = state->matrix.column_start[column];
+			i < state->matrix.column_start[column + 1]; i++)
+			(void)simplex_sparse_vector_set(direction,
+				state->matrix.row_index[i],
+				state->matrix.value[i]);
+	if (simplex_basis_ftran_packed(&state->factor, direction))
+		return -1;
+	if (!*weight_work_ready) {
+		simplex_sparse_vector_clear(&state->packed_work);
+		for (i = 0; i < state->packed_rho.count; i++)
+			(void)simplex_sparse_vector_set(&state->packed_work,
+				state->packed_rho.index[i],
+				state->packed_rho.value[i]);
+		if (simplex_basis_ftran_packed(
+			    &state->factor, &state->packed_work))
+			return -1;
+		state->packed_work_valid = 1;
+		*weight_work_ready = 1;
+	}
+	return 0;
+}
+
 static int dual_build_entering_direction(struct simplex_DualState *state,
 	int *status, struct dual_Iteration *iteration, int *weight_work_ready,
 	int *rejected_relative, int *bound_flipped)
@@ -1805,43 +1988,64 @@ static int dual_build_entering_direction(struct simplex_DualState *state,
 	double direction_maximum = 0.;
 	double movement = 0.;
 	unsigned char flipped_status = DUAL_STATUS_FREE;
-	int i, sign;
+	int i, sign, packed;
+	const double *direction;
 	*bound_flipped = 0;
-	simplex_csc_column_to_dense(&state->matrix, state->structural,
-		iteration->q, state->direction);
-	if (!*weight_work_ready) {
-		lp_simplex_memcpy(state->work, state->rho,
-			(size_t)state->rows * sizeof(double));
-		if (simplex_basis_ftran_pair(&state->factor, state->direction,
-			    state->work) == lp_simplex_EXIT_FAILURE) {
-			state->profile.rejected_ftran++;
-			simplex_dual_ratio_remove(state, iteration->q);
-			return DUAL_STEP_RETRY;
-		}
-		*weight_work_ready = 1;
-	} else if (simplex_basis_ftran(&state->factor, state->direction) ==
-		   lp_simplex_EXIT_FAILURE) {
+	packed = dual_packed_directions(state, iteration->q, weight_work_ready);
+	if (packed < 0) {
 		state->profile.rejected_ftran++;
 		simplex_dual_ratio_remove(state, iteration->q);
 		return DUAL_STEP_RETRY;
 	}
-	simplex_sparse_vector_pack_maximum(&state->packed_direction,
-		state->direction, 0., &direction_maximum);
+	if (packed == 1) {
+		simplex_csc_column_to_dense(&state->matrix, state->structural,
+			iteration->q, state->direction);
+		if (!*weight_work_ready) {
+			lp_simplex_memcpy(state->work, state->rho,
+				(size_t)state->rows * sizeof(double));
+			if (simplex_basis_ftran_pair(&state->factor,
+				    state->direction,
+				    state->work) == lp_simplex_EXIT_FAILURE) {
+				state->profile.rejected_ftran++;
+				simplex_dual_ratio_remove(state, iteration->q);
+				return DUAL_STEP_RETRY;
+			}
+			*weight_work_ready = 1;
+		} else if (simplex_basis_ftran(
+				   &state->factor, state->direction) ==
+			   lp_simplex_EXIT_FAILURE) {
+			state->profile.rejected_ftran++;
+			simplex_dual_ratio_remove(state, iteration->q);
+			return DUAL_STEP_RETRY;
+		}
+		simplex_sparse_vector_pack_maximum(&state->packed_direction,
+			state->direction, 0., &direction_maximum);
+	} else {
+		for (i = 0; i < state->packed_direction.count; i++) {
+			double value = state->packed_direction.value[i];
+			direction_maximum =
+				isfinite(value)
+					? __lp_simplex_MAX__(direction_maximum,
+						  fabs(value))
+					: HUGE_VAL;
+		}
+	}
+	direction = state->packed_direction.dense;
 	if (!isfinite(direction_maximum)) {
 		*status = lp_simplex_PrecisionError;
 		return DUAL_STEP_FAILED;
 	}
-	if (__lp_simplex_ABS__(state->direction[iteration->p]) <=
+	if (__lp_simplex_ABS__(direction[iteration->p]) <=
 			state->options->pivot_tolerance ||
-		__lp_simplex_ABS__(state->direction[iteration->p]) <
+		__lp_simplex_ABS__(direction[iteration->p]) <
 			DUAL_RELATIVE_PIVOT_TOLERANCE * direction_maximum) {
 		simplex_dual_ratio_remove(state, iteration->q);
 		(*rejected_relative)++;
 		state->profile.rejected_relative++;
 		return DUAL_STEP_RETRY;
 	}
-	if (__lp_simplex_ABS__(state->direction[iteration->p] -
-			       state->alpha[iteration->q]) >
+	if (__lp_simplex_ABS__(
+		    direction[iteration->p] - state->alpha[iteration->q]) >
 		100. * state->options->pivot_tolerance *
 			__lp_simplex_MAX__(
 				1., __lp_simplex_ABS__(
@@ -1857,7 +2061,7 @@ static int dual_build_entering_direction(struct simplex_DualState *state,
 	}
 	iteration->delta =
 		(state->basic_value[iteration->p] - iteration->target) /
-		state->direction[iteration->p];
+		direction[iteration->p];
 	sign = state->candidate_sign[iteration->q];
 	iteration->new_value = state->value[iteration->q] + iteration->delta;
 	/* Keep a final pivot: a new basic variable may be outside its bounds in
@@ -1911,6 +2115,7 @@ static int dual_select_entering(struct simplex_DualState *state, int *status,
 	int bound_flips = 0;
 	int rejected_relative = 0;
 	int weight_work_ready = 0;
+	state->packed_work_valid = 0;
 
 	state->flip_leaving_change = 0.;
 	for (;;) {
@@ -1995,6 +2200,29 @@ static void dual_exchange_basis(
 	dual_change_status(state, iteration->q, DUAL_STATUS_BASIC);
 	state->alpha[iteration->q] = 0.;
 	state->value[iteration->q] = iteration->new_value;
+	if (state->profile.enabled) {
+		int at, worst = -1;
+		double error = 0.;
+		for (at = 0; at < state->packed_alpha.count; at++) {
+			int column = state->packed_alpha.index[at];
+			double current =
+				dual_variable_infeasibility(state, column);
+			if (current > error) {
+				error = current;
+				worst = column;
+			}
+		}
+		if (error > 2. * state->profile.maximum_observed_dual_error +
+				    state->options->dual_tolerance) {
+			fprintf(stderr,
+				"dual profile: exchange violation iteration=%d column=%d status=%d reduced=%.17g alpha=%.17g leaving=%d entering=%d kappa=%d theta=%.17g ordered=%d\n",
+				state->iterations, worst, state->status[worst],
+				state->reduced[worst], state->alpha[worst],
+				leaving, iteration->q, iteration->kappa,
+				iteration->theta, state->ratio_ordered);
+			state->profile.maximum_observed_dual_error = error;
+		}
+	}
 }
 
 static int dual_update_factorization(struct simplex_DualState *state,
@@ -2010,7 +2238,8 @@ static int dual_update_factorization(struct simplex_DualState *state,
 		update = 1;
 	else
 		update = simplex_basis_update_packed(&state->factor, p,
-			state->direction, state->packed_direction.index,
+			state->packed_direction.dense,
+			state->packed_direction.index,
 			state->packed_direction.count);
 	if (update == 1) {
 		update = dual_reinvert(state);
@@ -2130,12 +2359,40 @@ static unsigned int dual_observe_input(struct simplex_DualState *s, int phase)
 	return improvements;
 }
 
+/* A dual iterate need not be primal feasible. Its fixed-input objective is
+ * only a search potential: increasing it can be useful while primal merit
+ * rebounds. Cancellation, working-cost drift and arithmetic noise must be
+ * dominated before this optional signal can renew the same live basis. */
+static int dual_observe_potential(struct simplex_DualState *s)
+{
+	long double value = 0., activity = 0., drift = 0., uncertainty, gamma;
+	int j;
+	for (j = 0; j < s->variables; j++) {
+		double point = s->position[j] >= 0
+				       ? s->basic_value[s->position[j]]
+				       : s->value[j];
+		long double term = (long double)s->original_cost[j] * point;
+		value += term;
+		activity += fabsl(term);
+		drift += fabsl(((long double)s->cost[j] - s->original_cost[j]) *
+			       point);
+	}
+	gamma = (4. * (long double)s->variables + 8.) * LDBL_EPSILON;
+	if (gamma >= SIMPLEX_DUAL_RATIO_NOISE_LIMIT)
+		return 0;
+	uncertainty = drift + gamma / (1. - gamma) * (activity + drift) +
+		      s->options->dual_tolerance * (1. + activity);
+	return simplex_dual_potential_observe(&s->exploration.potential,
+		s->iterations, s->bounds_version, (double)value,
+		(double)activity, (double)uncertainty);
+}
+
 /* Leases are renewed inside this live state. No basis or factor is lost
  * at a checkpoint. The caller's iteration_limit is the hard exploration cap. */
 static int dual_auto_checkpoint(struct simplex_DualState *s, double residual,
 	int phase, double noise, long cycles)
 {
-	int old_limit, yield, j;
+	int old_limit, yield, j, potential_progress = 0;
 	unsigned int input_progress;
 	double secondary, secondary_noise;
 
@@ -2153,6 +2410,8 @@ static int dual_auto_checkpoint(struct simplex_DualState *s, double residual,
 		return 0;
 	old_limit = s->exploration.limit;
 	input_progress = dual_observe_input(s, phase);
+	if (phase == 0)
+		potential_progress = dual_observe_potential(s);
 	secondary = (double)s->feasibility.count;
 	secondary_noise = SIMPLEX_DUAL_COUNT_NOISE;
 	if (phase != 0) {
@@ -2169,21 +2428,30 @@ static int dual_auto_checkpoint(struct simplex_DualState *s, double residual,
 		s->options->iteration_limit, phase,
 		phase == 0 ? s->bounds_version : s->costs_version, residual,
 		noise, cycles, secondary, secondary_noise);
-	/* Changed working data cannot buy progress by subtraction against an
-	 * older problem. An independent immutable-input improvement can justify
-	 * renewal; otherwise let the caller reclassify the state explicitly. */
+	/* Working stagnation or changed data may disagree with audited input
+	 * progress. Reassess those decisions using immutable-input evidence;
+	 * numerical and cycle failures retain their original priority. */
 	if (yield &&
 		simplex_dual_explore_reassess(&s->exploration,
 			s->options->iteration_limit, input_progress, cycles))
 		yield = 0;
+	if (yield && simplex_dual_explore_reassess_potential(&s->exploration,
+			     s->options->iteration_limit, potential_progress,
+			     cycles))
+		yield = 0;
 	if (s->profile.enabled && (yield || old_limit != s->exploration.limit))
 		fprintf(stderr,
 			"auto: dual-checkpoint action=%s iterations=%d lease=%d hard=%d "
-			"phase=%d residual=%.12g secondary=%.12g input-progress=%u reason=%d\n",
+			"phase=%d residual=%.12g secondary=%.12g input-progress=%u reason=%d "
+			"potential-progress=%d potential-best=%.12g potential-activity=%.12g potential-uncertainty=%.12g cost-epoch=%ld bound-epoch=%ld\n",
 			yield ? "yield" : "continue", s->iterations,
 			s->exploration.limit, s->options->iteration_limit,
 			phase, residual, secondary, input_progress,
-			s->exploration.reason);
+			s->exploration.reason, potential_progress,
+			s->exploration.potential.best,
+			s->exploration.potential.activity,
+			s->exploration.potential.uncertainty, s->costs_version,
+			s->bounds_version);
 	return yield;
 }
 
@@ -2821,6 +3089,10 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 			state.profile.zero_dual_steps,
 			state.profile.flat_objective_steps);
 		fprintf(stderr,
+			"dual profile: DSE underestimated=%ld max-ratio=%.17g\n",
+			state.profile.underestimated_edge_weights,
+			state.profile.maximum_edge_weight_ratio);
+		fprintf(stderr,
 			"dual profile: recovery stage=%d locked=%d primal_stalls=%ld "
 			"primal_cycles=%ld rebuilds=%ld bounds=%ld/%ld repairs=%ld protected_costs=%ld\n",
 			state.recovery.stage,
@@ -2832,6 +3104,10 @@ int simplex_dual_kernel_solve(const struct simplex_Problem *problem,
 			state.recovery.bound_restores,
 			state.recovery.dual_repairs,
 			state.recovery.protected_costs);
+		fprintf(stderr,
+			"dual profile: KLU sparse success=%ld declined=%ld\n",
+			basis_profile.klu_sparse_success,
+			basis_profile.klu_sparse_declined);
 		fprintf(stderr,
 			"dual profile: total=%.6f factor=%.6f/%ld ftran=%.6f/%ld "
 			"btran=%.6f/%ld ratio=%.6f residual=%.6f "

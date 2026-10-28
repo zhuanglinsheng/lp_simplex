@@ -11,6 +11,8 @@
 #include "simplex_presolve.h"
 #include "utils.h"
 
+#include <math.h>
+
 void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
 	const double *reduced_x, double *original_x)
 {
@@ -28,16 +30,29 @@ void simplex_presolve_postsolve(const struct simplex_Presolve *presolve,
 	for (j = presolve->journal.count - 1; j >= 0; j--) {
 		const struct simplex_PresolveSubstitution *record =
 			presolve->journal.record + j;
-		double value = record->constant;
+		double value = record->constant, correction = 0.;
 		int k;
 
 		for (k = 0; k < record->term_count; k++) {
 			int position = record->term_start + k;
 
-			value += presolve->journal.term_multiplier[position] *
-				 original_x[presolve->journal
-						 .term_column[position]];
+			double multiplier =
+				presolve->journal.term_multiplier[position];
+			double coordinate = original_x[presolve->journal
+					.term_column[position]];
+			double product = multiplier * coordinate;
+			double next = value + product;
+
+			/* A short aggregate can still cancel a large RHS. Keep both
+			 * addition and multiplication errors while replaying the exact
+			 * same reverse dependencies; no coordinate is clipped or dropped. */
+			correction +=
+				(fabs(value) >= fabs(product)
+						? (value - next) + product
+						: (product - next) + value) +
+				fma(multiplier, coordinate, -product);
+			value = next;
 		}
-		original_x[record->column] = value;
+		original_x[record->column] = value + correction;
 	}
 }

@@ -132,6 +132,18 @@ void simplex_degeneracy_reset_state(struct simplex_DegeneracyControl *control)
 			(size_t)control->fingerprint_capacity);
 }
 
+void simplex_degeneracy_reset_objective(
+	struct simplex_DegeneracyControl *control)
+{
+	int initialized = control->fingerprint_initialized;
+	unsigned int basis = control->current_basis_hash;
+	unsigned int status = control->current_status_hash;
+	simplex_degeneracy_reset_state(control);
+	control->fingerprint_initialized = initialized;
+	control->current_basis_hash = basis;
+	control->current_status_hash = status;
+}
+
 void simplex_degeneracy_observe(struct simplex_DegeneracyControl *control,
 	const double dual_step, const double dual_error_bound,
 	const double merit_before, const double merit_after,
@@ -377,18 +389,82 @@ int simplex_dual_explore_yield_pair(struct simplex_DualExplore *h,
 	return 0;
 }
 
+int simplex_dual_potential_observe(struct simplex_DualPotential *h, int work,
+	long bounds_epoch, double value, double activity, double uncertainty)
+{
+	double gain, scale, noise;
+	if (work < 0 || !isfinite(value) || !isfinite(activity) ||
+		!isfinite(uncertainty) || activity < 0. || uncertainty < 0. ||
+		(h->initialized && work <= h->work))
+		return 0;
+	if (!h->initialized || h->bounds_epoch != bounds_epoch) {
+		h->initialized = 1;
+		h->work = work;
+		h->bounds_epoch = bounds_epoch;
+		h->best = value;
+		h->baseline = value;
+		h->activity = activity;
+		h->uncertainty = uncertainty;
+		return 0;
+	}
+	h->work = work;
+	if (value <= h->best)
+		return 0;
+	h->best = value;
+	gain = value - h->baseline;
+	scale = __lp_simplex_MAX__(activity, h->activity);
+	noise = uncertainty + h->uncertainty;
+	if (!isfinite(gain) || !isfinite(noise) || gain <= noise ||
+		gain <= SIMPLEX_DUAL_MIN_LEASE_REDUCTION * scale)
+		return 0;
+	h->baseline = value;
+	h->activity = activity;
+	h->uncertainty = uncertainty;
+	return 1;
+}
+
+int simplex_dual_explore_reassess_potential(struct simplex_DualExplore *h,
+	int hard_limit, int progress, long cycles)
+{
+	if (!progress || h->phase != 0 ||
+		h->reason != SIMPLEX_DUAL_EXPLORE_STAGNATION || h->limit <= 0 ||
+		h->limit >= hard_limit || cycles - h->cycles >= 2)
+		return 0;
+	h->limit = h->limit > hard_limit / 2 ? hard_limit : 2 * h->limit;
+	h->reason = SIMPLEX_DUAL_EXPLORE_CONTINUE;
+	h->cycles = cycles;
+	return 1;
+}
+
 int simplex_dual_explore_reassess(struct simplex_DualExplore *h, int hard_limit,
 	unsigned int input_progress, long cycles)
 {
-	unsigned int known =
+	unsigned int improved =
 		SIMPLEX_INPUT_PRIMAL_PROGRESS | SIMPLEX_INPUT_COUNT_PROGRESS |
 		SIMPLEX_INPUT_OBJECTIVE_PROGRESS |
-		SIMPLEX_INPUT_BOUND_PROGRESS | SIMPLEX_INPUT_DUAL_PROGRESS |
-		SIMPLEX_INPUT_FEASIBLE_AVAILABLE |
-		SIMPLEX_INPUT_BOUND_AVAILABLE;
+		SIMPLEX_INPUT_BOUND_PROGRESS | SIMPLEX_INPUT_DUAL_PROGRESS;
+	unsigned int relevant = h->phase == 0
+					? SIMPLEX_INPUT_PRIMAL_PROGRESS |
+						  SIMPLEX_INPUT_COUNT_PROGRESS
+					: SIMPLEX_INPUT_OBJECTIVE_PROGRESS |
+						  SIMPLEX_INPUT_DUAL_PROGRESS;
+	unsigned int available = SIMPLEX_INPUT_FEASIBLE_AVAILABLE |
+				 SIMPLEX_INPUT_BOUND_AVAILABLE;
 
-	if (h->reason != SIMPLEX_DUAL_EXPLORE_MEASUREMENT ||
-		!(input_progress & known) || h->limit >= hard_limit)
+	/* Working merit can stagnate even as independently audited input
+	 * features improve in the current phase's goal. A lower bound alone
+	 * cannot establish feasibility progress; its relative gain near zero
+	 * can also be arbitrarily small in objective units. Phase-I objective
+	 * evidence has its own activity/drift-scaled potential observer.
+	 * Availability alone only establishes a baseline in
+	 * a changed measurement space; it cannot rescue a measured plateau.
+	 * Neither kind of evidence overrides numerical or cycling safeguards. */
+	if (h->limit <= 0 || h->limit >= hard_limit ||
+		cycles - h->cycles >= 2 ||
+		!((h->reason == SIMPLEX_DUAL_EXPLORE_STAGNATION &&
+			  (input_progress & relevant)) ||
+			(h->reason == SIMPLEX_DUAL_EXPLORE_MEASUREMENT &&
+				(input_progress & (improved | available)))))
 		return 0;
 	h->limit = h->limit > hard_limit / 2 ? hard_limit : 2 * h->limit;
 	h->reason = SIMPLEX_DUAL_EXPLORE_CONTINUE;

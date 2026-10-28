@@ -39,6 +39,7 @@ int producer_pdhg_configured(const struct simplex_PanBounded *b, double *point,
 #define simplex_pan_pdhg_progress_reset producer_progress_reset
 #define simplex_pan_pdhg_repair_progress producer_repair_progress
 #define simplex_pan_pdhg_progress_stalled producer_progress_stalled
+#define simplex_pan_pdhg_progress_stalled_pair producer_progress_stalled_pair
 #define simplex_pan_pdhg_handoff_gap producer_handoff_gap
 #define simplex_pan_pdhg_columns_destroy producer_columns_destroy
 #define simplex_pan_pdhg_columns_create producer_columns_create
@@ -83,6 +84,136 @@ static int producer_restore(const struct simplex_PanBounded *b, double *point,
 	return code;
 }
 
+/* A tiny coordinate is removable only when its aggregate row activity is
+ * harmless. The exact same coordinate with a large coefficient is essential.
+ * Neither a face adjustment nor a feasible point alone grants KKT status. */
+static int face_certificate(void)
+{
+	int essential;
+	for (essential = 0; essential < 2; essential++) {
+		struct lp_Model *m = lp_model_create(1, 2);
+		struct simplex_Problem p;
+		struct simplex_PanBounded b;
+		struct lp_simplex_Options o;
+		double point[2] = {1e-10, 1. - 1e-10}, saved[2];
+		double multiplier[1] = {0.}, physical[1], r[1], work[1];
+		int improvements = 0, iterations = 17, changed, certified;
+		if (!m)
+			return 0;
+		m->constraints[0].type = optm_CONS_T_EQ;
+		m->constraints[0].rhs = essential ? 2. : 1.;
+		m->constraints[0].coef[0] = essential ? 1e10 : 1.;
+		m->constraints[0].coef[1] = 1.;
+		m->objective[0] = 1.;
+		if (essential)
+			point[1] = 1.;
+		if (simplex_problem_from_model(&p, m) ||
+			simplex_pan_bounded_create(&b, &p))
+			return 0;
+		lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+		o.iteration_limit = 128;
+		certified = pdhg_audit(&b, point, multiplier, 1., point,
+			multiplier, &o, physical, r, work, &improvements, NULL);
+		if (certified)
+			return 0;
+		changed = simplex_pan_service_face(NULL, &b, point, multiplier,
+			&o, &iterations, saved, r, work,
+			SIMPLEX_PAN_FACE_PDHG_IMPROVEMENT, 1, 0, NULL, NULL);
+		certified = pdhg_audit(&b, point, multiplier, 1., point,
+			multiplier, &o, physical, r, work, &improvements, NULL);
+		if (iterations != 17 ||
+			(essential ? (changed != 0 || certified ||
+					     point[0] != 1e-10)
+				   : (changed <= 0 || !certified ||
+					     point[0] != 0.)))
+			return 0;
+		simplex_pan_bounded_destroy(&b);
+		simplex_problem_destroy(&p);
+		lp_model_free(m);
+	}
+	return 1;
+}
+
+static int cancelling_face_certificate(void)
+{
+	struct lp_Model *m = lp_model_create(1, 3);
+	struct simplex_Problem p;
+	struct simplex_PanBounded b;
+	struct lp_simplex_Options o;
+	double point[3] = {1e-6, 1e-6, 100.}, saved[3];
+	double multiplier[1] = {0.}, physical[1], r[1], work[1];
+	int improvements = 0, iterations = 17, changed, certified;
+	if (!m)
+		return 0;
+	m->constraints[0].type = optm_CONS_T_EQ;
+	m->constraints[0].rhs = 100.;
+	m->constraints[0].coef[0] = m->constraints[0].coef[2] = 1.;
+	m->constraints[0].coef[1] = -1.;
+	m->objective[0] = m->objective[1] = 1.;
+	m->objective[2] = -10000.;
+	m->bounds[2].b_type = optm_BOUND_T_BS;
+	m->bounds[2].ub = 100.;
+	if (simplex_problem_from_model(&p, m) ||
+		simplex_pan_bounded_create(&b, &p))
+		return 0;
+	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+	o.iteration_limit = 128;
+	if (pdhg_audit(&b, point, multiplier, 1., point, multiplier, &o,
+		    physical, r, work, &improvements, NULL))
+		return 0;
+	changed = simplex_pan_service_face(NULL, &b, point, multiplier, &o,
+		&iterations, saved, r, work, SIMPLEX_PAN_FACE_PDHG_IMPROVEMENT,
+		1, 0, NULL, NULL);
+	certified = pdhg_audit(&b, point, multiplier, 1., point, multiplier, &o,
+		physical, r, work, &improvements, NULL);
+	simplex_pan_bounded_destroy(&b);
+	simplex_problem_destroy(&p);
+	lp_model_free(m);
+	return changed == 2 && certified && iterations == 17 &&
+	       point[0] == 0. && point[1] == 0. && point[2] == 100.;
+}
+
+static int fresh_feasible_certificate(void)
+{
+	struct lp_Model *m = lp_model_create(1, 2);
+	struct simplex_Problem p;
+	struct simplex_PanBounded b;
+	struct lp_simplex_Options o;
+	double candidate[2] = {1., 0.}, old[2] = {1. - 3e-8, 1e-8};
+	double point[2], multiplier[1] = {0.}, seed[1] = {0.};
+	double physical[1], r[1], work[1];
+	int improved = 0, used = 0, certified;
+	if (!m)
+		return 0;
+	m->constraints[0].type = optm_CONS_T_EQ;
+	m->constraints[0].rhs = 1.;
+	m->constraints[0].coef[0] = m->constraints[0].coef[1] = 1.;
+	m->objective[0] = 1.;
+	m->objective[1] = 2.;
+	m->bounds[0].b_type = optm_BOUND_T_BS;
+	m->bounds[0].ub = 1.;
+	if (simplex_problem_from_model(&p, m) ||
+		simplex_pan_bounded_create(&b, &p))
+		return 0;
+	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+	memcpy(point, old, sizeof(point));
+	/* The incumbent is tolerance-feasible and cheaper, but its two interior
+	 * variables impose incompatible stationarity equations. Zero-work refusal
+	 * must retain it. A fresh exact vertex can replace it only with full KKT. */
+	certified = pdhg_refine_candidate(&b, candidate, seed, 1., point,
+		multiplier, &o, 0, &used, physical, r, work, &improved);
+	if (certified || memcmp(point, old, sizeof(point)) || used)
+		return 0;
+	certified = pdhg_refine_candidate(&b, candidate, seed, 1., point,
+		multiplier, &o, 16, &used, physical, r, work, &improved);
+	simplex_pan_bounded_destroy(&b);
+	simplex_problem_destroy(&p);
+	lp_model_free(m);
+	return certified && improved == 1 && used > 0 && used <= 16 &&
+	       point[0] == 1. && point[1] == 0. && candidate[0] == 1. &&
+	       candidate[1] == 0.;
+}
+
 int main(void)
 {
 	struct lp_Model *m = lp_model_create(1, 2);
@@ -99,6 +230,9 @@ int main(void)
 	int mode, iterations, saved_work = 0, saved_calls = 0, stop, output,
 			      code, i, triggers;
 
+	if (!face_certificate() || !cancelling_face_certificate() ||
+		!fresh_feasible_certificate())
+		return 1;
 	if (!m)
 		return 1;
 	m->constraints[0].type = optm_CONS_T_GE;

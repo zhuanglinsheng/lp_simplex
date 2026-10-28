@@ -21,6 +21,7 @@ struct simplex_DualControls {
  * Numerical kernels receive values, never an AUTO/experimental mode flag. */
 struct simplex_RunConfig {
 	int experimental_environment, disable_presolve, disable_scaling;
+	int presolve_dependencies;
 	struct simplex_DualControls dual;
 	struct simplex_PanConfig pan;
 };

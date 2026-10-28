@@ -12,12 +12,15 @@
 #include <lp_simplex/lp_simplex.h>
 
 #include "simplex_presolve_queue.h"
+#include "simplex_presolve_activity.h"
 #include "simplex_presolve.h"
+#include "simplex_presolve_substitution.h"
 #include "simplex_dual.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 static double absolute_value(const double value)
 {
@@ -506,6 +509,141 @@ static int solve_degree_two_implied_free_substitution(void)
 	       absolute_value(result.objective - 1.) <= 1e-9;
 }
 
+/* Neither incident equality implies both bounds of x0. The first supplies
+ * x0 <= 9 and the second x0 >= 0; the other rows must survive aggregation.
+ * Test the reduction itself, its inverse journal, and strict near-bound
+ * refusals without earlier propagation masking the missing cross-row rule. */
+static int cross_row_implied_bounds(void)
+{
+	int degree, flip, variant, good = 1;
+	for (degree = 2; degree <= 5; degree++)
+		for (flip = 0; flip < 4; flip++)
+			for (variant = 0; variant < 5; variant++) {
+				struct lp_Model *m = lp_model_create(5, 5);
+				struct simplex_Presolve p;
+				double original[5] = {2., 4., 5., 1., 1.};
+				double reduced[5], lifted[5];
+				int j;
+				if (!m)
+					return 0;
+				memset(&p, 0, sizeof(p));
+				for (j = 0; j < 5; j++) {
+					m->bounds[j].b_type = optm_BOUND_T_BS;
+					m->bounds[j].ub =
+						j == 0 ? 9.
+						       : (j == 1 ? 10.
+								 : (j == 2 ? 8.
+									   : 5.));
+					m->objective[j] = j + 1.;
+				}
+				if (variant == 1)
+					m->bounds[0].ub =
+						nextafter(9., -HUGE_VAL);
+				if (variant == 2)
+					m->bounds[0].lb =
+						nextafter(0., HUGE_VAL);
+				m->constraints[0].coef[0] =
+					m->constraints[0].coef[1] = 1.;
+				m->constraints[0].coef[2] = -1.;
+				m->constraints[0].rhs = 1.;
+				m->constraints[1].coef[0] = 1.;
+				m->constraints[1].coef[3] =
+					m->constraints[1].coef[4] = -1.;
+				for (j = 1; j < 5; j++) {
+					m->constraints[2].coef[j] = 1.;
+					m->constraints[3].coef[j] =
+						j == 2 ? -1. : 1.;
+					m->constraints[4].coef[j] =
+						j == 1 || j == 4 ? -1. : 1.;
+				}
+				for (j = 2; j < degree; j++)
+					m->constraints[j].coef[0] = 1.;
+				m->constraints[2].type = optm_CONS_T_GE;
+				m->constraints[2].rhs = 1.;
+				m->constraints[3].type = optm_CONS_T_LE;
+				m->constraints[3].rhs = 7.;
+				m->constraints[4].type = optm_CONS_T_LE;
+				m->constraints[4].rhs = 7.;
+				if (variant >= 3) {
+					/* The exact upper expression is 1 + .2 - 1 = .2.
+					 * Rounded inward it can falsely justify a tighter bound.
+					 * Safe aggregation must also replay 1 + .1 - 1 as .1. */
+					m->bounds[0].ub =
+						variant == 3 ? nextafter(.2, 0.)
+							     : .25;
+					m->bounds[1].ub = .2;
+					m->bounds[2].lb = 1.;
+					m->bounds[2].ub = 2.;
+					m->constraints[0].rhs = 1.;
+					m->constraints[2].rhs = 1.1;
+					m->constraints[0].coef[1] = -1.;
+					m->constraints[0].coef[2] = 1.;
+					original[0] = original[1] = .1;
+					original[2] = 1.;
+					original[3] = original[4] = .05;
+				}
+				for (j = 0; j < 2; j++)
+					if (flip & (1 << j)) {
+						int k;
+						m->constraints[j].rhs =
+							-m->constraints[j].rhs;
+						for (k = 0; k < 5; k++)
+							m->constraints[j]
+								.coef[k] =
+								-m->constraints[j]
+									 .coef[k];
+					}
+				if (lp_model_build_sparse(m)) {
+					lp_model_free(m);
+					return 0;
+				}
+				p.original = m;
+				p.status = lp_simplex_CondUnsatisfied;
+				p.reduced = (struct simplex_Problem *)calloc(
+					1, sizeof(*p.reduced));
+				p.column_map = (int *)calloc(5, sizeof(int));
+				p.row_map = (int *)calloc(5, sizeof(int));
+				p.eliminated = (unsigned char *)calloc(5, 1);
+				p.eliminated_value =
+					(double *)calloc(5, sizeof(double));
+				if (!p.reduced || !p.column_map || !p.row_map ||
+					!p.eliminated || !p.eliminated_value) {
+					simplex_presolve_destroy(&p);
+					lp_model_free(m);
+					return 0;
+				}
+				for (j = 0; j < 5; j++)
+					p.column_map[j] = j;
+				for (j = 0; j < 5; j++)
+					p.row_map[j] = j;
+				if (simplex_problem_from_model(p.reduced, m) ||
+					simplex_presolve_substitute_doubletons(
+						&p, 1e-7))
+					good = 0;
+				else {
+					good = good &&
+					       (p.eliminated[0] != 0) ==
+						       ((variant == 0 ||
+								variant == 4) &&
+							       degree <= 4);
+					good = good &&
+					       p.status ==
+						       lp_simplex_CondUnsatisfied;
+					for (j = 0; j < p.reduced->columns; j++)
+						reduced[j] = original[p
+								.column_map[j]];
+					simplex_presolve_postsolve(
+						&p, reduced, lifted);
+					for (j = 0; j < 5; j++)
+						good = good &&
+						       lifted[j] == original[j];
+				}
+				simplex_presolve_destroy(&p);
+				lp_model_free(m);
+			}
+	return good;
+}
+
 static int solve_with_objective_offset(void)
 {
 	struct lp_Model *model = lp_model_create(1, 1);
@@ -693,29 +831,147 @@ static int preserve_nearly_parallel_rows(void)
 	return 1;
 }
 
+static int split_flow_bound_propagation(void)
+{
+	const double capacities[4] = {.125, 7., 513., 1024.};
+	const double tolerances[3] = {1e-3, 1e-7, 1e-11};
+	unsigned char active[3] = {1, 1, 1};
+	struct optm_VariableBound bounds[3];
+	struct lp_Model *m;
+	int capacity, level, j, state, tightened, forcing;
+
+	/* A bounded incoming flow limits both nonnegative outgoing flows.
+	 * Search tolerances must not create false corners outside conservation. */
+	for (capacity = 0; capacity < 4; capacity++)
+		for (level = 0; level < 3; level++) {
+			double limit = capacities[capacity];
+			m = lp_model_create(1, 3);
+			if (!m)
+				return 0;
+			m->bounds[0].b_type = optm_BOUND_T_BS;
+			m->bounds[0].ub = limit;
+			m->constraints[0].type = optm_CONS_T_EQ;
+			m->constraints[0].coef[0] = -1.;
+			m->constraints[0].coef[1] = 1.;
+			m->constraints[0].coef[2] = 1.;
+			memcpy(bounds, m->bounds, sizeof(bounds));
+			state = simplex_presolve_analyze_row(m, 0, active,
+				bounds, 0., tolerances[level],
+				tolerances[level], 1, &tightened, &forcing);
+			lp_model_free(m);
+			if (state < 0 || tightened != 2)
+				return 0;
+			for (j = 1; j < 3; j++)
+				if (bounds[j].b_type != optm_BOUND_T_BS ||
+					bounds[j].ub < limit ||
+					bounds[j].ub - limit >
+						1e-10 * (1. + limit))
+					return 0;
+		}
+	return 1;
+}
+
+/* Implied-bound chains must not acquire user-tolerance-sized padding.
+ * Both signs and power-of-two row scales retain the exact feasible endpoint. */
+static int outward_bound_propagation(void)
+{
+	int sign, scale, level, row, tightened, forcing, state;
+	const double tolerances[3] = {1e-3, 1e-7, 1e-11};
+	unsigned char active[4] = {1, 1, 1, 1};
+	struct optm_VariableBound bounds[4];
+	struct lp_Model *m;
+	for (sign = 0; sign < 2; sign++)
+		for (scale = -24; scale <= 24; scale += 8)
+			for (level = 0; level < 3; level++) {
+				double coefficient = ldexp(1., scale);
+				m = lp_model_create(2, 3);
+				if (!m)
+					return 0;
+				m->bounds[0].b_type = optm_BOUND_T_BS;
+				m->bounds[0].lb = sign ? -100. : 0.;
+				m->bounds[0].ub = sign ? 0. : 100.;
+				for (row = 1; row < 3; row++) {
+					m->bounds[row].b_type =
+						sign ? optm_BOUND_T_UP
+						     : optm_BOUND_T_LO;
+					m->bounds[row].lb = m->bounds[row].ub =
+						0.;
+				}
+				memcpy(bounds, m->bounds, 3 * sizeof(*bounds));
+				for (row = 0; row < 2; row++) {
+					m->constraints[row].type =
+						sign ? optm_CONS_T_GE
+						     : optm_CONS_T_LE;
+					m->constraints[row].coef[row] =
+						-coefficient;
+					m->constraints[row].coef[row + 1] =
+						coefficient;
+					state = simplex_presolve_analyze_row(m,
+						row, active, bounds, 0.,
+						tolerances[level],
+						tolerances[level], 1,
+						&tightened, &forcing);
+					if (state < 0 || tightened < 1 ||
+						(sign ? (bounds[row + 1].lb >
+									-100. ||
+								bounds[row + 1].lb <
+									-100. - 1e-9)
+						      : (bounds[row + 1].ub <
+									100. ||
+								bounds[row + 1].ub >
+									100. + 1e-9))) {
+						lp_model_free(m);
+						return 0;
+					}
+				}
+				lp_model_free(m);
+			}
+	/* Cancellation must widen the enclosure instead of cutting off x0=101.
+	 * Works even on platforms where long double has double precision. */
+	m = lp_model_create(1, 4);
+	if (!m)
+		return 0;
+	m->constraints[0].type = optm_CONS_T_LE;
+	m->constraints[0].rhs = 100.;
+	for (row = 0; row < 4; row++)
+		m->constraints[0].coef[row] = 1.;
+	for (row = 1; row < 4; row++) {
+		m->bounds[row].b_type = optm_BOUND_T_BS;
+		m->bounds[row].lb = m->bounds[row].ub =
+			row == 1 ? 1e16 : (row == 2 ? -1. : -1e16);
+	}
+	memcpy(bounds, m->bounds, sizeof(bounds));
+	state = simplex_presolve_analyze_row(m, 0, active, bounds, 100., 1e-7,
+		1e-7, 1, &tightened, &forcing);
+	lp_model_free(m);
+	return state >= 0 && bounds[0].b_type == optm_BOUND_T_BS &&
+	       bounds[0].ub >= 101.;
+}
+
 int main(void)
 {
-	int passed = preserve_nearly_parallel_rows() +
-		     solve_fixed_and_empty_column() +
-		     solve_with_redundant_empty_row() +
-		     detect_infeasible_empty_row() +
-		     solve_singleton_inequality_chain() +
-		     detect_infeasible_activity() +
-		     solve_implied_bound_propagation() +
-		     solve_dominated_parallel_row() +
-		     detect_conflicting_parallel_equalities() +
-		     solve_singleton_column_substitution() +
-		     solve_forcing_row() +
-		     solve_zero_cost_singleton_inequality_column() +
-		     solve_substitution_fixed_point_cascade() +
-		     solve_singleton_equality_projection() +
-		     solve_degree_two_implied_free_substitution() +
-		     solve_with_objective_offset() +
-		     solve_dense_presolve_equivalence() +
-		     exercise_presolve_work_queue() +
-		     preserve_nearly_implied_singleton_bound(0) +
-		     preserve_nearly_implied_singleton_bound(1);
+	int passed =
+		split_flow_bound_propagation() + outward_bound_propagation() +
+		preserve_nearly_parallel_rows() +
+		solve_fixed_and_empty_column() +
+		solve_with_redundant_empty_row() +
+		detect_infeasible_empty_row() +
+		solve_singleton_inequality_chain() +
+		detect_infeasible_activity() +
+		solve_implied_bound_propagation() +
+		solve_dominated_parallel_row() +
+		detect_conflicting_parallel_equalities() +
+		solve_singleton_column_substitution() + solve_forcing_row() +
+		solve_zero_cost_singleton_inequality_column() +
+		solve_substitution_fixed_point_cascade() +
+		solve_singleton_equality_projection() +
+		solve_degree_two_implied_free_substitution() +
+		cross_row_implied_bounds() + solve_with_objective_offset() +
+		solve_dense_presolve_equivalence() +
+		exercise_presolve_work_queue() +
+		preserve_nearly_implied_singleton_bound(0) +
+		preserve_nearly_implied_singleton_bound(1);
 
-	printf("%d/20 presolve reductions passed.\n", passed);
-	return passed == 20 ? 0 : 1;
+	printf("%d/23 presolve reductions passed.\n", passed);
+	return passed == 23 ? 0 : 1;
 }

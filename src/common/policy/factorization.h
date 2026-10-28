@@ -36,6 +36,9 @@
 #define SIMPLEX_PRICING_TIE_RELATIVE 1e-12
 #define SIMPLEX_PRICING_AUDIT_RELATIVE 1e-11
 #define SIMPLEX_DUAL_EDGE_WEIGHT_FLOOR 1e-12
+/* Updated squared DSE norm must be at least a quarter of its BTRAN norm.
+ * This bounds optimistic pricing error, not feasibility or optimality error. */
+#define SIMPLEX_DUAL_DSE_ACCEPT_RATIO .25
 #define SIMPLEX_PRESOLVE_SUBSTITUTION_RELATIVE 1e-10
 #define SIMPLEX_PRESOLVE_BOUND_NOISE_FRACTION 1e-4
 #define SIMPLEX_PRESOLVE_BOUND_NOISE_FLOOR 1e-12

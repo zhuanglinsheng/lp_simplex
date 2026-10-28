@@ -30,6 +30,10 @@ int simplex_sparse_vector_create(
 void simplex_sparse_vector_destroy(struct simplex_SparseVector *vector);
 
 void simplex_sparse_vector_clear(struct simplex_SparseVector *vector);
+/* Restore increasing coordinate order without changing values or support. */
+void simplex_sparse_vector_sort(struct simplex_SparseVector *vector);
+/* Remove only exact zeros, retaining every nonzero and membership invariant. */
+void simplex_sparse_vector_compact(struct simplex_SparseVector *vector);
 
 int simplex_sparse_vector_set(
 	struct simplex_SparseVector *vector, int index, double value);

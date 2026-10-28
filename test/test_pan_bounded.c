@@ -382,7 +382,7 @@ static int local_restore(void)
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
 	simplex_pan_config_resolve(&controls, b.problem, &o);
 	good = simplex_pan_bounded_restore_configured_reported(
-		       &b, x, &o, &iterations, 2., &controls, NULL) == 1 &&
+		       &b, x, &o, &iterations, 2., &controls, 0, NULL) == 1 &&
 	       iterations > 0 &&
 	       simplex_pan_bounded_primal(&b, x, r, work) < 1e-12 &&
 	       x[0] >= 0. && x[1] <= 1.;
@@ -391,7 +391,7 @@ static int local_restore(void)
 	iterations = 0;
 	good = good &&
 	       simplex_pan_bounded_restore_configured_reported(
-		       &b, x, &o, &iterations, 2., &controls, NULL) == 1 &&
+		       &b, x, &o, &iterations, 2., &controls, 0, NULL) == 1 &&
 	       simplex_pan_bounded_primal(&b, x, r, work) < 1e-8 &&
 	       x[0] >= 0. && x[1] <= 1.;
 	/* A ceiling that excludes every feasible point must roll back exactly. */
@@ -400,17 +400,87 @@ static int local_restore(void)
 	iterations = 0;
 	good = good &&
 	       simplex_pan_bounded_restore_configured_reported(
-		       &b, x, &o, &iterations, .5, &controls, NULL) == -1 &&
+		       &b, x, &o, &iterations, .5, &controls, 0, NULL) == -1 &&
 	       x[0] == .4 && x[1] == .60001;
 	o.iteration_limit = 0;
 	iterations = 0;
 	good = good &&
 	       simplex_pan_bounded_restore_configured_reported(
-		       &b, x, &o, &iterations, 2., &controls, NULL) == -1 &&
+		       &b, x, &o, &iterations, 2., &controls, 0, NULL) == -1 &&
 	       iterations == 0 && x[0] == .4 && x[1] == .60001;
 	simplex_pan_bounded_destroy(&b);
 	simplex_problem_destroy(&p);
 	lp_model_free(m);
+	return good;
+}
+
+/* An opportunity limits correction proposals, not the inner NNLS solve.
+ * A bound hit needing a second cone face must roll the trial back exactly. */
+static int restore_trial(void)
+{
+	struct simplex_PanConfig controls;
+	struct simplex_Problem p;
+	struct simplex_PanBounded b;
+	struct lp_simplex_Options o;
+	struct lp_Model *m;
+	double x[3], r[2], work[2];
+	int scenario, j, result, iterations, case_good, good = 1;
+
+	for (scenario = 0; scenario < 2; scenario++) {
+		m = lp_model_create(2, 3);
+		if (!m)
+			return 0;
+		m->constraints[0].type = optm_CONS_T_EQ;
+		m->constraints[0].rhs = .5;
+		m->constraints[0].coef[0] = 1.;
+		m->constraints[1].type = optm_CONS_T_EQ;
+		m->constraints[1].rhs = 1.;
+		m->constraints[1].coef[1] = m->constraints[1].coef[2] = 1.;
+		for (j = 0; j < 3; j++) {
+			m->bounds[j].b_type = optm_BOUND_T_BS;
+			m->bounds[j].lb = 0.;
+			m->bounds[j].ub =
+				scenario && j ? (j == 1 ? .4 : .7) : 1.;
+			m->objective[j] = j ? 1. : 0.;
+		}
+		if (simplex_problem_from_model(&p, m) ||
+			simplex_pan_bounded_create(&b, &p))
+			return 0;
+		lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
+		o.iteration_limit = 128;
+		simplex_pan_config_resolve(&controls, b.problem, &o);
+		x[0] = .5;
+		x[1] = x[2] = 0.;
+		iterations = 0;
+		result = simplex_pan_bounded_restore_configured_reported(
+			&b, x, &o, &iterations, 2., &controls, 1, NULL);
+		case_good = iterations > 1 && iterations <= o.iteration_limit;
+		if (!scenario)
+			case_good = case_good && result == 1 &&
+				    simplex_pan_bounded_primal(&b, x, r, work) <
+					    1e-8;
+		else {
+			case_good = case_good && result == -1 && x[0] == .5 &&
+				    x[1] == 0. && x[2] == 0.;
+			iterations = 0;
+			result =
+				simplex_pan_bounded_restore_configured_reported(
+					&b, x, &o, &iterations, 2., &controls,
+					0, NULL);
+			case_good = case_good && result == 1 &&
+				    simplex_pan_bounded_primal(&b, x, r, work) <
+					    1e-8 &&
+				    x[1] <= .4 && x[2] <= .7;
+		}
+		if (!case_good)
+			fprintf(stderr,
+				"restore trial scenario=%d result=%d work=%d\n",
+				scenario, result, iterations);
+		good = good && case_good;
+		simplex_pan_bounded_destroy(&b);
+		simplex_problem_destroy(&p);
+		lp_model_free(m);
+	}
 	return good;
 }
 
@@ -528,7 +598,7 @@ int main(void)
 	unsigned int seed;
 
 	if (!representation() || !kkt() || !free_ray() || !bound_exchange() ||
-		!scaled_coordinate() || !local_restore() ||
+		!scaled_coordinate() || !local_restore() || !restore_trial() ||
 		!multiplier_repair() || !pdhg_short_budgets())
 		return 1;
 	for (seed = 1; seed <= 100; seed++)

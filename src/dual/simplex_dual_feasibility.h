@@ -42,6 +42,11 @@ void simplex_dual_feasibility_rebuild(struct simplex_DualState *state);
 
 void simplex_dual_feasibility_update(struct simplex_DualState *state, int row);
 
+/* -1: invalid norm (unchanged state); 0: accept selected row;
+ * 1: corrected optimistic norm and heap, caller must select again. */
+int simplex_dual_feasibility_reprice(
+	struct simplex_DualState *state, int row, double exact_weight);
+
 void simplex_dual_feasibility_update_packed(struct simplex_DualState *state,
 	const struct simplex_SparseVector *changed_rows);
 

@@ -38,6 +38,7 @@ struct simplex_DualProfile {
 	double ratio_audit_seconds;
 	double ratio_certify_seconds;
 	double reduced_update_seconds;
+	double maximum_observed_dual_error;
 	long ratio_sparse_calls, ratio_dense_calls, ratio_audit_calls;
 	long ratio_certify_calls, reduced_sparse_calls, reduced_dense_calls;
 	/* Work totals use doubles to avoid 32-bit long overflow on wide LPs. */
@@ -54,6 +55,8 @@ struct simplex_DualProfile {
 	long main_pivots;
 	long zero_dual_steps;
 	long flat_objective_steps;
+	long underestimated_edge_weights;
+	double maximum_edge_weight_ratio;
 };
 
 /* Owners for the dense solver workspaces.  The state keeps typed aliases for
@@ -111,6 +114,8 @@ struct simplex_DualState {
 	struct simplex_SparseVector packed_alpha;
 	int packed_alpha_valid;
 	struct simplex_SparseVector packed_direction;
+	struct simplex_SparseVector packed_work;
+	int packed_work_attempted, packed_work_valid;
 	struct simplex_SparseVector flip_rhs;
 	double flip_leaving_change;
 	double *alpha;

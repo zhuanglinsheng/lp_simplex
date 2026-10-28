@@ -11,6 +11,8 @@
 /* Work grants; all remain bounded by the caller's cumulative budget. */
 #define SIMPLEX_PAN_PDHG_WORK_CAP 500000
 #define SIMPLEX_PAN_DUAL_POLISH_WORK_CAP 8192
+/* Matrix-free recovery block; continuation requires residual halving. */
+#define SIMPLEX_PAN_DUAL_KRYLOV_WORK_BLOCK 256
 #define SIMPLEX_PAN_RESTORE_WORK_CAP 2048
 #define SIMPLEX_PAN_NNLS_BLOCK_CAP 32
 #define SIMPLEX_PAN_RESTORE_PASSES 64

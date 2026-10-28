@@ -9,6 +9,7 @@
  */
 
 #include "policy/pan.h"
+#include "policy/resources.h"
 #include "policy/controls.h"
 #include "simplex_pan_config.h"
 #include "simplex_pan_service.h"
@@ -235,9 +236,235 @@ int simplex_pan_bounded_check_dual(const struct simplex_PanBounded *b,
 	       fabsl(primal - dual) <= tolerance * (1. + fabsl(primal));
 }
 
-/* Search for a multiplier on the same feasible face. The gap only admits
- * this bounded repair; it never certifies optimality. Every accepted repair
- * passes the unchanged componentwise KKT and gap audit. */
+/* Multiply the transpose of a normalized active-face operator. Scatter
+ * products retain compensated accumulation, including their FMA remainders. */
+static int native_face_transpose(const struct simplex_PanStandard *a,
+	const double *ratio, const double *u, double *v, double *error)
+{
+	int i, j, k;
+	lp_simplex_memset(v, 0, (size_t)a->rows * sizeof(double));
+	lp_simplex_memset(error, 0, (size_t)a->rows * sizeof(double));
+	for (j = 0; j < a->columns; j++) {
+		double x = ratio[j] * u[j];
+		if (x == 0.)
+			continue;
+		for (k = a->column_start[j]; k < a->column_start[j + 1]; k++) {
+			double product = a->value[k] * x, next;
+			i = a->row_index[k];
+			next = v[i] + product;
+			error[i] += (fabs(v[i]) >= fabs(product)
+						    ? (v[i] - next) + product
+						    : (product - next) + v[i]) +
+				    fma(a->value[k], x, -product);
+			v[i] = next;
+		}
+	}
+	for (i = 0; i < a->rows; i++) {
+		v[i] += error[i];
+		if (!isfinite(v[i]))
+			return 0;
+	}
+	return 1;
+}
+
+/* Golub-Kahan LSQR proposes a multiplier correction in equilibrated coordinates,
+ * without forming normal equations or factoring a deficient active face.
+ * This is only a bounded proposal; acceptance is the unchanged box KKT audit.
+ * The caller owns exact rollback, including partial updates on failure. */
+static int native_dual_iterative_repair(const struct simplex_PanBounded *b,
+	const double *point, double *y, double tolerance, int limit,
+	int *iterations, double *violation)
+{
+	const struct simplex_PanStandard *a = &b->a;
+	double *storage, *ratio, *u, *v, *w, *z, *error, *trial, *diagonal;
+	int i, j, k, step, attempt, result = 0;
+	size_t count;
+	long double bytes = (2.L * ((long double)a->columns + 1.L) +
+				    7.L * ((long double)a->rows + 1.L)) *
+			    sizeof(double);
+	clock_t begun = clock();
+	if (a->rows <= 0 || a->columns <= 0 || !a->column_norm ||
+		bytes > SIMPLEX_PAN_DUAL_REPAIR_BYTES || *iterations >= limit)
+		return 0;
+	if (limit - *iterations > SIMPLEX_PAN_DUAL_POLISH_WORK_CAP)
+		limit = *iterations + SIMPLEX_PAN_DUAL_POLISH_WORK_CAP;
+	count = 2 * ((size_t)a->columns + 1) + 6 * ((size_t)a->rows + 1);
+	storage = (double *)lp_simplex_malloc(count * sizeof(double));
+	if (!storage)
+		return 0;
+	ratio = storage;
+	u = ratio + (size_t)a->columns + 1;
+	v = u + (size_t)a->columns + 1;
+	w = v + (size_t)a->rows + 1;
+	z = w + (size_t)a->rows + 1;
+	error = z + (size_t)a->rows + 1;
+	trial = error + (size_t)a->rows + 1;
+	diagonal = trial + (size_t)a->rows + 1;
+	for (attempt = 0;
+		attempt < SIMPLEX_PAN_INNER_RETRIES && *iterations < limit;
+		attempt++) {
+		double alpha = 0., beta = 0., rhobar, phibar, checkpoint;
+		for (j = 0; j < a->columns; j++) {
+			double g = a->objective[j] +
+				   simplex_pan_column_dot(a, j, y);
+			int free = point[j] > b->lower[j] &&
+				   point[j] < b->upper[j];
+			double sign = point[j] == b->upper[j] ? -1. : 1.;
+			ratio[j] = u[j] = 0.;
+			if (b->lower[j] == b->upper[j] ||
+				a->column_norm[j] <= 0.)
+				continue;
+			if (free || sign * g < 0.) {
+				ratio[j] = sign / a->column_norm[j];
+				u[j] = -ratio[j] * g;
+				if (!isfinite(ratio[j]) || !isfinite(u[j]))
+					goto done;
+				beta = hypot(beta, u[j]);
+			}
+		}
+		if (!(beta > 0.) || !isfinite(beta))
+			break;
+		/* Equilibrate multiplier coordinates by the active operator's column
+		 * norms. Only a diagonal is formed, never a normal-equation matrix.
+		 * A zero column leaves that unconstrained multiplier unchanged. */
+		lp_simplex_memset(
+			diagonal, 0, (size_t)a->rows * sizeof(double));
+		for (j = 0; j < a->columns; j++)
+			if (ratio[j] != 0.)
+				for (k = a->column_start[j];
+					k < a->column_start[j + 1]; k++) {
+					i = a->row_index[k];
+					diagonal[i] = hypot(diagonal[i],
+						ratio[j] * a->value[k]);
+				}
+		for (i = 0; i < a->rows; i++) {
+			diagonal[i] = diagonal[i] > 0. ? 1. / diagonal[i] : 1.;
+			if (!isfinite(diagonal[i]) || diagonal[i] <= 0.)
+				goto done;
+		}
+		for (j = 0; j < a->columns; j++)
+			u[j] /= beta;
+		if (!native_face_transpose(a, ratio, u, v, error))
+			goto done;
+		for (i = 0; i < a->rows; i++) {
+			v[i] *= diagonal[i];
+			alpha = hypot(alpha, v[i]);
+		}
+		if (!(alpha > 0.) || !isfinite(alpha))
+			break;
+		for (i = 0; i < a->rows; i++) {
+			v[i] /= alpha;
+			w[i] = v[i];
+			trial[i] = y[i];
+		}
+		rhobar = alpha;
+		phibar = beta;
+		checkpoint = beta;
+		for (step = 0; step < SIMPLEX_PAN_DUAL_POLISH_WORK_CAP &&
+			       *iterations < limit;
+			step++) {
+			double rho, cosine, sine, theta, phi, next_alpha = 0.;
+			(*iterations)++;
+			beta = 0.;
+			for (i = 0; i < a->rows; i++)
+				z[i] = diagonal[i] * v[i];
+			for (j = 0; j < a->columns; j++) {
+				u[j] = ratio[j] == 0.
+					       ? 0.
+					       : ratio[j] * simplex_pan_column_dot(
+								    a, j, z) -
+							 alpha * u[j];
+				beta = hypot(beta, u[j]);
+			}
+			if (!isfinite(beta))
+				goto done;
+			if (beta > 0.)
+				for (j = 0; j < a->columns; j++)
+					u[j] /= beta;
+			if (!native_face_transpose(a, ratio, u, z, error))
+				goto done;
+			for (i = 0; i < a->rows; i++) {
+				v[i] = diagonal[i] * z[i] - beta * v[i];
+				next_alpha = hypot(next_alpha, v[i]);
+			}
+			if (!isfinite(next_alpha))
+				goto done;
+			if (next_alpha > 0.)
+				for (i = 0; i < a->rows; i++)
+					v[i] /= next_alpha;
+			rho = hypot(rhobar, beta);
+			if (!(rho > 0.) || !isfinite(rho))
+				break;
+			cosine = rhobar / rho;
+			sine = beta / rho;
+			theta = sine * next_alpha;
+			rhobar = -cosine * next_alpha;
+			phi = cosine * phibar;
+			phibar *= sine;
+			for (i = 0; i < a->rows; i++) {
+				trial[i] = fma(phi / rho, diagonal[i] * w[i],
+					trial[i]);
+				w[i] = v[i] - (theta / rho) * w[i];
+				if (!isfinite(trial[i]) || !isfinite(w[i]))
+					goto done;
+			}
+			alpha = next_alpha;
+			if (simplex_pan_bounded_check_dual(
+				    b, point, trial, tolerance, violation)) {
+				lp_simplex_memcpy(y, trial,
+					(size_t)a->rows * sizeof(double));
+				result = 1;
+				goto done;
+			}
+			if (beta == 0. || alpha == 0.)
+				break;
+			/* Continue the same Krylov recurrence only when a whole block
+			 * halves its residual. Restarting every block discards useful
+			 * conjugacy; an inconsistent/stalled face must remain cheap. */
+			if ((step + 1) % SIMPLEX_PAN_DUAL_KRYLOV_WORK_BLOCK ==
+				0) {
+				if (!(fabs(phibar) <
+					    checkpoint *
+						    SIMPLEX_PAN_REPAIR_REDUCTION))
+					break;
+				checkpoint = fabs(phibar);
+			}
+		}
+		lp_simplex_memcpy(y, trial, (size_t)a->rows * sizeof(double));
+	}
+done:
+	if (getenv(SIMPLEX_ENV_PROFILE))
+		fprintf(stderr,
+			"pan-bda dual iterative: seconds=%.6f result=%d\n",
+			(double)(clock() - begun) / CLOCKS_PER_SEC, result);
+	lp_simplex_free(storage);
+	return result;
+}
+
+/* A bounded optional multiplier proposal for a given feasible candidate.
+ * It does not check primal feasibility and cannot classify the LP. */
+int simplex_pan_bounded_repair_dual_sparse(const struct simplex_PanBounded *b,
+	const double *point, double *y, double tolerance, int limit,
+	int *iterations, double *violation)
+{
+	double *saved;
+	int result;
+	if (*iterations >= limit || b->a.rows <= 0 ||
+		(size_t)b->a.rows >
+			SIMPLEX_PAN_DUAL_REPAIR_BYTES / sizeof(double))
+		return 0;
+	saved = (double *)lp_simplex_malloc((size_t)b->a.rows * sizeof(double));
+	if (!saved)
+		return 0;
+	lp_simplex_memcpy(saved, y, (size_t)b->a.rows * sizeof(double));
+	result = native_dual_iterative_repair(
+		b, point, y, tolerance, limit, iterations, violation);
+	if (!result)
+		lp_simplex_memcpy(y, saved, (size_t)b->a.rows * sizeof(double));
+	lp_simplex_free(saved);
+	return result;
+}
+
 int simplex_pan_bounded_repair_dual(const struct simplex_PanBounded *b,
 	const double *x, double *y, double tolerance, int limit,
 	int *iterations, double *violation)
@@ -717,6 +944,7 @@ fail:
 static int native_restore_cone(const struct simplex_PanBounded *b,
 	double *point, const struct lp_simplex_Options *o, int *iterations,
 	long double ceiling, const struct simplex_PanConfig *cfg,
+	int correction_limit, int *selected, int selected_count,
 	int *service_stop)
 {
 	struct simplex_PanStandard t = b->a;
@@ -741,8 +969,12 @@ static int native_restore_cone(const struct simplex_PanBounded *b,
 	free_mask =
 		(unsigned char *)lp_simplex_malloc((size_t)b->a.columns + 1);
 	remove = (unsigned char *)lp_simplex_malloc((size_t)b->a.rows + 2);
-	candidate = (int *)lp_simplex_malloc(
-		((size_t)b->a.columns + 1) * sizeof(int));
+	/* A single affine trial may have selected this exact restored free face.
+	 * Borrow its index workspace, never its live factors or model binding. */
+	candidate = selected
+			    ? selected
+			    : (int *)lp_simplex_malloc(
+				      ((size_t)b->a.columns + 1) * sizeof(int));
 	if (!storage || !matrix || !free_mask || !remove || !candidate) {
 		*service_stop = SIMPLEX_STOP_RESOURCE;
 		goto done;
@@ -762,8 +994,7 @@ static int native_restore_cone(const struct simplex_PanBounded *b,
 	t.column_norm = norm;
 	t.value = matrix;
 	t.normalized_value = matrix + b->a.nonzeros + 1;
-	for (attempt = 0;
-		attempt < SIMPLEX_PAN_RESTORE_ATTEMPTS && *iterations < limit;
+	for (attempt = 0; attempt < correction_limit && *iterations < limit;
 		attempt++) {
 		before = simplex_pan_bounded_primal(b, point, right, work);
 		if (before <= o->primal_tolerance *
@@ -773,13 +1004,17 @@ static int native_restore_cone(const struct simplex_PanBounded *b,
 		}
 		simplex_pan_basis_destroy(&basis);
 		basis.rank_tolerance = o->pivot_tolerance;
-		if (native_select(&basis, b, point, zero, candidate, remove,
-			    coefficient, cfg))
-			break;
-		count = basis.count;
-		for (i = 0; i < count; i++)
-			candidate[i] = basis.column[i];
-		simplex_pan_basis_destroy(&basis);
+		if (attempt == 0 && selected)
+			count = selected_count;
+		else {
+			if (native_select(&basis, b, point, zero, candidate,
+				    remove, coefficient, cfg))
+				break;
+			count = basis.count;
+			for (i = 0; i < count; i++)
+				candidate[i] = basis.column[i];
+			simplex_pan_basis_destroy(&basis);
+		}
 		for (j = 0; j < b->a.columns; j++) {
 			double sign =
 				b->lower[j] == b->upper[j]
@@ -853,7 +1088,8 @@ done:
 	lp_simplex_free(matrix);
 	lp_simplex_free(free_mask);
 	lp_simplex_free(remove);
-	lp_simplex_free(candidate);
+	if (!selected)
+		lp_simplex_free(candidate);
 	return result;
 }
 
@@ -864,7 +1100,7 @@ int simplex_pan_bounded_restore_configured_reported(
 	const struct simplex_PanBounded *b, double *point,
 	const struct lp_simplex_Options *o, int *iterations,
 	long double ceiling, const struct simplex_PanConfig *cfg,
-	int *service_stop)
+	int single_trial, int *service_stop)
 {
 	int unobserved_stop;
 	struct simplex_PanBasis basis;
@@ -872,6 +1108,8 @@ int simplex_pan_bounded_restore_configured_reported(
 	int *candidate = NULL, i, j, blocking, attempt, result = -1;
 	unsigned char *remove = NULL;
 	double before, alpha, error;
+	int correction_limit = single_trial ? 1 : SIMPLEX_PAN_RESTORE_ATTEMPTS;
+	int selected_count = -1;
 
 	if (!service_stop)
 		service_stop = &unobserved_stop;
@@ -895,8 +1133,8 @@ int simplex_pan_bounded_restore_configured_reported(
 	coefficient = work + b->a.rows + 1;
 	lp_simplex_memcpy(saved, point, (size_t)b->a.columns * sizeof(double));
 	lp_simplex_memset(zero, 0, ((size_t)b->a.columns + 1) * sizeof(double));
-	for (attempt = 0; attempt < SIMPLEX_PAN_RESTORE_ATTEMPTS &&
-			  *iterations < o->iteration_limit;
+	for (attempt = 0;
+		attempt < correction_limit && *iterations < o->iteration_limit;
 		attempt++) {
 		before = simplex_pan_bounded_primal(b, point, r, work);
 		if (before <= o->primal_tolerance *
@@ -909,6 +1147,14 @@ int simplex_pan_bounded_restore_configured_reported(
 		if (native_select(&basis, b, point, zero, candidate, remove,
 			    coefficient, cfg))
 			break;
+		if (single_trial) {
+			/* Only the first and sole affine selection describes saved.
+			 * A failed trial restores saved exactly before the cone borrows
+			 * these hints; the cone still adds and refactors every column. */
+			selected_count = basis.count;
+			for (i = 0; i < selected_count; i++)
+				candidate[i] = basis.column[i];
+		}
 		(*iterations)++;
 		if (simplex_pan_basis_least_squares(
 			    &basis, r, coefficient, &error))
@@ -946,11 +1192,16 @@ int simplex_pan_bounded_restore_configured_reported(
 done:
 	simplex_pan_basis_destroy(&basis);
 	lp_simplex_free(storage);
-	lp_simplex_free(candidate);
 	lp_simplex_free(remove);
+	if (selected_count < 0) {
+		lp_simplex_free(candidate);
+		candidate = NULL;
+	}
 	if (result != 1 && *iterations < o->iteration_limit)
-		result = native_restore_cone(
-			b, point, o, iterations, ceiling, cfg, service_stop);
+		result = native_restore_cone(b, point, o, iterations, ceiling,
+			cfg, correction_limit, candidate,
+			selected_count < 0 ? 0 : selected_count, service_stop);
+	lp_simplex_free(candidate);
 	*service_stop = result == 1 ? SIMPLEX_STOP_HANDOFF
 				    : (*iterations >= o->iteration_limit
 						      ? SIMPLEX_STOP_BUDGET
@@ -991,6 +1242,21 @@ static void native_tangent(const struct simplex_PanBounded *b, const double *x,
 	t->nonzeros = pos;
 	for (j = 0; j < t->rows; j++)
 		t->rhs[j] = 0.;
+}
+
+/* Reserve named recovery opportunities instead of an arbitrary fraction
+ * of a large request. Tiny budgets still retain half for the cone. The
+ * caller and all children continue to share the original cumulative limit. */
+static int native_pdhg_budget(int remaining, int requested)
+{
+	int reserve =
+		SIMPLEX_PAN_DUAL_POLISH_WORK_CAP + SIMPLEX_PAN_RESTORE_WORK_CAP;
+	if (remaining <= 0 || requested <= 0)
+		return 0;
+	if (reserve > remaining / 2)
+		reserve = remaining / 2;
+	return requested < remaining - reserve ? requested
+					       : remaining - reserve;
 }
 
 int simplex_pan_bounded_solve_certified_configured(
@@ -1162,11 +1428,8 @@ int simplex_pan_bounded_solve_certified_configured(
 			(double)(clock() - begun) / CLOCKS_PER_SEC, iterations,
 			primal);
 	if (cfg->pdhg_iterations > 0) {
-		int budget = cfg->pdhg_iterations;
-		/* Leave the original cone oracle a recovery/certification budget,
-		 * including on unbounded models that PDHG does not certify. */
-		if (budget > (o->iteration_limit - iterations) / 2)
-			budget = (o->iteration_limit - iterations) / 2;
+		int budget = native_pdhg_budget(
+			o->iteration_limit - iterations, cfg->pdhg_iterations);
 		(void)simplex_pan_service_pdhg(
 			&b, point, y, o, &iterations, budget, cfg, NULL);
 	}

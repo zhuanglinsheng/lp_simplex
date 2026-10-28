@@ -275,6 +275,136 @@ static int leases(void)
 	return 1;
 }
 
+/* Audited input features can disagree with working merit. Baseline
+ * availability is weaker than progress; neither overrides safety exits. */
+static int input_reassessment(void)
+{
+	static const unsigned int progress[] = {SIMPLEX_INPUT_PRIMAL_PROGRESS,
+		SIMPLEX_INPUT_COUNT_PROGRESS, SIMPLEX_INPUT_OBJECTIVE_PROGRESS,
+		SIMPLEX_INPUT_BOUND_PROGRESS, SIMPLEX_INPUT_DUAL_PROGRESS};
+	static const unsigned int baseline[] = {
+		SIMPLEX_INPUT_FEASIBLE_AVAILABLE,
+		SIMPLEX_INPUT_BOUND_AVAILABLE};
+	struct simplex_DualExplore h;
+	int i, reason, phase;
+	for (i = 0; i < 5; i++)
+		for (phase = 0; phase <= 10; phase += 10)
+			for (reason = SIMPLEX_DUAL_EXPLORE_CONTINUE;
+				reason <= SIMPLEX_DUAL_EXPLORE_MEASUREMENT;
+				reason++) {
+				memset(&h, 0, sizeof(h));
+				h.limit = 1024;
+				h.reason = reason;
+				h.phase = phase;
+				CHECK(simplex_dual_explore_reassess(
+					      &h, 10000, progress[i], 0) ==
+					((reason == SIMPLEX_DUAL_EXPLORE_STAGNATION &&
+						 ((phase == 0 && i < 2) ||
+							 (phase != 0 &&
+								 (i == 2 ||
+									 i == 4)))) ||
+						reason ==
+							SIMPLEX_DUAL_EXPLORE_MEASUREMENT));
+			}
+	for (i = 0; i < 2; i++) {
+		memset(&h, 0, sizeof(h));
+		h.limit = 1024;
+		h.reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+		CHECK(!simplex_dual_explore_reassess(
+			&h, 10000, baseline[i], 0));
+		h.reason = SIMPLEX_DUAL_EXPLORE_MEASUREMENT;
+		CHECK(simplex_dual_explore_reassess(&h, 10000, baseline[i], 0));
+	}
+	memset(&h, 0, sizeof(h));
+	h.limit = 1024;
+	h.reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+	CHECK(!simplex_dual_explore_reassess(&h, 10000, 0U, 0));
+	CHECK(!simplex_dual_explore_reassess(&h, 10000, ~0U, 2));
+	CHECK(!simplex_dual_explore_reassess(&h, 1024, ~0U, 0));
+	CHECK(simplex_dual_explore_reassess(&h, 1500, progress[0], 0));
+	CHECK(h.limit == 1500);
+	return 1;
+}
+
+/* Native dual progress may survive a primal-merit rebound. It must beat
+ * both cost-drift uncertainty and cancellation scale, without buying leases
+ * from a bound change, a repeated observation, or an old peak. */
+static int potential_features(void)
+{
+	struct simplex_DualPotential p;
+	struct simplex_DualExplore h;
+	memset(&p, 0, sizeof(p));
+	CHECK(!simplex_dual_potential_observe(&p, 0, 0, -100., 100., .001));
+	CHECK(simplex_dual_potential_observe(&p, 1024, 0, -90., 100., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 1024, 0, -80., 100., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 512, 0, -70., 100., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 2048, 1, 100., 100., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 3072, 1, 90., 100., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 4096, 1, 100., 100., .001));
+	CHECK(simplex_dual_potential_observe(&p, 5120, 1, 110., 110., .001));
+	CHECK(!simplex_dual_potential_observe(
+		&p, 6144, 1, 120., 100000., .001));
+	/* A return below the unqualified peak cannot masquerade as progress. */
+	CHECK(!simplex_dual_potential_observe(&p, 7168, 1, 115., 115., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 8192, 1, 130., 130., 100.));
+	CHECK(!simplex_dual_potential_observe(
+		&p, 9216, 1, HUGE_VAL, 130., .001));
+	CHECK(!simplex_dual_potential_observe(&p, 10240, 1, 130., 130., .001));
+	CHECK(simplex_dual_potential_observe(&p, 11264, 1, 140., 140., .001));
+	/* Subthreshold gains accumulate, but a duplicate best is never new work. */
+	memset(&p, 0, sizeof(p));
+	CHECK(!simplex_dual_potential_observe(&p, 0, 0, 100., 1000., 0.));
+	CHECK(!simplex_dual_potential_observe(&p, 1, 0, 105., 1000., 0.));
+	CHECK(simplex_dual_potential_observe(&p, 2, 0, 111., 1000., 0.));
+	memset(&h, 0, sizeof(h));
+	h.limit = 1024;
+	h.reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 0, 0));
+	CHECK(simplex_dual_explore_reassess_potential(&h, 10000, 1, 0));
+	CHECK(h.limit == 2048);
+	h.reason = SIMPLEX_DUAL_EXPLORE_NUMERICAL;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 1, 0));
+	h.reason = SIMPLEX_DUAL_EXPLORE_CYCLE;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 1, 0));
+	h.reason = SIMPLEX_DUAL_EXPLORE_MEASUREMENT;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 1, 0));
+	h.reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 1, 2));
+	h.phase = 10;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 10000, 1, 0));
+	h.phase = 0;
+	CHECK(simplex_dual_explore_reassess_potential(&h, 2500, 1, 0));
+	CHECK(h.limit == 2500);
+	h.reason = SIMPLEX_DUAL_EXPLORE_STAGNATION;
+	CHECK(!simplex_dual_explore_reassess_potential(&h, 2500, 1, 0));
+	return 1;
+}
+
+/* Equivalent objective units must classify the same signal. A large
+ * cancelling activity or working-cost drift must still block renewal. */
+static int potential_units(void)
+{
+	static const double scale[] = {1e-12, 1., 1e12};
+	struct simplex_DualPotential p;
+	int i, sign;
+	for (i = 0; i < 3; i++)
+		for (sign = -1; sign <= 1; sign += 2) {
+			double s = scale[i];
+			memset(&p, 0, sizeof(p));
+			CHECK(!simplex_dual_potential_observe(
+				&p, 0, 0, sign * 100. * s, 1000. * s, .01 * s));
+			CHECK(!simplex_dual_potential_observe(&p, 1, 0,
+				(sign * 100. + 5.) * s, 1000. * s, .01 * s));
+			CHECK(simplex_dual_potential_observe(&p, 2, 0,
+				(sign * 100. + 20.) * s, 1000. * s, .01 * s));
+			CHECK(!simplex_dual_potential_observe(&p, 3, 0,
+				(sign * 100. + 40.) * s, 100000. * s, .01 * s));
+			CHECK(!simplex_dual_potential_observe(&p, 4, 0,
+				(sign * 100. + 60.) * s, 1000. * s, 100. * s));
+		}
+	return 1;
+}
+
 static struct lp_Model *problem(void)
 {
 	struct lp_Model *m = lp_model_create(2, 5);
@@ -516,7 +646,8 @@ static int routing(void)
 int main(void)
 {
 	if (!reserves() || !cover_grants() || !decisions() || !leases() ||
-		!adapters() || !routing())
+		!input_reassessment() || !potential_features() ||
+		!potential_units() || !adapters() || !routing())
 		return 1;
 	puts("AUTO leases, real adapters, route reachability, resource admission and shared budgets passed");
 	return 0;

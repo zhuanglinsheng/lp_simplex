@@ -92,6 +92,8 @@ void *dual_storage_test_realloc(void *p, size_t bytes)
 #define simplex_dual_solve storage_simplex_dual_solve
 #define simplex_dual_state_destroy storage_simplex_dual_state_destroy
 #define simplex_dual_state_create storage_simplex_dual_state_create
+#define simplex_dual_packed_work_prepare \
+	storage_simplex_dual_packed_work_prepare
 #define simplex_dual_pricing_create storage_simplex_dual_pricing_create
 #define simplex_dual_pricing_destroy storage_simplex_dual_pricing_destroy
 #define simplex_dual_nonbasic_add storage_simplex_dual_nonbasic_add
@@ -123,6 +125,8 @@ void *dual_storage_test_realloc(void *p, size_t bytes)
 #define simplex_sparse_vector_pack_maximum \
 	storage_simplex_sparse_vector_pack_maximum
 #define simplex_sparse_vector_get storage_simplex_sparse_vector_get
+#define simplex_sparse_vector_sort storage_simplex_sparse_vector_sort
+#define simplex_sparse_vector_compact storage_simplex_sparse_vector_compact
 #define simplex_basis_set_backend storage_simplex_basis_set_backend
 #define simplex_basis_resolved_backend storage_simplex_basis_resolved_backend
 #define simplex_basis_create storage_simplex_basis_create
@@ -133,7 +137,9 @@ void *dual_storage_test_realloc(void *p, size_t bytes)
 #define simplex_basis_btran_refined storage_simplex_basis_btran_refined
 #define simplex_basis_ftran_pair storage_simplex_basis_ftran_pair
 #define simplex_basis_ftran storage_simplex_basis_ftran
+#define simplex_basis_ftran_packed storage_simplex_basis_ftran_packed
 #define simplex_basis_btran storage_simplex_basis_btran
+#define simplex_basis_btran_packed storage_simplex_basis_btran_packed
 #define simplex_basis_update storage_simplex_basis_update
 #define simplex_basis_update_packed storage_simplex_basis_update_packed
 #define simplex_basis_set_sparse_eta storage_simplex_basis_set_sparse_eta
@@ -780,18 +786,128 @@ static int constructors(void)
 	return 0;
 }
 
+#ifndef DUAL_STORAGE_OLD
+static int compact_map_refusal(int backend, int failure)
+{
+	struct simplex_CscMatrix matrix;
+	struct simplex_Basis basis;
+	struct simplex_SparseVector packed;
+	int starts[] = {0, 2}, rows[4097], columns[] = {0, 0};
+	int indices[] = {0, 1}, index[4096], i;
+	double values[] = {2., .5}, right[4096];
+	memset(&matrix, 0, sizeof(matrix));
+	rows[0] = 0;
+	rows[1] = 1;
+	for (i = 2; i <= 4096; i++)
+		rows[i] = 2;
+	for (i = 0; i < 4096; i++)
+		index[i] = i + 1;
+	index[0] = 0;
+	matrix.rows = 4096;
+	matrix.columns = 1;
+	matrix.nonzeros = 2;
+	matrix.column_start = starts;
+	matrix.row_index = indices;
+	matrix.value = values;
+	matrix.row_start = rows;
+	matrix.column_index = columns;
+	matrix.row_value = values;
+	requests = fail_at = 0;
+	CHECK(!storage_simplex_basis_create_configured(
+		&basis, &matrix, 1, index, 0));
+	storage_simplex_basis_set_backend(&basis, backend);
+	storage_simplex_basis_request_compact(&basis);
+	/* The map is the first optional request after rebuilding the core. */
+	fail_at = requests + failure;
+	CHECK(!storage_simplex_basis_factorize(&basis));
+	CHECK(storage_simplex_basis_compact_active(&basis));
+	CHECK(!storage_simplex_basis_storage_failed(&basis));
+	if (failure == 1)
+		CHECK(!basis.impl->column_to_core);
+#ifdef LP_SIMPLEX_HAVE_KLU
+	else
+		CHECK(basis.impl->column_to_core &&
+			!basis.impl->sparse_lift.index);
+#endif
+	fail_at = 0;
+	CHECK(!storage_simplex_sparse_vector_create(&packed, 4096));
+	for (i = 0; i < 2; i++) {
+		memset(right, 0, sizeof(right));
+		right[0] = 3.;
+		right[1] = 4.;
+		CHECK(!storage_simplex_basis_btran(&basis, right));
+		CHECK(fabs(right[0] - 2.5) < 1e-14 && right[1] == -4.);
+		storage_simplex_sparse_vector_clear(&packed);
+		CHECK(!storage_simplex_sparse_vector_set(&packed, 0, 3.));
+		CHECK(!storage_simplex_sparse_vector_set(&packed, 1, 4.));
+		CHECK(!storage_simplex_basis_btran_packed(&basis, &packed));
+		CHECK(fabs(packed.dense[0] - 2.5) < 1e-14 &&
+			packed.dense[1] == -4.);
+		fail_at = 0;
+		CHECK(!storage_simplex_basis_factorize(&basis));
+		CHECK(basis.impl->column_to_core != NULL);
+	}
+	storage_simplex_basis_destroy(&basis);
+	storage_simplex_sparse_vector_destroy(&packed);
+	CHECK(!active && !bad_free);
+	return 0;
+}
+#endif
+
+#if defined(LP_SIMPLEX_HAVE_KLU) && !defined(DUAL_STORAGE_OLD)
+static int packed_work_refusal(int failure)
+{
+	struct simplex_Problem p;
+	struct simplex_DualState state;
+	struct lp_simplex_Options options;
+	int starts[] = {0, 1, 2}, rows[] = {0, 1}, before;
+	double values[] = {1., 3.};
+	problem_shape(&p, 2, 2);
+	p.matrix.column_start = starts;
+	p.matrix.row_index = rows;
+	p.matrix.value = values;
+	p.matrix.nonzeros = 2;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	requests = fail_at = 0;
+	CHECK(!storage_simplex_dual_state_create(&state, &p, &options, 0));
+	requests = 0;
+	fail_at = failure;
+	CHECK(storage_simplex_dual_packed_work_prepare(&state) == !failure);
+	CHECK(state.packed_work_attempted &&
+		(!!state.packed_work.index == !failure));
+	before = requests;
+	fail_at = 0;
+	CHECK(storage_simplex_dual_packed_work_prepare(&state) == !failure);
+	CHECK(requests == before);
+	storage_simplex_dual_state_destroy(&state);
+	CHECK(!active && !bad_free);
+	return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
+#ifdef LP_SIMPLEX_HAVE_KLU
+	int failure;
+#endif
 	if (argc > 1)
 		return extremes(argv[1]);
 #ifndef DUAL_STORAGE_OLD
-	if (layout() || eta_storage() || ft_basis_failure(1) ||
+	if (compact_map_refusal(SIMPLEX_BASIS_BACKEND_INTERNAL, 1) ||
+		compact_map_refusal(SIMPLEX_BASIS_BACKEND_DEFAULT, 1) ||
+		layout() || eta_storage() || ft_basis_failure(1) ||
 		ft_basis_failure(2) ||
 		factor_storage(SIMPLEX_BASIS_BACKEND_INTERNAL) ||
 		lex_layout() || lex_failure(1, 0) || lex_failure(-1, 0) ||
 		lex_failure(1, 1) || lex_failure(-1, 1))
 		return 1;
 #ifdef LP_SIMPLEX_HAVE_KLU
+	for (failure = 0; failure <= 3; failure++)
+		if (packed_work_refusal(failure))
+			return 1;
+	for (failure = 4; failure <= 9; failure++)
+		if (compact_map_refusal(SIMPLEX_BASIS_BACKEND_DEFAULT, failure))
+			return 1;
 	if (factor_storage(SIMPLEX_BASIS_BACKEND_DEFAULT))
 		return 1;
 #endif

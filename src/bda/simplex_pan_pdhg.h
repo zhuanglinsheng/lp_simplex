@@ -29,6 +29,19 @@ int simplex_pan_pdhg_repair_progress(
  * but never establishes termination, feasibility or optimality. */
 int simplex_pan_pdhg_progress_stalled(
 	struct simplex_PdhgProgress *history, int work, double merit);
+
+enum simplex_PdhgStagnation {
+	SIMPLEX_PDHG_PROGRESSING = 0,
+	SIMPLEX_PDHG_MERIT_STALLED,
+	SIMPLEX_PDHG_PRIMAL_STALLED
+};
+
+/* The unweighted equality residual keeps its own history across changes to
+ * the PDHG preconditioner. Both histories observe the better candidate. */
+int simplex_pan_pdhg_progress_stalled_pair(
+	struct simplex_PdhgProgress *merit_history,
+	struct simplex_PdhgProgress *primal_history, int work, double merit,
+	double primal);
 struct simplex_PanBounded;
 double simplex_pan_pdhg_handoff_gap(const struct simplex_PanBounded *b,
 	const double *x, const double *y, double scale);

@@ -188,7 +188,10 @@ static void pricing_add_candidate(struct simplex_DualState *state, const int j,
 
 	state->candidate_sign[j] = 0;
 	if (!alpha_ready)
-		state->alpha[j] = pricing_column_dot(state, j);
+		/* Dense and hypersparse paths share storage. Register dense writes
+		 * too, so the next sparse clear removes every previous coordinate. */
+		(void)simplex_sparse_vector_set(
+			&state->packed_alpha, j, pricing_column_dot(state, j));
 	/* Non-finite arithmetic cannot certify an empty admissible set. */
 	if (!isfinite(state->alpha[j]) || !isfinite(state->reduced[j])) {
 		state->ratio_failure_status = lp_simplex_PrecisionError;
@@ -199,6 +202,11 @@ static void pricing_add_candidate(struct simplex_DualState *state, const int j,
 	if (denominator <= state->options->pivot_tolerance)
 		return;
 	signed_reduced = sign * state->reduced[j];
+	/* Preserve the allowance already spent by a tolerated wrong sign. Only
+	 * the primary breakpoint is clipped: replenishing the relaxed allowance
+	 * on every pivot lets small violations grow beyond feasibility. */
+	relaxed_theta =
+		(signed_reduced + state->options->dual_tolerance) / denominator;
 	if (signed_reduced < 0. &&
 		signed_reduced >= -state->options->dual_tolerance)
 		signed_reduced = 0.;
@@ -209,8 +217,6 @@ static void pricing_add_candidate(struct simplex_DualState *state, const int j,
 	 * dual feasibility tolerance.  The second pass can then prefer a much
 	 * stronger pivot anywhere inside this safe step window instead of being
 	 * tied to the exact minimum ratio. */
-	relaxed_theta =
-		(signed_reduced + state->options->dual_tolerance) / denominator;
 	if (!isfinite(theta) || !isfinite(relaxed_theta)) {
 		state->ratio_failure_status = lp_simplex_PrecisionError;
 		return;
@@ -236,12 +242,14 @@ void simplex_dual_ratio_remove(
  * storage, record its first touch, then materialize packed values once. This
  * avoids a checked add/set call and two numeric stores for every matrix entry.
  * Matrix indices are validated when the problem is built. Keep row order and
- * exact zeros: cancellation must not change the support used by the audit. */
+ * exact summation order. Remove only exact cancellations after scattering;
+ * the independent full CSC audit can still reinsert a cancelled coordinate. */
 static void pricing_scatter_alpha(struct simplex_DualState *state)
 {
 	struct simplex_SparseVector *alpha = &state->packed_alpha;
 	const struct simplex_CscMatrix *matrix = &state->matrix;
-	int i, k;
+	int i, k, count = alpha->count;
+	unsigned int generation = alpha->generation;
 
 	for (i = 0; i < state->packed_rho.count; i++) {
 		int row = state->packed_rho.index[i];
@@ -252,25 +260,25 @@ static void pricing_scatter_alpha(struct simplex_DualState *state)
 			int column = matrix->column_index[k];
 			double value = rho * matrix->row_value[k];
 
-			if (alpha->mark[column] != alpha->generation) {
+			if (alpha->mark[column] != generation) {
 				if (value == 0.)
 					continue;
-				alpha->mark[column] = alpha->generation;
-				alpha->slot[column] = alpha->count;
-				alpha->index[alpha->count++] = column;
+				alpha->mark[column] = generation;
+				alpha->slot[column] = count;
+				alpha->index[count++] = column;
 				alpha->dense[column] = value;
 			} else
 				alpha->dense[column] += value;
 		}
 		/* Logical columns have disjoint support and are touched only once. */
 		k = state->structural + row;
-		alpha->mark[k] = alpha->generation;
-		alpha->slot[k] = alpha->count;
-		alpha->index[alpha->count++] = k;
+		alpha->mark[k] = generation;
+		alpha->slot[k] = count;
+		alpha->index[count++] = k;
 		alpha->dense[k] = -rho;
 	}
-	for (i = 0; i < alpha->count; i++)
-		alpha->value[i] = alpha->dense[alpha->index[i]];
+	alpha->count = count;
+	simplex_sparse_vector_compact(alpha);
 }
 
 /* With at least 95% nonbasics, sequential CSC access avoids following a
@@ -318,7 +326,10 @@ int simplex_dual_prepare_ratio_test(
 	state->ratio_failure_status = lp_simplex_Success;
 	for (candidate = 0; candidate < state->candidate_count; candidate++)
 		state->candidate_sign[state->candidate_index[candidate]] = 0;
-	simplex_sparse_vector_pack(&state->packed_rho, state->rho, 0.);
+	/* The kernel supplies an ordered packed BTRAN result. Private callers
+	 * with an independent dense RHS keep the original packing path. */
+	if (state->rho != state->packed_rho.dense)
+		simplex_sparse_vector_pack(&state->packed_rho, state->rho, 0.);
 	simplex_sparse_vector_clear(&state->packed_alpha);
 	for (i = 0; i < state->packed_rho.count; i++) {
 		int row = state->packed_rho.index[i];
@@ -350,8 +361,9 @@ int simplex_dual_prepare_ratio_test(
 
 				j = state->nonbasic_index[i];
 				exact = pricing_column_dot(state, j);
-				packed = simplex_sparse_vector_get(
-					&state->packed_alpha, j);
+				/* Clear/compact maintain exact zeros in the shared dense
+				 * view, including coordinates absent from this generation. */
+				packed = state->packed_alpha.dense[j];
 				error = __lp_simplex_ABS__(exact - packed);
 				maximum_error = __lp_simplex_MAX__(
 					maximum_error, error);
@@ -721,15 +733,16 @@ int simplex_dual_next_ratio_candidate(struct simplex_DualState *state,
 	}
 
 	for (candidate = 0; candidate < state->candidate_count; candidate++) {
-		double theta, relaxed;
+		double theta;
 
 		j = state->candidate_index[candidate];
 		if (state->candidate_sign[j] == 0)
 			continue;
 		theta = state->breakpoint[j];
-		relaxed = minimum + SIMPLEX_PRICING_TIE_RELATIVE *
-					    (1. + __lp_simplex_ABS__(minimum));
-		if (theta <= relaxed &&
+		/* The first-pass window is a feasibility bound. Expanding it by a
+		 * ratio-space tie epsilon can exceed the reduced-cost allowance on
+		 * columns with large coefficients. Compare pivot ties only inside it. */
+		if (theta <= minimum &&
 			((!stable_order &&
 				 (__lp_simplex_ABS__(state->alpha[j]) >
 						 best_pivot ||

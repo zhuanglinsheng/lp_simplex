@@ -36,10 +36,10 @@
 	((variables) > (INT_MAX - (rows)) / 4 ? INT_MAX \
 					      : 4 * (variables) + (rows))
 
-/* Presolve optional search work and legacy exact-propagation shape gate. */
+/* Presolve optional search work. */
 #define SIMPLEX_PRESOLVE_DOMINANCE_WORK_FACTOR 64
-#define SIMPLEX_PRESOLVE_EXACT_PROPAGATION_ROWS 2048
-#define SIMPLEX_PRESOLVE_EXACT_PROPAGATION_COLUMN_RATIO 5
+/* Index visits and exact/modular operations; independent of solve work. */
+#define SIMPLEX_PRESOLVE_DEPENDENCY_WORK_MULTIPLIER 8
 /* Non-pivot restarts need a separate finite bound; they consume no pivots. */
 #define SIMPLEX_DUAL_RESTART_ROW_FACTOR 4
 #define SIMPLEX_DUAL_RESTART_ALLOWANCE 64

@@ -7,6 +7,7 @@
 #include "simplex_dual_kernel.h"
 #include "simplex_problem.h"
 #include "simplex_stage.h"
+#include "simplex_solve_context.h"
 #include <lp_simplex/lp_simplex.h>
 #include <math.h>
 #include <stdio.h>
@@ -131,10 +132,86 @@ static int row_allowance_reset(void)
 	return valid;
 }
 
+/* The working perturbation deliberately reverses the two costs. A successful
+ * solve must undo that preference, not certify the perturbed optimum. */
+static int initial_cost_restoration(int negative, int backend)
+{
+	struct lp_Model *model = lp_model_create(1, 2);
+	struct simplex_Problem problem;
+	struct simplex_SolveContext context;
+	struct simplex_DualState state;
+	struct simplex_StageReport report;
+	struct lp_simplex_Options options;
+	struct lp_simplex_Result result;
+	double x[2], dual[1], optimum = negative ? -1e8 : 1e8;
+	int j, valid, expected = negative ? 0 : 1;
+	if (!model)
+		return 0;
+	model->constraints[0].type = optm_CONS_T_EQ;
+	model->constraints[0].rhs = 1.;
+	model->constraints[0].coef[0] = model->constraints[0].coef[1] = 1.;
+	model->objective[0] = negative ? -1e8 : 1e8 + 1.;
+	model->objective[1] = negative ? -1e8 + 1. : 1e8;
+	for (j = 0; j < 2; j++) {
+		model->bounds[j].b_type = optm_BOUND_T_BS;
+		model->bounds[j].lb = 0.;
+		model->bounds[j].ub = 1.;
+	}
+	if (simplex_problem_from_model(&problem, model)) {
+		lp_model_free(model);
+		return 0;
+	}
+	simplex_solve_context_init(&context, NULL, &problem.execution);
+	simplex_solve_context_configure(&context, 0);
+	context.controls.dual.initial_cost_perturb = 1;
+	context.controls.dual.multi_epoch = 0;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	options.iteration_limit = 20;
+	if (simplex_dual_state_create(&state, &problem, &options, backend)) {
+		simplex_solve_context_destroy(&context);
+		simplex_problem_destroy(&problem);
+		lp_model_free(model);
+		return 0;
+	}
+	simplex_dual_initialize_bounds(&state, &problem, 0);
+	memcpy(state.original_cost, state.cost,
+		(size_t)state.variables * sizeof(double));
+	dual_initialize_basis(&state, &problem);
+	dual_perturb_initial_cost(&state, 0);
+	valid = negative ? state.cost[0] > state.cost[1]
+			 : state.cost[0] < state.cost[1];
+	simplex_dual_state_destroy(&state);
+	simplex_stage_reset(&report);
+	problem.report = &report;
+	failures_left = factor_calls = 0;
+	valid = valid &&
+		!recovery_kernel_solve(&problem, &options, x, dual, &result, 0,
+			backend, 0, NULL) &&
+		result.status == lp_simplex_Success &&
+		!report.perturbed_costs &&
+		result.iterations <= options.iteration_limit &&
+		report.cost_epoch > 0 && fabs(x[expected] - 1.) < 1e-12 &&
+		fabs(x[1 - expected]) < 1e-12 && result.objective == optimum &&
+		simplex_problem_dual_infeasibility(&problem, x, dual,
+			options.primal_tolerance, -1) <= options.dual_tolerance;
+	simplex_solve_context_destroy(&context);
+	simplex_problem_destroy(&problem);
+	lp_model_free(model);
+	return valid;
+}
+
 int main(void)
 {
 	return run_case(1, 20) && run_case(2, 20) && run_case(1, 0) &&
-			       run_case(3, 20) && row_allowance_reset()
+			       run_case(3, 20) && row_allowance_reset() &&
+			       initial_cost_restoration(
+				       0, SIMPLEX_BASIS_BACKEND_INTERNAL) &&
+			       initial_cost_restoration(
+				       1, SIMPLEX_BASIS_BACKEND_INTERNAL) &&
+			       initial_cost_restoration(
+				       0, SIMPLEX_BASIS_BACKEND_DEFAULT) &&
+			       initial_cost_restoration(
+				       1, SIMPLEX_BASIS_BACKEND_DEFAULT)
 		       ? 0
 		       : 1;
 }

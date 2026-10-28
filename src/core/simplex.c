@@ -305,7 +305,9 @@ static int simplex_solve_sparse_presolved(const struct lp_Model *model,
 	}
 	lp_simplex_memset(&bridge, 0, sizeof(bridge));
 	presolve_started = clock();
-	if (simplex_presolve_run(&presolve, model, options->primal_tolerance) ==
+	if (simplex_presolve_run_configured(&presolve, model,
+		    options->primal_tolerance,
+		    controls->presolve_dependencies) ==
 		lp_simplex_EXIT_FAILURE) {
 		result->status = presolve.status;
 		return lp_simplex_EXIT_FAILURE;

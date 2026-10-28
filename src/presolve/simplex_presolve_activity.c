@@ -14,6 +14,7 @@
 #include "utils.h"
 
 #include <math.h>
+#include <float.h>
 
 /*
  * Largest magnitude a propagated bound may take.
@@ -45,18 +46,20 @@ static int presolve_candidate_usable(const double candidate)
 }
 
 static int presolve_apply_implied_lower(struct optm_VariableBound *bound,
-	double candidate, const double tolerance)
+	double candidate, const double roundoff, const double tolerance)
 {
 	double margin;
 
+	if (!presolve_candidate_usable(candidate) || !isfinite(roundoff))
+		return 0;
+	candidate = nextafter(candidate - roundoff, -HUGE_VAL);
 	if (!presolve_candidate_usable(candidate))
 		return 0;
 	margin = tolerance * (1. + __lp_simplex_ABS__(candidate));
-	candidate -= margin;
 	if (simplex_presolve_has_upper(bound) && candidate > bound->ub + margin)
 		return -1;
 	if (simplex_presolve_has_upper(bound) && candidate > bound->ub)
-		candidate = bound->ub;
+		return 0;
 	if (simplex_presolve_has_lower(bound) &&
 		candidate <= bound->lb + margin)
 		return 0;
@@ -65,18 +68,20 @@ static int presolve_apply_implied_lower(struct optm_VariableBound *bound,
 }
 
 static int presolve_apply_implied_upper(struct optm_VariableBound *bound,
-	double candidate, const double tolerance)
+	double candidate, const double roundoff, const double tolerance)
 {
 	double margin;
 
+	if (!presolve_candidate_usable(candidate) || !isfinite(roundoff))
+		return 0;
+	candidate = nextafter(candidate + roundoff, HUGE_VAL);
 	if (!presolve_candidate_usable(candidate))
 		return 0;
 	margin = tolerance * (1. + __lp_simplex_ABS__(candidate));
-	candidate += margin;
 	if (simplex_presolve_has_lower(bound) && candidate < bound->lb - margin)
 		return -1;
 	if (simplex_presolve_has_lower(bound) && candidate < bound->lb)
-		candidate = bound->lb;
+		return 0;
 	if (simplex_presolve_has_upper(bound) &&
 		candidate >= bound->ub - margin)
 		return 0;
@@ -231,6 +236,30 @@ static int presolve_force_row_bounds(const struct lp_Model *model,
 	return tightened;
 }
 
+/* Enclose product rounding, accumulation, removal of the own term,
+ * subtraction/division and conversion to double. DBL_EPSILON is conservative
+ * even when long double is no wider than double. Magnitude covers both row
+ * activities, and DBL_MIN covers gradual-underflow absolute errors. Reject
+ * an unusable enclosure rather than install a speculative finite bound. */
+static double presolve_activity_roundoff(
+	const struct presolve_RowActivity *activity, double rhs,
+	long double own, double coefficient, double candidate)
+{
+	long double operations = 4.L * (activity->end - activity->start) + 16.L;
+	long double factor = operations * DBL_EPSILON;
+	long double magnitude =
+		fabsl((long double)rhs) + activity->magnitude + fabsl(own);
+	long double error;
+	if (factor >= .5L || !isfinite(magnitude) || !isfinite(candidate))
+		return HUGE_VAL;
+	error = (factor / (1.L - factor) * magnitude + operations * DBL_MIN) /
+			fabsl((long double)coefficient) +
+		DBL_EPSILON * fabsl((long double)candidate);
+	if (!isfinite(error) || error > DBL_MAX)
+		return HUGE_VAL;
+	return nextafter((double)error, HUGE_VAL);
+}
+
 static int presolve_propagate_row_bounds(const struct lp_Model *model,
 	const int row, const unsigned char *column_active,
 	struct optm_VariableBound *bounds,
@@ -245,6 +274,7 @@ static int presolve_propagate_row_bounds(const struct lp_Model *model,
 		struct optm_VariableBound *bound;
 		int own_minimum_infinite, own_maximum_infinite, state;
 		long double own_minimum = 0., own_maximum = 0., residual;
+		double candidate, roundoff;
 
 		if (!column_active[column] || coefficient == 0.)
 			continue;
@@ -269,15 +299,17 @@ static int presolve_propagate_row_bounds(const struct lp_Model *model,
 				(activity->maximum_infinite == 1 &&
 					own_maximum_infinite))) {
 			residual = activity->maximum - own_maximum;
+			candidate = (double)(((long double)rhs - residual) /
+					     coefficient);
+			roundoff = presolve_activity_roundoff(activity, rhs,
+				own_maximum, coefficient, candidate);
 			if (coefficient > 0.)
 				state = presolve_apply_implied_lower(bound,
-					(double)(((long double)rhs - residual) /
-						 coefficient),
+					candidate, roundoff,
 					propagation_tolerance);
 			else
 				state = presolve_apply_implied_upper(bound,
-					(double)(((long double)rhs - residual) /
-						 coefficient),
+					candidate, roundoff,
 					propagation_tolerance);
 			if (state < 0)
 				return -1;
@@ -289,15 +321,17 @@ static int presolve_propagate_row_bounds(const struct lp_Model *model,
 				(activity->minimum_infinite == 1 &&
 					own_minimum_infinite))) {
 			residual = activity->minimum - own_minimum;
+			candidate = (double)(((long double)rhs - residual) /
+					     coefficient);
+			roundoff = presolve_activity_roundoff(activity, rhs,
+				own_minimum, coefficient, candidate);
 			if (coefficient > 0.)
 				state = presolve_apply_implied_upper(bound,
-					(double)(((long double)rhs - residual) /
-						 coefficient),
+					candidate, roundoff,
 					propagation_tolerance);
 			else
 				state = presolve_apply_implied_lower(bound,
-					(double)(((long double)rhs - residual) /
-						 coefficient),
+					candidate, roundoff,
 					propagation_tolerance);
 			if (state < 0)
 				return -1;

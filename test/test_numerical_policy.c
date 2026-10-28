@@ -109,8 +109,8 @@ static int repair_progress(void)
 
 static int progress_history(void)
 {
-	struct simplex_PdhgProgress h;
-	int k;
+	struct simplex_PdhgProgress h, primal;
+	int k, stalled;
 	simplex_pan_pdhg_progress_reset(&h);
 	CHECK(!simplex_pan_pdhg_progress_stalled(&h, 0, 100.));
 	/* Improvement followed by a rebound must keep the historical baseline. */
@@ -136,6 +136,25 @@ static int progress_history(void)
 	CHECK(!simplex_pan_pdhg_progress_stalled(&h, 2128, 1e10));
 	CHECK(simplex_pan_pdhg_progress_stalled(
 		&h, 2000 + SIMPLEX_PDHG_STAGNANT_WORK, 1e10));
+	/* Recalibrating a joint metric cannot erase an unchanged physical
+	 * feasibility component, even while the joint metric keeps improving. */
+	simplex_pan_pdhg_progress_reset(&primal);
+	for (k = 0; k <= SIMPLEX_PDHG_STAGNANT_WORK; k += 128) {
+		simplex_pan_pdhg_progress_reset(&h);
+		stalled = simplex_pan_pdhg_progress_stalled_pair(
+			&h, &primal, k, 1. / (1. + k), 1.);
+		CHECK(stalled == (k == SIMPLEX_PDHG_STAGNANT_WORK
+						 ? SIMPLEX_PDHG_PRIMAL_STALLED
+						 : SIMPLEX_PDHG_PROGRESSING));
+	}
+	/* Productive physical progress retains its matrix-free trajectory. */
+	simplex_pan_pdhg_progress_reset(&primal);
+	for (k = 0; k < 100; k++) {
+		simplex_pan_pdhg_progress_reset(&h);
+		CHECK(simplex_pan_pdhg_progress_stalled_pair(&h, &primal,
+			      k * 128, ldexp(1., -k),
+			      ldexp(1., -k)) == SIMPLEX_PDHG_PROGRESSING);
+	}
 	return 1;
 }
 

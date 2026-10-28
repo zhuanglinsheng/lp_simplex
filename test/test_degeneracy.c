@@ -108,6 +108,53 @@ static int test_incremental_fingerprint_and_growth(void)
 	return valid;
 }
 
+static int test_objective_reset_matches_full_rehash(void)
+{
+	int basis[3] = {3, 1, 4}, i, valid = 1;
+	unsigned char status[64];
+	struct simplex_DegeneracyControl cached, rebuilt;
+	for (i = 0; i < 64; i++)
+		status[i] = 1;
+	status[3] = status[1] = status[4] = 0;
+	simplex_degeneracy_initialize(&cached);
+	simplex_degeneracy_initialize(&rebuilt);
+	simplex_degeneracy_reset_objective(&cached);
+	valid = !cached.fingerprint_initialized &&
+		!simplex_degeneracy_record_state(&cached, basis, 3, status, 64);
+	for (i = 5; valid && i < 60; i++) {
+		int old = basis[1];
+		simplex_degeneracy_update_basis(&cached, 1, old, i);
+		simplex_degeneracy_update_status(&cached, old, status[old], 1);
+		simplex_degeneracy_update_status(&cached, i, status[i], 0);
+		status[old] = 1;
+		status[i] = 0;
+		basis[1] = i;
+		simplex_degeneracy_reset_objective(&cached);
+		simplex_degeneracy_reset_state(&rebuilt);
+		valid = cached.fingerprint_initialized &&
+			!cached.fingerprint_count &&
+			!simplex_degeneracy_record_state(
+				&cached, basis, 3, status, 64) &&
+			!simplex_degeneracy_record_state(
+				&rebuilt, basis, 3, status, 64) &&
+			cached.current_basis_hash ==
+				rebuilt.current_basis_hash &&
+			cached.current_status_hash ==
+				rebuilt.current_status_hash &&
+			simplex_degeneracy_record_state(
+				&cached, basis, 3, status, 64) &&
+			simplex_degeneracy_record_state(
+				&rebuilt, basis, 3, status, 64) &&
+			cached.repeated_states == rebuilt.repeated_states &&
+			simplex_degeneracy_is_lexicographic(&cached);
+	}
+	simplex_degeneracy_reset_state(&cached);
+	valid = valid && !cached.fingerprint_initialized;
+	simplex_degeneracy_destroy(&cached);
+	simplex_degeneracy_destroy(&rebuilt);
+	return valid;
+}
+
 static int test_recovery_event(void)
 {
 	struct simplex_DegeneracyControl control;
@@ -150,6 +197,7 @@ int main(void)
 		!test_repeated_state_escalates() ||
 		!test_merit_progress_retains_face_history() ||
 		!test_incremental_fingerprint_and_growth() ||
+		!test_objective_reset_matches_full_rehash() ||
 		!test_recovery_event() ||
 		!test_progress_does_not_consume_numeric_recovery()) {
 		printf("degeneracy controller regression failed\n");

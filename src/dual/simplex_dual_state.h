@@ -20,5 +20,7 @@ int simplex_dual_state_create(struct simplex_DualState *state,
 	const struct lp_simplex_Options *options, int basis_backend);
 
 void simplex_dual_state_destroy(struct simplex_DualState *state);
+/* Optional, one-attempt allocation; false retains the established dense RHS. */
+int simplex_dual_packed_work_prepare(struct simplex_DualState *state);
 
 #endif

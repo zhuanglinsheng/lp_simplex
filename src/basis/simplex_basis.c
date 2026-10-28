@@ -12,9 +12,12 @@
 
 #include "policy/factorization.h"
 #include "policy/controls.h"
+#include "policy/resources.h"
 #include "simplex_basis.h"
 #include "linalg.h"
 #include "simplex_sparse_lu.h"
+#include "simplex_klu_sparse.h"
+#include "simplex_sparse_vector.h"
 #include "utils.h"
 #include "simplex_storage.h"
 
@@ -29,6 +32,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 struct simplex_BasisImpl {
 	int rows;
@@ -48,6 +52,8 @@ struct simplex_BasisImpl {
 	int *row_to_core;
 	int *logical_position;
 	int *base_index;
+	int *column_to_core;
+	int core_nonzeros;
 	double *base_work;
 	double *core_work;
 	double *refine_work;
@@ -63,6 +69,8 @@ struct simplex_BasisImpl {
 	klu_symbolic *symbolic;
 	klu_numeric *numeric;
 	klu_common common;
+	struct simplex_KluSparse sparse_klu;
+	struct simplex_SparseVector sparse_core, sparse_lift;
 #endif
 	struct simplex_SparseLu sparse;
 	/* Backend actually in use.  When KLU is available both factorizations are
@@ -76,6 +84,7 @@ struct simplex_BasisImpl {
 	int *eta_index;
 	int *eta_pivot;
 	int *eta_dense_slot;
+	unsigned char eta_ordered[SIMPLEX_BASIS_UPDATE_LIMIT];
 	int eta_capacity;
 	int dense_eta_capacity;
 	int dense_eta_count;
@@ -95,6 +104,7 @@ struct simplex_BasisImpl {
 	long profile_factor_calls;
 	long profile_ftran_calls;
 	long profile_btran_calls;
+	long profile_klu_sparse_success, profile_klu_sparse_declined;
 	long profile_compact_calls;
 	int profile_compact_min;
 	int profile_compact_max;
@@ -130,6 +140,7 @@ void simplex_basis_set_backend(struct simplex_Basis *basis, const int backend)
 	basis->impl->backend = backend;
 #ifdef LP_SIMPLEX_HAVE_KLU
 	if (backend == SIMPLEX_BASIS_BACKEND_INTERNAL) {
+		simplex_klu_sparse_destroy(&basis->impl->sparse_klu);
 		if (basis->impl->numeric != NULL)
 			klu_free_numeric(
 				&basis->impl->numeric, &basis->impl->common);
@@ -376,6 +387,9 @@ void simplex_basis_destroy(struct simplex_Basis *basis)
 	if (basis == NULL || basis->impl == NULL)
 		return;
 #ifdef LP_SIMPLEX_HAVE_KLU
+	simplex_klu_sparse_destroy(&basis->impl->sparse_klu);
+	simplex_sparse_vector_destroy(&basis->impl->sparse_core);
+	simplex_sparse_vector_destroy(&basis->impl->sparse_lift);
 	if (basis->impl->numeric != NULL)
 		klu_free_numeric(&basis->impl->numeric, &basis->impl->common);
 	if (basis->impl->symbolic != NULL)
@@ -395,6 +409,7 @@ void simplex_basis_destroy(struct simplex_Basis *basis)
 	lp_simplex_free(basis->impl->eta_pivot_value);
 	lp_simplex_free(basis->impl->core_basis);
 	lp_simplex_free(basis->impl->base_work);
+	lp_simplex_free(basis->impl->column_to_core);
 	basis->impl->eta_value = NULL;
 	basis->impl->dense_eta = NULL;
 	basis->impl->eta_index = NULL;
@@ -485,6 +500,32 @@ static void simplex_basis_reset_updates(struct simplex_Basis *basis)
 	basis->impl->dense_eta_count = 0;
 }
 
+#ifdef LP_SIMPLEX_HAVE_KLU
+static void simplex_basis_prepare_packed(struct simplex_Basis *basis)
+{
+	struct simplex_BasisImpl *b = basis->impl;
+	size_t bytes;
+	if (!b->compact_active || b->column_to_core == NULL ||
+		!simplex_storage_bytes((size_t)b->rows + b->core_size,
+			2 * sizeof(int) + 2 * sizeof(double) +
+				sizeof(unsigned int),
+			SIMPLEX_BASIS_PACKED_BYTES, &bytes))
+		return;
+	if (b->sparse_core.dimension != b->core_size) {
+		simplex_sparse_vector_destroy(&b->sparse_core);
+		if (simplex_sparse_vector_create(&b->sparse_core, b->core_size))
+			goto REFUSED;
+	}
+	if (!b->sparse_lift.index &&
+		simplex_sparse_vector_create(&b->sparse_lift, b->rows))
+		goto REFUSED;
+	return;
+REFUSED:
+	simplex_sparse_vector_destroy(&b->sparse_core);
+	simplex_sparse_vector_destroy(&b->sparse_lift);
+}
+#endif
+
 static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 {
 	int core_size;
@@ -493,6 +534,9 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 	int nonzeros = 0;
 	int factor_size;
 	size_t index_bytes, value_bytes;
+#endif
+#ifdef LP_SIMPLEX_HAVE_KLU
+	simplex_klu_sparse_destroy(&basis->impl->sparse_klu);
 #endif
 	if (simplex_basis_build_core(basis) == lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
@@ -505,6 +549,44 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 			basis->impl->rows;
 	basis->impl->factor_size =
 		basis->impl->compact_active ? core_size : basis->impl->rows;
+	basis->impl->core_nonzeros = 0;
+	{
+		int j;
+		for (j = 0; j < core_size; j++) {
+			int column = basis->impl->core_basis[j];
+			int count =
+				basis->impl->matrix->column_start[column + 1] -
+				basis->impl->matrix->column_start[column];
+			basis->impl->core_nonzeros =
+				count > INT_MAX - basis->impl->core_nonzeros
+					? INT_MAX
+					: basis->impl->core_nonzeros + count;
+		}
+	}
+	/* Optional inverse map: the immutable CSR view can then apply D^T using
+	 * only nonzero logical RHS entries in B = [C 0; D -I]. Allocation refusal
+	 * retains the CSC traversal; it is not a factorization failure. */
+	if (basis->impl->compact_active &&
+		basis->impl->matrix->row_start != NULL &&
+		basis->impl->matrix->column_index != NULL &&
+		basis->impl->matrix->row_value != NULL) {
+		int j;
+		size_t bytes;
+		if (basis->impl->column_to_core == NULL &&
+			simplex_storage_bytes(
+				(size_t)basis->impl->structural_columns,
+				sizeof(int), SIMPLEX_BASIS_CORE_MAP_BYTES,
+				&bytes))
+			basis->impl->column_to_core =
+				(int *)lp_simplex_malloc(bytes);
+		if (basis->impl->column_to_core != NULL) {
+			for (j = 0; j < basis->impl->structural_columns; j++)
+				basis->impl->column_to_core[j] = -1;
+			for (j = 0; j < core_size; j++)
+				basis->impl->column_to_core[basis->impl
+						->core_basis[j]] = j;
+		}
+	}
 	basis->impl->compact_ftran_validation_countdown = 0;
 	basis->impl->compact_btran_validation_countdown = 0;
 	basis->impl->update_limit = SIMPLEX_BASIS_UPDATE_LIMIT;
@@ -530,6 +612,7 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 		basis->impl->base_row_index = NULL;
 		basis->impl->base_value = NULL;
 		if (factor_size == 0) {
+			simplex_basis_prepare_packed(basis);
 			simplex_basis_reset_updates(basis);
 			return lp_simplex_EXIT_SUCCESS;
 		}
@@ -651,6 +734,20 @@ static int simplex_basis_factorize_impl(struct simplex_Basis *basis)
 		}
 		klu_flops(basis->impl->symbolic, basis->impl->numeric,
 			&basis->impl->common);
+		if (basis->impl->profile_enabled) {
+			klu_common diagnostic = basis->impl->common;
+			if (klu_rcond(basis->impl->symbolic,
+				    basis->impl->numeric, &diagnostic))
+				fprintf(stderr,
+					"basis profile: KLU dimension=%d compact=%d reciprocal-diagonal=%.17g\n",
+					factor_size,
+					basis->impl->compact_active,
+					diagnostic.rcond);
+		}
+		(void)simplex_klu_sparse_build(&basis->impl->sparse_klu,
+			basis->impl->symbolic, basis->impl->numeric,
+			&basis->impl->common);
+		simplex_basis_prepare_packed(basis);
 		simplex_basis_reset_updates(basis);
 		return lp_simplex_EXIT_SUCCESS;
 	}
@@ -749,6 +846,18 @@ static int simplex_basis_core_solve(
 		return simplex_sparse_lu_solve(
 			&((struct simplex_Basis *)basis)->impl->sparse, vector,
 			trans == 'T');
+	success = simplex_klu_sparse_solve(
+		&((struct simplex_Basis *)basis)->impl->sparse_klu, vector,
+		trans == 'T');
+	if (success == 0)
+		((struct simplex_Basis *)basis)
+			->impl->profile_klu_sparse_success++;
+	else if (success == 1)
+		((struct simplex_Basis *)basis)
+			->impl->profile_klu_sparse_declined++;
+	if (success != 1)
+		return success == 0 ? lp_simplex_EXIT_SUCCESS
+				    : lp_simplex_EXIT_FAILURE;
 	if (trans == 'N')
 		success = klu_solve(basis->impl->symbolic, basis->impl->numeric,
 			basis->impl->factor_size, 1, vector,
@@ -794,8 +903,8 @@ static int simplex_basis_base_ftran_once(
 	const struct simplex_CscMatrix *matrix = basis->impl->matrix;
 	int i, k, row, position;
 
-	lp_simplex_memset(
-		vector, 0, (size_t)basis->impl->rows * sizeof(double));
+	/* Core and logical positions partition the complete basis. Each output
+	 * is assigned below before use; a separate dense zero pass is redundant. */
 	for (i = 0; i < basis->impl->core_size; i++)
 		mutable->impl->core_work[i] = right[basis->impl->core_row[i]];
 	if (simplex_basis_core_solve(basis, mutable->impl->core_work, 'N') ==
@@ -813,6 +922,8 @@ static int simplex_basis_base_ftran_once(
 		int column = basis->impl->core_basis[i];
 		double value = mutable->impl->core_work[i];
 
+		if (value == 0.)
+			continue;
 		for (k = matrix->column_start[column];
 			k < matrix->column_start[column + 1]; k++) {
 			row = matrix->row_index[k];
@@ -832,9 +943,6 @@ static int simplex_basis_base_ftran_pair_once(const struct simplex_Basis *basis,
 	const struct simplex_CscMatrix *matrix = basis->impl->matrix;
 	int i, k, row, position;
 
-	lp_simplex_memset(first, 0, (size_t)basis->impl->rows * sizeof(double));
-	lp_simplex_memset(
-		second, 0, (size_t)basis->impl->rows * sizeof(double));
 	for (i = 0; i < basis->impl->core_size; i++) {
 		row = basis->impl->core_row[i];
 		mutable->impl->core_work[i] = first_right[row];
@@ -860,6 +968,8 @@ static int simplex_basis_base_ftran_pair_once(const struct simplex_Basis *basis,
 		double first_value = mutable->impl->core_work[i];
 		double second_value = mutable->impl->correction_work[i];
 
+		if (first_value == 0. && second_value == 0.)
+			continue;
 		for (k = matrix->column_start[column];
 			k < matrix->column_start[column + 1]; k++) {
 			row = matrix->row_index[k];
@@ -982,26 +1092,56 @@ static int simplex_basis_base_btran_once(
 	struct simplex_Basis *mutable = (struct simplex_Basis *)basis;
 	const struct simplex_CscMatrix *matrix = basis->impl->matrix;
 	int i, k, row, position;
+	int row_view = basis->impl->column_to_core != NULL &&
+		       matrix->row_start != NULL &&
+		       matrix->column_index != NULL &&
+		       matrix->row_value != NULL;
+	size_t row_work = 0;
 
-	lp_simplex_memset(
-		vector, 0, (size_t)basis->impl->rows * sizeof(double));
 	for (row = 0; row < basis->impl->rows; row++) {
 		position = basis->impl->logical_position[row];
-		if (position >= 0)
-			vector[row] = -right[position];
+		vector[row] = position >= 0 ? -right[position] : 0.;
+		if (row_view && vector[row] != 0.)
+			row_work += matrix->row_start[row + 1] -
+				    matrix->row_start[row];
 	}
-	for (i = 0; i < basis->impl->core_size; i++) {
-		int column = basis->impl->core_basis[i];
-		double value = right[basis->impl->core_position[i]];
-
-		for (k = matrix->column_start[column];
-			k < matrix->column_start[column + 1]; k++) {
-			row = matrix->row_index[k];
-			if (basis->impl->logical_position[row] >= 0)
-				value -= matrix->value[k] * vector[row];
+	if (row_view && row_work <= (size_t)basis->impl->core_nonzeros) {
+		for (i = 0; i < basis->impl->core_size; i++)
+			mutable->impl->core_work[i] =
+				right[basis->impl->core_position[i]];
+		/* Visit the cheaper support using the existing CSR view. No small
+		 * coefficient or RHS is dropped, and the base residual audit and
+		 * refinement path remain unchanged. */
+		for (row = 0; row < basis->impl->rows; row++) {
+			double value = vector[row];
+			if (value == 0.)
+				continue;
+			for (k = matrix->row_start[row];
+				k < matrix->row_start[row + 1]; k++) {
+				int column = matrix->column_index[k];
+				int core =
+					column < basis->impl->structural_columns
+						? basis->impl->column_to_core
+							  [column]
+						: -1;
+				if (core >= 0)
+					mutable->impl->core_work[core] -=
+						matrix->row_value[k] * value;
+			}
 		}
-		mutable->impl->core_work[i] = value;
-	}
+	} else
+		for (i = 0; i < basis->impl->core_size; i++) {
+			int column = basis->impl->core_basis[i];
+			double value = right[basis->impl->core_position[i]];
+
+			for (k = matrix->column_start[column];
+				k < matrix->column_start[column + 1]; k++) {
+				row = matrix->row_index[k];
+				if (basis->impl->logical_position[row] >= 0)
+					value -= matrix->value[k] * vector[row];
+			}
+			mutable->impl->core_work[i] = value;
+		}
 	if (simplex_basis_core_solve(basis, mutable->impl->core_work, 'T') ==
 		lp_simplex_EXIT_FAILURE)
 		return lp_simplex_EXIT_FAILURE;
@@ -1217,6 +1357,425 @@ static int simplex_basis_btran_raw(
 			return lp_simplex_EXIT_FAILURE;
 	}
 	return simplex_basis_base_btran(basis, vector);
+}
+
+#ifdef LP_SIMPLEX_HAVE_KLU
+static int simplex_basis_base_ftran_packed_impl(
+	struct simplex_Basis *basis, struct simplex_SparseVector *vector)
+{
+	struct simplex_BasisImpl *b = basis->impl;
+	const struct simplex_CscMatrix *matrix = b->matrix;
+	struct simplex_SparseVector *core = &b->sparse_core,
+				    *lift = &b->sparse_lift;
+	int i, k, result;
+	if (simplex_basis_uses_internal(basis))
+		return 1;
+	if (!b->compact_active) {
+		result = simplex_klu_sparse_solve_packed(
+			&b->sparse_klu, vector, 0);
+		if (!result)
+			b->profile_klu_sparse_success++;
+		else if (result == 1)
+			b->profile_klu_sparse_declined++;
+		return result;
+	}
+	if (b->compact_ftran_validation_countdown <= 0 || !lift->index ||
+		core->dimension != b->core_size)
+		return 1;
+	simplex_sparse_vector_clear(core);
+	simplex_sparse_vector_clear(lift);
+	for (i = 0; i < vector->count; i++) {
+		int row = vector->index[i], position = b->row_to_core[row];
+		double value = vector->value[i];
+		if (value == 0.)
+			continue;
+		if (position >= 0)
+			(void)simplex_sparse_vector_set(core, position, value);
+		else
+			(void)simplex_sparse_vector_set(
+				lift, b->logical_position[row], -value);
+	}
+	if (b->core_size > 0) {
+		result = simplex_klu_sparse_solve_packed(
+			&b->sparse_klu, core, 0);
+		if (!result)
+			b->profile_klu_sparse_success++;
+		else if (result == 1) {
+			b->profile_klu_sparse_declined++;
+			lp_simplex_memcpy(b->core_work, core->dense,
+				(size_t)b->core_size * sizeof(double));
+			if (!klu_solve(b->symbolic, b->numeric, b->factor_size,
+				    1, b->core_work, &b->common))
+				return -1;
+			(void)simplex_sparse_vector_pack(
+				core, b->core_work, 0.);
+		} else
+			return -1;
+	}
+	/* Preserve the original ascending-core-column accumulation order. */
+	simplex_sparse_vector_sort(core);
+	for (i = 0; i < core->count; i++) {
+		int column = b->core_basis[core->index[i]];
+		double value = core->value[i];
+		(void)simplex_sparse_vector_set(
+			lift, b->core_position[core->index[i]], value);
+		if (value == 0.)
+			continue;
+		for (k = matrix->column_start[column];
+			k < matrix->column_start[column + 1]; k++) {
+			int position =
+				b->logical_position[matrix->row_index[k]];
+			if (position < 0)
+				continue;
+			if (lift->mark[position] == lift->generation)
+				lift->dense[position] +=
+					matrix->value[k] * value;
+			else
+				(void)simplex_sparse_vector_set(lift, position,
+					matrix->value[k] * value);
+		}
+	}
+	simplex_sparse_vector_compact(lift);
+	simplex_sparse_vector_clear(vector);
+	for (i = 0; i < lift->count; i++)
+		(void)simplex_sparse_vector_set(
+			vector, lift->index[i], lift->value[i]);
+	b->compact_ftran_validation_countdown--;
+	return 0;
+}
+
+static int simplex_basis_base_btran_packed_impl(
+	struct simplex_Basis *basis, struct simplex_SparseVector *vector)
+{
+	struct simplex_BasisImpl *b = basis->impl;
+	const struct simplex_CscMatrix *matrix = b->matrix;
+	struct simplex_SparseVector *core = &b->sparse_core,
+				    *lift = &b->sparse_lift;
+	size_t row_work = 0;
+	int i, k, result;
+	if (simplex_basis_uses_internal(basis))
+		return 1;
+	if (!b->compact_active) {
+		result = simplex_klu_sparse_solve_packed(
+			&b->sparse_klu, vector, 1);
+		if (!result)
+			b->profile_klu_sparse_success++;
+		else if (result == 1)
+			b->profile_klu_sparse_declined++;
+		return result;
+	}
+	/* Preserve the existing periodic full residual audit and refinement.
+	 * Only the intervening unvalidated lifts use this packed representation. */
+	if (b->compact_btran_validation_countdown <= 0 || !lift->index ||
+		core->dimension != b->core_size || b->column_to_core == NULL)
+		return 1;
+	simplex_sparse_vector_clear(core);
+	simplex_sparse_vector_clear(lift);
+	for (i = 0; i < vector->count; i++) {
+		int column = b->base_index[vector->index[i]];
+		double value = vector->value[i];
+		if (value == 0.)
+			continue;
+		if (column >= b->structural_columns) {
+			int row = column - b->structural_columns;
+			row_work += matrix->row_start[row + 1] -
+				    matrix->row_start[row];
+			(void)simplex_sparse_vector_set(lift, row, -value);
+		} else {
+			int position = b->column_to_core[column];
+			if (position < 0)
+				return 1;
+			(void)simplex_sparse_vector_set(core, position, value);
+		}
+	}
+	if (row_work > (size_t)b->core_nonzeros)
+		return 1;
+	simplex_sparse_vector_sort(lift);
+	for (i = 0; i < lift->count; i++) {
+		int row = lift->index[i];
+		double value = lift->value[i];
+		for (k = matrix->row_start[row]; k < matrix->row_start[row + 1];
+			k++) {
+			int column = matrix->column_index[k];
+			int position = column < b->structural_columns
+					       ? b->column_to_core[column]
+					       : -1;
+			if (position < 0)
+				continue;
+			if (core->mark[position] == core->generation)
+				core->dense[position] -=
+					matrix->row_value[k] * value;
+			else
+				(void)simplex_sparse_vector_set(core, position,
+					-matrix->row_value[k] * value);
+		}
+	}
+	for (i = 0; i < core->count; i++)
+		core->value[i] = core->dense[core->index[i]];
+	if (b->core_size > 0) {
+		result = simplex_klu_sparse_solve_packed(
+			&b->sparse_klu, core, 1);
+		if (!result)
+			b->profile_klu_sparse_success++;
+		else if (result == 1) {
+			b->profile_klu_sparse_declined++;
+			lp_simplex_memcpy(b->core_work, core->dense,
+				(size_t)b->core_size * sizeof(double));
+			if (!klu_tsolve(b->symbolic, b->numeric, b->factor_size,
+				    1, b->core_work, &b->common))
+				return -1;
+			(void)simplex_sparse_vector_pack(
+				core, b->core_work, 0.);
+		} else
+			return -1;
+	}
+	for (i = 0; i < core->count; i++)
+		if (core->value[i] != 0.)
+			(void)simplex_sparse_vector_set(lift,
+				b->core_row[core->index[i]], core->value[i]);
+	simplex_sparse_vector_clear(vector);
+	for (i = 0; i < lift->count; i++)
+		(void)simplex_sparse_vector_set(
+			vector, lift->index[i], lift->value[i]);
+	b->compact_btran_validation_countdown--;
+	return 0;
+}
+#endif
+
+/* Eta applications consume dense values and membership only. Materialize
+ * packed values once at the end instead of duplicating every floating store. */
+static void basis_packed_assign(
+	struct simplex_SparseVector *vector, int row, double value)
+{
+	if (vector->mark[row] != vector->generation) {
+		if (value == 0.)
+			return;
+		vector->mark[row] = vector->generation;
+		vector->slot[row] = vector->count;
+		vector->index[vector->count++] = row;
+	}
+	vector->dense[row] = value;
+}
+
+int simplex_basis_ftran_packed(
+	const struct simplex_Basis *basis, struct simplex_SparseVector *vector)
+{
+	struct simplex_Basis *mutable = (struct simplex_Basis *)basis;
+	struct simplex_BasisImpl *b = mutable->impl;
+	int update, i, result = 1;
+	clock_t started = 0;
+	if (b->profile_enabled)
+		started = clock();
+	/* Internal FT retains its established raw kernel. */
+	if (simplex_basis_uses_internal(basis))
+		goto DENSE;
+#ifdef LP_SIMPLEX_HAVE_KLU
+	result = simplex_basis_base_ftran_packed_impl(mutable, vector);
+#endif
+	if (result == 1) {
+		lp_simplex_memcpy(b->certify_correction, vector->dense,
+			(size_t)b->rows * sizeof(double));
+		result = simplex_basis_base_ftran(basis, b->certify_correction);
+		if (!result)
+			(void)simplex_sparse_vector_pack(
+				vector, b->certify_correction, 0.);
+	}
+	if (result)
+		goto FINISH;
+	for (update = 0; update < b->update_count; update++) {
+		int p = b->eta_pivot[update];
+		double value, pivot = b->eta_pivot_value[update];
+		b->eta_apply_work += b->eta_dense_slot[update] < 0
+					     ? b->eta_start[update + 1] -
+						       b->eta_start[update]
+					     : b->rows;
+		if (fabs(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR) {
+			result = -1;
+			goto FINISH;
+		}
+		if (vector->dense[p] == 0.)
+			continue;
+		value = vector->dense[p] / pivot;
+		if (b->eta_dense_slot[update] < 0) {
+			for (i = b->eta_start[update];
+				i < b->eta_start[update + 1]; i++) {
+				int row = b->eta_index[i];
+				double next = vector->dense[row] -
+					      value * b->eta_value[i];
+				basis_packed_assign(vector, row, next);
+			}
+		} else {
+			const double *eta =
+				b->dense_eta +
+				(size_t)b->eta_dense_slot[update] * b->rows;
+			for (i = 0; i < b->rows; i++)
+				if (eta[i] != 0.)
+					basis_packed_assign(vector, i,
+						vector->dense[i] -
+							value * eta[i]);
+		}
+		(void)simplex_sparse_vector_set(vector, p, value);
+	}
+	simplex_sparse_vector_compact(vector);
+	simplex_sparse_vector_sort(vector);
+	goto FINISH;
+DENSE:
+	lp_simplex_memcpy(b->certify_correction, vector->dense,
+		(size_t)b->rows * sizeof(double));
+	result = simplex_basis_ftran_raw(basis, b->certify_correction);
+	if (!result)
+		(void)simplex_sparse_vector_pack(
+			vector, b->certify_correction, 0.);
+FINISH:
+	if (b->profile_enabled)
+		b->profile_ftran_seconds +=
+			(double)(clock() - started) / CLOCKS_PER_SEC;
+	b->profile_ftran_calls++;
+	return result;
+}
+
+/* Eta transpose changes only its pivot coordinate. Keep the existing ordered
+ * support ordered with one insertion, so dense eta dots can visit only live
+ * RHS coordinates in row order. No second dense index owner is needed. */
+static void basis_packed_pivot(
+	struct simplex_SparseVector *vector, int position, double value)
+{
+	int previous = vector->count, i;
+	(void)simplex_sparse_vector_set(vector, position, value);
+	if (vector->count == previous)
+		return;
+	i = previous;
+	while (i > 0 && vector->index[i - 1] > position) {
+		int row = vector->index[i - 1];
+		vector->index[i] = row;
+		vector->value[i] = vector->value[i - 1];
+		vector->slot[row] = i;
+		i--;
+	}
+	vector->index[i] = position;
+	vector->value[i] = value;
+	vector->slot[position] = i;
+}
+
+int simplex_basis_btran_packed(
+	const struct simplex_Basis *basis, struct simplex_SparseVector *vector)
+{
+	struct simplex_Basis *mutable = (struct simplex_Basis *)basis;
+	int update, first_update = 0, result = 1;
+	clock_t started = 0;
+	if (basis->impl->profile_enabled)
+		started = clock();
+	simplex_sparse_vector_sort(vector);
+	if (simplex_basis_uses_internal(basis) &&
+		!basis->impl->compact_active &&
+		simplex_sparse_lu_ft_active(&basis->impl->sparse))
+		first_update = basis->impl->sparse.ft_update_count;
+	for (update = basis->impl->update_count - 1; update >= first_update;
+		update--) {
+		int position = basis->impl->eta_pivot[update];
+		mutable->impl->eta_apply_work +=
+			basis->impl->eta_dense_slot[update] < 0
+				? basis->impl->eta_start[update + 1] -
+					  basis->impl->eta_start[update]
+				: basis->impl->rows;
+		if (basis->impl->eta_dense_slot[update] >= 0 &&
+			vector->count < basis->impl->rows / 4) {
+			const double *eta =
+				basis->impl->dense_eta +
+				(size_t)basis->impl->eta_dense_slot[update] *
+					basis->impl->rows;
+			double pivot = basis->impl->eta_pivot_value[update];
+			double old = vector->dense[position], dot = 0.;
+			int i;
+			if (fabs(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR) {
+				result = -1;
+				goto FINISH;
+			}
+			for (i = 0; i < vector->count; i++) {
+				int row = vector->index[i];
+				dot += eta[row] * vector->dense[row];
+			}
+			basis_packed_pivot(vector, position,
+				(old - dot + pivot * old) / pivot);
+		} else if (basis->impl->eta_dense_slot[update] < 0 &&
+			   basis->impl->eta_ordered[update]) {
+			int first = basis->impl->eta_start[update];
+			int end = basis->impl->eta_start[update + 1];
+			int length = end - first, depth = 1, scale = length;
+			double pivot = basis->impl->eta_pivot_value[update];
+			double old = vector->dense[position], dot = 0.;
+			int i;
+			while (scale > 1) {
+				depth++;
+				scale /= 2;
+			}
+			if (vector->count >= length / depth) {
+				if (simplex_basis_apply_eta_transpose(
+					    basis, update, vector->dense)) {
+					result = -1;
+					goto FINISH;
+				}
+				basis_packed_pivot(vector, position,
+					vector->dense[position]);
+				continue;
+			}
+			if (fabs(pivot) <= SIMPLEX_BASIS_ABSOLUTE_PIVOT_FLOOR) {
+				result = -1;
+				goto FINISH;
+			}
+			/* Both supports are ordered. Search the larger eta for each RHS
+			 * coordinate, then accumulate matches in the original eta order. */
+			for (i = 0; i < vector->count; i++) {
+				int row = vector->index[i], lo = first,
+				    hi = end;
+				if (vector->dense[row] == 0.)
+					continue;
+				while (lo < hi) {
+					int middle = lo + (hi - lo) / 2;
+					if (basis->impl->eta_index[middle] <
+						row)
+						lo = middle + 1;
+					else
+						hi = middle;
+				}
+				if (lo < end &&
+					basis->impl->eta_index[lo] == row)
+					dot += basis->impl->eta_value[lo] *
+					       vector->dense[row];
+			}
+			basis_packed_pivot(vector, position,
+				(old - dot + pivot * old) / pivot);
+		} else {
+			if (simplex_basis_apply_eta_transpose(
+				    basis, update, vector->dense)) {
+				result = -1;
+				goto FINISH;
+			}
+			basis_packed_pivot(
+				vector, position, vector->dense[position]);
+		}
+	}
+#ifdef LP_SIMPLEX_HAVE_KLU
+	result = simplex_basis_base_btran_packed_impl(mutable, vector);
+#endif
+	if (result == 1) {
+		lp_simplex_memcpy(mutable->impl->certify_correction,
+			vector->dense,
+			(size_t)basis->impl->rows * sizeof(double));
+		result = simplex_basis_base_btran(
+			basis, mutable->impl->certify_correction);
+		if (!result)
+			(void)simplex_sparse_vector_pack(
+				vector, mutable->impl->certify_correction, 0.);
+	}
+	if (!result)
+		simplex_sparse_vector_sort(vector);
+FINISH:
+	if (basis->impl->profile_enabled)
+		mutable->impl->profile_btran_seconds +=
+			(double)(clock() - started) / CLOCKS_PER_SEC;
+	mutable->impl->profile_btran_calls++;
+	return result;
 }
 
 /* Componentwise backward error for B*x=right using the current basis, not
@@ -1539,12 +2098,13 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 	double direction_maximum = 0.;
 	double relative_pivot;
 	basis->impl->storage_failed = 0;
-	/* On large bases an internal sparse refactorization is orders of magnitude
-	 * dearer than another eta traversal.  Let the numerical hard limit govern
-	 * those chains; smaller bases retain the deterministic ski-rental rule. */
+	/* Large internal sparse refactorizations retain their hard-limit policy.
+	 * KLU has its own factor-work estimate: do not suppress its deterministic
+	 * amortization rule merely because the original basis has many rows. */
 	if (basis->impl->update_count >= basis->impl->update_limit)
 		return 1;
-	if (basis->impl->rows < SIMPLEX_BASIS_LARGE_ROWS &&
+	if ((basis->impl->rows < SIMPLEX_BASIS_LARGE_ROWS ||
+		    !simplex_basis_uses_internal(basis)) &&
 		basis->impl->update_count > 0 && basis->impl->factor_work > 0 &&
 		basis->impl->eta_apply_work /
 				(basis->impl->allow_sparse_eta ? 1 : 2) >=
@@ -1643,6 +2203,15 @@ static int simplex_basis_update_impl(struct simplex_Basis *basis,
 						direction[i];
 				}
 		basis->impl->eta_dense_slot[basis->impl->update_count] = -1;
+		basis->impl->eta_ordered[basis->impl->update_count] = 1;
+		if (packed)
+			for (i = first + 1; i < count; i++)
+				if (basis->impl->eta_index[i - 1] >=
+					basis->impl->eta_index[i]) {
+					basis->impl->eta_ordered[basis->impl
+							->update_count] = 0;
+					break;
+				}
 		basis->impl->profile_eta_nonzeros += nonzeros;
 		basis->impl->profile_eta_slots += basis->impl->rows;
 	} else {
@@ -1746,6 +2315,8 @@ void simplex_basis_get_profile(
 	profile->factor_calls = basis->impl->profile_factor_calls;
 	profile->ftran_calls = basis->impl->profile_ftran_calls;
 	profile->btran_calls = basis->impl->profile_btran_calls;
+	profile->klu_sparse_success = basis->impl->profile_klu_sparse_success;
+	profile->klu_sparse_declined = basis->impl->profile_klu_sparse_declined;
 	profile->compact_calls = basis->impl->profile_compact_calls;
 	profile->compact_min = basis->impl->profile_compact_min;
 	profile->compact_max = basis->impl->profile_compact_max;

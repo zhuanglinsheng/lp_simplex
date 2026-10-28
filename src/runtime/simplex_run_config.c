@@ -17,19 +17,27 @@
 void simplex_run_config_init(struct simplex_RunConfig *c, int experimental)
 {
 	memset(c, 0, sizeof(*c));
-	c->dual.disable_bounds = c->dual.pan_enabled = c->dual.multi_epoch = 1;
+	c->dual.disable_bounds = c->dual.pan_enabled = 1;
+	/* Keep one persistent, tolerance-scaled initial separation rather than
+	 * repeatedly changing the objective on successive stagnant faces. The
+	 * original objective is still restored and certified before success. */
+	c->dual.initial_cost_perturb = 1;
 	simplex_pan_config_clean(&c->pan);
 	if (!experimental)
 		return;
 	c->experimental_environment = 1;
 	c->disable_presolve = getenv(SIMPLEX_ENV_DISABLE_PRESOLVE) != NULL;
 	c->disable_scaling = getenv(SIMPLEX_ENV_DISABLE_SCALING) != NULL;
+	c->presolve_dependencies =
+		getenv(SIMPLEX_ENV_PRESOLVE_DEPENDENCIES) != NULL;
 	c->dual.force_bounds = getenv(SIMPLEX_ENV_FORCE_BOUND_PERTURB) != NULL;
 	c->dual.disable_bounds =
 		getenv(SIMPLEX_ENV_DISABLE_BOUND_PERTURB) != NULL ||
 		(getenv(SIMPLEX_ENV_PRIMAL_BOUND_PERTURB) == NULL &&
 			!c->dual.force_bounds);
 	c->dual.pan_enabled = getenv(SIMPLEX_ENV_DISABLE_PAN) == NULL;
+	/* The explicit compatibility entry preserves historical experiment
+	 * defaults, including their existing presence-only switches. */
 	c->dual.multi_epoch = getenv(SIMPLEX_ENV_SINGLE_PERTURB_EPOCH) == NULL;
 	c->dual.initial_cost_perturb =
 		getenv(SIMPLEX_ENV_INITIAL_COST_PERTURB) != NULL;

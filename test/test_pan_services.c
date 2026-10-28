@@ -651,7 +651,7 @@ static int repair_trigger(void)
 	struct simplex_PanConfig cfg;
 	struct lp_simplex_Options o;
 	double point[3], saved[3], residual[1], scratch[1];
-	int mode, work, saved_work = 0, id, cause;
+	int mode, diagnostics, reason, work, saved_work = 0, id, cause;
 
 	CHECK(m);
 	m->constraints[0].type = optm_CONS_T_GE;
@@ -665,10 +665,13 @@ static int repair_trigger(void)
 		SIMPLEX_PAN_CONE_DIRECTION, SIMPLEX_PAN_IMPLICIT_ORACLE));
 	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_PAN_BDA);
 	o.iteration_limit = 128;
-	for (mode = 0; mode < 6; mode++) {
+	for (mode = 0; mode < 12; mode++) {
+		diagnostics = mode % 6;
+		reason = mode < 6 ? SIMPLEX_REASON_PDHG_STAGNATION
+				  : SIMPLEX_REASON_PDHG_PRIMAL_STAGNATION;
 		simplex_stage_reset(&report);
 		simplex_solve_context_init(&context, &h, &p.execution);
-		if (mode == 1)
+		if (diagnostics == 1)
 			p.execution.history = NULL;
 		simplex_pan_service_context_init(&c, &p);
 		simplex_pan_service_bind(&b.a, &c);
@@ -676,18 +679,20 @@ static int repair_trigger(void)
 		CHECK(simplex_pan_service_begin(&outer, &b.a,
 			SIMPLEX_PAN_SERVICE_PDHG, work, o.iteration_limit,
 			100));
-		if (mode == 2)
+		if (diagnostics == 2)
 			h.count = SIMPLEX_EXECUTION_CAPACITY;
-		if (mode == 3)
+		if (diagnostics == 3)
 			h.count = SIMPLEX_EXECUTION_CAPACITY - 1;
-		if (mode == 4)
+		if (diagnostics == 4)
 			h.count = SIMPLEX_EXECUTION_CAPACITY - 2;
-		if (mode == 5)
+		if (diagnostics == 5)
 			context.execution_serial = ULONG_MAX;
 		point[0] = .6;
 		point[1] = .3;
 		point[2] = 0.;
-		trigger.kind = SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION;
+		trigger.kind =
+			mode < 6 ? SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION
+				 : SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION;
 		trigger.work = work;
 		trigger.epoch = 7;
 		trigger.primal = simplex_pan_bounded_primal(
@@ -708,9 +713,8 @@ static int repair_trigger(void)
 			CHECK(work == saved_work &&
 				!memcmp(point, saved, sizeof(saved)));
 		id = out.event;
-		if (mode == 0 || mode == 4) {
-			CHECK(id > 0 && h.events[id - 1].reason ==
-						SIMPLEX_REASON_PDHG_STAGNATION);
+		if (diagnostics == 0 || diagnostics == 4) {
+			CHECK(id > 0 && h.events[id - 1].reason == reason);
 			cause = h.events[id - 1].cause;
 			CHECK(cause > 0 && cause != id);
 			CHECK(h.events[cause - 1].kind ==

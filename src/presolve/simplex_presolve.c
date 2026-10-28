@@ -10,9 +10,11 @@
 
 #include "policy/search.h"
 #include "policy/factorization.h"
+#include "policy/resources.h"
 #include "simplex_presolve.h"
 #include "simplex_presolve_activity.h"
 #include "simplex_presolve_dominance.h"
+#include "simplex_presolve_dependencies.h"
 #include "simplex_presolve_queue.h"
 #include "simplex_presolve_storage.h"
 #include "simplex_presolve_rules.h"
@@ -481,12 +483,10 @@ static int presolve_workspace_create(struct simplex_Presolve *presolve,
 	 * A capped search is optional and never changes acceptance tolerances. */
 	workspace->dominance_work = simplex_presolve_search_work(
 		model->m, model->n, model->nnz, (size_t)-1);
-	presolve->stats.exact_bound_propagation =
-		model->m <= SIMPLEX_PRESOLVE_EXACT_PROPAGATION_ROWS &&
-		model->n >= SIMPLEX_PRESOLVE_EXACT_PROPAGATION_COLUMN_RATIO *
-				    model->m;
-	workspace->propagation_tolerance =
-		presolve->stats.exact_bound_propagation ? 0. : tolerance;
+	/* Bound enclosures follow arithmetic error for every model. The user
+	 * tolerance filters insignificant updates; it is not bound padding. */
+	presolve->stats.outward_bound_propagation = 1;
+	workspace->propagation_tolerance = tolerance;
 	presolve->column_map = (int *)lp_simplex_malloc(storage.column_int);
 	presolve->row_map = (int *)lp_simplex_malloc(storage.row_int);
 	presolve->eliminated_value =
@@ -794,8 +794,9 @@ static int presolve_reduce_row(struct simplex_Presolve *presolve,
 
 static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, const double tolerance,
-	struct presolve_Workspace *workspace)
+	struct presolve_Workspace *workspace, const int dependencies)
 {
+	int dependencies_attempted = !dependencies;
 	for (;;) {
 		int column, row, duplicate_removed, status;
 		int dominated_rows, dominated_columns;
@@ -834,8 +835,31 @@ static int presolve_reduce_to_fixed_point(struct simplex_Presolve *presolve,
 		presolve->stats.dominated_rows += dominated_rows;
 		presolve->stats.dominated_columns += dominated_columns;
 		if (duplicate_removed == 0 && dominated_rows == 0 &&
-			dominated_columns == 0)
-			return lp_simplex_Success;
+			dominated_columns == 0) {
+			int removed = 0;
+			if (!dependencies_attempted) {
+				size_t work = simplex_presolve_search_work(
+					model->m, model->n, model->nnz,
+					(size_t)-1);
+				dependencies_attempted = 1;
+				if (work <=
+					(size_t)-1 /
+						SIMPLEX_PRESOLVE_DEPENDENCY_WORK_MULTIPLIER)
+					work *= SIMPLEX_PRESOLVE_DEPENDENCY_WORK_MULTIPLIER;
+				else
+					work = 0;
+				removed = simplex_presolve_dependencies(model,
+					workspace->adjusted_rhs,
+					workspace->row_active,
+					workspace->column_active,
+					workspace->column_degree, work,
+					SIMPLEX_PRESOLVE_DEPENDENCY_BYTES);
+				presolve->stats.removed_rows += removed;
+				presolve->stats.dependent_rows += removed;
+			}
+			if (removed == 0)
+				return lp_simplex_Success;
+		}
 		/* Dominance fixes column bounds without removing columns or updating
 		 * rhs/journal. Requeue every live item so ordinary rules perform that
 		 * elimination before active columns are collected for the solve. */
@@ -869,8 +893,9 @@ static void presolve_collect_active(struct simplex_Presolve *presolve,
 		}
 }
 
-int simplex_presolve_run(struct simplex_Presolve *presolve,
-	const struct lp_Model *model, const double tolerance)
+int simplex_presolve_run_configured(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance,
+	const int dependencies)
 {
 	struct presolve_Workspace workspace;
 	int kept_rows, kept_columns, status;
@@ -888,7 +913,7 @@ int simplex_presolve_run(struct simplex_Presolve *presolve,
 		goto failure;
 	}
 	status = presolve_reduce_to_fixed_point(
-		presolve, model, tolerance, &workspace);
+		presolve, model, tolerance, &workspace, dependencies);
 	if (status == lp_simplex_EXIT_FAILURE) {
 		presolve->status = lp_simplex_MemoryAllocError;
 		goto failure;
@@ -953,4 +978,10 @@ void simplex_presolve_destroy(struct simplex_Presolve *presolve)
 	presolve->journal.capacity = 0;
 	presolve->journal.term_count = 0;
 	presolve->journal.term_capacity = 0;
+}
+
+int simplex_presolve_run(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, const double tolerance)
+{
+	return simplex_presolve_run_configured(presolve, model, tolerance, 0);
 }

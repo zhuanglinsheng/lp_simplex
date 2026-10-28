@@ -34,6 +34,9 @@ int simplex_pan_bounded_check_dual(const struct simplex_PanBounded *b,
 	const double *x, const double *y, double tolerance, double *violation);
 /* Transactional multiplier search; the audit above remains read-only.
  * limit and iterations belong to the same cumulative solver budget. */
+int simplex_pan_bounded_repair_dual_sparse(const struct simplex_PanBounded *b,
+	const double *x, double *y, double tolerance, int limit,
+	int *iterations, double *violation);
 int simplex_pan_bounded_repair_dual(const struct simplex_PanBounded *b,
 	const double *x, double *y, double tolerance, int limit,
 	int *iterations, double *violation);
@@ -56,11 +59,15 @@ int simplex_pan_bounded_pdhg_configured_reported(
 	const struct simplex_PanConfig *cfg, int *service_stop,
 	int *service_output);
 
-/* Raw kernel exit cause for the service boundary; no LP-status promotion. */
+/* Raw kernel exit cause for the service boundary; no LP-status promotion.
+ * A single trial limits affine and cone corrections independently. Inner
+ * NNLS retains its bounded shared work lease; it is not a one-work solve.
+ * After exact rollback, selected free-column hints may be borrowed within
+ * this invocation; the cone creates and refactors its own bound basis. */
 int simplex_pan_bounded_restore_configured_reported(
 	const struct simplex_PanBounded *b, double *point,
 	const struct lp_simplex_Options *o, int *iterations,
 	long double ceiling, const struct simplex_PanConfig *cfg,
-	int *service_stop);
+	int single_trial, int *service_stop);
 
 #endif

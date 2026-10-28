@@ -14,6 +14,7 @@
 #include "simplex_csc.h"
 
 struct simplex_BasisImpl;
+struct simplex_SparseVector;
 
 struct simplex_Basis {
 	struct simplex_BasisImpl *impl;
@@ -27,6 +28,7 @@ struct simplex_BasisProfile {
 	long factor_calls;
 	long ftran_calls;
 	long btran_calls;
+	long klu_sparse_success, klu_sparse_declined;
 	long compact_calls;
 	int compact_min;
 	int compact_max;
@@ -65,6 +67,8 @@ void simplex_basis_destroy(struct simplex_Basis *basis);
 int simplex_basis_factorize(struct simplex_Basis *basis);
 
 int simplex_basis_ftran(const struct simplex_Basis *basis, double *vector);
+int simplex_basis_ftran_packed(
+	const struct simplex_Basis *basis, struct simplex_SparseVector *vector);
 
 /* Solve against the current basis and certify the result with componentwise
  * backward-error iterative refinement.  Intended for exact-state rebuilds. */
@@ -75,6 +79,8 @@ int simplex_basis_ftran_pair(
 	const struct simplex_Basis *basis, double *first, double *second);
 
 int simplex_basis_btran(const struct simplex_Basis *basis, double *vector);
+int simplex_basis_btran_packed(
+	const struct simplex_Basis *basis, struct simplex_SparseVector *vector);
 
 int simplex_basis_btran_refined(
 	const struct simplex_Basis *basis, double *vector);

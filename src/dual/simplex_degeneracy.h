@@ -51,6 +51,11 @@ void simplex_degeneracy_destroy(struct simplex_DegeneracyControl *control);
  * and lifetime counters. */
 void simplex_degeneracy_reset_state(struct simplex_DegeneracyControl *control);
 
+/* An objective change starts a new face but leaves the basis/status hashes
+ * valid. Use only when all basis/status edits went through their update hooks. */
+void simplex_degeneracy_reset_objective(
+	struct simplex_DegeneracyControl *control);
+
 /* Retain the whole zero-objective face, even when primal merit improves.
  * Signal stagnation when merit fails to beat the best seen on that face.
  * A certified objective step leaves the face.  The caller supplies the same
@@ -103,6 +108,15 @@ enum simplex_DualExploreReason {
 	SIMPLEX_DUAL_EXPLORE_MEASUREMENT
 };
 
+/* Search evidence, never a feasible objective or an input lower bound. The
+ * fixed input objective is evaluated at a possibly infeasible dual iterate.
+ * Activity and working-cost drift bound cancellation and rebasing effects. */
+struct simplex_DualPotential {
+	int initialized, work;
+	long bounds_epoch;
+	double best, baseline, activity, uncertainty;
+};
+
 struct simplex_DualExplore {
 	int checkpoint, limit, phase, initialized;
 	int recovery_until, reason;
@@ -112,10 +126,18 @@ struct simplex_DualExplore {
 	double baseline[5], secondary[5];
 	long metric_epoch[5];
 	unsigned int seen, lease_seen;
+	struct simplex_DualPotential potential;
 };
 
-/* Renew a measurement-change handoff only when independent input evidence
- * improved. No new observation lease is granted merely for changing epochs. */
+int simplex_dual_potential_observe(struct simplex_DualPotential *history,
+	int work, long bounds_epoch, double value, double activity,
+	double uncertainty);
+int simplex_dual_explore_reassess_potential(struct simplex_DualExplore *history,
+	int hard_limit, int progress, long cycles);
+
+/* Audited input progress can renew working stagnation or measurement change.
+ * Newly available evidence alone can only rebase a changed measurement.
+ * Changing epochs never grants an observation lease by itself. */
 int simplex_dual_explore_reassess(struct simplex_DualExplore *history,
 	int hard_limit, unsigned int input_progress, long cycles);
 

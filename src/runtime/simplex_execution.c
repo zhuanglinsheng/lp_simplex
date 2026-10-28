@@ -169,7 +169,8 @@ static const char *execution_reason_name(int reason)
 		"infeasibility-conflict", "required-capability",
 		"alternative-direction", "pdhg-stagnation", "face-initial",
 		"face-low-progress", "face-after-multiplier-search",
-		"primal-margin"};
+		"primal-margin", "pdhg-primal-stagnation",
+		"face-pdhg-improvement"};
 	return reason >= 0 && (size_t)reason < sizeof(names) / sizeof(names[0])
 		       ? names[reason]
 		       : "unknown";
@@ -255,6 +256,8 @@ void simplex_execution_print(const struct simplex_Execution *h)
 				e->model_columns);
 		if (e->kind == SIMPLEX_EXECUTION_PAN_TRIGGER &&
 			(e->reason == SIMPLEX_REASON_PDHG_STAGNATION ||
+				e->reason ==
+					SIMPLEX_REASON_PDHG_PRIMAL_STAGNATION ||
 				e->reason == SIMPLEX_REASON_PRIMAL_MARGIN))
 			fprintf(stderr,
 				"execution-trigger: id=%d producer-work=%d metric-epoch=%ld working-primal=%g quality=%d\n",

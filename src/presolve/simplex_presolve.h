@@ -42,6 +42,7 @@ struct simplex_PresolveStats {
 	int singleton_rows;
 	int redundant_rows;
 	int duplicate_rows;
+	int dependent_rows;
 	int dominated_rows;
 	int dominated_columns;
 	int forcing_rows;
@@ -53,7 +54,7 @@ struct simplex_PresolveStats {
 	int singleton_column_candidates;
 	int free_singleton_columns;
 	int equality_singleton_columns;
-	int exact_bound_propagation;
+	int outward_bound_propagation;
 	int tightened_bounds;
 	int queue_epochs;
 };
@@ -73,6 +74,9 @@ struct simplex_Presolve {
 	int status;
 };
 
+/* Exact dependency reduction remains opt-in pending performance acceptance. */
+int simplex_presolve_run_configured(struct simplex_Presolve *presolve,
+	const struct lp_Model *model, double tolerance, int dependencies);
 int simplex_presolve_run(struct simplex_Presolve *presolve,
 	const struct lp_Model *model, double tolerance);
 

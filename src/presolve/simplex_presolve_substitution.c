@@ -265,6 +265,99 @@ static void substitution_expression_bound_flags(
 		*upper_implied = 1;
 }
 
+/* Directed TwoSum enclosure. Signed-unit row coefficients make every input
+ * term exact; move one representable value only when the addition rounded
+ * inward. In particular an exact zero lower bound stays exactly zero. */
+static double substitution_unit_sum(double sum, double term, int upper)
+{
+	double next = sum + term, bridge, error;
+	if (!isfinite(next))
+		return upper ? HUGE_VAL : -HUGE_VAL;
+	bridge = next - sum;
+	error = (sum - (next - bridge)) + (term - bridge);
+	if (!isfinite(error))
+		return upper ? HUGE_VAL : -HUGE_VAL;
+	if ((upper && error > 0.) || (!upper && error < 0.))
+		next = nextafter(next, upper ? HUGE_VAL : -HUGE_VAL);
+	return next;
+}
+
+static int substitution_unit_row(const struct presolve_MutableRow *row)
+{
+	int k;
+	for (k = 0; k < row->count; k++)
+		if (fabs(row->value[k]) != 1.)
+			return 0;
+	return 1;
+}
+
+static int substitution_unit_incidence(const struct presolve_MutableRow *rows,
+	const struct presolve_Incidence *incidence, int column)
+{
+	int t;
+	for (t = 0; t < incidence[column].count; t++) {
+		const struct presolve_MutableRow *row =
+			rows + incidence[column].row[t];
+		if (row->active && substitution_find_column(row, column) >= 0 &&
+			!substitution_unit_row(row))
+			return 0;
+	}
+	return 1;
+}
+
+/* A bound can be implied by a different incident equality than the pivot
+ * row. Keep the two proofs separate until both exist. Substitution retains
+ * all other rows, including the row supplying the other implication, so
+ * this is a projection of the feasible set rather than an optimal-face guess.
+ * Restrict this additional proof to signed-unit rows: its enclosure then
+ * requires no rounded division/product or feasibility-tolerance allowance. */
+static void substitution_cross_row_bounds(const struct simplex_Problem *problem,
+	const struct presolve_MutableRow *rows,
+	const struct presolve_Incidence *incidence, int column,
+	int *lower_implied, int *upper_implied)
+{
+	const struct optm_VariableBound *bound = problem->bounds + column;
+	int t;
+	*lower_implied = !simplex_presolve_has_lower(bound);
+	*upper_implied = !simplex_presolve_has_upper(bound);
+	for (t = 0; t < incidence[column].count; t++) {
+		int i = incidence[column].row[t], position, k;
+		const struct presolve_MutableRow *row = rows + i;
+		double minimum, maximum, pivot;
+		if (!row->active || problem->row_type[i] != optm_CONS_T_EQ)
+			continue;
+		position = substitution_find_column(row, column);
+		if (position < 0)
+			continue;
+		if (!substitution_unit_row(row))
+			continue;
+		pivot = row->value[position];
+		minimum = maximum = problem->rhs[i] / pivot;
+		for (k = 0; k < row->count; k++) {
+			const struct optm_VariableBound *other;
+			double sign, lo, up;
+			if (k == position)
+				continue;
+			other = problem->bounds + row->column[k];
+			sign = -row->value[k] / pivot;
+			lo = simplex_presolve_has_lower(other) ? other->lb
+							       : -HUGE_VAL;
+			up = simplex_presolve_has_upper(other) ? other->ub
+							       : HUGE_VAL;
+			minimum = substitution_unit_sum(
+				minimum, sign > 0. ? lo : -up, 0);
+			maximum = substitution_unit_sum(
+				maximum, sign > 0. ? up : -lo, 1);
+		}
+		if (isfinite(minimum) && minimum >= bound->lb &&
+			simplex_presolve_has_lower(bound))
+			*lower_implied = 1;
+		if (isfinite(maximum) && maximum <= bound->ub &&
+			simplex_presolve_has_upper(bound))
+			*upper_implied = 1;
+	}
+}
+
 static int substitution_remove_singleton_columns(
 	struct simplex_Presolve *presolve, struct simplex_Problem *problem,
 	struct presolve_MutableRow *rows, struct presolve_Incidence *incidence,
@@ -278,16 +371,26 @@ static int substitution_remove_singleton_columns(
 		simplex_presolve_queue_pop(column_queue, &j)) {
 		int degree, position, row_index = -1, t;
 		int lower_implied, upper_implied, project_lower;
+		int cross_lower = 0, cross_upper = 0;
 		struct presolve_MutableRow *row;
 		double coefficient, constant, maximum = 0.;
 
+		/* With three or more row entries, no-fill substitution requires
+		 * degree <= 4. Longer columns need a doubleton row, handled by the
+		 * dedicated transfer rule below. This bounds optional proof work. */
 		if (!column_active[j] || column_degree[j] < 1 ||
-			column_degree[j] > 2)
+			column_degree[j] > 4)
 			continue;
 		degree = column_degree[j];
-		/* A degree-two column can be eliminated through either incident
-		 * equality without increasing the total matrix nonzero count.  Pick
-		 * the shortest equality whose expression implies both column bounds.
+		if (degree > 2 &&
+			!substitution_unit_incidence(rows, incidence, j))
+			continue;
+		if (degree > 1)
+			substitution_cross_row_bounds(problem, rows, incidence,
+				j, &cross_lower, &cross_upper);
+		/* Removing the pivot row/column deletes r+d-1 entries; inserting its
+		 * expression in the d-1 other rows adds at most (r-1)*(d-1).
+		 * Admit only no-fill pivots, irrespective of dataset or dimensions.
 		 * Degree-one columns also allow one-sided projection. */
 		for (t = 0; t < incidence[j].count; t++) {
 			int candidate = incidence[j].row[t];
@@ -301,6 +404,15 @@ static int substitution_remove_singleton_columns(
 				problem->row_type[candidate] != optm_CONS_T_EQ)
 				continue;
 			candidate_row = rows + candidate;
+			/* The wider structural rule is deliberately limited to exact
+			 * signed-unit pivots. A no-fill count alone does not control
+			 * numerical growth in a general mixed-coefficient equation. */
+			if (degree > 2 && !substitution_unit_row(candidate_row))
+				continue;
+			if ((long double)(candidate_row->count - 1) *
+					(degree - 1) >
+				(long double)candidate_row->count + degree - 1)
+				continue;
 			candidate_position =
 				substitution_find_column(candidate_row, j);
 			if (candidate_position < 0)
@@ -325,10 +437,16 @@ static int substitution_remove_singleton_columns(
 				candidate_row, candidate_position,
 				candidate_constant, candidate_coefficient,
 				&candidate_lower, &candidate_upper);
-			if (degree == 2 &&
-				!(candidate_lower && candidate_upper))
+			if (!(candidate_lower && candidate_upper) &&
+				cross_lower && cross_upper &&
+				!substitution_unit_row(candidate_row))
 				continue;
-			if (!candidate_lower && !candidate_upper)
+			if (degree > 1 &&
+				!(candidate_lower && candidate_upper) &&
+				!(cross_lower && cross_upper))
+				continue;
+			if (!candidate_lower && !candidate_upper &&
+				!(cross_lower && cross_upper))
 				continue;
 			if (row_index < 0 ||
 				candidate_row->count < rows[row_index].count)
@@ -351,6 +469,8 @@ static int substitution_remove_singleton_columns(
 			continue;
 		substitution_expression_bound_flags(problem, row, position,
 			constant, coefficient, &lower_implied, &upper_implied);
+		if (cross_lower && cross_upper)
+			lower_implied = upper_implied = 1;
 		if (!lower_implied && !upper_implied)
 			continue;
 		/* A one-sided projection replaces the singleton basis column by a

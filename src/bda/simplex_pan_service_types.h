@@ -45,7 +45,8 @@ struct simplex_Problem;
 enum simplex_PanServiceTriggerKind {
 	SIMPLEX_PAN_TRIGGER_UNKNOWN = 0,
 	SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION,
-	SIMPLEX_PAN_TRIGGER_PRIMAL_MARGIN
+	SIMPLEX_PAN_TRIGGER_PRIMAL_MARGIN,
+	SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION
 };
 
 /* Producer observations only: neither a permission nor a reusable failure key.

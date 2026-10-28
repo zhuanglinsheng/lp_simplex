@@ -65,6 +65,15 @@ target_include_directories(test_pan_bounded
                            PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_pan_bounded PRIVATE lp_simplex)
 add_test(NAME test_pan_bounded COMMAND test_pan_bounded)
+add_executable(test_bounded_restore_storage test_bounded_restore_storage.c)
+target_include_directories(test_bounded_restore_storage
+                           PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_bounded_restore_storage PRIVATE lp_simplex)
+if(LP_SIMPLEX_HAVE_SPQR)
+    target_compile_definitions(test_bounded_restore_storage
+                               PRIVATE LP_SIMPLEX_HAVE_SPQR)
+endif()
+add_test(NAME test_bounded_restore_storage COMMAND test_bounded_restore_storage)
 set_tests_properties(test_pan_bounded PROPERTIES ENVIRONMENT
                                                  "LP_SIMPLEX_PAN_CONE=1")
 add_test(NAME test_pan_bounded_implicit COMMAND test_pan_bounded)
@@ -141,6 +150,12 @@ target_include_directories(test_presolve
                            PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
 target_link_libraries(test_presolve PRIVATE lp_simplex)
 add_test(NAME test_presolve COMMAND test_presolve)
+
+add_executable(test_presolve_dependencies test_presolve_dependencies.c)
+target_include_directories(test_presolve_dependencies
+                           PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+target_link_libraries(test_presolve_dependencies PRIVATE lp_simplex)
+add_test(NAME test_presolve_dependencies COMMAND test_presolve_dependencies)
 
 add_executable(test_presolve_dominance test_presolve_dominance.c)
 target_include_directories(test_presolve_dominance
@@ -860,6 +875,14 @@ if(LP_SIMPLEX_USE_KLU
     target_link_libraries(test_dual_storage_klu PRIVATE lp_simplex
                                                         ${KLU_LIBRARY})
     add_test(NAME test_dual_storage_klu COMMAND test_dual_storage_klu)
+    add_executable(test_klu_sparse test_klu_sparse.c)
+    target_compile_definitions(test_klu_sparse PRIVATE LP_SIMPLEX_HAVE_KLU)
+    target_include_directories(test_klu_sparse
+                               PRIVATE ${LP_SIMPLEX_PRIVATE_INCLUDE_DIRS})
+    target_include_directories(test_klu_sparse SYSTEM
+                               PRIVATE ${KLU_INCLUDE_DIR})
+    target_link_libraries(test_klu_sparse PRIVATE lp_simplex ${KLU_LIBRARY})
+    add_test(NAME test_klu_sparse COMMAND test_klu_sparse)
 endif()
 
 add_executable(test_sparse_lu_storage test_sparse_lu_storage.c)

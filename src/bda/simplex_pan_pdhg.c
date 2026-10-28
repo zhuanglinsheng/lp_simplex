@@ -62,6 +62,20 @@ int simplex_pan_pdhg_progress_stalled(
 	       work - h->progress_at >= SIMPLEX_PDHG_STAGNANT_WORK;
 }
 
+int simplex_pan_pdhg_progress_stalled_pair(
+	struct simplex_PdhgProgress *merit_history,
+	struct simplex_PdhgProgress *primal_history, int work, double merit,
+	double primal)
+{
+	int merit_stalled =
+		simplex_pan_pdhg_progress_stalled(merit_history, work, merit);
+	int primal_stalled =
+		simplex_pan_pdhg_progress_stalled(primal_history, work, primal);
+	return merit_stalled	? SIMPLEX_PDHG_MERIT_STALLED
+	       : primal_stalled ? SIMPLEX_PDHG_PRIMAL_STALLED
+				: SIMPLEX_PDHG_PROGRESSING;
+}
+
 static double pdhg_merit(const struct simplex_PanBounded *b, const double *x,
 	const double *y, double scale, const double *tau, const double *sigma,
 	double *r, double *work)
@@ -119,12 +133,14 @@ double simplex_pan_pdhg_handoff_gap(const struct simplex_PanBounded *b,
 static int pdhg_audit(const struct simplex_PanBounded *b, const double *x,
 	const double *y, double scale, double *point, double *multiplier,
 	const struct lp_simplex_Options *o, double *physical, double *r,
-	double *work, int *improvements)
+	double *work, int *improvements, double *observed_primal)
 {
 	double primal = simplex_pan_bounded_primal(b, x, r, work), dual;
 	long double cost = simplex_pan_cone_cost(&b->a, x),
 		    before = simplex_pan_cone_cost(&b->a, point);
 	int i, j, k, certificate = 0;
+	if (observed_primal)
+		*observed_primal = primal;
 
 	if (!isfinite(primal) ||
 		primal > o->primal_tolerance * SIMPLEX_PAN_FEASIBLE_MARGIN ||
@@ -155,8 +171,9 @@ static int pdhg_audit(const struct simplex_PanBounded *b, const double *x,
 	if (certificate ||
 		cost < before - SIMPLEX_PDHG_INCUMBENT_GAIN_RELATIVE *
 					(1. + fabsl(before))) {
-		lp_simplex_memcpy(
-			point, x, (size_t)b->a.columns * sizeof(double));
+		if (point != x)
+			lp_simplex_memcpy(point, x,
+				(size_t)b->a.columns * sizeof(double));
 		lp_simplex_memcpy(multiplier, physical,
 			(size_t)b->a.rows * sizeof(double));
 		(*improvements)++;
@@ -166,6 +183,29 @@ static int pdhg_audit(const struct simplex_PanBounded *b, const double *x,
 				(double)cost, primal, dual, certificate);
 	}
 	return certificate;
+}
+
+/* A lower-cost tolerance-feasible incumbent can have a stale interior face.
+ * A fresh feasible iterate may certify even when its cost does not improve
+ * that incumbent. It replaces the incumbent only after the full audit. */
+static int pdhg_refine_candidate(const struct simplex_PanBounded *b,
+	const double *candidate, const double *seed, double scale,
+	double *point, double *multiplier, const struct lp_simplex_Options *o,
+	int limit, int *iterations, double *physical, double *r, double *work,
+	int *improvements)
+{
+	double violation;
+	int i;
+	for (i = 0; i < b->a.rows; i++) {
+		physical[i] = scale * seed[i];
+		if (!isfinite(physical[i]))
+			return 0;
+	}
+	if (!simplex_pan_bounded_repair_dual_sparse(b, candidate, physical,
+		    o->dual_tolerance, limit, iterations, &violation))
+		return 0;
+	return pdhg_audit(b, candidate, physical, 1., point, multiplier, o,
+		physical, r, work, improvements, NULL);
 }
 
 void simplex_pan_pdhg_columns_destroy(struct simplex_PanPdhgColumns *plan)
@@ -305,7 +345,7 @@ int simplex_pan_bounded_pdhg_configured_reported(
 	int *service_output)
 {
 	int unobserved_stop, unobserved_output;
-	struct simplex_PdhgProgress progress;
+	struct simplex_PdhgProgress progress, primal_progress;
 	struct simplex_PanPdhgColumns column_plan;
 	const struct simplex_PanStandard *a = &b->a;
 	double *storage, *x, *next, *average, *tau, *anchor_x, *y, *yaverage,
@@ -327,6 +367,7 @@ int simplex_pan_bounded_pdhg_configured_reported(
 		service_output = &unobserved_output;
 	*service_output = SIMPLEX_PAN_OUTPUT_NONE;
 	simplex_pan_pdhg_progress_reset(&progress);
+	simplex_pan_pdhg_progress_reset(&primal_progress);
 	if (budget > o->iteration_limit - *iterations)
 		budget = o->iteration_limit - *iterations;
 	if (budget <= 0 || a->rows == 0) {
@@ -460,45 +501,117 @@ int simplex_pan_bounded_pdhg_configured_reported(
 		(*iterations)++;
 		if ((steps % SIMPLEX_PDHG_AUDIT_PERIOD) == 0 ||
 			steps + 1 == budget) {
-			double current, averaged, best;
+			double current, averaged, best, primal, average_primal;
 			int stalled;
 
-			certificate =
-				pdhg_audit(b, x, y, scale, point, multiplier, o,
-					physical, r, work, &improvements);
+			certificate = pdhg_audit(b, x, y, scale, point,
+				multiplier, o, physical, r, work, &improvements,
+				&primal);
 			if (!certificate)
 				certificate = pdhg_audit(b, average, yaverage,
 					scale, point, multiplier, o, physical,
-					r, work, &improvements);
+					r, work, &improvements,
+					&average_primal);
+			/* Strictly certify an audited feasible improvement before spending
+			 * the rest of the phase on an almost-active floating-point face.
+			 * next is dead iteration scratch. Face failure or unsuccessful
+			 * certification restores the incumbent; the saddle trajectory and
+			 * averages are never changed by this optional transaction. */
+			if (!certificate && cfg->restore && improvements > 0 &&
+				((steps % SIMPLEX_PDHG_RESTART_MAX_WORK) == 0 ||
+					steps + 1 == budget)) {
+				int adjusted;
+				double violation;
+				if (cfg->certificate_dual_repair &&
+					fmin(primal, average_primal) <=
+						o->primal_tolerance *
+							SIMPLEX_PAN_FEASIBLE_MARGIN) {
+					int current = primal <= average_primal;
+					certificate = pdhg_refine_candidate(b,
+						current ? x : average,
+						current ? y : yaverage, scale,
+						point, multiplier, o,
+						phase_limit, iterations,
+						physical, r, work,
+						&improvements);
+					if (certificate) {
+						steps++;
+						break;
+					}
+				}
+				for (i = 0; i < a->rows; i++)
+					physical[i] = scale * y[i];
+				adjusted = simplex_pan_service_face(NULL, b,
+					point, physical, o, iterations, next, r,
+					work, SIMPLEX_PAN_FACE_PDHG_IMPROVEMENT,
+					steps + 1, 0, NULL, NULL);
+				certificate = pdhg_audit(b, point, physical, 1.,
+					point, multiplier, o, physical, r, work,
+					&improvements, NULL);
+				if (!certificate &&
+					cfg->certificate_dual_repair &&
+					simplex_pan_bounded_repair_dual_sparse(
+						b, point, physical,
+						o->dual_tolerance, phase_limit,
+						iterations, &violation))
+					certificate = pdhg_audit(b, point,
+						physical, 1., point, multiplier,
+						o, physical, r, work,
+						&improvements, NULL);
+				if (!certificate &&
+					cfg->certificate_dual_repair &&
+					simplex_pan_bounded_repair_dual(b,
+						point, physical,
+						o->dual_tolerance, phase_limit,
+						iterations, &violation))
+					certificate = pdhg_audit(b, point,
+						physical, 1., point, multiplier,
+						o, physical, r, work,
+						&improvements, NULL);
+				if (!certificate && adjusted > 0)
+					lp_simplex_memcpy(point, next,
+						(size_t)a->columns *
+							sizeof(double));
+			}
 			if (certificate) {
 				steps++;
 				break;
 			}
 			/* Observe both candidates in the same metric. Productive epochs
 			 * keep their steps and remain matrix-free; the caller already
-			 * bounds total work. A repair requires a full restart window
-			 * without material improvement, not just elapsed time. */
+			 * bounds total work. The physical feasibility component must not
+			 * lose its history when a weight update changes the joint metric.
+			 * Either stagnation observation permits a bounded repair; neither
+			 * certifies the repaired point or changes LP tolerances. */
 			current =
 				pdhg_merit(b, x, y, scale, tau, sigma, r, work);
 			averaged = pdhg_merit(b, average, yaverage, scale, tau,
 				sigma, r, work);
 			best = fmin(current, averaged);
-			stalled = simplex_pan_pdhg_progress_stalled(
-				&progress, steps + 1, best);
+			stalled = simplex_pan_pdhg_progress_stalled_pair(
+				&progress, &primal_progress, steps + 1, best,
+				fmin(primal, average_primal));
 
 			if (cfg->restore && stalled) {
-				double primal = simplex_pan_bounded_primal(
-					b, x, r, work);
+				const double *repair_point = x;
 				long double ceiling =
 					simplex_pan_cone_cost(a, point);
 
 				ceiling += o->dual_tolerance *
 					   SIMPLEX_PAN_RESTORE_TARGET_FRACTION *
 					   (1. + fabsl(ceiling));
+				if (stalled == SIMPLEX_PDHG_PRIMAL_STALLED &&
+					average_primal < primal &&
+					simplex_pan_cone_cost(a, average) <
+						ceiling) {
+					repair_point = average;
+					primal = average_primal;
+				}
 				if (simplex_pan_pdhg_repair_progress(primal,
 					    last_restore,
 					    o->primal_tolerance) &&
-					simplex_pan_cone_cost(a, x) < ceiling &&
+					simplex_pan_cone_cost(a, repair_point) <
+						ceiling &&
 					*iterations < phase_limit) {
 					struct lp_simplex_Options remaining =
 						*o;
@@ -506,17 +619,27 @@ int simplex_pan_bounded_pdhg_configured_reported(
 						trigger;
 
 					remaining.iteration_limit = phase_limit;
+					/* The service limits a feasibility-only opportunity to one
+					 * affine and one cone correction. Its inner NNLS solve still
+					 * uses the shared phase budget, not a one-work lease. */
 					trigger.kind =
-						SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION;
+						stalled == SIMPLEX_PDHG_PRIMAL_STALLED
+							? SIMPLEX_PAN_TRIGGER_PDHG_PRIMAL_STAGNATION
+							: SIMPLEX_PAN_TRIGGER_PDHG_STAGNATION;
 					trigger.work = *iterations;
-					trigger.epoch = metric_epoch;
+					trigger.epoch =
+						stalled == SIMPLEX_PDHG_PRIMAL_STALLED
+							? 0
+							: metric_epoch;
 					trigger.primal = primal;
 					trigger.previous_primal = last_restore;
 					last_restore = primal;
 					simplex_pan_pdhg_progress_reset(
 						&progress);
+					simplex_pan_pdhg_progress_reset(
+						&primal_progress);
 					restorations++;
-					lp_simplex_memcpy(next, x,
+					lp_simplex_memcpy(next, repair_point,
 						(size_t)a->columns *
 							sizeof(double));
 					if (simplex_pan_service_restore(b, next,
@@ -533,58 +656,76 @@ int simplex_pan_bounded_pdhg_configured_reported(
 						certificate = pdhg_audit(b,
 							next, y, scale, point,
 							multiplier, o, physical,
-							r, work, &improvements);
-						lp_simplex_memcpy(x, next,
-							(size_t)a->columns *
-								sizeof(double));
-						checkpoint = pdhg_merit(b, x, y,
-							scale, tau, sigma, r,
-							work);
-						epoch = 0;
-						restarts++;
-						lp_simplex_memcpy(anchor_x, x,
-							(size_t)a->columns *
-								sizeof(double));
-						lp_simplex_memcpy(anchor_y, y,
-							(size_t)a->rows *
-								sizeof(double));
+							r, work, &improvements,
+							NULL);
 						if (certificate) {
 							steps++;
 							break;
 						}
-						if (simplex_pan_pdhg_handoff_gap(
-							    b, next, y,
-							    scale) <=
-								o->dual_tolerance ||
-							(restored >= 2 &&
-								improvements >
-									previous_improvements &&
-								previous_cost - simplex_pan_cone_cost(
+						/* A feasibility-only opportunity updates the incumbent.
+						 * Preserve the still-progressing saddle trajectory so its
+						 * later multipliers can certify that retained point. */
+						if (stalled ==
+							SIMPLEX_PDHG_MERIT_STALLED) {
+							lp_simplex_memcpy(x,
+								next,
+								(size_t)a->columns *
+									sizeof(double));
+							checkpoint = pdhg_merit(
+								b, x, y, scale,
+								tau, sigma, r,
+								work);
+							epoch = 0;
+							restarts++;
+							lp_simplex_memcpy(
+								anchor_x, x,
+								(size_t)a->columns *
+									sizeof(double));
+							lp_simplex_memcpy(
+								anchor_y, y,
+								(size_t)a->rows *
+									sizeof(double));
+							if (certificate) {
+								steps++;
+								break;
+							}
+							if (simplex_pan_pdhg_handoff_gap(
+								    b, next, y,
+								    scale) <=
+									o->dual_tolerance ||
+								(restored >= 2 &&
+									improvements >
+										previous_improvements &&
+									previous_cost - simplex_pan_cone_cost(
+												a,
+												point) <=
+										simplex_pan_progress_threshold(
 											a,
-											point) <=
-									simplex_pan_progress_threshold(
-										a,
-										point,
-										previous_cost,
-										o->dual_tolerance,
-										SIMPLEX_PAN_FACE_SMALL_GAIN_UNITS))) {
-							if (getenv(SIMPLEX_ENV_PROFILE))
-								fprintf(stderr,
-									"pan-bda pdhg handoff: restored face, native KKT pending\n");
-							steps++;
-							stop = SIMPLEX_STOP_HANDOFF;
-							goto finish;
+											point,
+											previous_cost,
+											o->dual_tolerance,
+											SIMPLEX_PAN_FACE_SMALL_GAIN_UNITS))) {
+								if (getenv(SIMPLEX_ENV_PROFILE))
+									fprintf(stderr,
+										"pan-bda pdhg handoff: restored face, native KKT pending\n");
+								steps++;
+								stop = SIMPLEX_STOP_HANDOFF;
+								goto finish;
+							}
 						}
 					}
 					if (getenv(SIMPLEX_ENV_PROFILE))
 						fprintf(stderr,
-							"pan-bda pdhg restore: reason=stagnation attempts=%d restored=%d initial=%.6g iterations=%d\n",
+							"pan-bda pdhg restore: reason=%s attempts=%d restored=%d initial=%.6g iterations=%d\n",
+							stalled == SIMPLEX_PDHG_PRIMAL_STALLED
+								? "primal-stagnation"
+								: "stagnation",
 							restorations, restored,
 							primal, *iterations);
 				}
 			}
-			/* A successful repair resets epoch, so cached merits are only
-			 * reused when neither candidate has changed since observation. */
+			/* A merit-stall repair resets epoch when it changes the live pair.
+			 * Feasibility-only repair leaves that pair and its merits intact. */
 			if (epoch >= SIMPLEX_PDHG_RESTART_MIN_WORK) {
 				if (isfinite(best) &&
 					(best <= checkpoint * SIMPLEX_PDHG_RESTART_REDUCTION ||
@@ -599,7 +740,9 @@ int simplex_pan_bounded_pdhg_configured_reported(
 								sizeof(double));
 					}
 					if (adaptive_weight &&
-						(calibrate_weight || stalled)) {
+						(calibrate_weight ||
+							stalled ==
+								SIMPLEX_PDHG_MERIT_STALLED)) {
 						double dx = 0., dy = 0., target,
 						       updated, factor;
 

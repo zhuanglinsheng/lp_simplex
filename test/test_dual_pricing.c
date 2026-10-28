@@ -10,6 +10,7 @@
 
 #include "simplex_dual_pricing.h"
 #include "simplex_dual_state.h"
+#include "simplex_dual_feasibility.h"
 #include "simplex_problem.h"
 #include "utils.h"
 
@@ -120,6 +121,64 @@ static void initialize_logical_basis(struct simplex_DualState *state)
 	for (j = 0; j < state->rows; j++)
 		state->basis[j] = state->structural + j;
 	simplex_dual_nonbasic_initialize(state);
+}
+
+/* A tolerated negative reduced cost has already spent part of Harris'
+ * allowance. Clipping its primary breakpoint to zero must not replenish that
+ * allowance. Test both bounds and coefficient scales independently of an LP. */
+static int test_harris_remaining_allowance(void)
+{
+	struct simplex_Problem *problem =
+		simplex_problem_create_sparse(1, 2, 2);
+	struct simplex_DualState state;
+	struct lp_simplex_Options options;
+	const double scales[] = {1e-3, 1., 1e3};
+	const double tolerances[] = {1e-5, 1e-7, 1e-10};
+	int i, j, bound, valid = 1;
+	double theta;
+	if (problem == NULL)
+		return 0;
+	problem->matrix.column_start[0] = 0;
+	problem->matrix.column_start[1] = 1;
+	problem->matrix.column_start[2] = 2;
+	problem->matrix.row_index[0] = problem->matrix.row_index[1] = 0;
+	problem->matrix.row_start[0] = 0;
+	problem->matrix.row_start[1] = 2;
+	problem->matrix.column_index[0] = 0;
+	problem->matrix.column_index[1] = 1;
+	lp_simplex_default_options(&options, lp_simplex_ALGORITHM_DUAL_REVISED);
+	if (simplex_dual_state_create(&state, problem, &options,
+		    SIMPLEX_BASIS_BACKEND_DEFAULT) != lp_simplex_EXIT_SUCCESS) {
+		simplex_problem_free(problem);
+		return 0;
+	}
+	initialize_logical_basis(&state);
+	for (i = 0; i < 3; i++)
+		for (j = 0; j < 3; j++)
+			for (bound = 0; bound < 2; bound++) {
+				int sign = bound ? -1 : 1;
+				options.dual_tolerance = tolerances[j];
+				state.rho[0] = -scales[i];
+				state.matrix.value[0] =
+					state.matrix.row_value[0] = 1.;
+				state.matrix.value[1] =
+					state.matrix.row_value[1] = 2.;
+				state.status[0] = state.status[1] =
+					bound ? DUAL_STATUS_UPPER
+					      : DUAL_STATUS_LOWER;
+				state.reduced[0] = -sign * .9 * tolerances[j];
+				state.reduced[1] = sign * tolerances[j];
+				valid = valid &&
+					simplex_dual_prepare_ratio_test(
+						&state, sign) == 2 &&
+					simplex_dual_next_ratio_candidate(
+						&state, &theta, 0, 2, sign) ==
+						0 &&
+					theta == 0.;
+			}
+	simplex_dual_state_destroy(&state);
+	simplex_problem_free(problem);
+	return valid;
 }
 
 static int test_ordered_ratio_sequence(void)
@@ -248,7 +307,7 @@ static int test_sparse_scatter_generations(struct simplex_DualState *state)
 		lp_simplex_EXIT_SUCCESS)
 		return 0;
 	for (pass = 0; pass < 4; pass++) {
-		/* Dense and sparse passes share storage but not membership marks. */
+		/* Dense writes must participate in the shared clearing contract. */
 		for (i = 0; i < state->rows; i++)
 			state->rho[i] = 1.;
 		simplex_dual_prepare_ratio_test(state, 1);
@@ -277,9 +336,14 @@ static int test_sparse_scatter_generations(struct simplex_DualState *state)
 				&reference, state->structural + i, -rho);
 		}
 		state->pricing_validation_countdown = 127;
+		simplex_sparse_vector_compact(&reference);
 		simplex_dual_prepare_ratio_test(state, 1);
 		valid = valid && state->packed_alpha_valid &&
 			alpha->count == reference.count;
+		/* Untouched coordinates must also be zero: dense pricing shares this
+		 * storage, and stale unregistered entries evade sparse clear. */
+		for (j = 0; j < state->variables; j++)
+			valid = valid && alpha->dense[j] == reference.dense[j];
 		for (j = 0; j < reference.count; j++) {
 			int index = reference.index[j];
 
@@ -298,7 +362,7 @@ static int test_sparse_scatter_generations(struct simplex_DualState *state)
 	return valid;
 }
 
-static int test_sparse_audit_updates_pricing_row(void)
+static int test_sparse_audit_updates_pricing_row(int cancellation)
 {
 	struct simplex_Problem *problem =
 		simplex_problem_create_sparse(20, 5, 68);
@@ -315,6 +379,8 @@ static int test_sparse_audit_updates_pricing_row(void)
 	problem->matrix.row_index[3] = 3;
 	problem->matrix.value[0] = -1e16;
 	problem->matrix.value[1] = problem->matrix.value[3] = -1.;
+	if (cancellation)
+		problem->matrix.value[1] = 1.;
 	problem->matrix.value[2] = 1e16;
 	for (j = 1; j < 5; j++) {
 		problem->matrix.column_start[j] = k;
@@ -330,7 +396,11 @@ static int test_sparse_audit_updates_pricing_row(void)
 		if (i < 4) {
 			problem->matrix.column_index[k] = 0;
 			problem->matrix.row_value[k++] =
-				i == 0 ? -1e16 : (i == 1 ? 1e16 : -1.);
+				i == 0 ? -1e16
+				       : (i == 1 ? 1e16
+						 : (cancellation && i == 2
+								   ? 1.
+								   : -1.));
 		} else
 			for (j = 1; j < 5; j++) {
 				problem->matrix.column_index[k] = j;
@@ -347,22 +417,94 @@ static int test_sparse_audit_updates_pricing_row(void)
 	initialize_logical_basis(&state);
 	for (i = 0; i < 20; i++)
 		state.rho[i] = i < 4 ? 1. : 0.;
-	/* The row accumulation gives -2 while CSC gives -1.  The audit repairs
-	 * packed_alpha and its shared dense pricing row together. */
+	/* CSR gives -2, or exact zero in the cancellation case; CSC gives -1.
+	 * The full audit must repair or reinsert that column after compaction. */
 	valid = simplex_dual_prepare_ratio_test(&state, 1) > 0 &&
 		state.alpha == state.packed_alpha.dense &&
 		state.packed_alpha_valid && state.alpha[0] == -1. &&
 		state.breakpoint[0] == 1.;
-	valid = valid && test_sparse_scatter_generations(&state);
+	if (cancellation) {
+		state.pricing_validation_countdown = 127;
+		valid = valid &&
+			simplex_dual_prepare_ratio_test(&state, 1) == 1 &&
+			!state.packed_alpha_valid && state.alpha[0] == -1.;
+		state.pricing_validation_countdown = 0;
+		valid = valid &&
+			simplex_dual_prepare_ratio_test(&state, 1) == 1 &&
+			state.packed_alpha_valid && state.alpha[0] == -1. &&
+			simplex_sparse_vector_get(&state.packed_alpha, 0) ==
+				-1.;
+	} else
+		valid = valid && test_sparse_scatter_generations(&state);
 	simplex_dual_state_destroy(&state);
 	simplex_problem_free(problem);
 	return valid;
 }
 
+static int test_dse_reprice(const int upper)
+{
+	struct simplex_Problem *p = simplex_problem_create_sparse(2, 1, 2);
+	struct simplex_DualState s;
+	struct lp_simplex_Options o;
+	double target, maximum;
+	int kappa, valid, row;
+	if (!p)
+		return 0;
+	p->matrix.column_start[0] = 0;
+	p->matrix.column_start[1] = 2;
+	p->matrix.row_index[0] = 0;
+	p->matrix.row_index[1] = 1;
+	p->matrix.value[0] = p->matrix.value[1] = 1.;
+	p->matrix.row_start[0] = 0;
+	p->matrix.row_start[1] = 1;
+	p->matrix.row_start[2] = 2;
+	p->matrix.column_index[0] = p->matrix.column_index[1] = 0;
+	p->matrix.row_value[0] = p->matrix.row_value[1] = 1.;
+	lp_simplex_default_options(&o, lp_simplex_ALGORITHM_DUAL_REVISED);
+	if (simplex_dual_state_create(
+		    &s, p, &o, SIMPLEX_BASIS_BACKEND_INTERNAL)) {
+		simplex_problem_free(p);
+		return 0;
+	}
+	for (row = 0; row < 2; row++) {
+		s.basis[row] = 1 + row;
+		s.basic_lower[row] = 0.;
+		s.basic_upper[row] = 10.;
+		s.basic_value[row] =
+			upper ? 10. + (row ? 4. : 10.) : (row ? -4. : -10.);
+		s.edge_weight[row] = 1.;
+		s.feasibility_tolerance[row] = 0.;
+	}
+	simplex_dual_feasibility_rebuild(&s);
+	valid = simplex_dual_feasibility_choose(
+			&s, &target, &kappa, &maximum, 0, 0, -1) == 0;
+	valid = valid && simplex_dual_feasibility_reprice(&s, 0, 100.) == 1;
+	valid = valid && simplex_dual_feasibility_choose(
+				 &s, &target, &kappa, &maximum, 0, 0, -1) == 1;
+	/* Corrected selection follows true scores 10^2/100 < 4^2/1,
+	 * without changing the primal point or feasibility tolerances. */
+	valid = valid && s.basic_value[0] == (upper ? 20. : -10.) &&
+		s.basic_value[1] == (upper ? 14. : -4.) &&
+		simplex_dual_feasibility_merit(&s) == 14.;
+	s.edge_weight[0] = 25.;
+	valid = valid && !simplex_dual_feasibility_reprice(&s, 0, 100.);
+	valid = valid &&
+		simplex_dual_feasibility_reprice(&s, 0, HUGE_VAL) == -1 &&
+		s.edge_weight[0] == 100.;
+	valid = valid && simplex_dual_feasibility_reprice(&s, 0, 0.) == -1 &&
+		s.edge_weight[0] == 100.;
+	simplex_dual_state_destroy(&s);
+	simplex_problem_free(p);
+	return valid;
+}
+
 int main(void)
 {
-	if (!test_ordered_ratio_sequence() || !test_wide_dense_pricing() ||
-		!test_sparse_audit_updates_pricing_row() ||
+	if (!test_dse_reprice(0) || !test_dse_reprice(1) ||
+		!test_harris_remaining_allowance() ||
+		!test_ordered_ratio_sequence() || !test_wide_dense_pricing() ||
+		!test_sparse_audit_updates_pricing_row(0) ||
+		!test_sparse_audit_updates_pricing_row(1) ||
 		!test_symbolic_ratio(1, SIMPLEX_BASIS_BACKEND_DEFAULT) ||
 		!test_symbolic_ratio(-1, SIMPLEX_BASIS_BACKEND_DEFAULT) ||
 		!test_symbolic_ratio(1, SIMPLEX_BASIS_BACKEND_INTERNAL) ||
