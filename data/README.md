@@ -22,7 +22,7 @@ Netlib、PDS 和 Railway 只保存 raw 数据及转换所需文件，各目录�
 
 `benchmark.py` 保留原有 `wall_seconds`：CLI 的启动、读取、求解、点导出，以及适配器读取日志/点文件；不含适配器初始化或独立原模型审核。CLI 运行另记录 `cli_wall_seconds`（启动至退出，不含之后的解析）、`cli_user_seconds`、`cli_system_seconds` 及二者之和 `cli_cpu_seconds`。CPU 来自隔离 worker 中该 CLI 及其子进程的 `getrusage` 差值；平台不支持或计数无效时为 `null`，不能按零处理。HiGHS Python 绑定没有 CLI 子进程，不提供这些字段。
 
-`compare_performance.py` 的原汇总仍使用 `wall_seconds`，新增 `cli_timing` 分别汇总上述四项；只对双方重复次数完整、全部通过且度量有效的案例计算比例。数值 PASS 与计时可用性分开。驱动器日志的 `time:` 是求解加一次原模型审核的进程 CPU，范围不同，不代替完整 CLI 计时。硬截止与原有成功判据保持不变；子进程被杀且没有完整测量时，CPU 保持未知。原始日志、点审核和每次数据均应保留。
+`compare_performance.py` 的原汇总仍使用 `wall_seconds`，新增 `cli_timing` 分别汇总上述四项；只对双方重复次数完整、全部通过且度量有效的案例计算比例。数值 PASS 与计时可用性分开。驱动器日志的 `time:` 是求解加一次原模型审核的进程 CPU，范围不同，不代替完整 CLI 计时。硬截止与原有成功判据保持不变；子进程被杀且没有完整测量时，CPU 保持未知。逐例测量、审核摘要和复用指纹随 Markdown 报告保存；临时日志和解文件可在审核后清理。
 
 ## 准备运行环境
 
@@ -56,16 +56,16 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-默认只运行 lp_simplex，每个案例测试 1 次；Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `lp_solve_mps`。
+默认只选择 lp_simplex，每个案例测量 1 次；同机同版本、相同输入和参数的记录直接复用，只补测缺失或变化的项。Netlib 每次限时 60 秒，PDS 和 Railway 每次限时 120 秒。Netlib 仅测试 114 个可行原模型；`simple_examples` 不参与性能基准。自定义构建目录时，用 `--binary PATH` 指定 `lp_solve_mps`。
 
-脚本逐案例执行以下流程：
+全部测量均可复用的案例不生成 MPS，也不启动求解器。需要补测时，脚本逐案例执行以下流程：
 
 1. 从 raw 数据生成本案例的临时 MPS。
-2. 串行运行本轮选中的求解器及全部重复，记录耗时、状态并审核原模型上的解。
+2. 复用条件匹配的逐例测量；仅串行运行缺失或变化的项，记录耗时、状态并审核原模型上的解。
 3. 删除本案例的临时 MPS。
 4. 保存运行记录，同步更新数据集报告和中英文汇总，再处理下一案例。
 
-基准不需要预先生成整个数据集，临时 MPS 位于本轮运行目录内。手动生成的 MPS 不参与这套清理流程。各数据集的报告维护逐案例最新结果，测试信息和统计按轮次保留。
+基准不需要预先生成整个数据集，临时 MPS 位于本轮运行目录内。手动生成的 MPS 不参与这套清理流程。各数据集的报告保存当前逐例结果；对比统计使用条件匹配的记录重新计算。
 
 调试单个案例时，可以减少重复次数和限时：
 
@@ -75,7 +75,24 @@ python3 data/benchmark.py --dataset netlib --cases afiro --repeats 1 --seconds 1
 
 `--cases` 接收案例名，例如 Netlib 的 `afiro`、PDS 的 `pds-30`、Railway 的 `rail507`，不带目录和文件后缀。该选项仅限制本轮测试范围。
 
-中断后继续测试时，保留旧运行目录，用 `--cases` 选择尚未完成的案例并启动新一轮运行；沿用原算法、求解器、预算和限时，且 `--run-dir` 必须使用新目录。已完成且未选中的案例行会保留，各轮统计分别记录。脚本没有原目录断点续跑功能，也不会自动跳过案例内已经完成的求解器或重复；中断的案例会从头运行。`--report-only` 只重建报告，不继续求解。
+中断后用新的 `--run-dir` 继续，沿用原算法、预算和限时。报告中已完成且指纹匹配的求解器／案例／重复直接复用，无需保留临时运行目录。机器、求解器二进制或共享库、输入、参数及计时适配器变化时，相应记录失效；lp_simplex 的源码／二进制变化不会使未变化的第三方结果失效。`--rerun lp_simplex` 可显式要求重测所选求解器。没有指纹的旧报告，可在确认环境不变后用一次 `--adopt-existing` 导入第三方结果；导入仍检查机器信息、版本、案例规模和参数，不导入旧 lp_simplex 构建。`--report-only` 只重建报告，不继续求解。
+
+## 常用操作
+
+沿用当前 PDS 报告的配置，只补测 lp_simplex 缺失或变化的记录：
+
+```sh
+python3 -B data/benchmark.py --dataset pds --binary build/data/lp_solve_mps \
+  --lp-algorithm auto --seconds 300 --iterations 300000
+```
+
+如需主动重测，在上述命令后添加 `--rerun lp_simplex`。如只更新报告排版、翻译或汇总：
+
+```sh
+python3 -B data/benchmark.py --refresh-reports
+```
+
+测量和指纹保存在数据集 Markdown 内，删除临时运行目录不影响复用。`--report-only DIR` 用于仍保留原始记录的运行；没有原始目录时使用 `--refresh-reports`。
 
 ## 单独检查一个模型
 
@@ -113,25 +130,28 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
-| `--dataset` | `netlib` | `netlib`、`pds` 或 `railway`；不包含 simple_examples |
+| `--dataset` | `netlib` | `netlib`、`netlib-infeasible`、`pds` 或 `railway`；不包含 simple_examples |
 | `--cases` | 所选数据集全集 | 一个或多个 raw 案例名 |
 | `--binary` | `build/data/lp_solve_mps` | lp_simplex 单模型驱动路径 |
 | `--scip` | `scip` | SCIP 可执行文件名称或路径 |
 | `--clp` | `clp` | Clp 可执行文件名称或路径 |
 | `--glpk` | `glpsol` | GLPK 可执行文件名称或路径 |
 | `--glpk-gate-case` | 不启用 | 仅 PDS/Railway：先测试指定案例；若 GLPK 未通过，则跳过其余案例的 GLPK 测试。跳过单独记录，不计为超时或失败 |
-| `--solvers` | `lp_simplex` | 选择本轮执行的一个或多个求解器，可单独测试其他求解器；仅检查选中求解器的可执行文件 |
+| `--solvers` | `lp_simplex` | 允许补测的求解器；仅选中者必须安装，已保存且兼容的对照继续参与统计 |
 | `--repeats` | 1 | 每个案例、每个求解器的重复次数 |
-| `--seconds` | Netlib: 60；PDS/Railway: 120 | 每次运行的墙钟秒数上限 |
+| `--seconds` | Netlib 可行集: 60；不可行集: 90；PDS/Railway: 120 | 每次运行的墙钟秒数上限；复用时保持与报告一致 |
 | `--iterations` | 300000 | lp_simplex 工作预算 |
 | `--lp-algorithm` | `auto` | `auto`、`dual-revised`、`pan-bda`、`tableau` |
 | `--highs-algorithm` | `choose` | `choose`、`simplex`、`ipm` |
 | `--scip-algorithm` | `default` | `default` 或 `dual` |
 | `--run-dir` | `tmp/benchmarks/<UTC 时间>` | 必须是新目录，保存本轮原始记录 |
 | `--docs-dir` | `docs/benchmarks` | 报告输出目录 |
-| `--report-only DIR` | 不启用 | 从已有记录重建报告，不重新求解 |
+| `--rerun SOLVER ...` | 不启用 | 显式重测已选中的求解器，否则优先复用 |
+| `--adopt-existing` | 不启用 | 一次性导入环境和参数匹配、但尚无指纹的第三方报告；不导入旧 lp_simplex |
+| `--refresh-reports` | 不启用 | 直接从现有 Markdown 更新中英文报告和汇总，不读取临时日志、不启动求解器 |
+| `--report-only DIR` | 不启用 | 从保留的原始运行目录重建报告，不重新求解 |
 
-日常优化默认只测 lp_simplex，每例一次。需要刷新对照时通过 `--solvers lp_simplex highs clp` 等参数选择；也可用 `--solvers scip` 单独刷新其他求解器。未选中的报告单元格保留历史参考值，本次统计不包含这些历史值。HiGHS binding、NumPy 和 SciPy 仍用于读取模型及独立审核，即使不测试 HiGHS 也需要安装。
+日常优化只允许 lp_simplex 补测，每例一次。第三方二进制与测试条件不变时直接复用；lp_simplex 更新不会让第三方重跑。`--solvers` 选择允许执行的求解器，不等于强制重测；需要主动刷新时同时指定 `--rerun`。条件匹配的完整记录统一参加共同成功集统计。HiGHS binding、NumPy 和 SciPy 仍用于读取模型及独立审核，即使不测试 HiGHS 也需要安装。
 
 ### 单模型检查：lp_solve_mps
 
@@ -160,4 +180,18 @@ python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>
 
 ```sh
 python3 data/benchmark.py --dataset netlib-infeasible --binary build/data/lp_solve_mps --solvers lp_simplex scip highs clp glpk --repeats 1 --seconds 90
+```
+
+## 脚本结构与回归验证
+
+| 文件 | 职责 |
+| --- | --- |
+| [benchmark.py](benchmark.py) | 命令行、案例准备、求解器执行、原模型审核与结果复用 |
+| [benchmark_reports.py](benchmark_reports.py) | 统计、Markdown 读写、中英文报告和复现命令 |
+| [compare_performance.py](compare_performance.py) | 两个构建交替执行的成对性能诊断 |
+
+计时、复用和求解器／报告生命周期检查分别位于 `test/test_benchmark_timing.py`、`test/test_benchmark_cache.py` 和 `test/test_benchmark_solvers.py`。运行整个工具回归集：
+
+```sh
+python3 -B -m unittest discover -s test -p 'test_benchmark_*.py'
 ```

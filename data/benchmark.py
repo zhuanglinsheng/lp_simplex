@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import datetime as dt
 import gzip
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -13,26 +14,27 @@ from pathlib import Path
 import platform
 import re
 import shutil
-import shlex
 import signal
-import statistics
 import struct
 import subprocess
 import sys
 import tempfile
 import time
 
+from benchmark_reports import (
+    ROOT, DATASETS, LEGACY_SOLVERS, SOLVERS, LABELS,
+    TABLE_HEADER, SUMMARY_HEADER, SUMMARY_SEPARATOR,
+    aggregate, atomic_text, geometric_mean, success_statistics,
+    read_table, read_run_blocks, read_result_cache, run_summary,
+    reproduction_command, render_report, ordered_cases, overview, update_table_rows,
+)
+
 try:
     import resource
 except ImportError:  # Windows has no getrusage; absence is not zero CPU.
     resource = None
 
-ROOT = Path(__file__).resolve().parents[1]
-DATASETS = ('netlib', 'netlib-infeasible', 'pds', 'railway')
 LP_ALGORITHMS = ('auto', 'dual-revised', 'pan-bda', 'tableau')
-LEGACY_SOLVERS = ('lp_simplex', 'scip', 'highs')
-SOLVERS = (*LEGACY_SOLVERS, 'clp', 'glpk')
-LABELS = {'lp_simplex': 'lp_simplex', 'scip': 'SCIP / SoPlex', 'highs': 'HiGHS', 'clp': 'Clp', 'glpk': 'GLPK'}
 THREADS = dict(OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1',
                VECLIB_MAXIMUM_THREADS='1', MKL_NUM_THREADS='1',
                BLIS_NUM_THREADS='1', NUMEXPR_NUM_THREADS='1')
@@ -52,23 +54,6 @@ def load_highs():
 
 def dump(path, value):
     atomic_text(path, json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + '\n')
-
-
-def atomic_text(path, text):
-    temporary = path.with_name('.' + path.name + '.tmp')
-    try:
-        temporary.write_text(text, encoding='utf-8')
-        for attempt in range(50):
-            try:
-                temporary.replace(path)
-                break
-            except PermissionError:
-                # Windows readers can briefly deny replacement of an open file.
-                if os.name != 'nt' or attempt == 49:
-                    raise
-                time.sleep(.01)
-    finally:
-        temporary.unlink(missing_ok=True)
 
 
 def artifact(prefix, suffix):
@@ -580,354 +565,197 @@ def run_one(config_path, config, solver, model, repeat, env):
     return result
 
 
-def aggregate(results, names, repeats, seconds, solvers=SOLVERS):
-    rows = []
-    for name in names:
-        row = dict(instance=name)
-        for solver in solvers:
-            runs = [r for r in results if r['instance'] == name and r['solver'] == solver]
-            passed = len(runs) == repeats and all(r['status'] == 'PASS' for r in runs)
-            row[solver] = dict(passed=passed,
-                               status='PASS' if passed else ('/'.join(sorted({r['status'] for r in runs}))
-                                       if len(runs) == repeats else 'PENDING' if not runs else 'INCOMPLETE'),
-                               median=statistics.median(r['wall_seconds'] for r in runs) if passed else None,
-                               penalized=statistics.median(r['wall_seconds'] if r['status'] == 'PASS'
-                                                          else 10 * seconds for r in runs) if len(runs) == repeats else None)
-        rows.append(row)
-    return rows
-
-
-def report(run_dir, docs_dir, allow_partial=False):
-    m = json.loads((run_dir / 'metadata.json').read_text(encoding='utf-8'))
-    results = json.loads((run_dir / 'results.json').read_text(encoding='utf-8'))
-    c, e = m['config'], m['environment']
-    solvers = tuple(c.get('solvers', LEGACY_SOLVERS))
-    if (not m.get('completed') and not allow_partial) or any(m.get(k, True) for k in (
+def validate_report_run(metadata, results, allow_partial):
+    """Reject stale, duplicate, or incomplete measurements before publication."""
+    config = metadata['config']
+    solvers = tuple(config.get('solvers', LEGACY_SOLVERS))
+    if (not metadata.get('completed') and not allow_partial) or any(metadata.get(k, True) for k in (
             'source_changed_during_run', 'binary_changed_during_run',
             'library_changed_during_run', 'model_changed_during_run',
             'competitor_changed_during_run')):
         raise ValueError('Incomplete run or changed implementation/models; cannot publish')
-    expected = {(model['name'], solver, repeat) for model in c['models']
-                for solver in solvers for repeat in range(1, c['repeats'] + 1)}
+    expected = {(model['name'], solver, repeat) for model in config['models']
+                for solver in solvers for repeat in range(1, config['repeats'] + 1)}
     actual = [(r['instance'], r['solver'], r['repeat']) for r in results]
     if (len(actual) != len(set(actual)) or not set(actual) <= expected or
-            (m.get('completed') and set(actual) != expected)):
+            (metadata.get('completed') and set(actual) != expected)):
         raise ValueError('Missing or duplicate runs; cannot publish')
-    dataset = c.get('dataset', 'netlib')
+    dataset = config.get('dataset', 'netlib')
     if dataset not in DATASETS:
         raise ValueError('Unknown benchmark dataset: ' + dataset)
+    return dataset
+
+
+def comparison_results(metadata, results, cache):
+    """Include compatible records without requiring another solver run."""
+    config, environment = metadata['config'], metadata['environment']
+    solvers = tuple(config.get('solvers', LEGACY_SOLVERS))
+    dataset = config.get('dataset', 'netlib')
+    compared = list(results)
+    compared_solvers = list(solvers)
+    for solver in SOLVERS:
+        if solver in solvers:
+            continue
+        saved = [cached_measurement(cache, config, environment, model, solver, repeat)
+                 for model in config['models'] for repeat in range(1, config['repeats'] + 1)]
+        # Policy skips are report cells, not measurements. Reconstruct them
+        # only from the current GLPK policy and the compatible timeout/gate.
+        if solver == 'glpk':
+            prior = [row for row in saved if row]
+            for index, row in enumerate(saved):
+                if row is None:
+                    model = config['models'][index // config['repeats']]
+                    policy = dict(config, glpk_stop_on_timeout=dataset in ('pds', 'railway'))
+                    if glpk_skip_reason(policy, solver, model, prior):
+                        saved[index] = dict(instance=model['name'], solver=solver,
+                                            repeat=index % config['repeats'] + 1,
+                                            status='SKIPPED', wall_seconds=None)
+        if saved and all(saved):
+            compared.extend(saved)
+            compared_solvers.append(solver)
+    compared_config = dict(
+        config,
+        solvers=[solver for solver in SOLVERS if solver in compared_solvers],
+        glpk_stop_on_timeout=dataset in ('pds', 'railway') and 'glpk' in compared_solvers,
+    )
+    view = dict(metadata, config=compared_config)
+    return view, compared
+
+
+def report(run_dir, docs_dir, allow_partial=False):
+    metadata = json.loads((run_dir / 'metadata.json').read_text(encoding='utf-8'))
+    results = json.loads((run_dir / 'results.json').read_text(encoding='utf-8'))
+    config, environment = metadata['config'], metadata['environment']
+    dataset = validate_report_run(metadata, results, allow_partial)
     ensure_reports(docs_dir)
     target = docs_dir / (dataset + '.md')
-    stored = read_table(target)
-    rows = aggregate(results, [v['name'] for v in c['models']], c['repeats'], c['seconds'], solvers)
-    by_name = {model['name']: model for model in c['models']}
-    for row in rows:
-        name = row['instance']
-        runs = [r for r in results if r['instance'] == name]
-        dims = next((r for r in runs if 'rows' in r), by_name[name])
-        shape = [str(dims.get(k, '—')) for k in ('rows', 'columns', 'nonzeros')]
-        def cell(solver):
-            value = row[solver]
-            elapsed = f"{value['median']:.3f}" if value['passed'] else '—'
-            objectives = [r['objective'] for r in runs if r['solver'] == solver
-                          and r.get('objective') is not None and math.isfinite(r['objective'])]
-            objective = f'{statistics.median(objectives):.12g}' if objectives else '—'
-            return f"{value['status']} / {elapsed} / {objective}"
-        model = by_name[name]
-        reference = ('INFEASIBLE' if model.get('expected_status') == 'infeasible' else
-                     f"{model['reference']:.12g}" if model.get('reference') is not None else '—')
-        prior = stored.get(name, '')
-        previous = [v.strip() for v in prior.strip('|').split('|')] if prior else []
-        values = [name, ' / '.join(shape), reference,
-                  *(cell(solver) if solver in solvers else
-                    previous[3 + SOLVERS.index(solver)] if previous else 'NOT_RUN / — / —'
-                    for solver in SOLVERS)]
-        stored[name] = '| ' + ' | '.join(values) + ' |'
-    blocks = {run_dir.name: run_summary(run_dir, m, results)}
-    atomic_text(target, render_report(dataset, stored, blocks))
+    cache = read_result_cache(target) or metadata.get('result_cache', [])
+    cache = update_result_cache(cache, config, environment, results)
+    stored = update_table_rows(read_table(target), config, results)
+    view, compared = comparison_results(metadata, results, cache)
+    blocks = {run_dir.name: run_summary(run_dir, view, compared)}
+    atomic_text(target, render_report(dataset, stored, blocks, cache=cache))
     overview(docs_dir)
 
 
-TABLE_HEADER = ('| 实例 | 规模（行 / 列 / 非零元） | 参考目标 | ' +
-                ' | '.join(f'{LABELS[k]}（状态 / 秒 / 目标）' for k in SOLVERS) + ' |\n' +
-                '| --- | --- | ---: | ' + ' | '.join(['---'] * len(SOLVERS)) + ' |\n')
-
-
-SUMMARY_HEADER = ('| 求解器 | 成功案例 | 超时次数 | 其他未通过次数 | 与 lp_simplex 共同成功数 | '
-                  '共同案例几何平均/秒（lp_simplex / 本求解器） | 相对耗时（lp_simplex / 各求解器） |')
-SUMMARY_SEPARATOR = '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'
-
-
-def read_table(path):
-    rows = {}
-    if path.exists():
-        inside, legacy = False, False
-        for line in path.read_text(encoding='utf-8').splitlines():
-            if line.startswith('| 实例 |') and ('规模' in line or '| 行 |' in line):
-                inside, legacy = True, line.startswith('| 实例 | 行 |')
-                continue
-            if inside and not line.startswith('|'):
-                break
-            if inside and line.startswith('| ') and not line.startswith('| ---'):
-                cells = [v.strip() for v in line.strip('|').split('|')]
-                if legacy:
-                    cells = [cells[0], ' / '.join(cells[1:4]), cells[4], *cells[5:8],
-                             'NOT_RUN / — / —', 'NOT_RUN / — / —']
-                rows[cells[0]] = '| ' + ' | '.join(cells) + ' |'
-    return rows
-
-
-def read_run_blocks(path):
-    if not path.exists():
-        return {}
-    return {name: re.sub(r'^### (?:运行|Run) `[^`\n]+`\n\n', '', block, flags=re.M)
-            for name, block in re.findall(
-        r'<!-- benchmark-run:([^\n]+) -->\n(.*?)<!-- /benchmark-run -->',
-        path.read_text(encoding='utf-8'), re.S)}
-
-
-def geometric_mean(values):
-    if not values:
+def measurement_key(config, environment, model, solver):
+    """Changing our solver must not invalidate another solver's measurements."""
+    version = environment.get('versions', {}).get(solver, {})
+    executable = version.get('binding_sha256' if solver == 'highs' else 'binary_sha256')
+    if not executable or not model.get('raw_sha256') or environment.get('cpu') in (None, '', 'unknown'):
         return None
-    if any(not math.isfinite(v) or v < 0 for v in values):
-        raise ValueError('Invalid elapsed time')
-    return 0. if 0. in values else math.exp(statistics.mean(math.log(v) for v in values))
+    identity = dict(executable=executable, version=version.get('version_output', version.get('version')))
+    if solver == 'lp_simplex':
+        identity['libraries'] = sorted(set(version.get('solver_libraries_sha256', {}).values()))
+        identity['source'] = {name: value for name, value in sources().items()
+                              if name.startswith(('src/', 'include/')) or name == 'CMakeLists.txt'}
+    adapter = '\n'.join(inspect.getsource(function) for function in (
+        audit, parse_scip_solution, parse_clp_solution, parse_glpk_solution,
+        glpk_input, infeasibility_status, run_cli, worker))
+    settings = {key: config.get(key) for key in ('seconds', 'tolerance')}
+    if solver == 'lp_simplex':
+        settings['iterations'] = config.get('iterations')
+    for key in {'lp_simplex': ('lp_algorithm',), 'highs': ('highs_algorithm',),
+                'scip': ('scip_algorithm',)}.get(solver, ()):
+        settings[key] = config.get(key)
+    machine = {key: environment.get(key) for key in (
+        'os', 'architecture', 'cpu', 'memory_bytes', 'logical_cpus', 'python', 'numpy', 'scipy')}
+    machine['host'] = hashlib.sha256(platform.node().encode()).hexdigest()
+    converters = [ROOT / 'data' / config.get('dataset', 'netlib') / 'prepare.py']
+    converters += sorted((converters[0].parent / 'raw').glob('*.c'))
+    value = dict(machine=machine, threads=THREADS, identity=identity, settings=settings,
+                 model={key: model.get(key) for key in (
+                     'name', 'dataset', 'raw_sha256', 'expected_mps_sha256', 'reference', 'expected_status')},
+                 converters=[sha(path) for path in converters if path.is_file()],
+                 adapter=hashlib.sha256(adapter.encode()).hexdigest())
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
 
 
-def success_statistics(results, names, repeats, seconds, solvers=SOLVERS):
-    rows = aggregate(results, names, repeats, seconds, solvers)
-    solved = {solver: {row['instance']: row[solver]['median'] for row in rows
-                       if row[solver]['passed'] and all(
-                           r.get('wall_seconds') is not None and math.isfinite(r['wall_seconds'])
-                           and 0 <= r['wall_seconds'] <= seconds
-                           for r in results if r['instance'] == row['instance'] and r['solver'] == solver)}
-              for solver in solvers}
-    output = {}
-    for solver in solvers:
-        common = set(solved.get('lp_simplex', {})) & set(solved[solver])
-        runs = [r for r in results if r['solver'] == solver]
-        output[solver] = dict(successes=len(solved[solver]),
-            timeouts=sum(r['status'] == 'TIMEOUT' for r in runs),
-            failures=sum(r['status'] not in ('PASS', 'TIMEOUT', 'SKIPPED') for r in runs),
-            skipped=sum(r['status'] == 'SKIPPED' for r in runs),
-            pending=len(names) * repeats - len(runs),
-            lp_common_mean=geometric_mean([solved['lp_simplex'][name] for name in sorted(common)]),
-            common_mean=geometric_mean([solved[solver][name] for name in sorted(common)]),
-            common_count=len(common))
-    return output
+def cached_measurement(entries, config, environment, model, solver, repeat):
+    key = measurement_key(config, environment, model, solver)
+    if key is None:
+        return None
+    for entry in entries:
+        row = entry['result']
+        if (entry['key'] == key and row.get('instance') == model['name']
+                and row.get('solver') == solver and row.get('repeat') == repeat
+                and row.get('status') in ('PASS', 'TIMEOUT', 'SOLVER_FAILED', 'AUDIT_FAILED', 'WRONG_STATUS', 'AMBIGUOUS')):
+            elapsed = row.get('wall_seconds')
+            if elapsed is None and row['status'] not in ('PASS', 'TIMEOUT'):
+                return dict(row)
+            if not isinstance(elapsed, bool) and isinstance(elapsed, (int, float)) and math.isfinite(elapsed) and elapsed >= 0.:
+                return dict(row)
+    return None
 
 
-def run_summary(run_dir, metadata, results):
-    c, e = metadata['config'], metadata['environment']
-    solvers = tuple(c.get('solvers', LEGACY_SOLVERS))
-    names = [model['name'] for model in c['models']]
-    stats = success_statistics(results, names, c['repeats'], c['seconds'], solvers)
-    state = '已完成' if metadata.get('completed') else metadata.get('state', '进行中')
-    done = len(metadata.get('finished_cases', names if metadata.get('completed') else []))
-    versions = e.get('versions', {})
-    lp, scip, highs = (versions.get(key, {}) for key in LEGACY_SOLVERS)
-    def clean(value):
-        return str(value).replace('|', '/').replace('\n', '；')
-    info = [
-        ('状态 / 进度', f'{state}；{done}/{len(names)} 个案例'),
-        ('时间（UTC）', metadata.get('created_utc', '未知')),
-        ('参与求解器', ', '.join(LABELS[key] for key in solvers)),
-        ('案例范围', c.get('suite_label', c.get('dataset', 'netlib')) + '；' + ', '.join(ordered_cases(c.get('dataset', 'netlib'), names))),
-        ('系统 / CPU', f"{e.get('os', '未知')} / {e.get('cpu', '未知')}"),
-        ('内存 / 逻辑 CPU', f"{e.get('memory_bytes', '未知')} bytes / {e.get('logical_cpus', '未知')}"),
-        ('Python / NumPy / SciPy', f"{e.get('python', '未知').split()[0]} / {e.get('numpy', '未知')} / {e.get('scipy', '未知')}"),
-        ('lp_simplex 版本', lp.get('git_head', '未知') + ('；工作区有改动' if lp.get('git_status') else '')),
-        ('构建 / 编译器', f"{lp.get('cmake_cache', {}).get('CMAKE_BUILD_TYPE:STRING', '未知')} / {lp.get('compiler', '未知')}"),
-        ('SCIP / LP 后端', (scip.get('version_output') or '未知').splitlines()[0]),
-        ('HiGHS', f"{highs.get('version', '未知')} / {highs.get('binding', '未知')}"),
-        ('算法（lp / scip / highs）', ' / '.join(c[key] for key in ('lp_algorithm', 'scip_algorithm', 'highs_algorithm'))),
-        ('重复 / 单次限时 / 容差 / 工作预算', f"{c['repeats']} / {c['seconds']:g} 秒 / {c['tolerance']:g} / {c['iterations']}"),
-        ('资源', '串行；每个求解器单线程；未限制内存，不保证机器独占'),
-        ('原始记录', os.path.relpath(run_dir, ROOT) + '（配置、环境、SHA-256、命令、日志、解和审核残差）')]
-    for solver in ('clp', 'glpk'):
-        if solver in solvers:
-            info.append((LABELS[solver], versions.get(solver, {}).get('version_output', '未知').splitlines()[0]))
-    if c.get('supplemental_run'):
-        info.append(('补测来源', c['supplemental_run']))
-    if 'clp' in solvers:
-        info.append(('Clp / GLPK 算法', 'dual simplex / primal simplex；presolve on'))
-    if 'glpk' in solvers and c.get('glpk_stop_on_timeout'):
-        info.append(('GLPK 跳过策略', f"任一案例超时后跳过后续测试；已跳过 {stats['glpk']['skipped']} 次"))
-    elif c.get('glpk_gate_case'):
-        info.append(('GLPK 跳过策略', f"先测 {c['glpk_gate_case']}；未通过则跳过其余案例；已跳过 {stats['glpk']['skipped']} 次"))
-    lines = ['| 测试信息 | 值 |', '| --- | --- |']
-    lines.extend(f'| {key} | {clean(value)} |' for key, value in info)
-    lines += ['', SUMMARY_HEADER, SUMMARY_SEPARATOR]
-    def number(value):
-        return '—' if value is None else f'{value:.6g}'
-    for solver in solvers:
-        value = stats[solver]
-        if solver == 'lp_simplex':
-            count, means, relative = '—', '—', '—'
-        else:
-            baseline = value['lp_common_mean']
-            ratio = baseline / value['common_mean'] if baseline is not None and value['common_mean'] is not None and value['common_mean'] > 0. else None
-            count = str(value['common_count'])
-            means = f"{number(baseline)} / {number(value['common_mean'])}"
-            relative = number(ratio)
-        lines.append(f"| {LABELS[solver]} | {value['successes']}/{len(names)} | {value['timeouts']} | "
-                     f"{value['failures']} | {count} | {means} | {relative} |")
-    if c.get('dataset') == 'netlib-infeasible':
-        lines += ['', '| 求解器 | 错误判定次数 | 判定不明确次数 | 运行或数值失败次数 | 跳过次数 |',
-                  '| --- | ---: | ---: | ---: | ---: |']
-        for solver in solvers:
-            rows = [r for r in results if r['solver'] == solver]
-            counts = [sum(r['status'] in statuses for r in rows) for statuses in (
-                ('WRONG_STATUS',), ('AMBIGUOUS',), ('SOLVER_FAILED', 'ERROR', 'AUDIT_FAILED', 'PREPARE_FAILED'), ('SKIPPED',))]
-            lines.append('| ' + ' | '.join([LABELS[solver], *map(str, counts)]) + ' |')
-        unsuccessful = [r for r in results if r['status'] not in ('PASS', 'SKIPPED')]
-        if unsuccessful:
-            lines += ['', '| 实例 | 求解器 | 结果 | 终止信息 |', '| --- | --- | --- | --- |']
-            for row in unsuccessful:
-                lines.append('| ' + ' | '.join(clean(value) for value in (
-                    row['instance'], LABELS[row['solver']], row['status'],
-                    row.get('solver_status', row['status']))) + ' |')
-    lines += ['', '复现本轮案例与参数（新建运行目录）：', '', '```sh',
-              reproduction_script(reproduction_command(c)), '```']
-    return '\n'.join(lines) + '\n\n'
+def update_result_cache(entries, config, environment, results):
+    by_slot = {(entry['result'].get('instance'), entry['result'].get('solver'),
+                entry['result'].get('repeat')): entry for entry in entries}
+    models = {model['name']: model for model in config['models']}
+    fields = ('instance', 'solver', 'repeat', 'status', 'wall_seconds', 'objective',
+              'rows', 'columns', 'nonzeros', 'audit_pass', 'primal_residual',
+              'objective_error', 'reference_error', 'solver_status', 'expected_status',
+              'cli_wall_seconds', 'cli_cpu_seconds', 'cli_user_seconds', 'cli_system_seconds')
+    for row in results:
+        key = measurement_key(config, environment, models[row['instance']], row['solver'])
+        if key is not None:
+            by_slot[row['instance'], row['solver'], row['repeat']] = dict(
+                key=key, result={field: row[field] for field in fields if field in row})
+    return list(by_slot.values())
 
 
-def format_reproduction_command(command):
-    """Use repository-relative paths and PATH names for external solvers."""
-    command = list(command)
-    for index in range(1, len(command)):
-        option, value = command[index - 1], command[index]
-        if option not in ('--binary', '--scip', '--clp', '--glpk'):
-            continue
-        path = Path(value)
-        # Saved reports may contain POSIX absolute paths even on Windows.
-        if not (path.is_absolute() or value.startswith('/')):
-            continue
-        if option != '--binary' and not path.is_relative_to(ROOT):
-            command[index] = path.name
-        else:
-            relative = Path(os.path.relpath(path, ROOT)).as_posix()
-            command[index] = relative if '/' in relative else './' + relative
-    return shlex.join(command)
-
-
-def reproduction_command(config):
-    command = ['python3', 'data/benchmark.py', '--dataset', config.get('dataset', 'netlib'),
-               '--cases', *(model['name'] for model in config['models'])]
-    for option, key in (('--binary', 'binary'), ('--scip', 'scip'), ('--clp', 'clp'), ('--glpk', 'glpk'), ('--repeats', 'repeats'),
-                        ('--seconds', 'seconds'), ('--iterations', 'iterations'),
-                        ('--lp-algorithm', 'lp_algorithm'), ('--scip-algorithm', 'scip_algorithm'),
-                        ('--highs-algorithm', 'highs_algorithm')):
-        if config.get(key) is not None:
-            command.extend([option, str(config[key])])
-    command.extend(['--solvers', *config.get('solvers', LEGACY_SOLVERS)])
-    if config.get('glpk_gate_case'):
-        command.extend(['--glpk-gate-case', config['glpk_gate_case']])
-    return format_reproduction_command(command)
-
-
-def reproduction_script(command):
-    """Build the driver from the repository root before running the benchmark."""
-    args = shlex.split(command)
-    binary = 'build/benchmark/data/lp_solve_mps'
-    if '--binary' in args:
-        args[args.index('--binary') + 1] = binary
-    else:
-        args.extend(['--binary', binary])
-    return '\n\n'.join([
-        'cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON',
-        'cmake --build build/benchmark --target lp_solve_mps -j 4',
-        format_reproduction_command(args)])
-
-
-def refresh_reproduction_script(match):
-    commands = [line for line in match[1].splitlines()
-                if line.startswith('python3 data/benchmark.py ') and '--dataset ' in line]
-    if len(commands) != 1:
-        return match[0]
-    return '```sh\n' + reproduction_script(commands[0]) + '\n```'
-
-
-def english_result_row(row):
-    return row
-
-
-def ordered_cases(dataset, names):
-    pattern = {'pds': r'pds-(\d+)', 'railway': r'rail(\d+)'}.get(dataset)
-    def key(name):
-        match = re.fullmatch(pattern, name) if pattern else None
-        return (0, int(match[1]), name) if match else (1, 0, name)
-    return sorted(names, key=key)
-
-
-def render_report(dataset, stored, blocks, english=False):
-    def tr(chinese, translated):
-        return translated if english else chinese
-    title = {'netlib': 'Netlib feasible', 'netlib-infeasible': 'Netlib infeasible', 'pds': 'PDS',
-             'railway': tr('Railway 连续 LP 松弛', 'Railway continuous LP relaxations')}[dataset]
-    navigation = tr(
-        f'简体中文 | [English](./{dataset}_en.md) | [项目主页](../../README.md) | [基准测试汇总](./README.md)',
-        f'[简体中文](./{dataset}.md) | English | [Project home](../../README_en.md) | [Benchmark summary](./README_en.md)')
-    lines = [tr(f'# {title} 基准测试', f'# {title} Benchmark'), '', navigation, '',
-        tr('由 `data/benchmark.py` 逐案例生成 MPS、执行求解器对比测试、清理 MPS 后更新。',
-           'Updated by `data/benchmark.py` after each instance: generate an MPS, run the configured solvers, and clean up the MPS.'), '',
-        tr('## 测试与统计口径', '## Test and statistical criteria'), '',
-        tr('- 计时为读取、求解和解导出的墙钟时间；不含 MPS 生成/删除、格式兼容处理、适配器公共初始化和独立审核。CLI 含进程启动，HiGHS 使用 Python binding，小案例开销有差异。',
-           '- Timing is wall-clock time for model loading, solving, and solution export. It excludes MPS generation and deletion, format compatibility processing, shared adapter initialization, and independent audits. CLI timing includes process startup; HiGHS uses a Python binding, so overhead differs on small instances.'),
-        tr('- PASS 要求求解器报告最优，原模型行约束、变量界和目标复算通过；有参考目标时再核对参考值（误差限为容差乘以 `1 + abs(reference)`）。无参考值显示 `—`，不代表独立最优性认证。',
-           '- PASS requires an optimal solver status and successful audits of original-model rows, bounds, and objective values. Reference objectives are also checked when available, within tolerance times `1 + abs(reference)`. Missing references are shown as `—`; their absence does not establish independent optimality certification.'),
-        tr('- 成功案例须全部重复为 PASS 且每次均在限时内；先取各案例重复耗时中位数，再计算普通几何平均（不移位、不对失败加惩罚）。空集合显示 `—`。',
-           '- An instance is solved only when every repetition is PASS within the time limit. Take each instance\'s median time, then an ordinary geometric mean, with no shift or failure penalty. Empty sets are shown as `—`.'),
-        tr('- 每个求解器分别与 lp_simplex 比较，仅使用双方共同成功的案例。几何平均耗时按“lp_simplex / 本求解器”列出；各行集合可能不同。相对耗时为 lp_simplex 耗时除以本求解器耗时，大于 1 表示本求解器更快；lp_simplex 行不列自比较统计。',
-           '- Each solver is compared separately with lp_simplex on their pairwise intersection of solved instances. Geometric mean times are listed as lp_simplex / solver; sets may differ between rows. Relative time is lp_simplex time divided by the solver time; above 1 means this solver is faster. The lp_simplex row omits self-comparisons.'),
-        tr('- 成功数按案例计，超时与其他未通过数按重复运行计；统计仅属于对应运行的明确案例范围，进行中结果不构成全集结论。',
-           '- Successes count instances; timeouts and other unsuccessful results count individual runs. Statistics apply only to the specified run and case selection. In-progress results do not establish full-suite conclusions.'),
-        tr('- NOT_RUN / PENDING / INCOMPLETE 表示从未测试 / 本轮尚未测试 / 未完成全部重复。逐例单元格为“状态 / 秒数中位数 / 复算目标中位数”；非 PASS 的目标值仍须结合状态阅读。',
-           '- NOT_RUN / PENDING / INCOMPLETE mean never tested / not yet tested in this run / repetitions incomplete. Instance cells show status / median seconds / median audited objective. Interpret non-PASS objectives together with their status.'),
-        tr('- SKIPPED 表示按预设规则跳过，不计为超时或其他未通过，也不参与耗时统计。',
-           '- SKIPPED means omitted under a predefined rule; it counts as neither a timeout nor another unsuccessful run and is excluded from timing statistics.'),
-        tr('- 未选中的案例及求解器单元格保留历史结果，仅作参考；上方统计只包含本次参与求解器的实测记录，不将历史单元格计入本次排名。',
-           '- Unselected instance and solver cells retain historical results for reference. Statistics above include only measurements from participating solvers in this run; historical cells are excluded from the current ranking.'), '',
-        tr('## 测试信息与统计', '## Test information and statistics'), '',
-        tr('仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。',
-           'Only the run from the most recent report update is shown; historical records remain in their original run directories.'), '']
-    if dataset == 'netlib-infeasible':
-        lines = [line for line in lines if not line.startswith(('- PASS ', '- PASS requires'))]
-        insertion = lines.index(tr('## 测试信息与统计', '## Test information and statistics'))
-        lines[insertion:insertion] = [tr('- PASS 表示明确报告不可行且在限时内结束；预期状态来自 Netlib infeasible 分类。未独立验证 Farkas 证书，PASS 不代表证书审核通过。',
-                     '- PASS means an explicit infeasible status within the time limit, against the Netlib infeasible classification. Farkas certificates are not independently verified; PASS is a status check, not a certificate audit.'),
-                  tr('- WRONG_STATUS 表示报告最优或无界；AMBIGUOUS 表示不可行或无界；SOLVER_FAILED / ERROR 表示未得到明确判定或运行失败。TIMEOUT 优先于其他状态。',
-                     '- WRONG_STATUS means optimal or unbounded; AMBIGUOUS means infeasible or unbounded; SOLVER_FAILED / ERROR means no definitive decision or an execution failure. TIMEOUT takes precedence.'),
-                  tr('- 原始 MPS 按原样交给求解器。greenbea 含多个 BOUNDS 向量及重复界，pang 存在读取器兼容性差异；相关失败包含输入兼容性影响。HiGHS 的读取警告保存在 reader_status，实际求解日志另行保留。',
-                     '- Original MPS files are passed to the solvers unchanged. greenbea contains multiple BOUNDS vectors and duplicate bounds; pang also exposes reader compatibility differences. Related failures include input compatibility effects. HiGHS read warnings are recorded in reader_status; solver logs are retained separately.'), '']
+def adopt_report_results(path, config, environment):
+    """One-time import of existing competitor measurements explicitly approved by the user."""
+    if config['repeats'] != 1:
+        raise ValueError('Existing report medians cannot reconstruct multiple repetitions')
+    blocks = read_run_blocks(path)
     if not blocks:
-        empty = ['尚未运行；环境、版本、算法、限时和重复次数尚未记录。', '',
-                 SUMMARY_HEADER, SUMMARY_SEPARATOR]
-        empty.extend(f"| {LABELS[solver]} | 0/{len(stored)} | 0 | 0 | "
-                     + ('— | — | — |' if solver == 'lp_simplex' else '0 | — / — | — |')
-                     for solver in SOLVERS)
-        lines += [english_summary('\n'.join(empty)) if english else '\n'.join(empty), '']
-    # Older reports contain multiple run blocks. Keep only the last saved run.
-    for name, block in list(blocks.items())[-1:]:
-        block = re.sub(r'^(\| 案例范围 \| [^；\n]*；)([^|\n]+)\|$',
-                       lambda match: match[1] + ', '.join(ordered_cases(
-                           dataset, [case.strip() for case in match[2].split(',')])) + ' |',
-                       block, flags=re.M)
-        # Upgrade saved instructions too, without requiring original run logs.
-        block = re.sub(r'```sh\n(.*?)\n```', refresh_reproduction_script,
-                       block, flags=re.S)
-        lines += [f'<!-- benchmark-run:{name} -->',
-                  english_summary(block.rstrip()) if english else block.rstrip(),
-                  '<!-- /benchmark-run -->', '']
-    header = ('| Instance | Size (rows / columns / nonzeros) | Reference objective | ' +
-              ' | '.join(f'{LABELS[k]} (status / s / objective)' for k in SOLVERS) + ' |\n' +
-              TABLE_HEADER.splitlines()[1]) if english else TABLE_HEADER.rstrip()
-    if dataset == 'netlib-infeasible':
-        header = header.replace('参考目标', '预期状态').replace('Reference objective', 'Expected status')
-    lines += [tr('## 逐例最新结果', '## Latest per-instance results'), '', header]
-    lines.extend(english_result_row(stored[name]) if english else stored[name]
-                 for name in ordered_cases(dataset, stored))
-    return '\n'.join(lines) + '\n'
+        return []
+    info = dict(re.findall(r'^\| ([^|\n]+) \| ([^|\n]+) \|$', list(blocks.values())[-1], re.M))
+    expected_machine = f"{environment.get('os')} / {environment.get('cpu')}"
+    if info.get('系统 / CPU') != expected_machine:
+        raise ValueError('Existing report belongs to a different machine/environment')
+    settings = info.get('重复 / 单次限时 / 容差 / 工作预算', '').split(' / ')
+    if len(settings) != 4 or [float(settings[0]), float(settings[1].split()[0]), float(settings[2])] != [
+            1., config['seconds'], config['tolerance']]:
+        raise ValueError('Existing report has different test limits/settings')
+    packages = ' / '.join([environment.get('python', '未知').split()[0],
+                           environment.get('numpy', '未知'), environment.get('scipy', '未知')])
+    if info.get('Python / NumPy / SciPy') != packages:
+        raise ValueError('Existing report has a different Python/NumPy/SciPy environment')
+    algorithms = info.get('算法（lp / scip / highs）', '').split(' / ')
+    if len(algorithms) != 3 or algorithms[1:] != [config['scip_algorithm'], config['highs_algorithm']]:
+        raise ValueError('Existing competitor algorithm settings differ')
+    versions = environment.get('versions', {})
+    for solver, field in [('scip', 'SCIP / LP 后端'), ('clp', 'Clp'), ('glpk', 'GLPK')]:
+        actual = versions.get(solver, {}).get('version_output', '').splitlines()
+        if not actual or info.get(field) != actual[0]:
+            raise ValueError('Existing report has a different ' + solver + ' version')
+    highs = versions.get('highs', {})
+    if info.get('HiGHS') != f"{highs.get('version')} / {highs.get('binding')}":
+        raise ValueError('Existing report has a different HiGHS version')
+    stored, results = read_table(path), []
+    for model in config['models']:
+        if model['name'] not in stored:
+            continue
+        cells = [cell.strip() for cell in stored[model['name']].strip('|').split('|')]
+        shape = cells[1].split(' / ')
+        if len(shape) != 3 or any(str(model[field]) != value for field, value in
+                zip(('rows', 'columns', 'nonzeros'), shape) if field in model):
+            raise ValueError('Existing report has different model dimensions: ' + model['name'])
+        if model.get('reference') is not None and (cells[2] == '—' or
+                abs(float(cells[2]) - model['reference']) > config['tolerance'] * (1. + abs(model['reference']))):
+            raise ValueError('Existing report has a different objective reference: ' + model['name'])
+        for solver in SOLVERS[1:]:
+            status, seconds, objective = [value.strip() for value in cells[3 + SOLVERS.index(solver)].split(' / ')]
+            if status not in ('PASS', 'TIMEOUT', 'SKIPPED', 'SOLVER_FAILED', 'AUDIT_FAILED', 'WRONG_STATUS', 'AMBIGUOUS'):
+                continue
+            row = dict(instance=model['name'], solver=solver, repeat=1, status=status,
+                       wall_seconds=float(seconds) if status == 'PASS' else config['seconds'] if status == 'TIMEOUT' else None)
+            if objective != '—':
+                row['objective'] = float(objective)
+            results.append(row)
+    return update_result_cache([], config, environment, results)
 
 
 def raw_inputs(dataset):
@@ -951,155 +779,6 @@ def ensure_reports(docs_dir):
                 pending = [line.replace('| — / — / — | — |', '| — / — / — | INFEASIBLE |') for line in pending]
             stored = {line.split('|')[1].strip(): line for line in pending}
             atomic_text(target, render_report(dataset, stored, {}))
-
-
-def english_summary(summary):
-    """Localize saved summary prose without changing commands or numeric cells."""
-    labels = {
-        '测试信息': 'Test information', '值': 'Value', '参与求解器': 'Solvers in this run',
-        '状态 / 进度': 'State / progress', '时间（UTC）': 'Time (UTC)',
-        '案例范围': 'Case selection', '系统 / CPU': 'System / CPU',
-        '内存 / 逻辑 CPU': 'Memory / logical CPUs',
-        'lp_simplex 版本': 'lp_simplex version', '构建 / 编译器': 'Build / compiler',
-        'SCIP / LP 后端': 'SCIP / LP backend',
-        '算法（lp / scip / highs）': 'Algorithms (lp / scip / highs)',
-        '重复 / 单次限时 / 容差 / 工作预算': 'Repeats / time limit / tolerance / work budget',
-        '资源': 'Resources', '原始记录': 'Raw records', '求解器': 'Solver',
-        '成功案例': 'Solved instances', '超时次数': 'Timeouts',
-        '其他未通过次数': 'Other unsuccessful runs', '待测次数': 'Pending runs',
-        '各自成功案例几何平均/秒': 'Geometric mean on own solved set / s',
-        '成功案例几何平均/秒': 'Geometric mean on solved set / s',
-        '三方共同成功数': 'Common solved instances',
-        '与 lp_simplex 共同成功数': 'Instances solved by both this solver and lp_simplex',
-        '本轮共同成功数': 'Common solved instances in this run',
-        'Clp / GLPK 算法': 'Clp / GLPK algorithms', 'Clp': 'Clp', 'GLPK': 'GLPK',
-        'GLPK 跳过策略': 'GLPK skip policy',
-        '补测来源': 'Supplemental run',
-        '错误判定次数': 'Wrong decisions', '判定不明确次数': 'Ambiguous decisions',
-        '运行或数值失败次数': 'Execution or numerical failures', '跳过次数': 'Skipped runs',
-        '实例': 'Instance', '结果': 'Result', '终止信息': 'Termination information',
-        '共同案例几何平均/秒（lp_simplex / 本求解器）': 'Geometric means on common set / s (lp_simplex / solver)',
-        '共同案例几何平均/秒': 'Geometric mean on common set / s',
-        '相对耗时（lp_simplex / 各求解器）': 'Relative time (lp_simplex / solver)',
-    }
-    def value(key, text):
-        if key == '状态 / 进度':
-            text = text.replace('已完成', 'Completed').replace('进行中', 'Running')
-            text = text.replace('已中断', 'Interrupted').replace('个案例', 'instances')
-        elif key == '案例范围':
-            text = text.replace('显式子集', 'explicit subset').replace('全集', 'full suite')
-        elif key == 'lp_simplex 版本':
-            text = text.replace('工作区有改动', 'working tree modified')
-        elif key == '重复 / 单次限时 / 容差 / 工作预算':
-            text = text.replace(' 秒', ' s')
-        elif key == 'Clp / GLPK 算法':
-            text = text.replace('；', '; ')
-        elif key == 'GLPK 跳过策略':
-            text = text.replace('任一案例超时后跳过后续测试', 'Skip remaining GLPK runs after its first timeout').replace('先测 ', 'Test first: ').replace('未通过则跳过其余案例', 'skip remaining cases if it does not pass').replace('已跳过 ', 'Skipped runs: ').replace(' 次', '')
-        elif key == '资源':
-            return 'Serial; one thread per solver; no memory cap or exclusive machine access'
-        elif key == '原始记录':
-            text = text.replace('（配置、环境、SHA-256、命令、日志、解和审核残差）',
-                                ' (configuration, environment, SHA-256, commands, logs, solutions, and audit residuals)')
-        return text.replace('未知', 'unknown').replace('；', '; ')
-    lines, in_code = [], False
-    for line in summary.splitlines():
-        if line.startswith('```'):
-            in_code = not in_code
-            lines.append(line)
-        elif in_code:
-            lines.append(line)
-        elif line.startswith(('### 运行 ', '### Run ')):
-            continue
-        elif line.startswith('| '):
-            cells = [cell.strip() for cell in line.strip('|').split('|')]
-            key = cells[0]
-            if key in labels and len(cells) == 2:
-                cells[1] = value(key, cells[1])
-            lines.append('| ' + ' | '.join(labels.get(cell, cell) for cell in cells) + ' |')
-        elif line == '复现本轮案例与参数（新建运行目录）：':
-            lines.append('Reproduce these cases and parameters in a new run directory:')
-        elif line == '尚未运行；环境、版本、算法、限时和重复次数尚未记录。':
-            lines.append('Not yet run; environment, versions, algorithms, time limits, and repeats are not yet recorded.')
-        elif line == '仅展示最近一次报告更新对应的运行；历史记录保存在各轮原始运行目录中。':
-            lines.append('Only the run from the most recent report update is shown; historical records remain in their original run directories.')
-        else:
-            lines.append(line)
-    return '\n'.join(lines)
-
-
-def overview(docs_dir):
-    """Rebuild both language indexes from reports, without requiring raw run logs."""
-    summaries = {}
-    for dataset in DATASETS:
-        path = docs_dir / (dataset + '.md')
-        if path.exists():
-            if '## 测试信息与统计\n\n' not in path.read_text(encoding='utf-8'):
-                raise ValueError('Dataset report has no summary section: ' + str(path))
-            stored, blocks = read_table(path), read_run_blocks(path)
-            report_text = render_report(dataset, stored, blocks)
-            atomic_text(path, report_text)
-            summaries[dataset] = report_text.partition('## 测试信息与统计\n\n')[2].partition('## 逐例最新结果')[0].strip()
-            atomic_text(docs_dir / (dataset + '_en.md'),
-                        render_report(dataset, stored, blocks, english=True))
-    for english in (False, True):
-        def tr(chinese, translated):
-            return translated if english else chinese
-        navigation = tr(
-            '简体中文 | [English](./README_en.md) | [项目主页](../../README.md) | [文档](../README.md)',
-            '[简体中文](./README.md) | English | [Project home](../../README_en.md) | [Documentation](../README_en.md)')
-        lines = [tr('# 基准测试汇总', '# Benchmark Summary'), '', navigation, '',
-            tr('由 `data/benchmark.py` 自动生成；仅包含测试信息、对比统计及复现说明。',
-               'Generated by `data/benchmark.py`; includes test information, comparison statistics, and reproduction instructions.'), '',
-            tr('## 测试信息与统计口径', '## Test information and statistical criteria'), '',
-            tr('逐案例生成临时 MPS，本轮所有求解器完成全部重复后清理，再同步更新数据集报告和本汇总。',
-               'A temporary MPS is generated for each instance and removed after all configured solvers finish their repetitions. Dataset reports and this summary are then updated together.'), '',
-            tr('成功案例须全部重复 PASS 且每次均在限时内。先取重复耗时中位数，再计算普通几何平均，'
-               '不移位、不对失败加惩罚；空集合为 `—`。各求解器分别与 lp_simplex 使用双方共同成功案例比较；'
-               '几何平均按“lp_simplex / 本求解器”列出，各行集合可能不同；lp_simplex 行不列自比较统计。'
-               '相对耗时为 lp_simplex 耗时除以本求解器耗时，大于 1 表示本求解器更快。成功数按案例计，超时与其他未通过数按重复运行计。',
-               'An instance is solved only if every repetition passes within the time limit. Times are medians across repetitions, followed by an ordinary geometric mean, with no shift or failure penalty. Empty sets are shown as `—`. Each solver is compared separately with lp_simplex on their pairwise intersection of solved instances. Geometric means are listed as lp_simplex / solver; sets may differ between rows. The lp_simplex row omits self-comparisons. Relative time is lp_simplex time divided by the solver time; above 1 means this solver is faster. Successes count instances; timeouts and other unsuccessful results count individual runs.'), '',
-            tr('计时含模型读取、求解和解导出，不含 MPS 生成/删除、格式兼容处理、公共适配器初始化和独立审核。'
-               '串行、单线程，不保证机器独占；CLI 与 Python binding 开销有差异。',
-               'Timing includes model loading, solving, and solution export. It excludes MPS preparation and deletion, format compatibility processing, shared adapter initialization, and independent audits. Runs are serial and single-threaded, without guaranteed exclusive machine access. CLI and Python-binding overheads differ.'), '',
-            tr('可行问题的 PASS 要求求解器报告最优且原模型可行性、目标复算通过；有参考目标时额外核对。'
-               '缺少参考值不代表独立最优性认证。进行中或子集结果不构成全集结论，'
-               '不同运行分别统计，不混合环境、配置或案例集合。',
-               'For feasible suites, PASS requires an optimal solver status and successful original-model feasibility and objective audits. Reference objectives are checked when available. A pass without a reference is not an independent optimality certificate. Partial or subset results do not establish full-suite conclusions. Runs are summarized separately, without mixing environments, settings, or case selections.'), '']
-        lines += [tr('Netlib infeasible 单独统计：PASS 只核对明确的不可行状态，不代表独立不可行证书验证。',
-                     'Netlib infeasible is summarized separately: PASS checks an explicit infeasible status and does not constitute independent certificate verification.'), '']
-        for dataset, title in (('netlib', 'Netlib feasible'), ('netlib-infeasible', 'Netlib infeasible'), ('pds', 'PDS'),
-                               ('railway', tr('Railway 连续 LP 松弛', 'Railway continuous LP relaxations'))):
-            lines += [f'## {title}', '',
-                      f'[{tr("逐案例结果与完整报告", "Per-instance results and full report")}]({dataset}{"_en" if english else ""}.md)', '']
-            if dataset in summaries:
-                lines += [english_summary(summaries[dataset]) if english else summaries[dataset], '']
-            else:
-                lines += [tr('尚未生成测试信息与统计。', 'Test information and statistics have not yet been generated.'), '']
-        lines += [tr('## 复现说明', '## Reproduction'), '',
-            tr('在仓库根目录运行。需 CMake、C 编译器、BLAS/LAPACK，并安装 SCIP、Clp、GLPK、NumPy、SciPy，'
-               '以及 highspy 或兼容的 SciPy HiGHS 绑定。PDS 转换器由脚本临时编译。',
-               'Run from the repository root. Requirements are CMake, a C compiler, BLAS/LAPACK, SCIP, Clp, GLPK, NumPy, SciPy, and highspy or a compatible SciPy HiGHS binding. The script compiles the PDS converter temporarily.'), '',
-            '```sh', 'cmake -S . -B build/benchmark -DCMAKE_BUILD_TYPE=Release -DLP_SIMPLEX_BUILD_BENCHMARKS=ON',
-            '', 'cmake --build build/benchmark --target lp_solve_mps -j 4', '',
-            'python3 data/benchmark.py --dataset netlib --binary build/benchmark/data/lp_solve_mps', '',
-            'python3 data/benchmark.py --dataset pds --binary build/benchmark/data/lp_solve_mps', '',
-            'python3 data/benchmark.py --dataset railway --binary build/benchmark/data/lp_solve_mps', '```', '',
-            tr('省略 `--cases` 测试所选数据集全集；短程验证可加 `--cases <实例名> --repeats 1 --seconds 10`。'
-               'simple_examples 仅用于功能测试，不参与基准。上方各轮的复现命令保留其案例与具体参数，'
-               '二进制路径可换为新构建结果；复核版本及 SHA-256 后再比较耗时。',
-               'Omit `--cases` to test the full selected dataset. For a short check, add `--cases <instance> --repeats 1 --seconds 10`. The simple_examples models are functional tests, not benchmarks. Commands above preserve each run\'s cases and parameters. You may replace binary paths with new builds; verify versions and SHA-256 before comparing timings.'), '',
-            tr('默认每轮新建 `tmp/benchmarks/<UTC 时间>/`，保存配置、环境、命令、结果、日志与审核信息。'
-               '正常结束、异常、Ctrl+C 或 SIGTERM 清理临时 MPS；SIGKILL/断电残留可随运行目录删除。',
-               'Each run creates `tmp/benchmarks/<UTC timestamp>/` for configuration, environment, commands, results, logs, and audit information. Temporary MPS files are cleaned on normal exit, exceptions, Ctrl+C, or SIGTERM. Files left by SIGKILL or power loss can be removed with the run directory.'), '',
-            tr('仅重建报告和本汇总，不需要 MPS 或再次求解：',
-               'Rebuild reports and both language summaries without MPS files or new solver runs:'), '', '```sh',
-            tr('python3 data/benchmark.py --report-only tmp/benchmarks/<运行目录>',
-               'python3 data/benchmark.py --report-only tmp/benchmarks/<run-directory>'), '```', '',
-            tr('`--docs-dir` 可指定报告目录；重建汇总会保留其他数据集已保存的测试信息和统计。'
-               '更多参数与审核说明见 [数据与基准说明](../../data/README.md)。',
-               'Use `--docs-dir` to choose the report directory. Rebuilding summaries preserves saved test information and statistics for other datasets. See [data and benchmark instructions](../../data/README_en.md) for additional parameters and audit details.'), '']
-        atomic_text(docs_dir / ('README_en.md' if english else 'README.md'), '\n'.join(lines))
 
 
 @contextmanager
@@ -1146,6 +825,20 @@ def benchmark_case(config_path, config, model, case_index, env, results, metadat
     run_dir = config_path.parent
     prepared = False
     solvers = tuple(config.get('solvers', SOLVERS))
+    cache = metadata.get('result_cache', [])
+    saved = {(solver, repeat): cached_measurement(cache, config, metadata['environment'], model, solver, repeat)
+             for solver in solvers for repeat in range(1, config['repeats'] + 1)
+             if solver not in config.get('rerun', [])} if cache else {}
+    for slot, row in saved.items():
+        if row is None:
+            reason = glpk_skip_reason(config, slot[0], model, results)
+            if reason:
+                saved[slot] = dict(instance=model['name'], solver=slot[0], repeat=slot[1],
+                                   status='SKIPPED', wall_seconds=None, reason=reason)
+    if saved and len(saved) == len(solvers) * config['repeats'] and all(saved.values()):
+        results.extend(saved.values())
+        dump(run_dir / 'results.json', results)
+        return
     try:
         with prepared_model(model, run_dir) as path:
             prepared = True
@@ -1156,7 +849,9 @@ def benchmark_case(config_path, config, model, case_index, env, results, metadat
                     for solver in solvers[offset:] + solvers[:offset]:
                         try:
                             reason = glpk_skip_reason(config, solver, model, results)
-                            if reason:
+                            if saved.get((solver, repeat + 1)):
+                                row = saved[solver, repeat + 1]
+                            elif reason:
                                 row = dict(instance=model['name'], solver=solver, repeat=repeat + 1,
                                            status='SKIPPED', wall_seconds=None, reason=reason)
                                 print(f"{model['name']} {solver} #{repeat + 1}: SKIPPED ({reason})", flush=True)
@@ -1297,7 +992,15 @@ def main():
     parser.add_argument('--glpk', default='glpsol')
     parser.add_argument('--glpk-gate-case', help='PDS/Railway only: test this case first; skip subsequent GLPK runs if it does not pass')
     parser.add_argument('--run-dir', type=Path, help='raw artifacts directory (default: tmp/benchmarks/<UTC timestamp>)')
-    parser.add_argument('--report-only', type=Path)
+    reporting = parser.add_mutually_exclusive_group()
+    reporting.add_argument('--report-only', type=Path,
+                           help='Rebuild a report from a saved raw run directory')
+    reporting.add_argument('--refresh-reports', action='store_true',
+                           help='Refresh bilingual reports from saved Markdown without running solvers')
+    parser.add_argument('--rerun', nargs='+', choices=SOLVERS, default=[],
+                        help='Explicitly retest these solvers even when compatible measurements exist')
+    parser.add_argument('--adopt-existing', action='store_true',
+                        help='One-time import of existing competitor report cells on this machine')
     parser.add_argument('--docs-dir', type=Path, default=ROOT / 'docs/benchmarks')
     parser.add_argument('--dataset', choices=DATASETS, default='netlib', help='Dataset (default: netlib)')
     parser.add_argument('--cases', nargs='+', help='Instance names; omitted means the selected dataset in full')
@@ -1309,6 +1012,9 @@ def main():
     parser.add_argument('--highs-algorithm', choices=['choose', 'simplex', 'ipm'], default='choose')
     parser.add_argument('--scip-algorithm', choices=['default', 'dual'], default='default')
     args = parser.parse_args()
+    if args.refresh_reports:
+        overview(args.docs_dir.resolve())
+        return
     if args.report_only:
         report(args.report_only.resolve(), args.docs_dir.resolve(), allow_partial=True)
         return
@@ -1317,6 +1023,8 @@ def main():
     if args.repeats < 1 or not math.isfinite(args.seconds) or args.seconds <= 0 or args.iterations < 1:
         parser.error('repeats, seconds, and iterations must be positive')
     models = select_models(parser, args.cases, args.dataset)
+    cache_path = args.docs_dir.resolve() / (args.dataset + '.md')
+    cache = read_result_cache(cache_path)
     if args.glpk_gate_case:
         if args.dataset not in ('pds', 'railway'):
             parser.error('--glpk-gate-case is only supported for PDS and Railway')
@@ -1325,12 +1033,16 @@ def main():
         models.sort(key=lambda model: model['name'] != args.glpk_gate_case)
     if len(args.solvers) != len(set(args.solvers)):
         parser.error('solvers must be unique')
-    binary = args.binary.resolve() if 'lp_simplex' in args.solvers else None
+    if not set(args.rerun) <= set(args.solvers):
+        parser.error('--rerun requires those solvers to be selected by --solvers')
+    native_cached = any(entry['result'].get('solver') == 'lp_simplex' for entry in cache)
+    binary = args.binary.resolve() if 'lp_simplex' in args.solvers or native_cached and args.binary.is_file() else None
     if binary is not None and not binary.is_file():
         parser.error('lp_simplex executable not found: ' + str(binary))
     executables = {}
     for solver, requested in (('scip', args.scip), ('clp', args.clp), ('glpk', args.glpk)):
-        executable = shutil.which(requested) if solver in args.solvers else None
+        known = any(entry['result'].get('solver') == solver for entry in cache)
+        executable = shutil.which(requested) if solver in args.solvers or known or args.adopt_existing else None
         if solver in args.solvers and not executable:
             parser.error(solver + ' executable not found: ' + requested)
         executables[solver] = executable
@@ -1341,12 +1053,17 @@ def main():
                   input_metadata_sha256=input_metadata(args.dataset),
                   suite_label=args.dataset + (' 全集' if not args.cases else ' 显式子集'),
                   models=models, glpk_stop_on_timeout=(args.dataset in ('pds', 'railway') and 'glpk' in args.solvers))
+    config['rerun'] = args.rerun
     if args.glpk_gate_case:
         config['glpk_gate_case'] = args.glpk_gate_case
     env = {k: v for k, v in os.environ.items() if not k.startswith('LP_SIMPLEX_')}
     env.update(THREADS, LC_ALL='C', PYTHONDONTWRITEBYTECODE='1')
     os.environ.update(THREADS)
     detected = environment(binary, scip, clp, glpk)
+    if args.adopt_existing:
+        imported = adopt_report_results(cache_path, config, detected)
+        slots = {(entry['result']['instance'], entry['result']['solver'], entry['result']['repeat']) for entry in cache}
+        cache += [entry for entry in imported if (entry['result']['instance'], entry['result']['solver'], entry['result']['repeat']) not in slots]
     run_dir = (args.run_dir or ROOT / 'tmp/benchmarks' / dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ')).resolve()
     if run_dir.exists():
         parser.error('run directory exists; select a new directory')
@@ -1355,6 +1072,7 @@ def main():
     dump(config_path, config)
     metadata = dict(created_utc=dt.datetime.now(dt.timezone.utc).isoformat(), config=config,
                     invocation=sys.argv, environment=detected, source_sha256=sources(), completed=False,
+                    result_cache=cache,
                     state='进行中', finished_cases=[], source_changed_during_run=False,
                     binary_changed_during_run=False, library_changed_during_run=False,
                     model_changed_during_run=False, competitor_changed_during_run=False)

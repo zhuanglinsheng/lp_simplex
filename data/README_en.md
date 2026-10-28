@@ -22,7 +22,7 @@ The command-line driver uses production numerical defaults and ignores numerical
 
 `benchmark.py` retains `wall_seconds`: CLI startup, reading, solving and point export, plus adapter log/point parsing, excluding adapter initialization and independent original-model auditing. CLI runs also record `cli_wall_seconds` (launch through exit, excluding later parsing), `cli_user_seconds`, `cli_system_seconds` and their sum `cli_cpu_seconds`. CPU is the isolated worker's child `getrusage` delta for the CLI and its descendants. Unsupported or invalid counters are `null`, never zero. The HiGHS Python binding has no CLI subprocess and does not provide these fields.
 
-`compare_performance.py` keeps its legacy wall summary and adds separate summaries under `cli_timing`. Ratios require complete passing repetitions and valid measurements on both sides. Numerical PASS and timing availability are separate. Driver `time:` measures solve plus one original-model audit in process CPU time; it cannot replace full CLI timing. Hard deadlines and success criteria are unchanged. A killed child without a complete measurement has unknown CPU. Preserve all raw logs, point audits and repetitions.
+`compare_performance.py` keeps its legacy wall summary and adds separate summaries under `cli_timing`. Ratios require complete passing repetitions and valid measurements on both sides. Numerical PASS and timing availability are separate. Driver `time:` measures solve plus one original-model audit in process CPU time; it cannot replace full CLI timing. Hard deadlines and success criteria are unchanged. A killed child without a complete measurement has unknown CPU. Per-instance measurements, audit summaries, and reuse fingerprints are stored in the Markdown report; temporary logs and solution files may be cleaned after auditing.
 
 ## Prepare the environment
 
@@ -54,16 +54,16 @@ python3 data/benchmark.py --dataset pds
 python3 data/benchmark.py --dataset railway
 ```
 
-By default, only lp_simplex runs, once per instance. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `lp_solve_mps`.
+By default, only lp_simplex is selected, with one measurement per instance. Matching measurements on the same machine are reused; only missing or changed entries run. The per-run limit is 60 seconds for Netlib and 120 seconds for PDS and Railway. Netlib uses only its 114 original feasible models; `simple_examples` is excluded from performance benchmarks. For a custom build directory, use `--binary PATH` to locate `lp_solve_mps`.
 
-For each instance, the script:
+Instances with complete matching measurements need neither MPS generation nor solver launches. Otherwise, the script:
 
 1. Generates a temporary MPS file from raw inputs.
-2. Runs the selected solvers and repetitions serially, recording timings and statuses and auditing solutions against the original model.
+2. Reuses matching measurements and runs only missing or changed entries serially, recording timings and statuses and auditing solutions against the original model.
 3. Deletes the instance's temporary MPS file.
 4. Saves run records and updates the dataset reports and both language summaries before proceeding to the next instance.
 
-No dataset-wide MPS preparation is needed. Temporary MPS files live inside the run directory; manually generated MPS files are outside this cleanup process. Dataset reports maintain the latest per-instance results while retaining test information and statistics separately for each run.
+No dataset-wide MPS preparation is needed. Temporary MPS files live inside the run directory; manually generated MPS files are outside this cleanup process. Dataset reports retain current per-instance measurements and recompute comparisons from compatible records.
 
 For debugging, select a single instance with fewer repetitions and a shorter limit:
 
@@ -73,7 +73,24 @@ python3 data/benchmark.py --dataset netlib --cases afiro --repeats 1 --seconds 1
 
 `--cases` takes instance names without directories or file extensions, such as `afiro` for Netlib, `pds-30` for PDS, or `rail507` for Railway. It limits only the current run's selection.
 
-After an interruption, retain the old run directory and start a new run with `--cases` selecting unfinished instances. Keep the original algorithms, solvers, work budgets, and time limits, and use a new directory for `--run-dir`. Unselected completed instance rows are preserved, while statistics remain separate for each run. The script cannot resume in the original run directory or automatically skip completed solvers or repetitions within an instance; an interrupted instance starts again. `--report-only` rebuilds reports without continuing solver runs.
+After an interruption, use a new `--run-dir` with the original algorithms, work budgets, and time limits. Completed solver/instance/repetition entries with matching fingerprints are reused from the report, so temporary run directories are unnecessary for reuse. Changes to the machine, solver binaries or shared solver library, inputs, settings, or timing adapter invalidate the corresponding measurements; changing lp_simplex does not invalidate unchanged competitors. Use `--rerun lp_simplex` to explicitly retest a selected solver. For reports without fingerprints, a one-time `--adopt-existing` imports competitor results after checking the machine, versions, dimensions, and settings; it never imports an old lp_simplex build. `--report-only` rebuilds reports without continuing solver runs.
+
+## Common operations
+
+Use the current PDS report settings and run only missing or changed lp_simplex entries:
+
+```sh
+python3 -B data/benchmark.py --dataset pds --binary build/data/lp_solve_mps \
+  --lp-algorithm auto --seconds 300 --iterations 300000
+```
+
+Append `--rerun lp_simplex` for an intentional retest. To update formatting, translations, or summaries only:
+
+```sh
+python3 -B data/benchmark.py --refresh-reports
+```
+
+Measurements and fingerprints live in the dataset Markdown, so deleting temporary run directories does not prevent reuse. `--report-only DIR` reads a retained raw run; use `--refresh-reports` when that directory is unavailable.
 
 ## Check a single model
 
@@ -111,25 +128,28 @@ The script updates the corresponding dataset reports and summaries in both langu
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `--dataset` | `netlib` | `netlib`, `pds`, or `railway`; excludes simple_examples |
+| `--dataset` | `netlib` | `netlib`, `netlib-infeasible`, `pds`, or `railway`; excludes simple_examples |
 | `--cases` | Full selected dataset | One or more raw instance names |
 | `--binary` | `build/data/lp_solve_mps` | lp_simplex single-model driver |
 | `--scip` | `scip` | SCIP executable name or path |
 | `--clp` | `clp` | Clp executable name or path |
 | `--glpk` | `glpsol` | GLPK executable name or path |
 | `--glpk-gate-case` | Off | PDS/Railway only: test this instance first; if GLPK does not pass, skip its remaining instances. Skips are recorded separately from timeouts and failures |
-| `--solvers` | `lp_simplex` | One or more solvers to execute; competitor-only runs are supported. Only selected solver executables are required |
+| `--solvers` | `lp_simplex` | Solvers allowed to run; only selected executables are required. Compatible saved comparisons remain included |
 | `--repeats` | 1 | Repetitions per instance and solver |
-| `--seconds` | Netlib: 60; PDS/Railway: 120 | Per-run wall-clock deadline |
+| `--seconds` | Netlib feasible: 60; infeasible: 90; PDS/Railway: 120 | Per-run wall-clock deadline; keep it consistent with the report for reuse |
 | `--iterations` | 300000 | lp_simplex work budget |
 | `--lp-algorithm` | `auto` | `auto`, `dual-revised`, `pan-bda`, or `tableau` |
 | `--highs-algorithm` | `choose` | `choose`, `simplex`, or `ipm` |
 | `--scip-algorithm` | `default` | `default` or `dual` |
 | `--run-dir` | `tmp/benchmarks/<UTC timestamp>` | New directory for raw run records |
 | `--docs-dir` | `docs/benchmarks` | Report destination |
-| `--report-only DIR` | Off | Regenerate reports without solving |
+| `--rerun SOLVER ...` | Off | Explicitly retest selected solvers instead of reusing their measurements |
+| `--adopt-existing` | Off | One-time import of compatible competitor reports without fingerprints; never imports an old lp_simplex build |
+| `--refresh-reports` | Off | Refresh bilingual Markdown reports and summaries without raw logs or solver launches |
+| `--report-only DIR` | Off | Rebuild a report from a retained raw run directory without solving |
 
-Routine optimization runs measure only lp_simplex once per case. Select comparisons with, for example, `--solvers lp_simplex highs clp`, or refresh a competitor alone with `--solvers scip`. Unselected report cells retain historical reference values, excluded from current-run statistics. The HiGHS binding, NumPy, and SciPy remain required for model loading and independent audits even when HiGHS is not selected.
+Routine optimization permits only lp_simplex to run, once per case. Unchanged competitor binaries and settings reuse their measurements; updating lp_simplex does not rerun competitors. `--solvers` permits execution without forcing it; add `--rerun` for an explicit retest. Compatible complete measurements contribute to comparisons on the common solved cases. The HiGHS binding, NumPy, and SciPy remain required for model loading and independent audits even when HiGHS is not selected.
 
 ### Single-model checks: lp_solve_mps
 
@@ -158,4 +178,18 @@ Run the infeasibility benchmark:
 
 ```sh
 python3 data/benchmark.py --dataset netlib-infeasible --binary build/data/lp_solve_mps --solvers lp_simplex scip highs clp glpk --repeats 1 --seconds 90
+```
+
+## Script structure and regression checks
+
+| File | Responsibility |
+| --- | --- |
+| [benchmark.py](benchmark.py) | CLI, model preparation, solver execution, original-model audits, and measurement reuse |
+| [benchmark_reports.py](benchmark_reports.py) | Statistics, Markdown persistence, bilingual reports, and reproduction commands |
+| [compare_performance.py](compare_performance.py) | Paired diagnostics alternating between two builds |
+
+Timing, reuse, and solver/report lifecycle checks live in `test/test_benchmark_timing.py`, `test/test_benchmark_cache.py`, and `test/test_benchmark_solvers.py`, respectively. Run the complete tool regression suite:
+
+```sh
+python3 -B -m unittest discover -s test -p 'test_benchmark_*.py'
 ```

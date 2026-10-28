@@ -757,8 +757,8 @@ if(Python3_Interpreter_FOUND)
         OUTPUT_QUIET ERROR_QUIET)
     if(LP_SIMPLEX_TEST_PYTHON_NUMERICS EQUAL 0)
         add_test(NAME test_benchmark_tools
-                 COMMAND ${Python3_EXECUTABLE}
-                         ${CMAKE_CURRENT_SOURCE_DIR}/test_benchmark_solvers.py)
+                 COMMAND ${Python3_EXECUTABLE} -m unittest discover -s
+                         ${CMAKE_CURRENT_SOURCE_DIR} -p "test_benchmark_*.py")
     else()
         message(
             STATUS
